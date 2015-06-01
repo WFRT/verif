@@ -137,40 +137,41 @@ class Min(Metric):
    def name(self):
       return "Min of " + self._metric.name()
 
-class Mae(Metric):
+class Deterministic(Metric):
+   def computeCore(self, data, tRange):
+      [obs, fcst] = data.getScores(["obs", "fcst"])
+      return self.computeObsFcst(obs,fcst)
+
+class Mae(Deterministic):
    _min = 0
    _description = "Mean absolute error"
    _perfectScore = 0
-   def computeCore(self, data, tRange):
-      [obs, fcst] = data.getScores(["obs", "fcst"])
+   def computeObsFcst(self, obs, fcst):
       return np.mean(abs(obs - fcst))
    def name(self):
       return "MAE"
 
-class Medae(Metric):
+class Medae(Deterministic):
    _min = 0
    _description = "Median absolute error"
    _perfectScore = 0
-   def computeCore(self, data, tRange):
-      [obs, fcst] = data.getScores(["obs", "fcst"])
+   def computeObsFcst(self, obs, fcst):
       return np.median(abs(obs - fcst))
    def name(self):
       return "MedianAE"
 
-class Bias(Metric):
+class Bias(Deterministic):
    _description = "Bias"
    _perfectScore = 0
-   def computeCore(self, data, tRange):
-      [obs, fcst] = data.getScores(["obs", "fcst"])
+   def computeObsFcst(self, obs, fcst):
       return np.mean(obs - fcst)
 
-class Ef(Metric):
+class Ef(Deterministic):
    _description = "Exeedance fraction: percentage of times that obs exceed forecasts"
    _min = 0
    _max = 100
    _perfectScore = 50
-   def computeCore(self, data, tRange):
-      [obs, fcst] = data.getScores(["obs", "fcst"])
+   def computeObsFcst(self, obs, fcst):
       Nobs = np.sum(obs >= fcst) 
       Nfcst = np.sum(obs <= fcst)
       return Nfcst / 1.0 / (Nobs + Nfcst) * 100
@@ -204,22 +205,21 @@ class MinFcst(Extreme):
    def computeCore(self, data, tRange):
       return self.calc(data, np.min, "fcst")
 
-class StdError(Metric):
+class StdError(Deterministic):
    _min = 0
    _description = "Standard error (i.e. RMSE if forecast had no bias)"
    _perfectScore = 0
-   def computeCore(self, data, tRange):
-      [obs, fcst] = data.getScores(["obs", "fcst"])
+   def computeObsFcst(self, obs, fcst):
       bias = np.mean(obs - fcst)
       return np.mean((obs - fcst - bias)**2)**0.5
    def name(self):
       return "Standard error"
 
-class Std(Metric):
+class Std(Deterministic):
    _min = 0
    _description = "Standard deviation of forecast"
-   def computeCore(self, data, tRange):
-      return np.std(data.getScores("fcst"))
+   def computeObsFcst(self, obs, fcst):
+      return np.std(fcst)
    def label(self, data):
       return "STD of forecasts (" + data.getUnits() + ")"
 
@@ -338,72 +338,66 @@ class MarginalRatio(Metric):
    def label(self, data):
       return "Ratio of marginal probs: Pobs/Pfcst"
 
-class Rmse(Metric):
+class Rmse(Deterministic):
    _min = 0
    _description = "Root mean squared error"
    _perfectScore = 0
-   def computeCore(self, data, tRange):
-      [obs,fcst] = data.getScores(["obs", "fcst"])
+   def computeObsFcst(self, obs, fcst):
       return np.mean((obs - fcst)**2)**0.5
    def name(self):
       return "RMSE"
 
-class Rmsf(Metric):
+class Rmsf(Deterministic):
    _min = 0
    _description = "Root mean squared factor"
    _perfectScore = 1
-   def computeCore(self, data, tRange):
-      [obs,fcst] = data.getScores(["obs", "fcst"])
+   def computeObsFcst(self, obs, fcst):
       return np.exp(np.mean((np.log(fcst/obs))**2)**0.5)
    def name(self):
       return "RMSE"
 
-class Crmse(Metric):
+class Crmse(Deterministic):
    _min = 0
    _description = "Centered root mean squared error (RMSE without bias)"
    _perfectScore = 0
-   def computeCore(self, data, tRange):
-      [obs,fcst] = data.getScores(["obs", "fcst"])
+   def computeObsFcst(self, obs, fcst):
       bias = np.mean(obs)-np.mean(fcst)
       return np.mean((obs - fcst - bias)**2)**0.5
    def name(self):
       return "CRMSE"
 
 
-class Cmae(Metric):
+class Cmae(Deterministic):
    _min = 0
    _description = "Cube-root mean absolute cubic error"
    _perfectScore = 0
-   def computeCore(self, data, tRange):
-      [obs,fcst] = data.getScores(["obs", "fcst"])
+   def computeObsFcst(self, obs, fcst):
       return (np.mean(abs(obs**3 - fcst**3)))**(1.0/3)
    def name(self):
       return "CMAE"
 
-class Dmb(Metric):
+class Dmb(Deterministic):
    _description = "Degree of mass balance (obs/fcst)"
    _perfectScore = 1
-   def computeCore(self, data, tRange):
-      [obs,fcst] = data.getScores(["obs", "fcst"])
+   def computeObsFcst(self, obs, fcst):
       return np.mean(obs)/np.mean(fcst)
    def name(self):
       return "Degree of mass balance (obs/fcst)"
 
-class Num(Metric):
+class Num(Deterministic):
    _description = "Number of valid forecasts"
-   def computeCore(self, data, tRange):
+   def computeObsFcst(self, obs, fcst):
       [fcst] = data.getScores(["fcst"])
       return len(fcst)
    def name(self):
       return "Number of valid forecasts"
 
-class Corr(Metric):
+class Corr(Deterministic):
    _min = 0 # Technically -1, but values below 0 are not as interesting
    _max = 1
    _description = "Correlation between obesrvations and forecasts"
    _perfectScore = 1
-   def computeCore(self, data, tRange):
-      [obs,fcst]  = data.getScores(["obs", "fcst"])
+   def computeObsFcst(self, obs, fcst):
       if(len(obs) <= 1):
          return np.nan
       return np.corrcoef(obs,fcst)[1,0]
@@ -412,14 +406,13 @@ class Corr(Metric):
    def label(self, data):
       return "Correlation"
 
-class RankCorr(Metric):
+class RankCorr(Deterministic):
    _min = 0 # Technically -1, but values below 0 are not as interesting
    _max = 1
    _description = "Rank correlation between obesrvations and forecasts"
    _perfectScore = 1
-   def computeCore(self, data, tRange):
+   def computeObsFcst(self, obs, fcst):
       import scipy.stats
-      [obs,fcst]  = data.getScores(["obs", "fcst"])
       if(len(obs) <= 1):
          return np.nan
       return scipy.stats.spearmanr(obs,fcst)[0]
@@ -429,7 +422,7 @@ class RankCorr(Metric):
       return "Rank correlation"
 
 # Metrics based on 2x2 contingency table for a given threshold
-class Threshold(Metric):
+class Threshold(Deterministic):
    _reqThreshold = True
    _supThreshold = True
    # TODO: Which is correct?
@@ -445,8 +438,7 @@ class Within(Threshold):
    _description = "The percentage of forecasts within some error bound (use -r)"
    _defaultBinType = "below"
    _perfectScore = 100
-   def computeCore(self, data, tRange):
-      [obs,fcst]  = data.getScores(["obs", "fcst"])
+   def computeObsFcst(self, obs, fcst):
       diff = abs(obs - fcst)
       return np.mean(self.within(diff, tRange))*100
    def name(self):

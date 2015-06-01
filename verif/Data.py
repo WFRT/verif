@@ -4,6 +4,7 @@ import Common
 import re
 import sys
 import os
+import Input
 from matplotlib.dates  import *
 from matplotlib.ticker import ScalarFormatter
 
@@ -36,7 +37,8 @@ class Data:
       for filename in filenames:
          if(not os.path.exists(filename)):
             Common.error("File '" + filename + "' is not a valid input file")
-         file = netcdf.netcdf_file(filename, 'r')
+         # file = netcdf.netcdf_file(filename, 'r')
+         file = Input.Comps(filename)
          self._files.append(file)
          self._cache.append(dict())
       if(clim != None):
@@ -52,9 +54,9 @@ class Data:
 
       # Latitude-Longitude range
       if(latlonRange != None):
-         lat   = Common.clean(self._files[0].variables["Lat"])
-         lon   = Common.clean(self._files[0].variables["Lon"])
-         locId = Common.clean(self._files[0].variables["Location"])
+         lat   = self._files[0].getLats()
+         lon   = self._files[0].getLons()
+         locId = self._files[0].getStationIds()
          latlonLocations = list()
          minLon = latlonRange[0]
          maxLon = latlonRange[1]
@@ -179,7 +181,15 @@ class Data:
       # Find common values among all files
       values = aux
       for file in files:
-         temp = Common.clean(file.variables[name])
+         if(name == "Date"):
+            temp = file.getDates()
+         elif(name == "Offset"):
+            temp = file.getOffsets()
+         elif(name == "Location"):
+            stations = file.getStations()
+            temp = np.zeros(len(stations))
+            for i in range(0,len(stations)):
+               temp[i] = stations[i].id()
          if(values == None):
             values = temp
          else:
@@ -190,7 +200,15 @@ class Data:
       # Determine which index each value is at
       indices = list()
       for file in files:
-         temp = Common.clean(file.variables[name])
+         if(name == "Date"):
+            temp = file.getDates()
+         elif(name == "Offset"):
+            temp = file.getOffsets()
+         elif(name == "Location"):
+            stations = file.getStations()
+            temp = np.zeros(len(stations))
+            for i in range(0,len(stations)):
+               temp[i] = stations[i].id()
          I = np.where(np.in1d(temp, values))[0]
          II = np.zeros(len(I), 'int')
          for i in range(0,len(I)):
@@ -207,11 +225,8 @@ class Data:
 
    def getMetrics(self):
       metrics = None
-      for f in self._files:
-         currMetrics = set()
-         for (metric, v) in f.variables.iteritems():
-            if(not metric in ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]):
-               currMetrics.add(metric)
+      for file in self._files:
+         currMetrics = file.getMetrics()
          if(metrics == None):
             metrics = currMetrics
          else:
@@ -255,20 +270,19 @@ class Data:
       for f in range(0, self.getNumFilesWithClim()):
          if(not metric in self._cache[f]):
             file = self._files[f]
-            if(not metric in file.variables):
+            if(not metric in file.getVariables()):
                Common.error("Variable '" + metric + "' does not exist in " +
                      self.getFilenames()[f])
-            temp = file.variables[metric]
-            dims = temp.dimensions
-            temp = Common.clean(temp)
-            for i in range(0, len(dims)):
-               I = self._getIndices(dims[i].lower(), f)
-               if(i == 0):
-                  temp = temp[I,Ellipsis]
-               if(i == 1):
-                  temp = temp[:,I,Ellipsis]
-               if(i == 2):
-                  temp = temp[:,:,I,Ellipsis]
+            temp = file.getScores(metric)
+            if(metric not in ["Offset", "Location"]):
+               I = self._getIndices("date", f)
+               temp = temp[I,Ellipsis]
+            if(metric not in ["Date", "Location"]):
+               I = self._getIndices("offset", f)
+               temp = temp[:,I,Ellipsis]
+            if(metric not in ["Date", "Offset"]):
+               I = self._getIndices("location", f)
+               temp = temp[:,:,I,Ellipsis]
             self._cache[f][metric] = temp
 
       # Remove missing
@@ -285,7 +299,7 @@ class Data:
    # Checks that all files have the variable
    def hasMetric(self, metric):
       for f in range(0, self.getNumFilesWithClim()):
-         if(not metric in self._files[f].variables):
+         if(not metric in self._files[f].getVariables()):
             return False
       return True
 
@@ -302,15 +316,8 @@ class Data:
       return len(self._files)
 
    def getUnits(self):
-      if(hasattr(self._files[0], "Units")):
-         if(self._files[0].Units == ""):
-            return "No units"
-         elif(self._files[0].Units == "%"):
-            return "%"
-         else:
-            return "$" + self._files[0].Units + "$"
-      else:
-         return "No units"
+      # TODO: Only check first file?
+      return self._files[0].getUnits()
 
    def isLocationAxis(self, axis):
       if(axis == None):
@@ -368,7 +375,7 @@ class Data:
       names = list()
       files = self._getFiles()
       for i in range(0, len(files)):
-         names.append(files[i].filename)
+         names.append(files[i].getFilename())
       return names
    def getFilename(self, findex=None):
       if(findex == None):
@@ -395,7 +402,7 @@ class Data:
       return axis
 
    def getVariable(self):
-      return self._files[0].Variable
+      return self._files[0].getVariable()
 
    def getVariableAndUnits(self):
       return self.getVariable() + " (" + self.getUnits() + ")"
