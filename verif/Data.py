@@ -1,4 +1,4 @@
-import scipy.io.netcdf as netcdf
+from scipy import io
 import numpy as np
 import Common
 import re
@@ -37,13 +37,13 @@ class Data:
       for filename in filenames:
          if(not os.path.exists(filename)):
             Common.error("File '" + filename + "' is not a valid input file")
-         # file = netcdf.netcdf_file(filename, 'r')
+         # file = io.netcdf.netcdf_file(filename, 'r')
          file = Input.Comps(filename)
          self._files.append(file)
          self._cache.append(dict())
       if(clim != None):
          print clim
-         self._clim = netcdf.netcdf_file(clim, 'r')
+         self._clim = io.netcdf.netcdf_file(clim, 'r')
          self._cache.append(dict())
          if(not (climType == "subtract" or climType == "divide")):
             Common.error("Data: climType must be 'subtract' or 'divide")

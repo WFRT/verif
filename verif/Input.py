@@ -1,4 +1,4 @@
-import scipy.io.netcdf as netcdf
+from scipy import io
 import numpy as np
 from Station import *
 import Common
@@ -58,7 +58,7 @@ class Input:
 class Comps(Input):
    def __init__(self, filename):
       Input.__init__(self, filename)
-      self._file = netcdf.netcdf_file(filename, 'r')
+      self._file = io.netcdf.netcdf_file(filename, 'r')
    def getName(self):
       return self._file.variables
    def getStations(self):
