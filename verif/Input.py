@@ -1,4 +1,4 @@
-from scipy.io import netcdf
+import scipy.io.netcdf as netcdf
 import numpy as np
 from Station import *
 import Common
