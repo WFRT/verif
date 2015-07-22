@@ -1,0 +1,12 @@
+sudo: required
+
+env:
+ - DIST=lucid
+
+before_install:
+   - sudo apt-get update -qq
+   - sudo apt-get install python-matplotlib
+
+script: sudo debuild-pbuilder -us -c
+
+os: linux
