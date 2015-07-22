@@ -6,8 +6,9 @@ install:
    - sudo apt-get install libblas-dev
    - sudo apt-get install liblapack-dev
    - sudo apt-get install gfortran
-   - sudo apt-get install python-numpy python-scipy python-matplotlib
-   - pip install matplotlib numpy scipy
+   - pip install scipy
+   - pip install numpy
+   - pip install matplotlib
 
 script:
    - sudo python setup.py build
