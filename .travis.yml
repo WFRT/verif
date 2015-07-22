@@ -7,7 +7,10 @@ install:
    - pip install numpy
    - pip install scipy
 
-script: sudo install setup.py
+script:
+   - sudo python setup.py build
+   - sudo python setup.py install
+   - python -m verif.testing
 
 env:
  - DIST=lucid
