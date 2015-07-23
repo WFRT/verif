@@ -6,13 +6,11 @@ install:
    - sudo apt-get install libblas-dev
    - sudo apt-get install liblapack-dev
    - sudo apt-get install gfortran
-   - pip install scipy
-   - pip install numpy
-   - pip install matplotlib
-
-script:
+   - pip install -r requirements.txt
    - sudo python setup.py build
    - sudo python setup.py install
+
+script:
    - python -m verif.testing
 
 env:
