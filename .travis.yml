@@ -1,12 +1,12 @@
 language: python
 python:
-  - "2.6"
+   - "2.7_with_system_site_packages"
 
 install:
    - sudo apt-get install libblas-dev
    - sudo apt-get install liblapack-dev
    - sudo apt-get install gfortran
-   - pip install -r requirements.txt
+   - sudo apt-get install -qq python-numpy python-scipy python-matplotlib
    - sudo python setup.py build
    - sudo python setup.py install
 
