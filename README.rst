@@ -3,7 +3,11 @@ Verification of weather forecasts
 
 This software computes verification statistics for weather forecasts at point locations. It can be used to document the quality of one forecasting system but can also be used to compare different weather models and/or different post-processing methods.
 
+The program works by parsing NetCDF files with observations and forecasts in a specific format (see "Input files" below).
+
 verif is a command-line tool that can therefore be used to automatically create verification figures.
+
+Developed by Thomas Nipen, David Siuta, and Tim Chui.
 
 Features
 --------
