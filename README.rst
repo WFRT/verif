@@ -47,13 +47,18 @@ To install, just execute:
   python setup.py install
 
 verif will then be installed /usr/local/share/python/ or where ever your python modules are
-installed (Look for "Installing verif script to <some directory>" when installing).
+installed (Look for "Installing verif script to <some directory>" when installing).Be sure to add this directory
+to your $PATH environment variable.
 
 Example
 -------
 .. code-block:: bash
 
-  verif file1.nc file2.nc -m mae
+Fake data for testing the program is found in ./examples/. Use the following command to test:
+
+.. code-block:: bash
+
+   verif examples/T_raw.nc examples/T_kf.nc -m mae
 
 Input files
 -----------
