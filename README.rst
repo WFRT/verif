@@ -1,5 +1,5 @@
-Verification of weather forecasts
-=================================
+Forecast verification software
+==============================
 
 .. image:: https://travis-ci.org/tnipen/verif.svg?branch=master
     :target: https://travis-ci.org/tnipen/verif
@@ -14,6 +14,11 @@ files" below).
 verif is a command-line tool that can therefore be used to automatically create verification figures.
 
 Developed by Thomas Nipen, David Siuta, and Tim Chui.
+
+.. image:: image.jpg
+    :alt: Example plots
+    :width: 400
+    :align: center
 
 Features
 --------
