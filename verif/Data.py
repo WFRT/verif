@@ -1,10 +1,10 @@
 from scipy import io
 import numpy as np
-import Common
+import verif.Common
 import re
 import sys
 import os
-import Input
+import verif.Input
 from matplotlib.dates  import *
 from matplotlib.ticker import ScalarFormatter
 

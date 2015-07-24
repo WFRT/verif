@@ -1,9 +1,9 @@
 import sys
 import os
-from Data import *
+import verif.Data as Data
 import verif.Output as Output
 import verif.Metric as Metric
-from verif.Common import *
+import verif.Common as Common
 import matplotlib.pyplot as mpl
 import textwrap
 def main():
@@ -187,7 +187,7 @@ def main():
       Common.error("-llRange <values> must have exactly 4 values")
 
    if(len(ifiles) > 0):
-      data = Data(ifiles, clim=climFile, climType=climType, dates=dates, offsets=offsets,
+      data = Data.Data(ifiles, clim=climFile, climType=climType, dates=dates, offsets=offsets,
             locations=locations, latlonRange=latlonRange, training=training)
    else:
       data = None

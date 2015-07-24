@@ -2,8 +2,8 @@
 import matplotlib.pyplot as mpl
 import re
 import datetime
-import Common
-import Metric
+import verif.Common
+import verif.Metric
 import numpy as np
 import sys
 reload(sys)

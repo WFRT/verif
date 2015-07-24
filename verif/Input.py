@@ -1,7 +1,7 @@
 from scipy import io
 import numpy as np
-from Station import *
-import Common
+import verif.Station
+import verif.Common
 
 # Abstract base class representing verification data
 class Input:
@@ -68,7 +68,7 @@ class Comps(Input):
       elev = Common.clean(self._file.variables["Elev"])
       stations = list()
       for i in range(0, lat.shape[0]):
-         station = Station(id, lat, lon, elev)
+         station = Station.Station(id, lat, lon, elev)
          stations.append(station)
       return stations
    def getScores(self, metric):
