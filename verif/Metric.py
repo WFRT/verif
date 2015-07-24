@@ -1,5 +1,5 @@
 import numpy as np
-import verif.Common
+import verif.Common as Common
 import sys
 import inspect
 def getAllMetrics():

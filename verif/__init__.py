@@ -482,7 +482,7 @@ def showDescription(data=None):
    print "		   [-title Title]"
    #print "                 [-pad Pad]"
    print ""
-   print green("Arguments:")
+   print Common.green("Arguments:")
    print "   files         One or more COMPS verification files in NetCDF format."
    print "   metric        Verification score to use. See available metrics below."
    print "   x-dim         Plot this dimension on the x-axis: date, offset, location, locationId,"

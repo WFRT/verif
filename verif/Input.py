@@ -1,7 +1,7 @@
 from scipy import io
 import numpy as np
-import verif.Station
-import verif.Common
+import verif.Station as Station
+import verif.Common as Common
 
 # Abstract base class representing verification data
 class Input:

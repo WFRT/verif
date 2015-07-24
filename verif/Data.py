@@ -1,10 +1,10 @@
 from scipy import io
 import numpy as np
-import verif.Common
+import verif.Common as Common
 import re
 import sys
 import os
-import verif.Input
+import verif.Input as Input
 from matplotlib.dates  import *
 from matplotlib.ticker import ScalarFormatter
 
@@ -230,7 +230,7 @@ class Data:
          if(metrics == None):
             metrics = currMetrics
          else:
-            metrics = metrics & set(currMetrics)
+            metrics = set(metrics) & set(currMetrics)
 
       return metrics
 

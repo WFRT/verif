@@ -3,3 +3,5 @@ dist
 build
 *.egg-info
 *~
+.coverage
+cover
