@@ -13,6 +13,7 @@ install:
 
 script:
    - nosetests
+   - coverage run --source=verif setup.py test
 
 after_success:
    - coveralls
