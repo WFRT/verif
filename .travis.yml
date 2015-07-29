@@ -12,7 +12,7 @@ install:
    - sudo python setup.py install
 
 script:
-   - coverage run nosetests
+   - coverage run --source=verif nosetests
 
 after_success:
    - coveralls
