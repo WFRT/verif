@@ -23,7 +23,7 @@ from matplotlib.ticker import ScalarFormatter
 # training: Remove the first 'training' days of data (to allow the forecasts to train its
 #           adaptive parameters)
 class Data:
-   def __init__(self, filenames, dates=None, offsets=None, locations=None, latlonRange=None, clim=None,
+   def __init__(self, filenames, dates=None, offsets=None, locations=None, latlonRange=None, elevRange=None, clim=None,
          climType="subtract", training=None):
       if(not isinstance(filenames, list)):
          filenames = [filenames]
@@ -42,7 +42,6 @@ class Data:
          self._files.append(file)
          self._cache.append(dict())
       if(clim != None):
-         print clim
          self._clim = io.netcdf.netcdf_file(clim, 'r')
          self._cache.append(dict())
          if(not (climType == "subtract" or climType == "divide")):
@@ -79,6 +78,21 @@ class Data:
             Common.error("No available locations within lat/lon range")
       else:
          useLocations = locations
+
+      # Elevation range
+      if(elevRange != None):
+         lat   = self._files[0].getElevs()
+         locId = self._files[0].getStationIds()
+         elevLocations = list()
+         minElev = elevRange[0]
+         maxElev = elevRange[1]
+         for i in range(0,len(elev)):
+            currElev = float(elev[i])
+            if(currElev >= minElev and currElev <= maxElev):
+               elevLocations.append(locId[i])
+         useLocations = Common.intersect(useLocations, elevLocations)
+         if(len(useLocations) == 0):
+            Common.error("No available locations within elevation range")
 
       # Find common indicies
       self._datesI     = Data._getCommonIndices(self._files, "Date", dates)
@@ -170,7 +184,8 @@ class Data:
 
       # No valid data
       if(q[0].shape[0] == 0):
-         q[0] = np.nan*np.zeros([1], 'float')
+         for i in range(0, len(metrics)):
+            q[i] = np.nan*np.zeros([1], 'float')
 
       return q
 
@@ -274,15 +289,16 @@ class Data:
                Common.error("Variable '" + metric + "' does not exist in " +
                      self.getFilenames()[f])
             temp = file.getScores(metric)
-            if(metric not in ["Offset", "Location"]):
-               I = self._getIndices("date", f)
-               temp = temp[I,Ellipsis]
-            if(metric not in ["Date", "Location"]):
-               I = self._getIndices("offset", f)
-               temp = temp[:,I,Ellipsis]
-            if(metric not in ["Date", "Offset"]):
-               I = self._getIndices("location", f)
-               temp = temp[:,:,I,Ellipsis]
+            dims = file.getDims(metric)
+            temp = Common.clean(temp)
+            for i in range(0, len(dims)):
+               I = self._getIndices(dims[i].lower(), f)
+               if(i == 0):
+                  temp = temp[I,Ellipsis]
+               if(i == 1):
+                  temp = temp[:,I,Ellipsis]
+               if(i == 2):
+                  temp = temp[:,:,I,Ellipsis]
             self._cache[f][metric] = temp
 
       # Remove missing

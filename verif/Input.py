@@ -68,12 +68,14 @@ class Comps(Input):
       elev = Common.clean(self._file.variables["Elev"])
       stations = list()
       for i in range(0, lat.shape[0]):
-         station = Station.Station(id, lat, lon, elev)
+         station = Station.Station(id[i], lat[i], lon[i], elev[i])
          stations.append(station)
       return stations
    def getScores(self, metric):
       temp = Common.clean(self._file.variables[metric])
       return temp
+   def getDims(self, metric):
+      return self._file.variables[metric].dimensions
    def getDates(self):
       return Common.clean(self._file.variables["Date"])
    def getOffsets(self):

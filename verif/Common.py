@@ -84,7 +84,7 @@ def getMapResolution(lats, lons):
    scale = max(dlat, dlon)
    if(np.isnan(scale)):
       res = "c"
-   elif(scale > 30):
+   elif(scale > 60):
       res = "c"
    elif(scale > 1):
       res = "i"
@@ -157,3 +157,6 @@ def nanpercentile(data, pers):
    return p
     #return np.ma.filled(np.ma.masked_array(data,np.isnan(data)).percentile(pers),
     #      fill_value=np.nan)
+
+def intersect(list1, list2):
+   return list(set(list1) & set(list2))

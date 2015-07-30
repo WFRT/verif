@@ -73,7 +73,7 @@ Input files must be in NetCDF and have dimensions and attributes as described be
 example file. The format is still being decided but will be based on NetCDF/CF standard.
 
 .. code-block:: bash
-
+   netcdf format {
    dimensions :
       date    = UNLIMITED;
       offset  = 48;
@@ -90,19 +90,21 @@ example file. The format is still being decided but will be based on NetCDF/CF s
       float lat(station);
       float lon(station);
       float elev(station);
-      float obs(date, offset, station);
-      float mean(date, offset, station);
-      float fcst(date, offset, station);
-      float cdf(date, offset, station, threshold);
-      float pdf(date, offset, station, threshold);
-      float x(date, offset, station, quantile);
-      float pit(date, offset, station);
+      float obs(date, offset, station);              // Observations
+      float ens(date, offset, ensemble, station);    // Ensemble forecast
+      float fcst(date, offset, station);             // Deterministic forecast
+      float cdf(date, offset, threshold, station);   // Accumulated prob at threshold
+      float pdf(date, offset, threshold, station);   // Pdf at threshold
+      float x(date, offset, quantile, station);      // Threshold corresponding to quantile
+      float pit(date, offset, station);              // CDF for threshold=observation
 
    global attributes:
-      : name = "raw";
-      : variable = "T";
+      : name = "raw";                                // Used as configuration name
+      : long_name = "Temperature";                   // Used to label plots
       : standard_name = "air_temperature_2m";
       : Units = "^oC";
+      : Conventions = "verif_1.0.0";
+      }
 
 Copyright and license
 ---------------------

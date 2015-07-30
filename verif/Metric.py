@@ -338,6 +338,23 @@ class MarginalRatio(Metric):
    def label(self, data):
       return "Ratio of marginal probs: Pobs/Pfcst"
 
+class SpreadSkillDiff(Metric):
+   _description = "Difference between spread and skill in %"
+   _perfectScore = 1
+   def computeCore(self, data, tRange):
+      import scipy.stats
+      [obs,fcst,spread]  = data.getScores(["obs", "fcst", "spread"])
+      if(len(obs) <= 1):
+         return np.nan
+      rmse = np.sqrt(np.mean((obs-fcst)**2))
+      spread = np.mean(spread)/2.563103
+      return 100 * (spread / rmse - 1)
+   def name(self):
+      return "Spread-skill difference"
+   def label(self, data):
+      return "Spread-skill difference (%)"
+
+
 class Rmse(Deterministic):
    _min = 0
    _description = "Root mean squared error"
@@ -528,6 +545,15 @@ class Bs(Threshold):
       p    = p1 - p0 # Prob of obs within range
       return [obsP, p]
 
+   @staticmethod
+   def getQ(data, tRange):
+      p0 = 0
+      p1 = 1
+      var = data.getQvar(tRange[0])
+      [obs, q] = data.getScores(["obs", var])
+      
+      return [obs, q]
+
    def label(self, data):
       return "Brier score"
 
@@ -609,6 +635,18 @@ class BsRes(Threshold):
       return Common.nanmean(bs)
    def label(self, data):
       return "Brier score, resolution term"
+
+class QuantileScore(Threshold):
+   _min = 0
+   _description = "Quantile score. Requires quantiles to be stored"\
+                  "(e.g q10, q90...).  Use -x to set which quantiles to use."
+   _perfectScore = 0
+   def computeCore(self, data, tRange):
+      [obs,q] = Bs.getQ(data, tRange)
+      qs = np.nan*np.zeros(len(q), 'float')
+      v = q - obs
+      qs = v * (tRange[0] - (v < 0))
+      return np.mean(qs)
 
 class Ign0(Threshold):
    _description = "Ignorance of the binary probability based on threshold"
