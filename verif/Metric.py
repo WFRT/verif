@@ -167,14 +167,13 @@ class Bias(Deterministic):
       return np.mean(obs - fcst)
 
 class Ef(Deterministic):
-   _description = "Exeedance fraction: percentage of times that obs exceed forecasts"
+   _description = "Exeedance fraction: percentage of times that forecasts > observations"
    _min = 0
    _max = 100
    _perfectScore = 50
    def computeObsFcst(self, obs, fcst):
-      Nobs = np.sum(obs >= fcst) 
-      Nfcst = np.sum(obs <= fcst)
-      return Nfcst / 1.0 / (Nobs + Nfcst) * 100
+      Nfcst = np.sum(obs < fcst)
+      return Nfcst / 1.0 / len(fcst) * 100
    def label(self, data):
       return "% times fcst > obs"
 
