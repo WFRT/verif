@@ -280,6 +280,8 @@ def main():
          m = Metric.Corr()
       elif(metric == "rankcorr"):
          m = Metric.RankCorr()
+      elif(metric == "kendallcorr"):
+         m = Metric.KendallCorr()
       elif(metric == "bias"):
          m = Metric.Bias()
       elif(metric == "ef"):

@@ -437,6 +437,21 @@ class RankCorr(Deterministic):
    def label(self, data):
       return "Rank correlation"
 
+class KendallCorr(Deterministic):
+   _min = 0 # Technically -1, but values below 0 are not as interesting
+   _max = 1
+   _description = "Kendall correlation between obesrvations and forecasts"
+   _perfectScore = 1
+   def computeObsFcst(self, obs, fcst):
+      import scipy.stats
+      if(len(obs) <= 1):
+         return np.nan
+      return scipy.stats.kendalltau(obs,fcst)[0]
+   def name(self):
+      return "Kendall correlation"
+   def label(self, data):
+      return "Kendall correlation"
+
 # Metrics based on 2x2 contingency table for a given threshold
 class Threshold(Deterministic):
    _reqThreshold = True
