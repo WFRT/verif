@@ -1732,10 +1732,9 @@ class Taylor(Output):
       mpl.gca().xaxis.set_ticks_position('bottom')
 
       # Draw obs point/lines
-      orange = [1,0.73,0.2]
-      self._drawCircle(stdobs, style='-', lw=2, color=orange)
-      mpl.plot(stdobs, 0, 's-', color=orange, label="Observation", lw=self._lw, ms=self._ms)
-      mpl.plot([-maxstd, maxstd], [0,0], '-', color=orange, lw=self._lw*2)
+      orange = [1,0.8,0.4]
+      self._drawCircle(stdobs, style='-', lw=5, color=orange)
+      mpl.plot(stdobs, 0, 's-', color=orange, label="Observation", mew=2, ms=self._ms, clip_on=False)
 
       # Draw diagonals
       corrs = [-1,-0.99,-0.95,-0.9,-0.8,-0.5,0,0.5,0.8,0.9,0.95,0.99] #np.linspace(-1,1,21)
