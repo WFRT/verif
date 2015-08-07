@@ -116,26 +116,67 @@ class Text(Input):
       Input.__init__(self, filename)
       file = open(filename, 'r')
       reader = csv.reader(file, delimiter=' ')
-      # First pass, get the dimensions
+
       self._dates = set()
       self._offsets = set()
       self._stations = set()
       obs = dict()
       fcst = dict()
+      indices = dict()
+      header = None
+
+      # Default values if columns not available
+      offset  = 0
+      date    = 0
+      lat     = 0
+      lon     = 0
+      elev    = 0
+
+      # Read the data into dictionary with (date,offset,lat,lon,elev) as key and obs/fcst as values
       for row in reader:
-         if(row[0] != '#'):
-            date = float(row[0])
-            offset = float(row[1])
+         if(header == None):
+            # Parse the header so we know what each column represents
+            header = row
+            for i in range(0, len(header)):
+               att = header[i]
+               if(att == "date"):
+                  indices["date"] = i
+               elif(att == "offset"):
+                  indices["offset"] = i
+               elif(att == "lat"):
+                  indices["lat"] = i
+               elif(att == "lon"):
+                  indices["lon"] = i
+               elif(att == "elev"):
+                  indices["elev"] = i
+               elif(att == "obs"):
+                  indices["obs"] = i
+               elif(att == "fcst"):
+                  indices["fcst"] = i
+
+            # Ensure we have required columns
+            requiredColumns = ["obs", "fcst"]
+            for col in requiredColumns:
+               if(not indices.has_key(col)):
+                  msg = "Could not parse %s: Missing column '%s'" % (filename, col)
+                  Common.error(msg)
+         else:
+            if(indices.has_key("date")):
+               date = float(row[indices["date"]])
             self._dates.add(date)
+            if(indices.has_key("offset")):
+               offset = float(row[indices["offset"]])
             self._offsets.add(offset)
-            lat = float(row[2])
-            lon = float(row[3])
-            elev = float(row[4])
+            if(indices.has_key("lat")):
+               lat = float(row[indices["lat"]])
+            if(indices.has_key("lon")):
+               lon = float(row[indices["lon"]])
+            if(indices.has_key("elev")):
+               elev = float(row[indices["elev"]])
             station = Station.Station(0, lat, lon, elev)
             self._stations.add(station)
-            print (date,offset,lat,lon,elev)
-            obs[(date,offset,lat,lon,elev)]  = float(row[5])
-            fcst[(date,offset,lat,lon,elev)] = float(row[6])
+            obs[(date,offset,lat,lon,elev)]  = float(row[indices["obs"]])
+            fcst[(date,offset,lat,lon,elev)] = float(row[indices["fcst"]])
       file.close()
       self._dates = list(self._dates)
       self._offsets = list(self._offsets)
@@ -143,6 +184,8 @@ class Text(Input):
       Ndates = len(self._dates)
       Noffsets = len(self._offsets)
       Nlocations = len(self._stations)
+
+      # Put the dictionary data into a regular 3D array
       self._obs  = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
       self._fcst = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
       for d in range(0,len(self._dates)):
