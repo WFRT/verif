@@ -67,12 +67,28 @@ Fake data for testing the program is found in ./examples/. Use the following com
 
    verif examples/T_raw.nc examples/T_kf.nc -m mae
 
-Input files
------------
-Input files must be in NetCDF and have dimensions and attributes as described below in the
+Text-based input
+----------------
+Two data formats are supported. A simple text format for deterministic forecasts has the following format:
+
+.. code-block:: bash
+
+   date     offset lat     lon      elev     obs      fcst
+   20150101 0      49.2    -122.1   92       3.4      2.1
+   20150101 1      49.2    -122.1   92       4.7      4.2
+   20150101 0      50.3    -120.3   150      0.2      -1.2
+
+The first line must describe the columns. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), lat
+(in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast). obs and fcst are required and a value of 0
+is used for any missing column.
+
+NetCDF input
+------------
+For more advanced usage, the files  must be in NetCDF and have dimensions and attributes as described below in the
 example file. The format is still being decided but will be based on NetCDF/CF standard.
 
 .. code-block:: bash
+
    netcdf format {
    dimensions :
       date    = UNLIMITED;
