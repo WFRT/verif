@@ -109,5 +109,5 @@ example file. The format is still being decided but will be based on NetCDF/CF s
 Copyright and license
 ---------------------
 
-Copyright (C) 2015 Weather Forecast Research Team. verif is licensed under the 3-clause BSD license. See LICENSE
+Copyright © 2015 UBC Weather Forecast Research Team. verif is licensed under the 3-clause BSD license. See LICENSE
 file.
