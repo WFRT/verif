@@ -1,0 +1,23 @@
+language: python
+python:
+   - "2.7_with_system_site_packages"
+
+install:
+   - sudo apt-get install libblas-dev
+   - sudo apt-get install liblapack-dev
+   - sudo apt-get install gfortran
+   - sudo apt-get install -qq python-numpy python-scipy python-matplotlib
+   - pip install coveralls
+   - sudo python setup.py build
+   - sudo python setup.py install
+
+script:
+   - nosetests --with-coverage --cover-erase --cover-package=verif
+
+after_success:
+   - coveralls
+
+env:
+ - DIST=lucid
+
+os: linux
