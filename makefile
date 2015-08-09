@@ -1,4 +1,6 @@
-.coverage: tests/
-	nosetests --with-coverage --cover-package=verif --cover-html
+coverage:
+	#nosetests --with-coverage --cover-erase --cover-package=verif --cover-html --cover-branches
+	nosetests --with-coverage --cover-erase --cover-package=verif --cover-html
 
-cover: .coverage
+test:
+	nosetests

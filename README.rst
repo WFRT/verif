@@ -54,7 +54,7 @@ To install, just execute:
   python setup.py install
 
 verif will then be installed /usr/local/share/python/ or where ever your python modules are
-installed (Look for "Installing verif script to <some directory>" when installing).Be sure to add this directory
+installed (Look for "Installing verif script to <some directory>" when installing). Be sure to add this directory
 to your $PATH environment variable.
 
 Example
@@ -80,7 +80,7 @@ Two data formats are supported. A simple text format for deterministic forecasts
 
 The first line must describe the columns. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), lat
 (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast). obs and fcst are required and a value of 0
-is used for any missing column. The order of the column is free.
+is used for any missing column. The columns can be in any order.
 
 NetCDF input
 ------------
