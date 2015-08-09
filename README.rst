@@ -1,10 +1,10 @@
 Forecast verification software
 ==============================
 
-.. image:: https://travis-ci.org/tnipen/verif.svg?branch=master
-  :target: https://travis-ci.org/tnipen/verif
-.. image:: https://coveralls.io/repos/tnipen/verif/badge.svg?branch=master&service=github
-  :target: https://coveralls.io/github/tnipen/verif?branch=master
+.. image:: https://travis-ci.org/WFRT/verif.svg?branch=master
+  :target: https://travis-ci.org/WFRT/verif
+.. image:: https://coveralls.io/repos/WFRT/verif/badge.svg?branch=master&service=github
+  :target: https://coveralls.io/github/WFRT/verif?branch=master
 
 This software computes verification statistics for weather forecasts at point locations. It can be used to
 document the quality of one forecasting system but can also be used to compare different weather models and/or
