@@ -24,7 +24,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/tnipen/verif',
+    url='https://github.com/WFRT/verif',
 
     # Author details
     author='Thomas Nipen',
