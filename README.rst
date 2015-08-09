@@ -80,7 +80,7 @@ Two data formats are supported. A simple text format for deterministic forecasts
 
 The first line must describe the columns. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), lat
 (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast). obs and fcst are required and a value of 0
-is used for any missing column.
+is used for any missing column. The order of the column is free.
 
 NetCDF input
 ------------
