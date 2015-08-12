@@ -36,12 +36,15 @@ class Data:
       self._clim = None
       for filename in filenames:
          if(not os.path.exists(filename)):
-            Common.error("File '" + filename + "' is not a valid input file")
-         # file = io.netcdf.netcdf_file(filename, 'r')
-         try:
+            Common.error("File '" + filename + "' does not exist")
+         if(Input.NetcdfCf.isValid(filename)):
+            file = Input.NetcdfCf(filename)
+         elif(Input.Comps.isValid(filename)):
             file = Input.Comps(filename)
-         except:
+         elif(Input.Text.isValid(filename)):
             file = Input.Text(filename)
+         else:
+            Common.error("File '" + filename + "' is not a valid input file")
          self._files.append(file)
          self._cache.append(dict())
       if(clim != None):

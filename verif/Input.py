@@ -108,11 +108,30 @@ class Comps(Input):
          return "No units"
    def getVariable(self):
       return self._file.Variable
+   @staticmethod
+   def isValid(filename):
+      try:
+         file = io.netcdf.netcdf_file(filename, 'r')
+      except:
+         return False
+      return True
 
 # New standard format, based on NetCDF/CF
 class NetcdfCf(Input):
    def __init__(self, filename):
       pass
+   @staticmethod
+   def isValid(filename):
+      try:
+         file = io.netcdf.netcdf_file(filename, 'r')
+      except:
+         return False
+      valid = False
+      if(hasattr(file, "Conventions")):
+         if(file.Conventions == "verif_1.0.0"):
+            valid = True
+      file.close()
+      return valid
 
 # Flat text file format
 class Text(Input):
@@ -247,6 +266,9 @@ class Text(Input):
       return "Unknown units"
    def getVariable(self):
       return "Unknown"
+   @staticmethod
+   def isValid(filename):
+      return True
 
 class Fake(Input):
    def __init__(self, obs, fcst):
