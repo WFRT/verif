@@ -5,6 +5,7 @@ import verif.Common as Common
 
 # Abstract base class representing verification data
 class Input:
+   _description  = ""    # Overwrite this
    def __init__(self, filename):
       self._filename = filename
    def getName(self):
@@ -53,9 +54,13 @@ class Input:
       for i in range(0, len(stations)):
          ids[i] = stations[i].id()
       return ids
+   @classmethod
+   def description(cls):
+      return cls._description
 
 # Original fileformat used by OutputVerif in COMPS
 class Comps(Input):
+   _description = "Netcdf format"
    def __init__(self, filename):
       Input.__init__(self, filename)
       self._file = io.netcdf.netcdf_file(filename, 'r')
@@ -111,6 +116,7 @@ class NetcdfCf(Input):
 
 # Flat text file format
 class Text(Input):
+   _description = "One line for each obs/fcst pair"
    def __init__(self, filename):
       import csv
       Input.__init__(self, filename)

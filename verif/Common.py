@@ -4,6 +4,7 @@ import sys
 from matplotlib.dates import *
 from copy import deepcopy
 import matplotlib.pyplot as mpl
+import textwrap
 def convertDates(dates):
    numDates = len(dates)
    dates2 = np.zeros([numDates], 'float')   
@@ -160,3 +161,33 @@ def nanpercentile(data, pers):
 
 def intersect(list1, list2):
    return list(set(list1) & set(list2))
+
+def formatArgument(argument, description, argumentWidth=19, totalWidth=100, indent=2):
+   #fmt = "  %-" + str(argumentWidth) + "s%s"
+   #output = fmt % (argument, textwrap.fill(description, totalWidth-argumentWidth).replace('\n', '\n                 '))
+   #return output
+      #output = "   %-20s" % (argument)
+      #output = output + "\n" + "      %s" % description + "\n"
+      #return output
+   fmt = "%-" + str(indent) + "s%-" + str(argumentWidth-indent) + "s"
+   curr = fmt %  ("", argument)
+   if(len(argument) > argumentWidth-indent-2):
+      output = curr + '\n'
+      curr = ""
+      for i in range(0, argumentWidth):
+         curr = curr + " "
+   else:
+      output = ""
+   words = description.split()
+   for i in range(0,len(words)):
+      word = words[i]
+      if len(curr) + len(word) > totalWidth:
+         output = output + curr + "\n"
+         curr = ""
+         for i in range(0, argumentWidth):
+            curr = curr + " "
+      elif(i != 0):
+         curr = curr + " "
+      curr = curr + word
+   output = output + curr
+   return output
