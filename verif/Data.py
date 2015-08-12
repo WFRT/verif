@@ -263,7 +263,7 @@ class Data:
       elif(axis == "location"):
          I = self._getLocationIndices(findex)
       else:
-         Common.error(axis)
+         Common.error("Could not get indices for axis: " + str(axis))
       return I
    def _getDateIndices(self, findex=None):
       if(findex == None):

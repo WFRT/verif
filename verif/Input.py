@@ -145,8 +145,12 @@ class Text(Input):
       self._dates = set()
       self._offsets = set()
       self._stations = set()
+      self._quantiles = set()
+      self._thresholds = set()
       obs = dict()
       fcst = dict()
+      cdf = dict()
+      x   = dict()
       indices = dict()
       header = None
 
@@ -178,6 +182,8 @@ class Text(Input):
                   indices["obs"] = i
                elif(att == "fcst"):
                   indices["fcst"] = i
+               else:
+                  indices[att] = i
 
             # Ensure we have required columns
             requiredColumns = ["obs", "fcst"]
@@ -202,17 +208,35 @@ class Text(Input):
             self._stations.add(station)
             obs[(date,offset,lat,lon,elev)]  = float(row[indices["obs"]])
             fcst[(date,offset,lat,lon,elev)] = float(row[indices["fcst"]])
+            quantileFields = self._getQuantileFields(header)
+            thresholdFields = self._getThresholdFields(header)
+            for field in quantileFields:
+               quantile = float(field[1:])
+               self._quantiles.add(quantile)
+               key = (date,offset,lat,lon,elev,quantile)
+               x[key] = float(row[indices[field]])
+            for field in thresholdFields:
+               threshold = float(field[1:])
+               self._thresholds.add(threshold)
+               key = (date,offset,lat,lon,elev,threshold)
+               cdf[key] = float(row[indices[field]])
       file.close()
       self._dates = list(self._dates)
       self._offsets = list(self._offsets)
       self._stations = list(self._stations)
+      self._quantiles = list(self._quantiles)
+      self._thresholds = list(self._thresholds)
       Ndates = len(self._dates)
       Noffsets = len(self._offsets)
       Nlocations = len(self._stations)
+      Nquantiles = len(self._quantiles)
+      Nthresholds = len(self._thresholds)
 
       # Put the dictionary data into a regular 3D array
       self._obs  = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
       self._fcst = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
+      self._cdf  = np.zeros([Ndates, Noffsets, Nlocations, Nthresholds], 'float') * np.nan
+      self._x    = np.zeros([Ndates, Noffsets, Nlocations, Nquantiles], 'float') * np.nan
       for d in range(0,len(self._dates)):
          date = self._dates[d]
          for o in range(0, len(self._offsets)):
@@ -227,13 +251,35 @@ class Text(Input):
                   self._obs[d][o][s]  = obs[key]
                if(fcst.has_key(key)):
                   self._fcst[d][o][s] = fcst[key]
-
+               for q in range(0, len(self._quantiles)):
+                  quantile = self._quantiles[q]
+                  key = (date,offset,lat,lon,elev,quantile)
+                  if(x.has_key(key)):
+                     self._x[d,o,s,q] = x[key]
+               for t in range(0, len(self._thresholds)):
+                  threshold = self._thresholds[q]
+                  key = (date,offset,lat,lon,elev,threshold)
+                  if(cdf.has_key(key)):
+                     self._cdf[d,o,s,q] = cdf[key]
       counter = 0
       for station in self._stations:
          station.id(counter)
          counter = counter + 1
       self._dates = np.array(self._dates)
       self._offsets = np.array(self._offsets)
+   def _getQuantileFields(self, fields):
+      quantiles = list()
+      for att in fields:
+         if(att[0] == "q"):
+            quantiles.append(att)
+      return quantiles
+   def _getThresholdFields(self, fields):
+      thresholds = list()
+      for att in fields:
+         if(att[0] == "p"):
+            thresholds.append(att)
+      return thresholds
+
    def getName(self):
       return "Unknown"
    def getStations(self):
@@ -243,6 +289,10 @@ class Text(Input):
          return self._obs
       elif(metric == "fcst"):
          return self._fcst
+      elif(metric == "p10"):
+         return self._cdf[:,:,:,0]
+      elif(metric == "q10"):
+         return self._x[:,:,:,0]
       elif(metric == "Offset"):
          return self._offsets
       else:
@@ -258,9 +308,19 @@ class Text(Input):
       return self._offsets
    def getMetrics(self):
       metrics = ["obs", "fcst"]
+      for quantile in self._quantiles:
+         metrics.append("q" + str(quantile))
+      for threshold in self._thresholds:
+         metrics.append("p" + str(int(threshold)))
       return metrics
+   def getQuantiles(self):
+      return self._quantiles
    def getVariables(self):
       metrics = ["obs", "fcst", "Date", "Offset", "Location", "Lat", "Lon", "Elev"]
+      for quantile in self._quantiles:
+         metrics.append("q" + str(quantile))
+      for threshold in self._thresholds:
+         metrics.append("p" + str(int(threshold)))
       return metrics
    def getUnits(self):
       return "Unknown units"
