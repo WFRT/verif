@@ -47,15 +47,32 @@ Requirements
 
 Installation Instructions
 -------------------------
-To install, just execute:
+**Ubuntu**
+
+Install the required pacakges:
 
 .. code-block:: bash
 
-  python setup.py install
+  sudo apt-get install python-numpy python-scipy python-matplotlib
+
+Then install verif as follows:
+
+.. code-block:: bash
+
+  sudo python setup.py install
+
+This will create the executable /usr/local/bin/verif
+
+**Mac OSX**
+
+Install python, numpy, scipy, and matplotlib, then install verif as follows:
+
+.. code-block:: bash
+
+  sudo python setup.py install
 
 verif will then be installed /usr/local/share/python/ or where ever your python modules are
-installed (Look for "Installing verif script to <some directory>" when installing). Be sure to add this directory
-to your $PATH environment variable.
+installed (Look for "Installing verif script to <some directory>" when installing).
 
 Example
 -------
