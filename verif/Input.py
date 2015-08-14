@@ -85,6 +85,20 @@ class Comps(Input):
       return Common.clean(self._file.variables["Date"])
    def getOffsets(self):
       return Common.clean(self._file.variables["Offset"])
+   def getThresholds(self):
+      for (metric, v) in self._file.variables.iteritems():
+         thresholds = list
+         if(not metric in ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]):
+            if(metric[0] == "p"):
+               thresholds.append(metric)
+         return thresholds
+   def getQuantiles(self):
+      for (metric, v) in self._file.variables.iteritems():
+         quantiles = list
+         if(not metric in ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]):
+            if(metric[0] == "q"):
+               quantiles.append(metric)
+         return thresholds
    def getMetrics(self):
       metrics = list()
       for (metric, v) in self._file.variables.iteritems():
@@ -119,7 +133,8 @@ class Comps(Input):
 # New standard format, based on NetCDF/CF
 class NetcdfCf(Input):
    def __init__(self, filename):
-      pass
+      Input.__init__(self, filename)
+      self._file = io.netcdf.netcdf_file(filename, 'r')
    @staticmethod
    def isValid(filename):
       try:
@@ -132,6 +147,64 @@ class NetcdfCf(Input):
             valid = True
       file.close()
       return valid
+   def getStations(self):
+      lat  = Common.clean(self._file.variables["lat"])
+      lon  = Common.clean(self._file.variables["lon"])
+      id   = Common.clean(self._file.variables["id"])
+      elev = Common.clean(self._file.variables["elev"])
+      stations = list()
+      for i in range(0, lat.shape[0]):
+         station = Station.Station(id[i], lat[i], lon[i], elev[i])
+         stations.append(station)
+      return stations
+   def getScores(self, metric):
+      temp = Common.clean(self._file.variables[metric])
+      return temp
+   def getObs(self):
+      return Common.clean(self._file.variables["obs"])
+   def getFcst(self):
+      return Common.clean(self._file.variables["fcst"])
+   def getEns(self):
+      return Common.clean(self._file.variables["ens"])
+   def getCdf(self, threshold):
+      #thresholds = getThresholds()
+      #I = np.where(thresholds == threshold)[0]
+      #assert(len(I) == 1)
+      temp = Common.clean(self._file.variables["cdf"])
+      return temp
+   def getDims(self, metric):
+      return self._file.variables[metric].dimensions
+   def getDates(self):
+      return Common.clean(self._file.variables["date"])
+   def getOffsets(self):
+      return Common.clean(self._file.variables["offset"])
+   def getThresholds(self):
+      return Common.clean(self._file.variables["thresholds"])
+   def getQuantiles(self):
+      return Common.clean(self._file.variables["quantiles"])
+   def getMetrics(self):
+      metrics = list()
+      for (metric, v) in self._file.variables.iteritems():
+         if(not metric in ["date", "offset", "id", "lat", "lon", "elev"]):
+            metrics.append(metric)
+      return metrics
+   def getVariables(self):
+      metrics = list()
+      for (metric, v) in self._file.variables.iteritems():
+         metrics.append(metric)
+      return metrics
+   def getUnits(self):
+      if(hasattr(self._file, "Units")):
+         if(self._file.Units == ""):
+            return "No units"
+         elif(self._file.Units == "%"):
+            return "%"
+         else:
+            return "$" + self._file.Units + "$"
+      else:
+         return "No units"
+   def getVariable(self):
+      return self._file.standard_name
 
 # Flat text file format
 class Text(Input):
