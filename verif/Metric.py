@@ -537,7 +537,8 @@ class Bs(Threshold):
       # Split into bins and compute Brier score on each bin
       for i in range(0, len(self._edges)-1):
          I = np.where((p >= self._edges[i]) & (p < self._edges[i+1]))[0]
-         bs[I] = (np.mean(p[I]) - obsP[I])**2
+         if(len(I) > 0):
+            bs[I] = (np.mean(p[I]) - obsP[I])**2
       return Common.nanmean(bs)
 
    @staticmethod
