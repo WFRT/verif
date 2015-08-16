@@ -30,7 +30,6 @@ def main():
    sdim = None
    figSize = None
    dpi     = 100
-   debug = False
    showText = False
    showMap = False
    noMargin = False
@@ -65,9 +64,7 @@ def main():
       arg = sys.argv[i]
       if(arg[0] == '-'):
          # Process option
-         if(arg == "-debug"):
-            debug = True
-         elif(arg == "-nomargin"):
+         if(arg == "-nomargin"):
             noMargin = True
          elif(arg == "-sp"):
             showPerfect = True
@@ -467,52 +464,51 @@ def main():
       pl.plot(data)
 
 def showDescription(data=None):
-   print "Program to compute verification scores for weather forecasts"
+   desc = "Program to compute verification scores for weather forecasts. Can be used to compare forecasts from different files. In that case only dates, offsets, and locations that are common to all forecast files are used."
+   print textwrap.fill(desc, Common.getScreenWidth())
    print ""
-   print "usage: verif files -m metric [-x dim] [-r thresholds]"
-   print Common.formatArgument("","[-l locations] [-llrange range]")
-   print Common.formatArgument("","[-l locations] [-llrange range]")
-   print Common.formatArgument("","[-o offsets] [-d start end]")
-   print Common.formatArgument("","[-t period] [-c file] [-C file]")
-   print Common.formatArgument("","[-xlim limits] [-ylim limits] [-c limits]")
-   print Common.formatArgument("","[-type type] [-leg titles] [-hist] [-sort] [-acc]")
-   print Common.formatArgument("","[-f file] [-fs size] [-dpi value]")
-   print Common.formatArgument("","[-b type] [-nomargin] [-debug] [-ct type]")
-   print Common.formatArgument("","[-ms size] [-lw width] [-xrot value]")
-   print Common.formatArgument("","[-tickfs size] [-labfs size] [-legfs size]")
-   print Common.formatArgument("","[-majlth length] [-minlth length] [-majwid width]")
-   print Common.formatArgument("","[-bot value] [-top value] [-left value] [-right value]")
-   print Common.formatArgument("","[-sp] [-ylabel text [-xlabel text]")
-   print Common.formatArgument("","[-title text]")
-   #print "                 [-pad Pad]"
+   print "usage: verif files -m metric [options]"
    print ""
    print Common.green("Arguments:")
    print Common.formatArgument("files", "One or more verification files in NetCDF or text format (see 'File Formats' below).")
-   print Common.formatArgument("-m metric","Verification score to use. See available metrics below.")
-   print Common.formatArgument("-x dim","Plot this dimension on the x-axis: date, offset, location, locationId, print locationElev, locationLat, locationLon, threshold, or none. Not supported by all metrics. If not specified, then a default is used based on the metric. 'none' collapses all dimensions and computes one value.")
-   print Common.formatArgument("-r thresholds","Compute scores for these thresholds (only used by some metrics).")
-   print Common.formatArgument("-l locations","Limit the verification to these location IDs.")
-   print Common.formatArgument("-llrange range","Limit the verification to locations within minlon,maxlon,minlat,maxlat.")
+   print Common.formatArgument("-m metric","Which verification metric to use. See 'Metrics' below.")
+   print ""
+   print Common.green("Options:")
+   print "Note: vectors can be entered using commas, or MATLAB syntax: 3:5 -> 3,4,5 or 3:2:7 -> 3,5,7"
+   #print Common.formatArgument("","For vector options, the following are supported:")
+   #print Common.formatArgument("","  start:end       e.g. 3:5 gives 3, 4, 5")
+   #print Common.formatArgument("","  start:inc:end   e.g. 3:2:7 gives 3, 5, 7")
+   #print Common.formatArgument("","  vector1,vector2 e.g. 3:5,1:2 gives 3, 4, 5, 1, 2")
+   # Dimensions
+   print Common.green("  Dimensions and subset:")
+   print Common.formatArgument("-x dim","Plot this dimension on the x-axis: date, offset, location, locationId, locationElev, locationLat, locationLon, threshold, or none. Not supported by all metrics. If not specified, then a default is used based on the metric. 'none' collapses all dimensions and computes one value.")
    print Common.formatArgument("-o offsets","Limit the verification to these offsets (in hours).")
    print Common.formatArgument("-d start end","YYYYMMDD. Only use dates between start and end (inclusive)")
+   print Common.formatArgument("-l locations","Limit the verification to these location IDs.")
+   print Common.formatArgument("-llrange range","Limit the verification to locations within minlon,maxlon,minlat,maxlat.")
+   print Common.formatArgument("-r thresholds","Compute scores for these thresholds (only used by some metrics).")
    print Common.formatArgument("-t period","Allow this many days of training, i.e. remove this many days from the beginning of the verification.")
-   print Common.formatArgument("-c file","NetCDF containing climatology data. Subtract all forecasts and obs with climatology values.")
-   print Common.formatArgument("-C file","NetCDF containing climatology data. Divide all forecasts and obs by climatology values.")
-   print Common.formatArgument("-xlim limits","Force x-axis limits to the two values lower,upper")
-   print Common.formatArgument("-ylim limits","Force y-axis limits to the two values lower,upper")
-   print Common.formatArgument("-c limits","Force colorbar limits to the two values lower,upper")
-   print Common.formatArgument("-type type","One of 'plot' (default),'text', 'map', or 'maprank'.")
-   print Common.formatArgument("-leg titles","Comma-separated list of legend titles. Use '_' to represent space.")
+
+   # Data manipulation
+   print Common.green("  Data manipulation:")
+   print Common.formatArgument("-c file","File containing climatology data. Subtract all forecasts and obs with climatology values.")
+   print Common.formatArgument("-C file","File containing climatology data. Divide all forecasts and obs by climatology values.")
    print Common.formatArgument("-hist","Plot values as histogram. Only works for non-derived metrics")
    print Common.formatArgument("-sort","Plot values sorted. Only works for non-derived metrics")
    print Common.formatArgument("-acc","Plot accumulated values. Only works for non-derived metrics")
+   print Common.formatArgument("-b type","One of 'below', 'within', or 'above'. For threshold plots (ets, hit, within, etc) 'below/above' computes frequency below/above the threshold, and 'within' computes the frequency between consecutive thresholds.")
+   print Common.formatArgument("-ct type","Collapsing type: 'min', 'mean', 'median', or 'max. When a score from the file is plotted (such as -m 'fcst'), the min/mean/meadian/max will be shown for each value on the x-axis")
+
+   # Plot options
+   print Common.green("  Plotting options:")
+   print Common.formatArgument("-type type","One of 'plot' (default), 'text', 'map', or 'maprank'.")
+   print Common.formatArgument("-xlim limits","Force x-axis limits to the two values lower,upper")
+   print Common.formatArgument("-ylim limits","Force y-axis limits to the two values lower,upper")
+   print Common.formatArgument("-clim limits","Force colorbar limits to the two values lower,upper")
+   print Common.formatArgument("-leg titles","Comma-separated list of legend titles. Use '_' to represent space.")
    print Common.formatArgument("-f file","Save image to this filename")
    print Common.formatArgument("-fs size","Set figure size width,height (in inches). Default 8x6.")
    print Common.formatArgument("-dpi value","Resolution of image in dots per inch (default 100)")
-   print Common.formatArgument("-b type","One of 'below', 'within', or 'above'. For threshold plots (ets, hit, within, etc) 'below/above' computes frequency below/above the threshold, and 'within' computes the frequency between consecutive thresholds.")
-   print Common.formatArgument("-nomargin","Remove margins (whitespace) in the plot not x[i] <= T.")
-   print Common.formatArgument("-debug","Show statistics about files")
-   print Common.formatArgument("-ct type","Collapsing type: 'min', 'mean', 'median', or 'max. When a score from the file is plotted (such as -m 'fcst'), the min/mean/meadian/max will be shown for each value on the x-axis")
    print Common.formatArgument("-ms size","How big should markers be?")
    print Common.formatArgument("-lw width","How wide should lines be?")
    print Common.formatArgument("-xrot value","Rotation angle for x-axis labels")
@@ -526,9 +522,10 @@ def showDescription(data=None):
    print Common.formatArgument("-top value","Top boundary location for saved figure [range 0-1]")
    print Common.formatArgument("-left value","Left boundary location for saved figure [range 0-1]")
    print Common.formatArgument("-right value","Right boundary location for saved figure [range 0-1]")
-   print Common.formatArgument("-sp","Show a line indicating the perfect score")
    print Common.formatArgument("-ylabel text","Custom y-axis label")
    print Common.formatArgument("-xlabel text","Custom x-axis label")
+   print Common.formatArgument("-nomargin","Remove margins (whitespace) in the plot not x[i] <= T.")
+   print Common.formatArgument("-sp","Show a line indicating the perfect score")
    print Common.formatArgument("-title text","Custom title to chart top")
    print ""
    metrics = Metric.getAllMetrics()
@@ -548,8 +545,8 @@ def showDescription(data=None):
       for metric in metrics:
          print "   " + metric
    print Common.green("File formats:")
-   print Common.formatArgument("netcdf",Input.Comps.description())
-   print Common.formatArgument("text",Input.Text.description())
+   print Input.Text.description()
+   print Input.Comps.description()
 
 if __name__ == '__main__':
        main()

@@ -60,7 +60,7 @@ class Input:
 
 # Original fileformat used by OutputVerif in COMPS
 class Comps(Input):
-   _description = "Netcdf format"
+   _description = Common.formatArgument("netcdf","'verif' output from COMPS ")
    def __init__(self, filename):
       Input.__init__(self, filename)
       self._file = io.netcdf.netcdf_file(filename, 'r')
@@ -208,7 +208,12 @@ class NetcdfCf(Input):
 
 # Flat text file format
 class Text(Input):
-   _description = "One line for each obs/fcst pair"
+   _description = Common.formatArgument("text","Data organized in rows and columns with space as a delimiter. Each row represents one forecast/obs pair, and each column represents one attribute of the data. Here is an example") + "\n"\
+   + Common.formatArgument("","date     offset id      lat     lon      elev obs fcst      p10") + "\n"\
+   + Common.formatArgument("","20150101 0      214     49.2    -122.1   92 3.4 2.1     0.91") + "\n"\
+   + Common.formatArgument("","20150101 1      214     49.2    -122.1   92 4.7 4.2      0.85") + "\n"\
+   + Common.formatArgument("","20150101 0      180     50.3    -120.3   150 0.2 -1.2 0.99") + "\n"\
+   + Common.formatArgument("","The first line must must contain a header describing the columns. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0.")
    def __init__(self, filename):
       import csv
       Input.__init__(self, filename)

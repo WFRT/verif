@@ -50,8 +50,8 @@ class Metric:
       if(desc == ""):
          return ""
       extra = ""
-      if(cls._experimental):
-         extra = " " + Common.experimental() + "."
+      #if(cls._experimental):
+      #   extra = " " + Common.experimental() + "."
       if(cls._perfectScore != None):
          extra = extra + " " + "Perfect score " + str(cls._perfectScore) + "."
       return desc + "." + extra

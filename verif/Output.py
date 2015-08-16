@@ -97,8 +97,8 @@ class Output:
    @classmethod
    def description(cls):
       extra = ""
-      if(cls._experimental):
-         extra = " " + Common.experimental()
+      #if(cls._experimental):
+      #   extra = " " + Common.experimental()
       return cls._description + extra
 
    @classmethod

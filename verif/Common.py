@@ -5,6 +5,7 @@ from matplotlib.dates import *
 from copy import deepcopy
 import matplotlib.pyplot as mpl
 import textwrap
+import os
 def convertDates(dates):
    numDates = len(dates)
    dates2 = np.zeros([numDates], 'float')   
@@ -162,7 +163,9 @@ def nanpercentile(data, pers):
 def intersect(list1, list2):
    return list(set(list1) & set(list2))
 
-def formatArgument(argument, description, argumentWidth=19, totalWidth=100, indent=2):
+def formatArgument(argument, description, argumentWidth=19, totalWidth=None, indent=2):
+   if(totalWidth == None):
+      totalWidth = getScreenWidth()
    #fmt = "  %-" + str(argumentWidth) + "s%s"
    #output = fmt % (argument, textwrap.fill(description, totalWidth-argumentWidth).replace('\n', '\n                 '))
    #return output
@@ -181,7 +184,7 @@ def formatArgument(argument, description, argumentWidth=19, totalWidth=100, inde
    words = description.split()
    for i in range(0,len(words)):
       word = words[i]
-      if len(curr) + len(word) > totalWidth:
+      if len(curr) + len(word) >= totalWidth:
          output = output + curr + "\n"
          curr = ""
          for i in range(0, argumentWidth):
@@ -191,3 +194,7 @@ def formatArgument(argument, description, argumentWidth=19, totalWidth=100, inde
       curr = curr + word
    output = output + curr
    return output
+def getScreenWidth():
+   rows, columns = os.popen('stty size', 'r').read().split()
+   columns = max(80, int(columns))
+   return columns

@@ -86,7 +86,7 @@ Fake data for testing the program is found in ./examples/. Use the following com
 
 Text-based input
 ----------------
-Two data formats are supported. A simple text format for deterministic forecasts has the following format:
+Two data formats are supported. A simple text format with the following format:
 
 .. code-block:: bash
 
