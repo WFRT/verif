@@ -24,3 +24,10 @@ class Station:
          return self._elev
       else:
          self._elev = value
+
+   def __eq__(self, other):
+      # TODO: Should the ids be checked?
+      return self.lat() == other.lat() and self.lon() == other.lon() and self.elev() == other.elev()
+
+   def __hash__(self):
+      return hash((self.lat(), self.lon(), self.elev()))

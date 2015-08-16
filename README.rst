@@ -90,14 +90,16 @@ Two data formats are supported. A simple text format for deterministic forecasts
 
 .. code-block:: bash
 
-   date     offset lat     lon      elev     obs      fcst
-   20150101 0      49.2    -122.1   92       3.4      2.1
-   20150101 1      49.2    -122.1   92       4.7      4.2
-   20150101 0      50.3    -120.3   150      0.2      -1.2
+   date     offset id      lat     lon      elev     obs      fcst
+   20150101 0      214     49.2    -122.1   92       3.4      2.1
+   20150101 1      214     49.2    -122.1   92       4.7      4.2
+   20150101 0      180     50.3    -120.3   150      0.2      -1.2
 
-The first line must describe the columns. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), lat
-(in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast). obs and fcst are required and a value of 0
-is used for any missing column. The columns can be in any order.
+The first line must describe the columns. The following attributes are recognized: date (in
+YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees),
+obs (observations), fcst (deterministic forecast). obs and fcst are required and a value of
+0 is used for any missing column. The columns can be in any order. If "id" is not provided, then they
+are assigned sequentially starting at 0.
 
 NetCDF input
 ------------
