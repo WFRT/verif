@@ -144,12 +144,19 @@ class Deterministic(Metric):
       return self.computeObsFcst(obs, fcst)
    def computeObsFcst(self, obs, fcst):
       assert(obs.shape[0] == fcst.shape[0])
+      # Remove missing values
+      I = np.where((np.isnan(obs) | np.isnan(fcst))==0)[0]
+      obs = obs[I]
+      fcst = fcst[I]
       if(obs.shape[0] > 0):
          return self._computeObsFcst(obs,fcst)
       else:
          return np.nan
-   # Subclass must implement this function
-   # Can assume that obs and fcst are the same length and length >= 1
+   # Subclass must implement this function:
+   # Preconditions for obs and fcst:
+   #     - obs and fcst are the same length
+   #     - length >= 1
+   #     - no missing values
    def _computeObsFcst(self, obs, fcst):
       Common.error("Metric " + self.name() + " has not implemented _computeObsFcst()")
 
