@@ -6,16 +6,16 @@ Forecast verification software
 .. image:: https://coveralls.io/repos/WFRT/verif/badge.svg?branch=master&service=github
   :target: https://coveralls.io/github/WFRT/verif?branch=master
 
-This software computes verification statistics for weather forecasts at point locations. It can be used to
-document the quality of one forecasting system but can also be used to compare different weather models and/or
-different post-processing methods.
+This program plots verification scores for weather forecasts at point locations. It can be used to
+document the quality of one forecasting system but also to compare forecasts from different weather models and/or
+where different post-processing methods have been applied.
 
-The program works by parsing NetCDF files with observations and forecasts in a specific format (see "Input
-files" below).
+The program works by reading files with observations and forecasts in a specific format (see "Input
+files" below). The files contain information about dates, forecast lead times, and locations such that statistics can be aggregated across different dimensions.
 
-verif is a command-line tool that can therefore be used to automatically create verification figures.
+verif is a command-line tool that can therefore be used to automatically create verification figures. The statistics can also be output in text format.
 
-Developed by Thomas Nipen, David Siuta, and Tim Chui.
+verif is developed by Thomas Nipen, David Siuta, and Tim Chui.
 
 .. image:: image.jpg
     :alt: Example plots
@@ -30,12 +30,13 @@ Features
 * Probabilistic metrics such as brier score, PIT-histogram, reliability diagrams
 * Plot statistics as a function of date, forecast horizon, station elevation, latitude, or longitude
 * Show statistics on maps
+* Subset the data by specifying a date range and lat/lon range
 * Export to text
 * Options to adjust font sizes, label positions, tick marks, legends, etc
 * Anomaly statistics (relative to a baseline like climatology)
-* Output to png, jeg, eps, etc and specify image dimensions and DPI.
+* Output to png, jeg, eps, etc and specify image dimensions and resolution.
 
-For a full list run verif without arguments.
+For a full list, run verif without arguments.
 
 Requirements
 ------------
