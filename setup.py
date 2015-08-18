@@ -7,6 +7,7 @@ from codecs import open
 from os import path
 
 here = path.abspath(path.dirname(__file__))
+exec(open('verif/Version.py').read())
 
 # Get the long description from the relevant file
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
@@ -18,7 +19,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.1.0',
+    version=__version__,
 
     description='A verification program for meteorological forecasts and observations',
     long_description=long_description,

@@ -7,6 +7,7 @@ import verif.Common as Common
 import verif.Input as Input
 import matplotlib.pyplot as mpl
 import textwrap
+import verif.Version as Version
 def run(argv):
    ############
    # Defaults #
@@ -58,6 +59,7 @@ def run(argv):
    xlim = None
    ylim = None
    clim = None
+   version = None
 
    # Read command line arguments
    i = 1
@@ -67,6 +69,8 @@ def run(argv):
          # Process option
          if(arg == "-nomargin"):
             noMargin = True
+         elif(arg == "--version"):
+            version = True
          elif(arg == "-sp"):
             showPerfect = True
          elif(arg == "-hist"):
@@ -162,6 +166,10 @@ def run(argv):
       else:
          ifiles.append(argv[i])
       i = i + 1
+
+   if(version):
+      print "Version: " + Version.__version__
+      return
 
    # Deal with legend entries
    if(leg != None):
@@ -469,10 +477,12 @@ def showDescription(data=None):
    print textwrap.fill(desc, Common.getScreenWidth())
    print ""
    print "usage: verif files -m metric [options]"
+   print "       verif --version"
    print ""
    print Common.green("Arguments:")
    print Common.formatArgument("files", "One or more verification files in NetCDF or text format (see 'File Formats' below).")
-   print Common.formatArgument("-m metric","Which verification metric to use. See 'Metrics' below.")
+   print Common.formatArgument("-m metric","Which verification metric to use? See 'Metrics' below.")
+   print Common.formatArgument("--version","What version of verif is this?")
    print ""
    print Common.green("Options:")
    print "Note: vectors can be entered using commas, or MATLAB syntax: 3:5 -> 3,4,5 or 3:2:7 -> 3,5,7"

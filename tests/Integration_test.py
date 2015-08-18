@@ -37,6 +37,7 @@ class IntegrationTest(unittest.TestCase):
 
    def test_valid(self):
       self.runCommand("verif")
+      self.runCommand("verif --version")
       self.runWithImage("verif examples/T_raw_0.nc -m mae")
       self.runWithImage("verif examples/T_raw_0.nc -m bias")
       self.runWithImage("verif examples/T_raw_0.nc -m rmse")

@@ -3,7 +3,7 @@
 # contents, where # "precise" is your linux version:
 # [DEFAULT]
 # Suite: precise
-VERSION=$(shell grep version= setup.py | cut -d"'" -f2)
+VERSION=$(shell grep __version__ verif/Version.py | cut -d"=" -f2 | sed s"/ //g" | sed s"/'//g")
 coverage:
 	#nosetests --with-coverage --cover-erase --cover-package=verif --cover-html --cover-branches
 	nosetests --with-coverage --cover-erase --cover-package=verif --cover-html
@@ -12,10 +12,10 @@ test:
 	nosetests
 
 deb_dist: makefile
+	echo $(VERSION)
 	rm -rf deb_dist
 	python setup.py --command-packages=stdeb.command bdist_deb
-	#cd deb_dist/verif-$(shell grep version= setup.py | cut -d"'" -f2)/; debuild -S -sa
-	cd deb_dist/verif-$(VERSION)/; debuild -S -sa
+	cd deb_dist/verif-$(VERSION)/ || exit; debuild -S -sa
 
 clean:
 	python setup.py clean
