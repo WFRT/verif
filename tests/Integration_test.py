@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')
 import unittest
 import verif.Driver as Driver
 import verif.Common as Common
