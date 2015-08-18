@@ -6,3 +6,4 @@ build
 .coverage
 cover
 .*.swp
+deb_dist
