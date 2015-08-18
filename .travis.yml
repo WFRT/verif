@@ -2,6 +2,10 @@ language: python
 python:
    - "2.7_with_system_site_packages"
 
+before_install:
+   - "export DISPLAY=:99.0"
+   - "sh -e /etc/init.d/xvfb start"
+
 install:
    - sudo apt-get install libblas-dev
    - sudo apt-get install liblapack-dev
