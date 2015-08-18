@@ -165,7 +165,7 @@ def intersect(list1, list2):
 
 def formatArgument(argument, description, argumentWidth=19, totalWidth=None, indent=2):
    if(totalWidth == None):
-      totalWidth = getScreenWidth()
+      totalWidth = getTextWidth()
    #fmt = "  %-" + str(argumentWidth) + "s%s"
    #output = fmt % (argument, textwrap.fill(description, totalWidth-argumentWidth).replace('\n', '\n                 '))
    #return output
@@ -194,7 +194,11 @@ def formatArgument(argument, description, argumentWidth=19, totalWidth=None, ind
       curr = curr + word
    output = output + curr
    return output
+# How wide is the console?
 def getScreenWidth():
    rows, columns = os.popen('stty size', 'r').read().split()
-   columns = max(80, int(columns))
+   columns = int(columns)
    return columns
+# How wide should the text be output?
+def getTextWidth():
+   return max(50, min(100,getScreenWidth()))
