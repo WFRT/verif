@@ -4,6 +4,7 @@ import verif.Data as Data
 import verif.Output as Output
 import verif.Metric as Metric
 import verif.Common as Common
+import verif.Input as Input
 import matplotlib.pyplot as mpl
 import textwrap
 def run(argv):
@@ -190,7 +191,7 @@ def run(argv):
       data = None
    if(len(argv) == 1 or len(ifiles) == 0 or metric == None):
       showDescription(data)
-      sys.exit()
+      return
 
    if(figSize != None):
       figSize = figSize.split(',')

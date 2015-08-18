@@ -36,6 +36,7 @@ class IntegrationTest(unittest.TestCase):
       self.remove(imageFile)
 
    def test_valid(self):
+      self.runCommand("verif")
       self.runWithImage("verif examples/T_raw_0.nc -m mae")
       self.runWithImage("verif examples/T_raw_0.nc -m bias")
       self.runWithImage("verif examples/T_raw_0.nc -m rmse")
