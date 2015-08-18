@@ -137,16 +137,27 @@ class Min(Metric):
    def name(self):
       return "Min of " + self._metric.name()
 
+# Deterministic metric which is dependent only on "obs" and "fcst"
 class Deterministic(Metric):
    def computeCore(self, data, tRange):
       [obs, fcst] = data.getScores(["obs", "fcst"])
-      return self.computeObsFcst(obs,fcst)
+      return self.computeObsFcst(obs, fcst)
+   def computeObsFcst(self, obs, fcst):
+      assert(obs.shape[0] == fcst.shape[0])
+      if(obs.shape[0] > 0):
+         return self._computeObsFcst(obs,fcst)
+      else:
+         return np.nan
+   # Subclass must implement this function
+   # Can assume that obs and fcst are the same length and length >= 1
+   def _computeObsFcst(self, obs, fcst):
+      Common.error("Metric " + self.name() + " has not implemented _computeObsFcst()")
 
 class Mae(Deterministic):
    _min = 0
    _description = "Mean absolute error"
    _perfectScore = 0
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       return np.mean(abs(obs - fcst))
    def name(self):
       return "MAE"
@@ -155,7 +166,7 @@ class Medae(Deterministic):
    _min = 0
    _description = "Median absolute error"
    _perfectScore = 0
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       return np.median(abs(obs - fcst))
    def name(self):
       return "MedianAE"
@@ -163,7 +174,7 @@ class Medae(Deterministic):
 class Bias(Deterministic):
    _description = "Bias"
    _perfectScore = 0
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       return np.mean(obs - fcst)
 
 class Ef(Deterministic):
@@ -171,7 +182,7 @@ class Ef(Deterministic):
    _min = 0
    _max = 100
    _perfectScore = 50
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       Nfcst = np.sum(obs < fcst)
       return Nfcst / 1.0 / len(fcst) * 100
    def label(self, data):
@@ -208,7 +219,7 @@ class StdError(Deterministic):
    _min = 0
    _description = "Standard error (i.e. RMSE if forecast had no bias)"
    _perfectScore = 0
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       bias = np.mean(obs - fcst)
       return np.mean((obs - fcst - bias)**2)**0.5
    def name(self):
@@ -217,7 +228,7 @@ class StdError(Deterministic):
 class Std(Deterministic):
    _min = 0
    _description = "Standard deviation of forecast"
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       return np.std(fcst)
    def label(self, data):
       return "STD of forecasts (" + data.getUnits() + ")"
@@ -358,7 +369,7 @@ class Rmse(Deterministic):
    _min = 0
    _description = "Root mean squared error"
    _perfectScore = 0
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       return np.mean((obs - fcst)**2)**0.5
    def name(self):
       return "RMSE"
@@ -367,7 +378,7 @@ class Rmsf(Deterministic):
    _min = 0
    _description = "Root mean squared factor"
    _perfectScore = 1
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       return np.exp(np.mean((np.log(fcst/obs))**2)**0.5)
    def name(self):
       return "RMSE"
@@ -376,7 +387,7 @@ class Crmse(Deterministic):
    _min = 0
    _description = "Centered root mean squared error (RMSE without bias)"
    _perfectScore = 0
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       bias = np.mean(obs)-np.mean(fcst)
       return np.mean((obs - fcst - bias)**2)**0.5
    def name(self):
@@ -387,7 +398,7 @@ class Cmae(Deterministic):
    _min = 0
    _description = "Cube-root mean absolute cubic error"
    _perfectScore = 0
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       return (np.mean(abs(obs**3 - fcst**3)))**(1.0/3)
    def name(self):
       return "CMAE"
@@ -395,14 +406,14 @@ class Cmae(Deterministic):
 class Dmb(Deterministic):
    _description = "Degree of mass balance (obs/fcst)"
    _perfectScore = 1
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       return np.mean(obs)/np.mean(fcst)
    def name(self):
       return "Degree of mass balance (obs/fcst)"
 
 class Num(Deterministic):
    _description = "Number of valid forecasts"
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       [fcst] = data.getScores(["fcst"])
       return len(fcst)
    def name(self):
@@ -413,7 +424,7 @@ class Corr(Deterministic):
    _max = 1
    _description = "Correlation between obesrvations and forecasts"
    _perfectScore = 1
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       if(len(obs) <= 1):
          return np.nan
       return np.corrcoef(obs,fcst)[1,0]
@@ -427,7 +438,7 @@ class RankCorr(Deterministic):
    _max = 1
    _description = "Rank correlation between obesrvations and forecasts"
    _perfectScore = 1
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       import scipy.stats
       if(len(obs) <= 1):
          return np.nan
@@ -442,7 +453,7 @@ class KendallCorr(Deterministic):
    _max = 1
    _description = "Kendall correlation between obesrvations and forecasts"
    _perfectScore = 1
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       import scipy.stats
       if(len(obs) <= 1):
          return np.nan
@@ -469,7 +480,7 @@ class Within(Threshold):
    _description = "The percentage of forecasts within some error bound (use -r)"
    _defaultBinType = "below"
    _perfectScore = 100
-   def computeObsFcst(self, obs, fcst):
+   def _computeObsFcst(self, obs, fcst):
       diff = abs(obs - fcst)
       return np.mean(self.within(diff, tRange))*100
    def name(self):
