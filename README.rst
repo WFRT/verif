@@ -7,13 +7,15 @@ Forecast verification software
   :target: https://coveralls.io/github/WFRT/verif?branch=master
 
 This program plots verification scores for weather forecasts at point locations. It can be used to
-document the quality of one forecasting system but also to compare forecasts from different weather models and/or
-where different post-processing methods have been applied.
+document the quality of one forecasting system but also to compare forecasts from different weather
+models and/or where different post-processing methods have been applied.
 
 The program works by reading files with observations and forecasts in a specific format (see "Input
-files" below). The files contain information about dates, forecast lead times, and locations such that statistics can be aggregated across different dimensions.
+files" below). The files contain information about dates, forecast lead times, and locations such
+that statistics can be aggregated across different dimensions.
 
-verif is a command-line tool that can therefore be used to automatically create verification figures. The statistics can also be output in text format.
+verif is a command-line tool that can therefore be used to automatically create verification
+figures. The statistics can also be output in text format.
 
 verif is developed by Thomas Nipen, David Siuta, and Tim Chui.
 
@@ -25,16 +27,18 @@ verif is developed by Thomas Nipen, David Siuta, and Tim Chui.
 Features
 --------
 
-* Deterministic metrics such as MAE, bias, RMSE
-* Threshold-based metrics such as the equitable threat score (ETS)
-* Probabilistic metrics such as brier score, PIT-histogram, reliability diagrams
+* Deterministic metrics such as MAE, bias, RMSE (e.g. ``-m mae``)
+* Threshold-based metrics such as the equitable threat score (e.g. ``-m ets``)
+* Probabilistic metrics such as brier score, PIT-histogram, reliability diagrams (e.g. ``-m bs``)
 * Plot statistics as a function of date, forecast horizon, station elevation, latitude, or longitude
-* Show statistics on maps
-* Subset the data by specifying a date range and lat/lon range
-* Export to text
-* Options to adjust font sizes, label positions, tick marks, legends, etc
-* Anomaly statistics (relative to a baseline like climatology)
-* Output to png, jeg, eps, etc and specify image dimensions and resolution.
+  (e.g. ``-x date``)
+* Show statistics on maps (``-type map``)
+* Subset the data by specifying a date range and lat/lon range (``-llrange 5,10,58 60``)
+* Export to text (``-type text``)
+* Options to adjust font sizes, label positions, tick marks, legends, etc (``-labfs 14``)
+* Anomaly statistics relative to a baseline like climatology (``-c climfile.txt``)
+* Output to png, jeg, eps, etc and specify image dimensions and resolution
+  (``-f image.png -fs 10,5 -dpi 300``)
 
 For a full list, run verif without arguments.
 
@@ -48,6 +52,9 @@ Requirements
 
 Installation Instructions
 -------------------------
+
+Download the source code of a released version: https://github.com/WFRT/verif/releases/
+
 **Ubuntu**
 
 Install the required pacakges:
@@ -87,7 +94,7 @@ Fake data for testing the program is found in ./examples/. Use the following com
 
 Text-based input
 ----------------
-Two data formats are supported. A simple text format with the following format:
+The easiest option is to put the data into the following format:
 
 .. code-block:: bash
 
@@ -104,8 +111,8 @@ are assigned sequentially starting at 0.
 
 NetCDF input
 ------------
-For more advanced usage, the files  must be in NetCDF and have dimensions and attributes as described below in the
-example file. The format is still being decided but will be based on NetCDF/CF standard.
+We are working on defining a NetCDF format that can also be read by verif. Here is our current
+proposal, based on the NetCDF/CF standard:
 
 .. code-block:: bash
 
@@ -145,5 +152,5 @@ example file. The format is still being decided but will be based on NetCDF/CF s
 Copyright and license
 ---------------------
 
-Copyright © 2015 UBC Weather Forecast Research Team. verif is licensed under the 3-clause BSD license. See LICENSE
-file.
+Copyright © 2015 UBC Weather Forecast Research Team. verif is licensed under the 3-clause BSD
+license. See LICENSE file.
