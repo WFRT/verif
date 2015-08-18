@@ -1,6 +1,4 @@
 # -*- coding: ISO-8859-1 -*-
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as mpl
 import re
 import datetime
