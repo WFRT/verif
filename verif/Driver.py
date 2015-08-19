@@ -186,9 +186,6 @@ def run(argv):
          dates.append(date)
          date = Common.getDate(date, 1)
 
-   if(cType != "mean" and cType != "min" and cType != "max" and cType != "median"):
-      Common.error("'-ct cType' must be one of min, mean, median, or max")
-
    if(latlonRange != None and len(latlonRange) != 4):
       Common.error("-llRange <values> must have exactly 4 values")
 
@@ -270,6 +267,10 @@ def run(argv):
       # Determine metric
       if(metric == "rmse"):
          m = Metric.Rmse()
+      elif(metric == "obs"):
+         m = Metric.Obs()
+      elif(metric == "fcst"):
+         m = Metric.Fcst()
       elif(metric == "rmsf"):
          m = Metric.Rmsf()
       elif(metric == "crmse"):
@@ -278,8 +279,6 @@ def run(argv):
          m = Metric.Cmae()
       elif(metric == "dmb"):
          m = Metric.Dmb()
-      elif(metric == "std"):
-         m = Metric.Std()
       elif(metric == "num"):
          m = Metric.Num()
       elif(metric == "corr"):
@@ -292,20 +291,10 @@ def run(argv):
          m = Metric.Bias()
       elif(metric == "ef"):
          m = Metric.Ef()
-      elif(metric == "maxobs"):
-         m = Metric.MaxObs()
-      elif(metric == "minobs"):
-         m = Metric.MinObs()
-      elif(metric == "maxfcst"):
-         m = Metric.MaxFcst()
-      elif(metric == "minfcst"):
-         m = Metric.MinFcst()
       elif(metric == "stderror"):
          m = Metric.StdError()
       elif(metric == "mae"):
          m = Metric.Mae()
-      elif(metric == "medae"):
-         m = Metric.Medae()
       # Contingency metrics
       elif(metric == "ets"):
          m = Metric.Ets()
@@ -373,16 +362,9 @@ def run(argv):
          m = Metric.MarginalRatio()
       # Default
       else:
-         if(cType == "min"):
-            m = Metric.Min(Metric.Default(metric))
-         elif(cType == "max"):
-            m = Metric.Max(Metric.Default(metric))
-         elif(cType == "median"):
-            m = Metric.Median(Metric.Default(metric))
-         elif(cType == "mean"):
-            m = Metric.Mean(Metric.Default(metric))
-         else:
-            Common.error("-ct " + cType + " not understood")
+         m = Metric.Mean(Metric.Default(metric))
+
+      m.setAggregator(cType)
 
       # Output type
       if(type == "plot" or type == "text" or type == "map" or type == "maprank"):
@@ -485,7 +467,7 @@ def showDescription(data=None):
    print Common.formatArgument("--version","What version of verif is this?")
    print ""
    print Common.green("Options:")
-   print "Note: vectors can be entered using commas, or MATLAB syntax: 3:5 -> 3,4,5 or 3:2:7 -> 3,5,7"
+   print "Note: vectors can be entered using commas, or MATLAB syntax (i.e 3:5 is 3,4,5 and 3:2:7 is 3,5,7)"
    #print Common.formatArgument("","For vector options, the following are supported:")
    #print Common.formatArgument("","  start:end       e.g. 3:5 gives 3, 4, 5")
    #print Common.formatArgument("","  start:inc:end   e.g. 3:2:7 gives 3, 5, 7")
@@ -506,7 +488,7 @@ def showDescription(data=None):
    print Common.formatArgument("-b type","One of 'below', 'within', or 'above'. For threshold plots (ets, hit, within, etc) 'below/above' computes frequency below/above the threshold, and 'within' computes the frequency between consecutive thresholds.")
    print Common.formatArgument("-c file","File containing climatology data. Subtract all forecasts and obs with climatology values.")
    print Common.formatArgument("-C file","File containing climatology data. Divide all forecasts and obs by climatology values.")
-   print Common.formatArgument("-ct type","Collapsing type: 'min', 'mean', 'median', or 'max. When a score from the file is plotted (such as -m 'fcst'), the min/mean/meadian/max will be shown for each value on the x-axis")
+   print Common.formatArgument("-ct type","Collapsing type: 'min', 'mean', 'median', 'max', 'std', and 'range'. Some metrics computes a value for each value on the x-axis. Which function should be used to do the collapsing? Default is 'mean'. Only supported by some metrics.")
    print Common.formatArgument("-hist","Plot values as histogram. Only works for non-derived metrics")
    print Common.formatArgument("-sort","Plot values sorted. Only works for non-derived metrics")
 
@@ -553,10 +535,13 @@ def showDescription(data=None):
          #print ""
    if(data != None):
       print ""
-      print "   Or one of the following, which plots the raw score from the file:"
+      print "  Or one of the following, which plots the raw score from the file:"
+      print " ",
       metrics = data.getMetrics()
       for metric in metrics:
-         print "   " + metric
+         print metric,
+   print ""
+   print ""
    print Common.green("File formats:")
    print Input.Text.description()
    print Input.Comps.description()

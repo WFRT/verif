@@ -18,6 +18,9 @@ class Metric:
    _supThreshold = False # Does this metric support thresholds?
    _experimental = False # Is this metric not fully tested yet?
    _perfectScore = None
+   _aggregator  = np.mean
+   _aggregatorName  = "mean"
+   _supAggregator = False # Does this metric use self._aggregator?
 
    # Compute the score
    # data: use getScores([metric1, metric2...]) to get data
@@ -43,7 +46,6 @@ class Metric:
    def description(cls):
       return cls._description
 
-
    @classmethod
    def summary(cls):
       desc = cls.description()
@@ -52,6 +54,8 @@ class Metric:
       extra = ""
       #if(cls._experimental):
       #   extra = " " + Common.experimental() + "."
+      if(cls._supAggregator):
+         extra = " Supports -ct."
       if(cls._perfectScore != None):
          extra = extra + " " + "Perfect score " + str(cls._perfectScore) + "."
       return desc + "." + extra
@@ -89,6 +93,23 @@ class Metric:
    def max(cls):
       return cls._max
 
+   def setAggregator(self, name):
+      self._aggregatorName = name
+      if(name == "mean"):
+         self._aggregator = np.mean
+      elif(name == "median"):
+         self._aggregator = np.median
+      elif(name == "min"):
+         self._aggregator = np.min
+      elif(name == "max"):
+         self._aggregator = np.max
+      elif(name == "std"):
+         self._aggregator = np.std
+      elif(name == "range"):
+         self._aggregator = Common.nprange
+      else:
+         Common.error("Invalid aggregator")
+
    def getClassName(self):
       name = self.__class__.__name__
       return name
@@ -113,29 +134,25 @@ class Mean(Metric):
    def name(self):
       return "Mean of " + self._metric.name()
 
-class Median(Metric):
-   def __init__(self, metric):
-      self._metric = metric
+# Note: This cannot be a subclass of Deterministic, since we don't want
+# to remove obs for which the forecasts are missing. Same for Fcst.
+class Obs(Metric):
+   _description = "Observed value"
+   _supAggregator = True
    def computeCore(self, data, tRange):
-      return np.median(self._metric.compute(data, tRange))
+      obs = data.getScores("obs")
+      return self._aggregator(obs)
    def name(self):
-      return "Median of " + self._metric.name()
+      return self._aggregatorName.title()+ " of observation"
 
-class Max(Metric):
-   def __init__(self, metric):
-      self._metric = metric
+class Fcst(Metric):
+   _description = "Forecasted value"
+   _supAggregator = True
    def computeCore(self, data, tRange):
-      return np.max(self._metric.compute(data, tRange))
+      obs = data.getScores("fcst")
+      return np._aggregator(obs)
    def name(self):
-      return "Max of " + self._metric.name()
-
-class Min(Metric):
-   def __init__(self, metric):
-      self._metric = metric
-   def computeCore(self, data, tRange):
-      return np.min(self._metric.compute(data, tRange))
-   def name(self):
-      return "Min of " + self._metric.name()
+      return self._aggregatorName.title()+ " of forecast"
 
 # Deterministic metric which is dependent only on "obs" and "fcst"
 class Deterministic(Metric):
@@ -164,25 +181,18 @@ class Mae(Deterministic):
    _min = 0
    _description = "Mean absolute error"
    _perfectScore = 0
+   _supAggregator = True
    def _computeObsFcst(self, obs, fcst):
-      return np.mean(abs(obs - fcst))
+      return self._aggregator(abs(obs - fcst))
    def name(self):
       return "MAE"
-
-class Medae(Deterministic):
-   _min = 0
-   _description = "Median absolute error"
-   _perfectScore = 0
-   def _computeObsFcst(self, obs, fcst):
-      return np.median(abs(obs - fcst))
-   def name(self):
-      return "MedianAE"
 
 class Bias(Deterministic):
    _description = "Bias"
    _perfectScore = 0
+   _supAggregator = True
    def _computeObsFcst(self, obs, fcst):
-      return np.mean(obs - fcst)
+      return self._aggregator(obs - fcst)
 
 class Ef(Deterministic):
    _description = "Exeedance fraction: percentage of times that forecasts > observations"
@@ -231,14 +241,6 @@ class StdError(Deterministic):
       return np.mean((obs - fcst - bias)**2)**0.5
    def name(self):
       return "Standard error"
-
-class Std(Deterministic):
-   _min = 0
-   _description = "Standard deviation of forecast"
-   def _computeObsFcst(self, obs, fcst):
-      return np.std(fcst)
-   def label(self, data):
-      return "STD of forecasts (" + data.getUnits() + ")"
 
 # Returns all PIT values
 class Pit(Metric):

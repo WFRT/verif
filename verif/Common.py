@@ -160,6 +160,9 @@ def nanpercentile(data, pers):
     #return np.ma.filled(np.ma.masked_array(data,np.isnan(data)).percentile(pers),
     #      fill_value=np.nan)
 
+def nprange(data):
+   return np.max(data) - np.min(data)
+
 def intersect(list1, list2):
    return list(set(list1) & set(list2))
 
