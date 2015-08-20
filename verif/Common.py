@@ -59,15 +59,12 @@ def parseNumbers(numbers):
          step  = 1
          if(len(colonList) == 3):
             step = float(colonList[1])
-         end   = float(colonList[-1]) + 0.0001 # arange does not include the end point
+         stepSign = step/abs(step)
+         end   = float(colonList[-1]) + stepSign*0.0001 # arange does not include the end point
          values = values + list(np.arange(start, end, step))
       else:
          error("Could not translate '" + numbers + "' into numbers")
    return values
-
-def testParseNumbers():
-   print parseNumbers("1,2,3:5,6,7:2:20")
-   print parseNumbers("1")
 
 # Sets up subplot for index i (starts at 0) out of N
 def subplot(i, N):
