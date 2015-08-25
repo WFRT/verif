@@ -48,7 +48,16 @@ class Data:
          self._files.append(file)
          self._cache.append(dict())
       if(clim != None):
-         self._clim = io.netcdf.netcdf_file(clim, 'r')
+         if(not os.path.exists(clim)):
+            Common.error("File '" + clim + "' does not exist")
+         if(Input.NetcdfCf.isValid(clim)):
+            self._clim = Input.NetcdfCf(clim)
+         elif(Input.Comps.isValid(clim)):
+            self._clim = Input.Comps(clim)
+         elif(Input.Text.isValid(clim)):
+            self._clim = Input.Text(clim)
+         else:
+            Common.error("File '" + clim + "' is not a valid climatology file")
          self._cache.append(dict())
          if(not (climType == "subtract" or climType == "divide")):
             Common.error("Data: climType must be 'subtract' or 'divide")
