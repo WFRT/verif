@@ -218,7 +218,6 @@ class Text(Input):
       import csv
       Input.__init__(self, filename)
       file = open(filename, 'r')
-      reader = csv.reader(file, delimiter=' ')
 
       self._dates = set()
       self._offsets = set()
@@ -243,7 +242,8 @@ class Text(Input):
       import time
       start = time.time()
       # Read the data into dictionary with (date,offset,lat,lon,elev) as key and obs/fcst as values
-      for row in reader:
+      for row in file:
+         row = row.split()
          if(header == None):
             # Parse the header so we know what each column represents
             header = row
@@ -274,37 +274,37 @@ class Text(Input):
                   Common.error(msg)
          else:
             if(indices.has_key("date")):
-               date = float(row[indices["date"]])
+               date = self._clean(row[indices["date"]])
             self._dates.add(date)
             if(indices.has_key("offset")):
-               offset = float(row[indices["offset"]])
+               offset = self._clean(row[indices["offset"]])
             self._offsets.add(offset)
             if(indices.has_key("id")):
-               id = float(row[indices["id"]])
+               id = self._clean(row[indices["id"]])
             else:
                id = np.nan
             if(indices.has_key("lat")):
-               lat = float(row[indices["lat"]])
+               lat = self._clean(row[indices["lat"]])
             if(indices.has_key("lon")):
-               lon = float(row[indices["lon"]])
+               lon = self._clean(row[indices["lon"]])
             if(indices.has_key("elev")):
-               elev = float(row[indices["elev"]])
+               elev = self._clean(row[indices["elev"]])
             station = Station.Station(id, lat, lon, elev)
             self._stations.add(station)
-            obs[(date,offset,lat,lon,elev)]  = float(row[indices["obs"]])
-            fcst[(date,offset,lat,lon,elev)] = float(row[indices["fcst"]])
+            obs[(date,offset,lat,lon,elev)]  = self._clean(row[indices["obs"]])
+            fcst[(date,offset,lat,lon,elev)] = self._clean(row[indices["fcst"]])
             quantileFields = self._getQuantileFields(header)
             thresholdFields = self._getThresholdFields(header)
             for field in quantileFields:
                quantile = float(field[1:])
                self._quantiles.add(quantile)
                key = (date,offset,lat,lon,elev,quantile)
-               x[key] = float(row[indices[field]])
+               x[key] = self._clean(row[indices[field]])
             for field in thresholdFields:
                threshold = float(field[1:])
                self._thresholds.add(threshold)
                key = (date,offset,lat,lon,elev,threshold)
-               cdf[key] = float(row[indices[field]])
+               cdf[key] = self._clean(row[indices[field]])
       end = time.time()
       file.close()
       self._dates = list(self._dates)
@@ -366,6 +366,12 @@ class Text(Input):
             counter = counter + 1
       self._dates = np.array(self._dates)
       self._offsets = np.array(self._offsets)
+   # Parse string into float, changing -999 into np.nan
+   def _clean(self, value):
+      fvalue = float(value)
+      if(fvalue == -999):
+         fvalue = np.nan
+      return fvalue
    def _getQuantileFields(self, fields):
       quantiles = list()
       for att in fields:
