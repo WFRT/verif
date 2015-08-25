@@ -32,7 +32,7 @@ setup(
     author_email='thomas.nipen@met.no',
 
     # Choose your license
-    license='MIT',
+    license='BSD-3',
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
