@@ -423,7 +423,6 @@ class Dmb(Deterministic):
 class Num(Deterministic):
    _description = "Number of valid forecasts"
    def _computeObsFcst(self, obs, fcst):
-      [fcst] = data.getScores(["fcst"])
       return len(fcst)
    def name(self):
       return "Number of valid forecasts"
@@ -473,7 +472,7 @@ class KendallCorr(Deterministic):
       return "Kendall correlation"
 
 # Metrics based on 2x2 contingency table for a given threshold
-class Threshold(Deterministic):
+class Threshold(Metric):
    _reqThreshold = True
    _supThreshold = True
    # TODO: Which is correct?
@@ -489,7 +488,8 @@ class Within(Threshold):
    _description = "The percentage of forecasts within some error bound (use -r)"
    _defaultBinType = "below"
    _perfectScore = 100
-   def _computeObsFcst(self, obs, fcst):
+   def computeCore(self, data, tRange):
+      [obs, fcst] = data.getScores(["obs", "fcst"])
       diff = abs(obs - fcst)
       return np.mean(self.within(diff, tRange))*100
    def name(self):
