@@ -232,6 +232,8 @@ def run(argv):
       pl = Output.Taylor()
    elif(metric == "error"):
       pl = Output.Error()
+   elif(metric == "freq"):
+      pl = Output.Freq()
    elif(metric == "droc"):
       pl = Output.DRoc()
    elif(metric == "droc0"):
