@@ -36,6 +36,9 @@ class TestParseNumbers(unittest.TestCase):
          Common.parseNumbers("2,5:test,3,5")
          Common.parseNumbers("2,test:8,3,5")
          Common.parseNumbers("test,5:8,3,5")
+   def test_date(self):
+      self.assertEqual([20141230,20141231,20150101,20150102,20150103], Common.parseNumbers("20141230:20150103", True))
+      self.assertEqual([20141230,20150101,20150103], Common.parseNumbers("20141230:2:20150104", True))
 
 class TestGetDate(unittest.TestCase):
    def test_simple(self):
@@ -47,3 +50,6 @@ class TestGetDate(unittest.TestCase):
       self.assertEqual(20141226, Common.getDate(20150105, -10))
       self.assertEqual(20150105, Common.getDate(20141226, 10))
       self.assertEqual(20141231, Common.getDate(20150101, -1))
+
+if __name__ == '__main__':
+   unittest.main()

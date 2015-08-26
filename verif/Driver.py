@@ -8,6 +8,7 @@ import verif.Input as Input
 import matplotlib.pyplot as mpl
 import textwrap
 import verif.Version as Version
+import numpy as np
 def run(argv):
    ############
    # Defaults #
@@ -19,8 +20,7 @@ def run(argv):
    latlonRange = None
    training = 0
    thresholds = None
-   startDate = None
-   endDate   = None
+   dates = None
    climFile   = None
    climType = "subtract"
    leg    = None
@@ -109,9 +109,14 @@ def run(argv):
             elif(arg == "-dpi"):
                dpi = int(argv[i+1])
             elif(arg == "-d"):
-               startDate = int(argv[i+1])
-               endDate   = int(argv[i+2])
-               i = i + 1
+               # Either format is ok:
+               # -d 20150101 20150103
+               # -d 20150101:20150103
+               if(i+2 < len(argv) and argv[i+2].isdigit()):
+                  dates = Common.parseNumbers("%s:%s" %(argv[i+1],argv[i+2]), True)
+                  i = i + 1
+               else:
+                  dates = Common.parseNumbers(argv[i+1], True)
             elif(arg == "-c"):
                climFile = argv[i+1]
                climType = "subtract"
@@ -176,15 +181,6 @@ def run(argv):
       leg = leg.split(',')
       for i in range(0,len(leg)):
          leg[i] = leg[i].replace('_', ' ')
-
-   # Limit dates
-   dates = None
-   if(startDate != None and endDate != None):
-      dates = list()
-      date = startDate
-      while(date <= endDate):
-         dates.append(date)
-         date = Common.getDate(date, 1)
 
    if(latlonRange != None and len(latlonRange) != 4):
       Common.error("-llRange <values> must have exactly 4 values")
@@ -474,7 +470,7 @@ def showDescription(data=None):
    #print Common.formatArgument("","  vector1,vector2 e.g. 3:5,1:2 gives 3, 4, 5, 1, 2")
    # Dimensions
    print Common.green("  Dimensions and subset:")
-   print Common.formatArgument("-d start end","YYYYMMDD. Only use dates between start and end (inclusive)")
+   print Common.formatArgument("-d dates","A vector of dates in YYYYMMDD format, e.g.  20130101:20130201.")
    print Common.formatArgument("-l locations","Limit the verification to these location IDs.")
    print Common.formatArgument("-llrange range","Limit the verification to locations within minlon,maxlon,minlat,maxlat.")
    print Common.formatArgument("-o offsets","Limit the verification to these offsets (in hours).")

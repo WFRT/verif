@@ -43,7 +43,7 @@ def warning(message):
 # num1,num2,num3
 # start:end
 # start:step:end
-def parseNumbers(numbers):
+def parseNumbers(numbers, isDate=False):
    # Check if valid string
    if(any(char not in set('-01234567890.:,') for char in numbers)):
       error("Could not translate '" + numbers + "' into numbers")
@@ -61,9 +61,20 @@ def parseNumbers(numbers):
             step = float(colonList[1])
          stepSign = step/abs(step)
          end   = float(colonList[-1]) + stepSign*0.0001 # arange does not include the end point
-         values = values + list(np.arange(start, end, step))
+         if(isDate):
+            date = min(start, end)
+            curr = list()
+            while date <= max(start, end):
+               curr.append(date)
+               date = getDate(date, step)
+            values = values + list(curr)
+         else:
+            values = values + list(np.arange(start, end, step))
       else:
          error("Could not translate '" + numbers + "' into numbers")
+      if(isDate):
+         for i in range(0, len(values)):
+            values[i] = int(values[i])
    return values
 
 # Sets up subplot for index i (starts at 0) out of N
