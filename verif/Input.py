@@ -458,11 +458,31 @@ class Text(Input):
          return self._x[:,:,:,I[0]]
       elif(metric == "Offset"):
          return self._offsets
+      elif(metric == "Date"):
+         return self._dates
+      elif(metric == "Location"):
+         stations = np.zeros(len(self._stations), 'float')
+         for i in range(0, len(self._stations)):
+            stations[i] = self._stations[i].id()
+         return stations
+      elif(metric in ["Lat", "Lon", "Elev"]):
+         values = np.zeros(len(self._stations), 'float')
+         for i in range(0, len(self._stations)):
+            station = self._stations[i]
+            if(metric == "Lat"):
+               values[i] = station.lat()
+            elif(metric == "Lon"):
+               values[i] = station.lon()
+            elif(metric == "Elev"):
+               values[i] = station.elev()
+         return values
       else:
          Common.error("Cannot find " + metric)
    def getDims(self, metric):
       if(metric in ["Date", "Offset", "Location"]):
          return [metric]
+      elif(metric in ["Lat", "Lon", "Elev"]):
+         return ["Location"]
       else:
          return ["Date", "Offset", "Location"]
    def getDates(self):
