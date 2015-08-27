@@ -70,7 +70,13 @@ Then install verif as follows:
 
   sudo python setup.py install
 
-This will create the executable /usr/local/bin/verif
+This will create the executable ``/usr/local/bin/verif``. If you do not have sudo privileges do:
+
+.. code-block:: bash
+
+  sudo python setup.py install --user
+
+This will create the executable ``~/.local/bin/verif``.
 
 **Mac OSX**
 
@@ -80,7 +86,7 @@ Install python, numpy, scipy, and matplotlib, then install verif as follows:
 
   sudo python setup.py install
 
-verif will then be installed /usr/local/share/python/ or where ever your python modules are
+verif will then be installed ``/usr/local/share/python/`` or where ever your python modules are
 installed (Look for "Installing verif script to <some directory>" when installing).
 
 Examples
