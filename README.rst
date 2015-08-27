@@ -28,11 +28,12 @@ Features
 --------
 
 * Deterministic metrics such as MAE, bias, RMSE (e.g. ``-m mae``)
-* Threshold-based metrics such as the equitable threat score (e.g. ``-m ets``)
+* Threshold-based metrics such as the false alarm rate, ETS, EDI, Yule's Q (e.g. ``-m ets``)
 * Probabilistic metrics such as brier score, PIT-histogram, reliability diagrams (e.g. ``-m bs``)
-* Plot statistics as a function of date, forecast horizon, station elevation, latitude, or longitude
-  (e.g. ``-x date``)
-* Show statistics on maps (``-type map``)
+* Special plots like Taylor diagrams (``-m taylor``), error decomposition (``-m error``),
+  quantile-quantile plots (``-m qq``).
+* Plot scores as a function of date, lead time, station elevation/lat/longitude (e.g. ``-x date``)
+* Show scores on maps (``-type map``)
 * Subset the data by specifying a date range and lat/lon range (``-llrange 5,10,58 60``)
 * Export to text (``-type text``)
 * Options to adjust font sizes, label positions, tick marks, legends, etc (``-labfs 14``)
@@ -98,16 +99,20 @@ The easiest option is to put the data into the following format:
 
 .. code-block:: bash
 
-   date     offset id      lat     lon      elev     obs      fcst
-   20150101 0      214     49.2    -122.1   92       3.4      2.1
-   20150101 1      214     49.2    -122.1   92       4.7      4.2
-   20150101 0      180     50.3    -120.3   150      0.2      -1.2
+   date     offset id      lat     lon      elev     obs      fcst   p10
+   20150101 0      214     49.2    -122.1   92       3.4      2.1    0.914
+   20150101 1      214     49.2    -122.1   92       4.7      4.2    0.858
+   20150101 0      180     50.3    -120.3   150      0.2      -1.2   0.992
 
 The first line must describe the columns. The following attributes are recognized: date (in
-YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees),
-obs (observations), fcst (deterministic forecast). obs and fcst are required and a value of
-0 is used for any missing column. The columns can be in any order. If "id" is not provided, then they
-are assigned sequentially starting at 0.
+YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs
+(observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of
+10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can
+be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0.
+
+Deterministic forecasts will only have "obs" and "fcst", however probabilistic forecasts can provide
+any number of cumulative probabilities. For probabilistic forecasts, "fcst" could represent the
+ensemble mean (or any other method to reduce the ensemble to a deterministic forecast).
 
 NetCDF input
 ------------
