@@ -77,9 +77,24 @@ class Comps(Input):
          stations.append(station)
       return stations
    def getScores(self, metric):
+      metric = self._toPvarComps(metric)
       temp = Common.clean(self._file.variables[metric])
       return temp
+   def _toPvarVerif(self, metric):
+      if(metric[0] == "p" and metric != "pit"):
+         metric = metric.replace("m", "-")
+         if(metric != "p0"):
+            metric = metric.replace("p0", "p0.")
+         metric = metric.replace("p-0", "p-0.")
+      return metric
+   def _toPvarComps(self, metric):
+      if(metric[0] == "p" and metric != "pit"):
+         metric = metric.replace("-", "m")
+         metric = metric.replace(".", "")
+      return metric
+
    def getDims(self, metric):
+      metric = self._toPvarComps(metric)
       return self._file.variables[metric].dimensions
    def getDates(self):
       return Common.clean(self._file.variables["Date"])
@@ -90,6 +105,7 @@ class Comps(Input):
       for (metric, v) in self._file.variables.iteritems():
          if(not metric in ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]):
             if(metric[0] == "p" and metric != "pit"):
+               metric = self._toPvarVerif(metric)
                thresholds.append(metric)
       return thresholds
    def getQuantiles(self):
@@ -109,6 +125,8 @@ class Comps(Input):
       metrics = list()
       for (metric, v) in self._file.variables.iteritems():
          metrics.append(metric)
+      for i in range(0, len(metrics)):
+         metrics[i] = self._toPvarVerif(metrics[i])
       return metrics
    def getUnits(self):
       if(hasattr(self._file, "Units")):
@@ -213,7 +231,7 @@ class Text(Input):
    + Common.formatArgument("","20150101 0      214     49.2    -122.1   92 3.4 2.1     0.91") + "\n"\
    + Common.formatArgument("","20150101 1      214     49.2    -122.1   92 4.7 4.2      0.85") + "\n"\
    + Common.formatArgument("","20150101 0      180     50.3    -120.3   150 0.2 -1.2 0.99") + "\n"\
-   + Common.formatArgument("","The first line must must contain a header describing the columns. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0.")
+   + Common.formatArgument(""," The first line must describe the columns. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0.")
    def __init__(self, filename):
       import csv
       Input.__init__(self, filename)
@@ -398,9 +416,6 @@ class Text(Input):
          threshold = float(metric[1:])
          I = np.where(abs(self._thresholds - threshold) < 0.0001)[0]
          if(len(I) == 0):
-            print threshold
-            print self._thresholds
-            print I
             Common.error("Cannot find " + metric)
          elif(len(I) > 1):
             Common.error("Could not find unique threshold: " + str(threshold))

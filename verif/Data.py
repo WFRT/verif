@@ -523,16 +523,9 @@ class Data:
       else:
          return None
 
-   def getPvar(self, threshold):
-      minus = ""
-      if(threshold < 0):
-         # Negative thresholds
-         minus = "m"
-      if(abs(threshold - int(threshold)) > 0.01):
-         var = "p" + minus + str(abs(threshold)).replace(".", "")
-      else:
-         var   = "p" + minus + str(int(abs(threshold)))
-      return var
+   @staticmethod
+   def getPvar(threshold):
+      return "p%g" % (threshold)
 
    def getQvar(self, quantile):
       quantile = quantile * 100
