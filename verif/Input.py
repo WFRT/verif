@@ -226,16 +226,23 @@ class NetcdfCf(Input):
 
 # Flat text file format
 class Text(Input):
-   _description = Common.formatArgument("text","Data organized in rows and columns with space as a delimiter. Each row represents one forecast/obs pair, and each column represents one attribute of the data. Here is an example") + "\n"\
+   _description = Common.formatArgument("text","Data organized in rows and columns with space as a delimiter. Each row represents one forecast/obs pair, and each column represents one attribute of the data. Here is an example:") + "\n"\
+   + Common.formatArgument("","") + "\n"\
+   + Common.formatArgument("","# variable: Temperature") + "\n"\
+   + Common.formatArgument("","# units: $^oC$") + "\n"\
    + Common.formatArgument("","date     offset id      lat     lon      elev obs fcst      p10") + "\n"\
    + Common.formatArgument("","20150101 0      214     49.2    -122.1   92 3.4 2.1     0.91") + "\n"\
    + Common.formatArgument("","20150101 1      214     49.2    -122.1   92 4.7 4.2      0.85") + "\n"\
    + Common.formatArgument("","20150101 0      180     50.3    -120.3   150 0.2 -1.2 0.99") + "\n"\
-   + Common.formatArgument(""," The first line must describe the columns. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0.")
+   + Common.formatArgument("","") + "\n"\
+   + Common.formatArgument(""," Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0.")
    def __init__(self, filename):
       import csv
       Input.__init__(self, filename)
       file = open(filename, 'r')
+      self._units = "Unknown units"
+      self._variable = "Unknown"
+      self._pit = None
 
       self._dates = set()
       self._offsets = set()
@@ -246,6 +253,7 @@ class Text(Input):
       obs = dict()
       fcst = dict()
       cdf = dict()
+      pit = dict()
       x   = dict()
       indices = dict()
       header = None
@@ -261,68 +269,80 @@ class Text(Input):
       start = time.time()
       # Read the data into dictionary with (date,offset,lat,lon,elev) as key and obs/fcst as values
       for row in file:
-         row = row.split()
-         if(header == None):
-            # Parse the header so we know what each column represents
-            header = row
-            for i in range(0, len(header)):
-               att = header[i]
-               if(att == "date"):
-                  indices["date"] = i
-               elif(att == "offset"):
-                  indices["offset"] = i
-               elif(att == "lat"):
-                  indices["lat"] = i
-               elif(att == "lon"):
-                  indices["lon"] = i
-               elif(att == "elev"):
-                  indices["elev"] = i
-               elif(att == "obs"):
-                  indices["obs"] = i
-               elif(att == "fcst"):
-                  indices["fcst"] = i
-               else:
-                  indices[att] = i
-
-            # Ensure we have required columns
-            requiredColumns = ["obs", "fcst"]
-            for col in requiredColumns:
-               if(not indices.has_key(col)):
-                  msg = "Could not parse %s: Missing column '%s'" % (filename, col)
-                  Common.error(msg)
-         else:
-            if(indices.has_key("date")):
-               date = self._clean(row[indices["date"]])
-            self._dates.add(date)
-            if(indices.has_key("offset")):
-               offset = self._clean(row[indices["offset"]])
-            self._offsets.add(offset)
-            if(indices.has_key("id")):
-               id = self._clean(row[indices["id"]])
+         if(row[0] == "#"):
+            curr = row[1:]
+            curr = curr.split()
+            if(curr[0] == "variable:"):
+               self._variable = curr[1]
+            elif(curr[0] == "units:"):
+               self._units = curr[1]
             else:
-               id = np.nan
-            if(indices.has_key("lat")):
-               lat = self._clean(row[indices["lat"]])
-            if(indices.has_key("lon")):
-               lon = self._clean(row[indices["lon"]])
-            if(indices.has_key("elev")):
-               elev = self._clean(row[indices["elev"]])
-            station = Station.Station(id, lat, lon, elev)
-            self._stations.add(station)
-            obs[(date,offset,lat,lon,elev)]  = self._clean(row[indices["obs"]])
-            fcst[(date,offset,lat,lon,elev)] = self._clean(row[indices["fcst"]])
-            quantileFields = self._getQuantileFields(header)
-            thresholdFields = self._getThresholdFields(header)
-            for field in quantileFields:
-               quantile = float(field[1:])
-               self._quantiles.add(quantile)
-               key = (date,offset,lat,lon,elev,quantile)
-               x[key] = self._clean(row[indices[field]])
-            for field in thresholdFields:
-               threshold = float(field[1:])
-               self._thresholds.add(threshold)
-               key = (date,offset,lat,lon,elev,threshold)
-               cdf[key] = self._clean(row[indices[field]])
+               Common.warning("Ignoring line '" + row.strip() + "' in file '" + filename + "'")
+         else:
+            row = row.split()
+            if(header == None):
+               # Parse the header so we know what each column represents
+               header = row
+               for i in range(0, len(header)):
+                  att = header[i]
+                  if(att == "date"):
+                     indices["date"] = i
+                  elif(att == "offset"):
+                     indices["offset"] = i
+                  elif(att == "lat"):
+                     indices["lat"] = i
+                  elif(att == "lon"):
+                     indices["lon"] = i
+                  elif(att == "elev"):
+                     indices["elev"] = i
+                  elif(att == "obs"):
+                     indices["obs"] = i
+                  elif(att == "fcst"):
+                     indices["fcst"] = i
+                  else:
+                     indices[att] = i
+
+               # Ensure we have required columns
+               requiredColumns = ["obs", "fcst"]
+               for col in requiredColumns:
+                  if(not indices.has_key(col)):
+                     msg = "Could not parse %s: Missing column '%s'" % (filename, col)
+                     Common.error(msg)
+            else:
+               if(indices.has_key("date")):
+                  date = self._clean(row[indices["date"]])
+               self._dates.add(date)
+               if(indices.has_key("offset")):
+                  offset = self._clean(row[indices["offset"]])
+               self._offsets.add(offset)
+               if(indices.has_key("id")):
+                  id = self._clean(row[indices["id"]])
+               else:
+                  id = np.nan
+               if(indices.has_key("lat")):
+                  lat = self._clean(row[indices["lat"]])
+               if(indices.has_key("lon")):
+                  lon = self._clean(row[indices["lon"]])
+               if(indices.has_key("elev")):
+                  elev = self._clean(row[indices["elev"]])
+               station = Station.Station(id, lat, lon, elev)
+               self._stations.add(station)
+               obs[(date,offset,lat,lon,elev)]  = self._clean(row[indices["obs"]])
+               fcst[(date,offset,lat,lon,elev)] = self._clean(row[indices["fcst"]])
+               quantileFields = self._getQuantileFields(header)
+               thresholdFields = self._getThresholdFields(header)
+               for field in quantileFields:
+                  quantile = float(field[1:])
+                  self._quantiles.add(quantile)
+                  key = (date,offset,lat,lon,elev,quantile)
+                  x[key] = self._clean(row[indices[field]])
+               for field in thresholdFields:
+                  threshold = float(field[1:])
+                  self._thresholds.add(threshold)
+                  key = (date,offset,lat,lon,elev,threshold)
+                  cdf[key] = self._clean(row[indices[field]])
+               if indices.has_key("pit"):
+                  pit[(date, offset,lat,lon,elev)] = self._clean(row[indices["pit"]])
       end = time.time()
       file.close()
       self._dates = list(self._dates)
@@ -339,6 +359,8 @@ class Text(Input):
       # Put the dictionary data into a regular 3D array
       self._obs  = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
       self._fcst = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
+      if(len(pit) != 0):
+         self._pit  = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
       self._cdf  = np.zeros([Ndates, Noffsets, Nlocations, Nthresholds], 'float') * np.nan
       self._x    = np.zeros([Ndates, Noffsets, Nlocations, Nquantiles], 'float') * np.nan
       for d in range(0,len(self._dates)):
@@ -356,6 +378,8 @@ class Text(Input):
                   self._obs[d][o][s]  = obs[key]
                if(fcst.has_key(key)):
                   self._fcst[d][o][s] = fcst[key]
+               if(pit.has_key(key)):
+                  self._pit[d][o][s] = pit[key]
                for q in range(0, len(self._quantiles)):
                   quantile = self._quantiles[q]
                   key = (date,offset,lat,lon,elev,quantile)
@@ -412,7 +436,11 @@ class Text(Input):
          return self._obs
       elif(metric == "fcst"):
          return self._fcst
-      elif(metric[0] == "p" and metric != "pit"):
+      elif(metric == "pit"):
+         if(self._pit == None):
+            Common.error("File does not contain 'pit'")
+         return self._pit
+      elif(metric[0] == "p"):
          threshold = float(metric[1:])
          I = np.where(abs(self._thresholds - threshold) < 0.0001)[0]
          if(len(I) == 0):
@@ -447,6 +475,8 @@ class Text(Input):
          metrics.append("q%g" % quantile)
       for threshold in self._thresholds:
          metrics.append("p%g" % threshold)
+      if(self._pit != None):
+         metrics.append("pit")
       return metrics
    def getQuantiles(self):
       return self._quantiles
@@ -454,9 +484,9 @@ class Text(Input):
       metrics = self.getMetrics() + ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]
       return metrics
    def getUnits(self):
-      return "Unknown units"
+      return self._units
    def getVariable(self):
-      return "Unknown"
+      return self._variable
    @staticmethod
    def isValid(filename):
       return True

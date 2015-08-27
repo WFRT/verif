@@ -26,7 +26,7 @@ class IntegrationTest(unittest.TestCase):
 
    @staticmethod
    def isValidImage(filename):
-      return IntegrationTest.fileSize(filename) > 30000
+      return IntegrationTest.fileSize(filename) > 10000
 
    # Runs command and appends -f test.png
    # Cleans up the image file afterwards
@@ -40,10 +40,14 @@ class IntegrationTest(unittest.TestCase):
    def test_valid(self):
       self.runCommand("verif")
       self.runCommand("verif --version")
-      self.runWithImage("verif examples/T_raw_0.nc -m mae")
-      self.runWithImage("verif examples/T_raw_0.nc -m bias")
-      self.runWithImage("verif examples/T_raw_0.nc -m rmse")
-      self.runWithImage("verif examples/T_raw_0.nc -m reliability -r 0")
+
+   def test_README(self):
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m mae")
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m ets")
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m taylor")
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m error")
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m reliability -r 0")
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m pithist")
 
    def test_invalidMetric(self):
       with self.assertRaises(SystemExit):

@@ -83,15 +83,20 @@ Install python, numpy, scipy, and matplotlib, then install verif as follows:
 verif will then be installed /usr/local/share/python/ or where ever your python modules are
 installed (Look for "Installing verif script to <some directory>" when installing).
 
-Example
--------
+Examples
+--------
+Fake data for testing the program is found in ``./examples/``. There is one "raw" forecast file and
+one bias-corrected forecast file (a Kalman filter has been applied). Here are some example commands
+to test out:
+
 .. code-block:: bash
 
-Fake data for testing the program is found in ./examples/. Use the following command to test:
-
-.. code-block:: bash
-
-   verif examples/T_raw.nc examples/T_kf.nc -m mae
+   verif examples/raw.txt examples/kf.txt -m mae
+   verif examples/raw.txt examples/kf.txt -m ets
+   verif examples/raw.txt examples/kf.txt -m taylor
+   verif examples/raw.txt examples/kf.txt -m error
+   verif examples/raw.txt examples/kf.txt -m reliability -r 0
+   verif examples/raw.txt examples/kf.txt -m pithist
 
 Text-based input
 ----------------
@@ -99,23 +104,27 @@ The easiest option is to put the data into the following format:
 
 .. code-block:: bash
 
+   # variable: Temperature
+   # units: $^oC$
    date     offset id      lat     lon      elev     obs      fcst   p10
    20150101 0      214     49.2    -122.1   92       3.4      2.1    0.914
    20150101 1      214     49.2    -122.1   92       4.7      4.2    0.858
    20150101 0      180     50.3    -120.3   150      0.2      -1.2   0.992
 
-The first line must describe the columns. The following attributes are recognized: date (in
-YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs
-(observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of
-10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can
-be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0.
+Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After
+that is a header line that must describe the data columns below. The following attributes are
+recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon
+(in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability
+at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing
+column. The columns can be in any order. If 'id' is not provided, then they are assigned
+sequentially starting at 0.
 
 Deterministic forecasts will only have "obs" and "fcst", however probabilistic forecasts can provide
 any number of cumulative probabilities. For probabilistic forecasts, "fcst" could represent the
 ensemble mean (or any other method to reduce the ensemble to a deterministic forecast).
 
-NetCDF input
-------------
+Proposed NetCDF input
+---------------------
 We are working on defining a NetCDF format that can also be read by verif. Here is our current
 proposal, based on the NetCDF/CF standard:
 
