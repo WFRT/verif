@@ -1010,8 +1010,9 @@ class Scatter(Output):
       mpl.xlabel("Observations (" + data.getUnits() + ")")
       ylim = mpl.ylim()
       xlim = mpl.xlim()
+      axismin = min(min(ylim),min(xlim))
       axismax = max(max(ylim),max(xlim))
-      mpl.plot([0,axismax], [0,axismax], "--", color=[0.3,0.3,0.3], lw=3, zorder=-100)
+      mpl.plot([axismin,axismax], [axismin,axismax], "--", color=[0.3,0.3,0.3], lw=3, zorder=-100)
       mpl.grid()
 
 class Change(Output):
