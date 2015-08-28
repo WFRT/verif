@@ -204,6 +204,14 @@ class Data:
 
       return q
 
+   def getStations(self):
+      stations = self._files[0].getStations()
+      I = self._locationsI[0]
+      useStations = list()
+      for i in I:
+         useStations.append(stations[i])
+      return useStations
+
    # Find indicies of elements that are present in all files
    # Merge in values in 'aux' as well
    @staticmethod
