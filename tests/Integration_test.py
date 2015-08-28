@@ -49,6 +49,25 @@ class IntegrationTest(unittest.TestCase):
       self.runWithImage("verif examples/raw.txt examples/kf.txt -m reliability -r 0")
       self.runWithImage("verif examples/raw.txt examples/kf.txt -m pithist")
 
+   def test_option_b(self):
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m ets -b below")
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m ets -b within")
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m ets -b above")
+
+   def test_option_c(self):
+      self.runWithImage("verif examples/raw.txt -c examples/kf.txt -m ets")
+
+   def test_option_ct(self):
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m mae -ct min")
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m mae -ct mean")
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m mae -ct median")
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m mae -ct max")
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m mae -ct std")
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m mae -ct range")
+
+   def test_option_hist(self):
+      self.runWithImage("verif examples/raw.txt examples/kf.txt -m obs -hist")
+
    def test_invalidMetric(self):
       with self.assertRaises(SystemExit):
          self.runWithImage("verif examples/T_raw_0.nc -m maeq")
