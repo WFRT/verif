@@ -47,7 +47,7 @@ class Data:
             Common.error("File '" + filename + "' is not a valid input file")
          self._files.append(file)
          self._cache.append(dict())
-      if(clim != None):
+      if(clim is not None):
          if(not os.path.exists(clim)):
             Common.error("File '" + clim + "' does not exist")
          if(Input.NetcdfCf.isValid(clim)):
@@ -67,7 +67,7 @@ class Data:
          self._files = self._files + [self._clim]
 
       # Latitude-Longitude range
-      if(latlonRange != None):
+      if(latlonRange is not None):
          lat   = self._files[0].getLats()
          lon   = self._files[0].getLons()
          locId = self._files[0].getStationIds()
@@ -82,7 +82,7 @@ class Data:
             if(currLat >= minLat and currLat <= maxLat and currLon >= minLon and currLon <= maxLon):
                latlonLocations.append(locId[i])
          useLocations = list()
-         if(locations != None):
+         if(locations is not None):
             for i in range(0, len(locations)):
                currLocation = locations[i]
                if(currLocation in latlonLocations):
@@ -95,7 +95,7 @@ class Data:
          useLocations = locations
 
       # Elevation range
-      if(elevRange != None):
+      if(elevRange is not None):
          lat   = self._files[0].getElevs()
          locId = self._files[0].getStationIds()
          elevLocations = list()
@@ -121,7 +121,7 @@ class Data:
          Common.error("No valid locations selected")
 
       # Training
-      if(training != None):
+      if(training is not None):
          for f in range(0, len(self._datesI)):
             if(len(self._datesI[f]) <= training):
                Common.error("Training period too long for " + self.getFilenames()[f] + \
@@ -139,7 +139,7 @@ class Data:
       axis = self._getAxisIndex(self._axis)
       
       # Compute climatology, if needed
-      doClim = self._clim != None and ("obs" in metrics or "fcst" in metrics)
+      doClim = self._clim is not None and ("obs" in metrics or "fcst" in metrics)
       if(doClim):
          temp = self._getScore("fcst", len(self._files)-1)
          if(self._axis == "date"):
@@ -183,7 +183,7 @@ class Data:
          # Remove missing values
          if(self._axis != "all"):
             currValid = (np.isnan(data[metric]) == 0) & (np.isinf(data[metric]) == 0)
-            if(valid == None):
+            if(valid is None):
                valid = currValid
             else:
                valid = (valid & currValid)
@@ -228,7 +228,7 @@ class Data:
             temp = np.zeros(len(stations))
             for i in range(0,len(stations)):
                temp[i] = stations[i].id()
-         if(values == None):
+         if(values is None):
             values = temp
          else:
             values = np.intersect1d(values, temp)
@@ -256,7 +256,7 @@ class Data:
       return indices
 
    def _getFiles(self):
-      if(self._clim == None):
+      if(self._clim is None):
          return self._files
       else:
          return self._files[0:-1]
@@ -265,7 +265,7 @@ class Data:
       metrics = None
       for file in self._files:
          currMetrics = file.getMetrics()
-         if(metrics == None):
+         if(metrics is None):
             metrics = currMetrics
          else:
             metrics = set(metrics) & set(currMetrics)
@@ -283,22 +283,22 @@ class Data:
          Common.error("Could not get indices for axis: " + str(axis))
       return I
    def _getDateIndices(self, findex=None):
-      if(findex == None):
+      if(findex is None):
          findex = self._findex
       return self._datesI[findex]
 
    def _getOffsetIndices(self, findex=None):
-      if(findex == None):
+      if(findex is None):
          findex = self._findex
       return self._offsetsI[findex]
 
    def _getLocationIndices(self, findex=None):
-      if(findex == None):
+      if(findex is None):
          findex = self._findex
       return self._locationsI[findex]
 
    def _getScore(self, metric, findex=None):
-      if(findex == None):
+      if(findex is None):
          findex = self._findex
 
       if(metric in self._cache[findex]):
@@ -350,7 +350,7 @@ class Data:
    def setFileIndex(self, index):
       self._findex = index
    def getNumFiles(self):
-      return len(self._files) - (self._clim != None)
+      return len(self._files) - (self._clim is not None)
    def getNumFilesWithClim(self):
       return len(self._files)
 
@@ -359,19 +359,19 @@ class Data:
       return self._files[0].getUnits()
 
    def isLocationAxis(self, axis):
-      if(axis == None):
+      if(axis is None):
          return False
       prog = re.compile("location.*")
       return prog.match(axis)
 
    def getAxisSize(self, axis=None):
-      if(axis == None):
+      if(axis is None):
          axis = self._axis
       return len(self.getAxisValues(axis))
 
    # What values represent this axis?
    def getAxisValues(self, axis=None):
-      if(axis == None):
+      if(axis is None):
          axis = self._axis
       if(axis == "date"):
          return Common.convertDates(self._getScore("Date").astype(int))
@@ -396,12 +396,12 @@ class Data:
       else:
          return [0]
    def isAxisContinuous(self, axis=None):
-      if(axis == None):
+      if(axis is None):
          axis = self._axis
       return axis in ["date", "offset", "threshold"]
 
    def getAxisFormatter(self, axis=None):
-      if(axis == None):
+      if(axis is None):
          axis = self._axis
       if(axis == "date"):
          return DateFormatter('\n%Y-%m-%d')
@@ -417,7 +417,7 @@ class Data:
          names.append(files[i].getFilename())
       return names
    def getFilename(self, findex=None):
-      if(findex == None):
+      if(findex is None):
          findex = self._findex
       return self.getFilenames()[findex]
 
@@ -436,7 +436,7 @@ class Data:
       return names
 
    def getAxis(self, axis=None):
-      if(axis == None):
+      if(axis is None):
          axis = self._axis
       return axis
 
@@ -461,7 +461,7 @@ class Data:
       return x1
 
    def getAxisLabel(self, axis=None):
-      if(axis == None):
+      if(axis is None):
          axis = self._axis
       if(axis == "date"):
          return "Date"
@@ -489,7 +489,7 @@ class Data:
       return self._getScore("Location")
 
    def getAxisDescriptions(self, axis=None):
-      if(axis == None):
+      if(axis is None):
          axis = self._axis
       prog = re.compile("location.*")
       if(prog.match(axis)):
@@ -513,7 +513,7 @@ class Data:
          return self.getAxisValues(axis)
 
    def getAxisDescriptionHeader(self, axis=None):
-      if(axis == None):
+      if(axis is None):
          axis = self._axis
       prog = re.compile("location.*")
       if(prog.match(axis)):

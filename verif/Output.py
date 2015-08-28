@@ -107,15 +107,15 @@ class Output:
 
    # Produce output independently for each value along this axis
    def setAxis(self, axis):
-      if(axis != None):
+      if(axis is not None):
          self._xaxis = axis
 
    def setBinType(self, binType):
-      if(binType != None):
+      if(binType is not None):
          self._binType = binType
 
    def setThresholds(self, thresholds):
-      if(thresholds == None):
+      if(thresholds is None):
          thresholds = [None]
       thresholds = np.array(thresholds)
       self._thresholds = thresholds
@@ -208,14 +208,14 @@ class Output:
       self._savePlot(data)
 
    def _getLegendNames(self, data):
-      if(self._legNames != None):
+      if(self._legNames is not None):
          names = self._legNames
       else:
          names = data.getShortNames()
       return(names)
 
    def _plotPerfectScore(self, x, perfect, color="gray", zorder=-1000):
-      if(perfect == None):
+      if(perfect is None):
          return
       if(self._showPerfect):
          # Make 'perfect' same length as 'x'
@@ -233,7 +233,7 @@ class Output:
 
    # Helper functions
    def _getColor(self, i, total):
-      if(self._lc != None):
+      if(self._lc is not None):
          firstList = self._lc.split(",")
          numList = []
          finalList = []
@@ -275,7 +275,7 @@ class Output:
 
 
    def _getStyle(self, i, total, connectingLine=True, lineOnly=False): # edited by tchui (25/05/15)
-      if(self._ls != None):
+      if(self._ls is not None):
          listStyles = self._ls.split(",")
          I = i % len(listStyles) # loop through input linestyles (independent of colors)
          return listStyles[I]
@@ -293,18 +293,18 @@ class Output:
 
    # Saves to file, set figure size
    def _savePlot(self, data):
-      if(self._figsize != None):
+      if(self._figsize is not None):
          mpl.gcf().set_size_inches(int(self._figsize[0]), int(self._figsize[1]))
       if(not self._showMargin):
          Common.removeMargin()
-      if(self._filename != None):
+      if(self._filename is not None):
          mpl.savefig(self._filename, bbox_inches='tight', dpi=self._dpi)
       else:
          fig = mpl.gcf()
          fig.canvas.set_window_title(data.getFilenames()[0])
          mpl.show()
    def _legend(self, data, names=None):
-      if(names == None):
+      if(names is None):
          mpl.legend(loc=self._legLoc,prop={'size':self._legfs})
       else:
          mpl.legend(names, loc=self._legLoc,prop={'size':self._legfs})
@@ -327,9 +327,9 @@ class Output:
    def _setYAxisLimits(self, metric):
       currYlim = mpl.ylim()
       ylim = [metric.min(), metric.max()]
-      if(ylim[0] == None):
+      if(ylim[0] is None):
          ylim[0] = currYlim[0]
-      if(ylim[1] == None):
+      if(ylim[1] is None):
          ylim[1] = currYlim[1]
       mpl.ylim(ylim)
 
@@ -350,35 +350,35 @@ class Output:
             # matplotlib crashes if there are fewer than 2 tick lines
             # when determining where to put minor ticks
             mpl.minorticks_on()
-         if(not self._minlth == None):
+         if(not self._minlth is None):
             mpl.tick_params('both', length=self._minlth, which='minor')
-         if(not self._majlth == None):
+         if(not self._majlth is None):
             mpl.tick_params('both', length=self._majlth, width=self._majwid, which='major')
          for label in ax.get_xticklabels():
             label.set_rotation(self._xrot)
 
       for ax in mpl.gcf().get_axes():
-         if(self._xlim != None):
+         if(self._xlim is not None):
             mpl.xlim(self._xlim)
-         if(self._ylim != None):
+         if(self._ylim is not None):
             mpl.ylim(self._ylim)
-         if(self._clim != None):
+         if(self._clim is not None):
             mpl.clim(self._clim)
 
       # Labels
-      if(self._xlabel != None):
+      if(self._xlabel is not None):
          mpl.xlabel(self._xlabel)
-      if(self._ylabel != None):
+      if(self._ylabel is not None):
          mpl.ylabel(self._ylabel)
-      if(self._title != None):
+      if(self._title is not None):
          mpl.title(self._title)
 
       # Ticks
-      if(self._xticks != None):
+      if(self._xticks is not None):
          if(len(self._xticks) <= 1):
             Common.error("Xticks must have at least 2 values")
          mpl.xticks(self._xticks)
-      if(self._yticks != None):
+      if(self._yticks is not None):
          if(len(self._yticks) <= 1):
             Common.error("Yticks must have at least 2 values")
          mpl.yticks(self._yticks)
@@ -440,9 +440,9 @@ class Default(Output):
       Output.__init__(self)
       # offsets, dates, location, locationElev, threshold
       self._metric = metric
-      if(metric.defaultAxis() != None):
+      if(metric.defaultAxis() is not None):
          self._xaxis = metric.defaultAxis()
-      if(metric.defaultBinType() != None):
+      if(metric.defaultBinType() is not None):
          self._binType = metric.defaultBinType()
       self._showRank = False
       self._showAcc  = False
@@ -487,7 +487,7 @@ class Default(Output):
 
          if(sum(np.isnan(yy)) == len(yy)):
             Common.warning("No valid scores for " + filenames[f])
-         if(y == None):
+         if(y is None):
             y = np.zeros([F, len(yy)],'float')
             x = np.zeros([F, len(xx)],'float')
          y[f,:] = yy
@@ -575,7 +575,7 @@ class Default(Output):
       F     = data.getNumFiles()
       [x,y] = self.getXY(data)
 
-      if(self._filename != None):
+      if(self._filename is not None):
          sys.stdout = open(self._filename, 'w')
 
       maxlength = 0
@@ -685,7 +685,7 @@ class Default(Output):
          cmap=mpl.cm.RdBu
 
       # Forced limits
-      if(self._clim != None):
+      if(self._clim is not None):
          clim = self._clim
 
       std = Common.nanstd(y)
@@ -734,7 +734,7 @@ class Default(Output):
                   #if(isMax[i]):
                   #   mpl.plot(x0[i], y0[i], 'w.', ms=30, alpha=0.2)
                   mpl.text(x0[i], y0[i], "%d %3.2f" % (ids[i],value))
-         if(self._legNames != None):
+         if(self._legNames is not None):
             names = self._legNames
          else:
             names = data.getFilenames()
@@ -804,7 +804,7 @@ class Hist(Output):
       F     = data.getNumFiles()
       [x,y] = self.getXY(data)
 
-      if(self._filename != None):
+      if(self._filename is not None):
          sys.stdout = open(self._filename, 'w')
 
       maxlength = 0
@@ -1233,7 +1233,7 @@ class TimeSeries(Output):
 
       #mpl.ylabel(data.getVariableAndUnits())  # "Wind Speed (km/hr)") ###hard coded axis label (dsiuta)
       mpl.xlabel(data.getAxisLabel("date"))
-      if(self._ylabel == None):
+      if(self._ylabel is None):
          mpl.ylabel(data.getVariableAndUnits())
       else:
          mpl.ylabel(self._ylabel)
@@ -1516,13 +1516,13 @@ class DRoc(Output):
       self._showThresholds = False
    def _plotCore(self, data):
       threshold = self._thresholds[0]   # Observation threshold
-      if(threshold == None):
+      if(threshold is None):
          Common.error("DRoc plot needs a threshold (use -r)")
 
       if(self._doClassic):
          fthresholds = [threshold]
       else:
-         if(self._fthresholds != None):
+         if(self._fthresholds is not None):
             fthresholds = self._fthresholds
          else:
             if(data.getVariable() == "Precip"):

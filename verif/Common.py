@@ -175,7 +175,7 @@ def intersect(list1, list2):
    return list(set(list1) & set(list2))
 
 def formatArgument(argument, description, argumentWidth=19, totalWidth=None, indent=2):
-   if(totalWidth == None):
+   if(totalWidth is None):
       totalWidth = getTextWidth()
    #fmt = "  %-" + str(argumentWidth) + "s%s"
    #output = fmt % (argument, textwrap.fill(description, totalWidth-argumentWidth).replace('\n', '\n                 '))

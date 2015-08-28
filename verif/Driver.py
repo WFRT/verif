@@ -177,12 +177,12 @@ def run(argv):
       return
 
    # Deal with legend entries
-   if(leg != None):
+   if(leg is not None):
       leg = leg.split(',')
       for i in range(0,len(leg)):
          leg[i] = leg[i].replace('_', ' ')
 
-   if(latlonRange != None and len(latlonRange) != 4):
+   if(latlonRange is not None and len(latlonRange) != 4):
       Common.error("-llRange <values> must have exactly 4 values")
 
    if(len(ifiles) > 0):
@@ -190,11 +190,11 @@ def run(argv):
             locations=locations, latlonRange=latlonRange, training=training)
    else:
       data = None
-   if(len(argv) == 1 or len(ifiles) == 0 or metric == None):
+   if(len(argv) == 1 or len(ifiles) == 0 or metric is None):
       showDescription(data)
       return
 
-   if(figSize != None):
+   if(figSize is not None):
       figSize = figSize.split(',')
       if(len(figSize) != 2):
          print "-fs figSize must be in the form: width,height"
@@ -258,7 +258,7 @@ def run(argv):
          if(metric == mm[0].lower() and mm[1].isStandard()):
             m = mm[1]()
             break
-      if(m == None):
+      if(m is None):
          m = Metric.Default(metric)
          '''
 
@@ -372,7 +372,7 @@ def run(argv):
          Common.error("Type not understood")
 
    # Rest dimension of '-x' is not allowed
-   if(xdim != None and not pl.supportsX()):
+   if(xdim is not None and not pl.supportsX()):
       Common.warning(metric + " does not support -x. Ignoring it.")
       xdim = None
 
@@ -383,7 +383,7 @@ def run(argv):
       xdim = None
 
    # Create thresholds if needed
-   if((thresholds == None) and (pl.requiresThresholds() or (m != None and m.requiresThresholds()))):
+   if((thresholds is None) and (pl.requiresThresholds() or (m is not None and m.requiresThresholds()))):
       data.setAxis("none")
       obs  = data.getScores("obs")[0]
       fcst = data.getScores("fcst")[0]
@@ -393,43 +393,43 @@ def run(argv):
       Common.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
 
    # Set plot parameters
-   if(markerSize != None):
+   if(markerSize is not None):
       pl.setMarkerSize(markerSize)
-   if(lineWidth != None):
+   if(lineWidth is not None):
       pl.setLineWidth(lineWidth)
-   if(labFontSize != None):
+   if(labFontSize is not None):
       pl.setLabFontSize(labFontSize)
-   if(legFontSize != None):
+   if(legFontSize is not None):
       pl.setLegFontSize(legFontSize)
-   if(tickFontSize != None):
+   if(tickFontSize is not None):
       pl.setTickFontSize(tickFontSize)
-   if(XRotation != None):
+   if(XRotation is not None):
       pl.setXRotation(XRotation)
-   if(MajorLength != None):
+   if(MajorLength is not None):
       pl.setMajorLength(MajorLength)
-   if(MinorLength != None):
+   if(MinorLength is not None):
       pl.setMinorLength(MinorLength)
-   if(MajorWidth != None):
+   if(MajorWidth is not None):
       pl.setMajorWidth(MajorWidth)
-   if(Bottom != None):
+   if(Bottom is not None):
       pl.setBottom(Bottom)
-   if(Top != None):
+   if(Top is not None):
       pl.setTop(Top)
-   if(Right != None):
+   if(Right is not None):
       pl.setRight(Right)
-   if(Left != None):
+   if(Left is not None):
       pl.setLeft(Left)
-   if(Pad != None):
+   if(Pad is not None):
       pl.setPad(None)
-   if(binType != None):
+   if(binType is not None):
       pl.setBinType(binType)
-   if(showPerfect != None):
+   if(showPerfect is not None):
       pl.setShowPerfect(showPerfect)
-   if(xlim != None):
+   if(xlim is not None):
       pl.setXLim(xlim)
-   if(ylim != None):
+   if(ylim is not None):
       pl.setYLim(ylim)
-   if(clim != None):
+   if(clim is not None):
       pl.setCLim(clim)
    pl.setFilename(ofile)
    pl.setThresholds(thresholds)
@@ -531,7 +531,7 @@ def showDescription(data=None):
          print Common.formatArgument(name, desc)
          #print "   %-14s%s" % (name, textwrap.fill(desc, 80).replace('\n', '\n                 ')),
          #print ""
-   if(data != None):
+   if(data is not None):
       print ""
       print "  Or one of the following, which plots the raw score from the file:"
       print " ",

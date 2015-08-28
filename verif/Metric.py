@@ -56,7 +56,7 @@ class Metric:
       #   extra = " " + Common.experimental() + "."
       if(cls._supAggregator):
          extra = " Supports -ct."
-      if(cls._perfectScore != None):
+      if(cls._perfectScore is not None):
          extra = extra + " " + "Perfect score " + str(cls._perfectScore) + "."
       return desc + "." + extra
 
@@ -253,14 +253,14 @@ class Pit(Metric):
    def compute(self, data, tRange):
       x0 = data.getX0()
       x1 = data.getX1()
-      if(x0 == None and x1 == None):
+      if(x0 is None and x1 is None):
          [pit] = data.getScores([self._name])
       else:
          [obs,pit] = data.getScores(["obs", self._name])
-         if(x0 != None):
+         if(x0 is not None):
             I = np.where(obs == x0)[0]
             pit[I] = np.random.rand(len(I))*pit[I]
-         if(x1 != None):
+         if(x1 is not None):
             I = np.where(obs == x1)[0]
             pit[I] = 1 - np.random.rand(len(I))*(1-pit[I])
          #I = np.where((fcst > 2) & (fcst < 2000))[0]
@@ -727,7 +727,7 @@ class Contingency(Threshold):
    def label(self, data):
       return self.name()
    def computeCore(self, data, tRange):
-      if(tRange == None):
+      if(tRange is None):
          Common.error("Metric " + self.getClassName() + " requires '-r <threshold>'")
       [obs,fcst] = data.getScores(["obs", "fcst"])
       value = np.nan

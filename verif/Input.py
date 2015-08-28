@@ -280,7 +280,7 @@ class Text(Input):
                Common.warning("Ignoring line '" + row.strip() + "' in file '" + filename + "'")
          else:
             row = row.split()
-            if(header == None):
+            if(header is None):
                # Parse the header so we know what each column represents
                header = row
                for i in range(0, len(header)):
@@ -437,7 +437,7 @@ class Text(Input):
       elif(metric == "fcst"):
          return self._fcst
       elif(metric == "pit"):
-         if(self._pit == None):
+         if(self._pit is None):
             Common.error("File does not contain 'pit'")
          return self._pit
       elif(metric[0] == "p"):
@@ -495,7 +495,7 @@ class Text(Input):
          metrics.append("q%g" % quantile)
       for threshold in self._thresholds:
          metrics.append("p%g" % threshold)
-      if(self._pit != None):
+      if(self._pit is not None):
          metrics.append("pit")
       return metrics
    def getQuantiles(self):
