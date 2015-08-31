@@ -40,9 +40,14 @@ class IntegrationTest(unittest.TestCase):
    def test_valid(self):
       self.runCommand("verif")
       self.runCommand("verif --version")
-      self.runCommand("verif --list-thresholds")
-      self.runCommand("verif --list-quantiles")
-      self.runCommand("verif --list-thresholds --list-quantiles")
+      self.runCommand("verif examples/raw.txt examples/kf.txt --list-thresholds")
+      self.runCommand("verif examples/raw.txt examples/kf.txt --list-quantiles")
+      self.runCommand("verif examples/raw.txt examples/kf.txt --list-thresholds --list-quantiles")
+
+   def test_invalid(self):
+      with self.assertRaises(SystemExit):
+         self.runWithImage("verif --list-thresholds")
+         self.runWithImage("verif --list-quantiles")
 
    def test_README(self):
       self.runWithImage("verif examples/raw.txt examples/kf.txt -m mae")

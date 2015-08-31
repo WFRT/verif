@@ -198,6 +198,8 @@ def run(argv):
       data = None
 
    if(listThresholds or listQuantiles):
+      if(len(ifiles) == 0):
+         Common.error("Files are required in order to list thresholds or quantiles")
       if(listThresholds):
          print "Thresholds:",
          for threshold in data.getThresholds():
