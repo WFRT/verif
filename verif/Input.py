@@ -427,6 +427,11 @@ class Text(Input):
             thresholds.append(att)
       return thresholds
 
+   def getThresholds(self):
+      return self._thresholds
+   def getQuantiles(self):
+      return self._quantiles
+
    def getName(self):
       return "Unknown"
    def getStations(self):
@@ -498,8 +503,6 @@ class Text(Input):
       if(self._pit is not None):
          metrics.append("pit")
       return metrics
-   def getQuantiles(self):
-      return self._quantiles
    def getVariables(self):
       metrics = self.getMetrics() + ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]
       return metrics

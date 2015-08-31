@@ -60,6 +60,8 @@ def run(argv):
    ylim = None
    clim = None
    version = None
+   listThresholds = False
+   listQuantiles = False
 
    # Read command line arguments
    i = 1
@@ -71,6 +73,10 @@ def run(argv):
             noMargin = True
          elif(arg == "--version"):
             version = True
+         elif(arg == "--list-thresholds"):
+            listThresholds = True
+         elif(arg == "--list-quantiles"):
+            listQuantiles = True
          elif(arg == "-sp"):
             showPerfect = True
          elif(arg == "-hist"):
@@ -190,7 +196,20 @@ def run(argv):
             locations=locations, latlonRange=latlonRange, training=training)
    else:
       data = None
-   if(len(argv) == 1 or len(ifiles) == 0 or metric is None):
+
+   if(listThresholds or listQuantiles):
+      if(listThresholds):
+         print "Thresholds:",
+         for threshold in data.getThresholds():
+            print "%g" % threshold,
+         print ""
+      if(listQuantiles):
+         print "Quantiles:",
+         for quantile in data.getQuantiles():
+            print "%g" % quantile,
+         print ""
+      return
+   elif(len(argv) == 1 or len(ifiles) == 0 or metric is None):
       showDescription(data)
       return
 
@@ -457,11 +476,14 @@ def showDescription(data=None):
    print textwrap.fill(desc, Common.getTextWidth())
    print ""
    print "usage: verif files -m metric [options]"
+   print "       verif files [--list-thresholds] [--list-quantiles]"
    print "       verif --version"
    print ""
    print Common.green("Arguments:")
    print Common.formatArgument("files", "One or more verification files in NetCDF or text format (see 'File Formats' below).")
    print Common.formatArgument("-m metric","Which verification metric to use? See 'Metrics' below.")
+   print Common.formatArgument("--list-thresholds","What thresholds are available in the files?")
+   print Common.formatArgument("--list-quantiles","What quantiles are available in the files?")
    print Common.formatArgument("--version","What version of verif is this?")
    print ""
    print Common.green("Options:")

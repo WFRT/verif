@@ -272,6 +272,28 @@ class Data:
 
       return metrics
 
+   def getThresholds(self):
+      thresholds = None
+      for file in self._files:
+         currThresholds = file.getThresholds()
+         if(thresholds is None):
+            thresholds = currThresholds
+         else:
+            thresholds = set(thresholds) & set(currThresholds)
+
+      return thresholds
+
+   def getQuantiles(self):
+      quantiles = None
+      for file in self._files:
+         currQuantiles = file.getQuantiles()
+         if(quantiles is None):
+            quantiles = currQuantiles
+         else:
+            quantiles = set(quantiles) & set(currQuantiles)
+
+      return quantiles
+
    def _getIndices(self, axis, findex=None):
       if(axis == "date"):
          I = self._getDateIndices(findex)
