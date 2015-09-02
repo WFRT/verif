@@ -150,7 +150,7 @@ class Fcst(Metric):
    _supAggregator = True
    def computeCore(self, data, tRange):
       obs = data.getScores("fcst")
-      return np._aggregator(obs)
+      return self._aggregator(obs)
    def name(self):
       return self._aggregatorName.title()+ " of forecast"
 
