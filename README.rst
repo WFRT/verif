@@ -54,7 +54,8 @@ Requirements
 Installation Instructions
 -------------------------
 
-Download the source code of a released version: https://github.com/WFRT/verif/releases/
+Download the source code of the latest released version: https://github.com/WFRT/verif/releases/.
+Unzip the file and navigate into the extracted folder.
 
 **Ubuntu**
 
@@ -64,7 +65,7 @@ Install the required pacakges:
 
   sudo apt-get install python-numpy python-scipy python-matplotlib
 
-Then install verif as follows:
+Then install verif by executing the following inside the extracted folder:
 
 .. code-block:: bash
 
@@ -83,7 +84,8 @@ variable.
 
 **Mac OSX**
 
-Install python, numpy, scipy, and matplotlib, then install verif as follows:
+Install python, numpy, scipy, and matplotlib, then install verif by executing the following inside
+the extracted folder:
 
 .. code-block:: bash
 
