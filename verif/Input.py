@@ -60,7 +60,7 @@ class Input:
 
 # Original fileformat used by OutputVerif in COMPS
 class Comps(Input):
-   _description = Common.formatArgument("netcdf","'verif' output from COMPS ")
+   _description = Common.formatArgument("netcdf","Undocumented legacy NetCDF format, to be phased out. A new NetCDF based format will be defined.")
    def __init__(self, filename):
       Input.__init__(self, filename)
       self._file = io.netcdf.netcdf_file(filename, 'r')
