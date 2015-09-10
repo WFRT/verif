@@ -6,9 +6,11 @@ from copy import deepcopy
 import matplotlib.pyplot as mpl
 import textwrap
 import os
+
+
 def convertDates(dates):
    numDates = len(dates)
-   dates2 = np.zeros([numDates], 'float')   
+   dates2 = np.zeros([numDates], 'float')
    for i in range(0, numDates):
       year = int(dates[i] / 10000)
       month = int(dates[i] / 100 % 100)
@@ -16,27 +18,35 @@ def convertDates(dates):
       dates2[i] = date2num(datetime.datetime(year, month, day, 0))
    return dates2
 
+
 def red(text):
-   return "\033[31m"+text+"\033[0m"
+   return "\033[31m" + text + "\033[0m"
+
 
 def removeMargin():
-   mpl.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0,hspace=0)
+   mpl.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0, hspace=0)
+
 
 def green(text):
-   return "\033[32m"+text+"\033[0m"
+   return "\033[32m" + text + "\033[0m"
+
 
 def yellow(text):
-   return "\033[33m"+text+"\033[0m"
+   return "\033[33m" + text + "\033[0m"
+
 
 def experimental():
    return yellow("(experimental)")
+
 
 def error(message):
    print "\033[1;31mError: " + message + "\033[0m"
    sys.exit(1)
 
+
 def warning(message):
    print "\033[1;33mWarning: " + message + "\033[0m"
+
 
 # allowable formats:
 # num
@@ -56,11 +66,12 @@ def parseNumbers(numbers, isDate=False):
          values.append(float(colonList[0]))
       elif(len(colonList) <= 3):
          start = float(colonList[0])
-         step  = 1
+         step = 1
          if(len(colonList) == 3):
             step = float(colonList[1])
-         stepSign = step/abs(step)
-         end   = float(colonList[-1]) + stepSign*0.0001 # arange does not include the end point
+         stepSign = step / abs(step)
+         # arange does not include the end point:
+         end = float(colonList[-1]) + stepSign * 0.0001
          if(isDate):
             date = min(start, end)
             curr = list()
@@ -77,17 +88,21 @@ def parseNumbers(numbers, isDate=False):
             values[i] = int(values[i])
    return values
 
+
 # Sets up subplot for index i (starts at 0) out of N
 def subplot(i, N):
-   [X,Y] = getSubplotSize(N)
-   mpl.subplot(Y,X,i+1)
+   [X, Y] = getSubplotSize(N)
+   mpl.subplot(Y, X, i + 1)
+
 
 def getSubplotSize(N):
    Y = 1
    if(N > 4):
-      Y= np.ceil(np.sqrt(N)/1.5)
+      Y = np.ceil(np.sqrt(N) / 1.5)
    X = np.ceil(N / Y)
-   return [int(X),int(Y)]
+   return [int(X), int(Y)]
+
+
 def getMapResolution(lats, lons):
    dlat = (max(lats) - min(lats))
    dlon = (max(lons) - min(lons))
@@ -106,113 +121,126 @@ def getMapResolution(lats, lons):
       res = "c"
    return res
 
-# Fill an area along x, between yLower and yUpper
-# Both yLower and yUpper most correspond to points in x (i.e. be in the same order)
-def fill(x, yLower, yUpper, col, alpha=1, zorder=0, hatch=''):
-   # This approach doesn't work, because it doesn't remove points with missing x or y
-   #X = np.hstack((x, x[::-1]))
-   #Y = np.hstack((yLower, yUpper[::-1]))
 
+# Fill an area along x, between yLower and yUpper. Both yLower and yUpper most
+# correspond to points in x (i.e. be in the same order)
+def fill(x, yLower, yUpper, col, alpha=1, zorder=0, hatch=''):
    # Populate a list of non-missing points
    X = list()
    Y = list()
-   for i in range(0,len(x)):
-      if(not( np.isnan(x[i]) or np.isnan(yLower[i]))):
+   for i in range(0, len(x)):
+      if(not(np.isnan(x[i]) or np.isnan(yLower[i]))):
          X.append(x[i])
          Y.append(yLower[i])
-   for i in range(len(x)-1, -1, -1):
+   for i in range(len(x) - 1, -1, -1):
       if(not (np.isnan(x[i]) or np.isnan(yUpper[i]))):
          X.append(x[i])
          Y.append(yUpper[i])
    if(len(X) > 0):
-      mpl.fill(X, Y, facecolor=col, alpha=alpha,linewidth=0, zorder=zorder, hatch=hatch)
+      mpl.fill(X, Y, facecolor=col, alpha=alpha, linewidth=0, zorder=zorder,
+            hatch=hatch)
+
 
 def clean(data):
    data = data[:].astype(float)
    q = deepcopy(data)
-   mask = np.where(q == -999);
+   mask = np.where(q == -999)
    q[mask] = np.nan
-   mask = np.where(q < -100000);
+   mask = np.where(q < -100000)
    q[mask] = np.nan
-   mask = np.where(q > 1e30);
+   mask = np.where(q > 1e30)
    q[mask] = np.nan
    return q
 
+
 # Date: YYYYMMDD diff: Add this many days
 def getDate(date, diff):
-   year  = int(date / 10000)
+   year = int(date / 10000)
    month = int(date / 100 % 100)
-   day   = int(date % 100)
+   day = int(date % 100)
    date2 = datetime.datetime(year, month, day, 0) + datetime.timedelta(diff)
    return int(date2.strftime('%Y%m%d'))
 
+
 def nanmean(data, **args):
-   return np.ma.filled(np.ma.masked_array(data,np.isnan(data)).mean(**args),
+   return np.ma.filled(np.ma.masked_array(data, np.isnan(data)).mean(**args),
          fill_value=np.nan)
+
+
 def nanmedian(data, **args):
    I = np.where(np.isnan(data.flatten()) == 0)[0]
    return np.median(data.flatten()[I])
+
+
 def nanmin(data, **args):
-   return np.ma.filled(np.ma.masked_array(data,np.isnan(data)).min(**args),
+   return np.ma.filled(np.ma.masked_array(data, np.isnan(data)).min(**args),
          fill_value=np.nan)
+
+
 def nanmax(data, **args):
-   return np.ma.filled(np.ma.masked_array(data,np.isnan(data)).max(**args),
+   return np.ma.filled(np.ma.masked_array(data, np.isnan(data)).max(**args),
          fill_value=np.nan)
+
+
 def nanstd(data, **args):
-   return np.ma.filled(np.ma.masked_array(data,np.isnan(data)).std(**args),
+   return np.ma.filled(np.ma.masked_array(data, np.isnan(data)).std(**args),
          fill_value=np.nan)
+
+
 def nanpercentile(data, pers):
    I = np.where(np.isnan(data.flatten()) == 0)[0]
    p = np.percentile(data.flatten()[I], pers)
    return p
-    #return np.ma.filled(np.ma.masked_array(data,np.isnan(data)).percentile(pers),
-    #      fill_value=np.nan)
+    #return np.ma.filled(np.ma.masked_array(data,
+    # np.isnan(data)).percentile(pers), fill_value=np.nan)
+
 
 def nprange(data):
    return np.max(data) - np.min(data)
 
+
 def intersect(list1, list2):
    return list(set(list1) & set(list2))
 
-def formatArgument(argument, description, argumentWidth=19, totalWidth=None, indent=2):
+
+def formatArgument(arg, description, argWidth=19, totalWidth=None, indent=2):
    if(totalWidth is None):
       totalWidth = getTextWidth()
-   #fmt = "  %-" + str(argumentWidth) + "s%s"
-   #output = fmt % (argument, textwrap.fill(description, totalWidth-argumentWidth).replace('\n', '\n                 '))
-   #return output
-      #output = "   %-20s" % (argument)
-      #output = output + "\n" + "      %s" % description + "\n"
-      #return output
-   fmt = "%-" + str(indent) + "s%-" + str(argumentWidth-indent) + "s"
-   curr = fmt %  ("", argument)
-   if(len(argument) > argumentWidth-indent-2):
+   fmt = "%-" + str(indent) + "s%-" + str(argWidth - indent) + "s"
+   curr = fmt % ("", arg)
+   if(len(arg) > argWidth - indent - 2):
       output = curr + '\n'
       curr = ""
-      for i in range(0, argumentWidth):
+      for i in range(0, argWidth):
          curr = curr + " "
    else:
       output = ""
    words = description.split()
-   for i in range(0,len(words)):
+   for i in range(0, len(words)):
       word = words[i]
       if len(curr) + len(word) >= totalWidth:
          output = output + curr + "\n"
          curr = ""
-         for i in range(0, argumentWidth):
+         for i in range(0, argWidth):
             curr = curr + " "
       elif(i != 0):
          curr = curr + " "
       curr = curr + word
    output = output + curr
    return output
+
+
 # How wide is the console?
 def getScreenWidth():
    rows, columns = os.popen('stty size', 'r').read().split()
    columns = int(columns)
    return columns
+
+
 # How wide should the text be output?
 def getTextWidth():
-   return max(50, min(100,getScreenWidth()))
+   return max(50, min(100, getScreenWidth()))
+
 
 def getPvar(threshold):
    return "p%g" % (threshold)
