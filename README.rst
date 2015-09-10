@@ -54,7 +54,8 @@ Requirements
 Installation Instructions
 -------------------------
 
-Download the source code of a released version: https://github.com/WFRT/verif/releases/
+Download the source code of the latest released version: https://github.com/WFRT/verif/releases/.
+Unzip the file and navigate into the extracted folder.
 
 **Ubuntu**
 
@@ -64,30 +65,35 @@ Install the required pacakges:
 
   sudo apt-get install python-numpy python-scipy python-matplotlib
 
-Then install verif as follows:
+Then install verif by executing the following inside the extracted folder:
 
 .. code-block:: bash
 
   sudo python setup.py install
 
-This will create the executable ``/usr/local/bin/verif``. If you do not have sudo privileges do:
+This will create the executable ``/usr/local/bin/verif``.  Add this to your PATH environment
+variable (i.e add ``export PATH=/usr/local/bin/:$PATH`` to ``~/.bashrc``). If you do not have sudo
+privileges do:
 
 .. code-block:: bash
 
   sudo python setup.py install --user
 
-This will create the executable ``~/.local/bin/verif``.
+This will create the executable ``~/.local/bin/verif``. Add the folder to your PATH environment
+variable.
 
 **Mac OSX**
 
-Install python, numpy, scipy, and matplotlib, then install verif as follows:
+Install python, numpy, scipy, and matplotlib, then install verif by executing the following inside
+the extracted folder:
 
 .. code-block:: bash
 
   sudo python setup.py install
 
 verif will then be installed ``/usr/local/share/python/`` or where ever your python modules are
-installed (Look for "Installing verif script to <some directory>" when installing).
+installed (Look for "Installing verif script to <some directory>" when installing). Add the folder
+to your PATH environment variable.
 
 Examples
 --------
