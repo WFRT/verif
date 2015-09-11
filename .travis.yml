@@ -7,8 +7,6 @@ before_install:
    - "sh -e /etc/init.d/xvfb start"
 
 install:
-   - sudo apt-get install libblas-dev
-   - sudo apt-get install liblapack-dev
    - sudo apt-get install gfortran
    - sudo apt-get install -qq python-numpy python-scipy python-matplotlib
    - pip install coveralls pep8
