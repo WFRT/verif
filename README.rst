@@ -6,18 +6,19 @@ Forecast verification software
 .. image:: https://coveralls.io/repos/WFRT/verif/badge.svg?branch=master&service=github
   :target: https://coveralls.io/github/WFRT/verif?branch=master
 
-This program plots verification scores for weather forecasts at point locations. It can be used to
-document the quality of one forecasting system but also to compare forecasts from different weather
-models and/or where different post-processing methods have been applied.
+``verif`` is a command-line tool that lets you verify the quality of weather forecasts for point
+locations. It can also compare forecasts from different forecasting systems (that have different
+models, post-processing methods, etc).
 
-The program works by reading files with observations and forecasts in a specific format (see "Input
-files" below). The files contain information about dates, forecast lead times, and locations such
-that statistics can be aggregated across different dimensions.
+The program reads files with observations and forecasts in a specific format (see "Input files"
+below). The input files contain information about dates, forecast lead times, and locations such
+that statistics can be aggregated across different dimensions. To ensure a fair comparison among
+files, ``verif`` will discard data points where one or more forecast systems have missing forecasts.
+Since ``verif`` is a command-line tool, it can be used in scripts to automatically create
+verification figures.
 
-verif is a command-line tool that can therefore be used to automatically create verification
-figures. The statistics can also be output in text format.
-
-verif is developed by Thomas Nipen, David Siuta, and Tim Chui.
+A prototype version has been released (see "Installation Instruction" below). We welcome suggestions
+for improvements. ``verif`` is developed by Thomas Nipen, David Siuta, and Tim Chui.
 
 .. image:: image.jpg
     :alt: Example plots
@@ -27,21 +28,19 @@ verif is developed by Thomas Nipen, David Siuta, and Tim Chui.
 Features
 --------
 
-* Deterministic metrics such as MAE, bias, RMSE (e.g. ``-m mae``)
+* Deterministic metrics such as MAE, bias, correlation, RMSE (e.g. ``-m mae``)
 * Threshold-based metrics such as the false alarm rate, ETS, EDI, Yule's Q (e.g. ``-m ets``)
 * Probabilistic metrics such as brier score, PIT-histogram, reliability diagrams (e.g. ``-m bs``)
-* Special plots like Taylor diagrams (``-m taylor``), error decomposition (``-m error``),
-  quantile-quantile plots (``-m qq``).
+* Special plots like Taylor diagrams (``-m taylor``), quantile-quantile plots (``-m qq``).
 * Plot scores as a function of date, lead time, station elevation/lat/longitude (e.g. ``-x date``)
 * Show scores on maps (``-type map``)
 * Subset the data by specifying a date range and lat/lon range (``-llrange 5,10,58 60``)
 * Export to text (``-type text``)
 * Options to adjust font sizes, label positions, tick marks, legends, etc (``-labfs 14``)
 * Anomaly statistics relative to a baseline like climatology (``-c climfile.txt``)
-* Output to png, jeg, eps, etc and specify image dimensions and resolution
-  (``-f image.png -fs 10,5 -dpi 300``)
+* Output to png, jpeg, eps, etc and specify dimensions and resolution (``-f image.png -dpi 300``)
 
-For a full list, run verif without arguments.
+For a full list, run ``verif`` without arguments.
 
 Requirements
 ------------
@@ -54,8 +53,8 @@ Requirements
 Installation Instructions
 -------------------------
 
-Download the source code of the latest released version: https://github.com/WFRT/verif/releases/.
-Unzip the file and navigate into the extracted folder.
+Download the source code of the prototype version: https://github.com/WFRT/verif/releases/. Unzip
+the file and navigate into the extracted folder.
 
 **Ubuntu**
 
@@ -65,15 +64,15 @@ Install the required pacakges:
 
   sudo apt-get install python-numpy python-scipy python-matplotlib
 
-Then install verif by executing the following inside the extracted folder:
+Then install ``verif`` by executing the following inside the extracted folder:
 
 .. code-block:: bash
 
   sudo python setup.py install
 
 This will create the executable ``/usr/local/bin/verif``.  Add this to your PATH environment
-variable (i.e add ``export PATH=/usr/local/bin/:$PATH`` to ``~/.bashrc``). If you do not have sudo
-privileges do:
+variable if necessary (i.e add ``export PATH=/usr/local/bin/:$PATH`` to ``~/.bashrc``). If you do
+not have sudo privileges do:
 
 .. code-block:: bash
 
@@ -84,22 +83,22 @@ variable.
 
 **Mac OSX**
 
-Install python, numpy, scipy, and matplotlib, then install verif by executing the following inside
-the extracted folder:
+Install python, numpy, scipy, and matplotlib, then install ``verif`` by executing the following
+inside the extracted folder:
 
 .. code-block:: bash
 
   sudo python setup.py install
 
-verif will then be installed ``/usr/local/share/python/`` or where ever your python modules are
+``verif`` will then be installed ``/usr/local/share/python/`` or where ever your python modules are
 installed (Look for "Installing verif script to <some directory>" when installing). Add the folder
 to your PATH environment variable.
 
 Examples
 --------
 Fake data for testing the program is found in ``./examples/``. There is one "raw" forecast file and
-one bias-corrected forecast file (a Kalman filter has been applied). Here are some example commands
-to test out:
+one bias-corrected forecast file (where a Kalman filter has been applied). Here are some example
+commands to test out:
 
 .. code-block:: bash
 
@@ -137,7 +136,7 @@ ensemble mean (or any other method to reduce the ensemble to a deterministic for
 
 Proposed NetCDF input
 ---------------------
-We are working on defining a NetCDF format that can also be read by verif. Here is our current
+We are working on defining a NetCDF format that can also be read by ``verif``. Here is our current
 proposal, based on the NetCDF/CF standard:
 
 .. code-block:: bash
@@ -171,12 +170,12 @@ proposal, based on the NetCDF/CF standard:
       : name = "raw";                                // Used as configuration name
       : long_name = "Temperature";                   // Used to label plots
       : standard_name = "air_temperature_2m";
-      : Units = "^oC";
+      : Units = "^oC";                               // Used to label axes
       : Conventions = "verif_1.0.0";
       }
 
 Copyright and license
 ---------------------
 
-Copyright © 2015 UBC Weather Forecast Research Team. verif is licensed under the 3-clause BSD
+Copyright © 2015 UBC Weather Forecast Research Team. ``verif`` is licensed under the 3-clause BSD
 license. See LICENSE file.
