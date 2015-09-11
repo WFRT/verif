@@ -9,11 +9,11 @@ before_install:
 install:
    - sudo apt-get install gfortran
    - sudo apt-get install -qq python-numpy python-scipy python-matplotlib
-   - pip install coveralls
    - sudo python setup.py build
    - sudo python setup.py install
 
 script:
+   - pip install coveralls
    - nosetests --with-coverage --cover-erase --cover-package=verif
 
 after_success:
