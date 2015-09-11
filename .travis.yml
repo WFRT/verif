@@ -11,7 +11,7 @@ install:
    - sudo apt-get install liblapack-dev
    - sudo apt-get install gfortran
    - sudo apt-get install -qq python-numpy python-scipy python-matplotlib
-   - pip install coveralls
+   - pip install coveralls pep8
    - sudo python setup.py build
    - sudo python setup.py install
 

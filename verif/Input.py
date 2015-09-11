@@ -136,7 +136,7 @@ class Comps(Input):
    def getThresholds(self):
       thresholds = list()
       for (metric, v) in self._file.variables.iteritems():
-         if(not metric in self._dimensionMetrics):
+         if(metric not in self._dimensionMetrics):
             if(metric[0] == "p" and metric != "pit"):
                metric = self._toPvarVerif(metric)
                thresholds.append(metric)
@@ -145,7 +145,7 @@ class Comps(Input):
    def getQuantiles(self):
       quantiles = list()
       for (metric, v) in self._file.variables.iteritems():
-         if(not metric in self._dimensionMetrics):
+         if(metric not in self._dimensionMetrics):
             if(metric[0] == "q"):
                quantiles.append(metric)
       return quantiles
@@ -153,7 +153,7 @@ class Comps(Input):
    def getMetrics(self):
       metrics = list()
       for (metric, v) in self._file.variables.iteritems():
-         if(not metric in self._dimensionMetrics):
+         if(metric not in self._dimensionMetrics):
             metrics.append(metric)
       return metrics
 
@@ -232,9 +232,9 @@ class NetcdfCf(Input):
       return Common.clean(self._file.variables["ens"])
 
    def getCdf(self, threshold):
-      #thresholds = getThresholds()
-      #I = np.where(thresholds == threshold)[0]
-      #assert(len(I) == 1)
+      # thresholds = getThresholds()
+      # I = np.where(thresholds == threshold)[0]
+      # assert(len(I) == 1)
       temp = Common.clean(self._file.variables["cdf"])
       return temp
 
@@ -256,7 +256,7 @@ class NetcdfCf(Input):
    def getMetrics(self):
       metrics = list()
       for (metric, v) in self._file.variables.iteritems():
-         if(not metric in ["date", "offset", "id", "lat", "lon", "elev"]):
+         if(metric not in ["date", "offset", "id", "lat", "lon", "elev"]):
             metrics.append(metric)
       return metrics
 

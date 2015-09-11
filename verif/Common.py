@@ -191,8 +191,6 @@ def nanpercentile(data, pers):
    I = np.where(np.isnan(data.flatten()) == 0)[0]
    p = np.percentile(data.flatten()[I], pers)
    return p
-    #return np.ma.filled(np.ma.masked_array(data,
-    # np.isnan(data)).percentile(pers), fill_value=np.nan)
 
 
 def nprange(data):

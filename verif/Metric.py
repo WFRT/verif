@@ -31,8 +31,8 @@ class Metric:
    #       certain dimension
    # tRange: [lowerThreshold, upperThreshold]
    def compute(self, data, tRange):
-      #assert(isinstance(tRange, list))
-      #assert(len(tRange) == 2)
+      # assert(isinstance(tRange, list))
+      # assert(len(tRange) == 2)
       size = data.getAxisSize()
       scores = np.zeros(size, 'float')
       # Loop over x-axis
@@ -57,8 +57,8 @@ class Metric:
       if(desc == ""):
          return ""
       extra = ""
-      #if(cls._experimental):
-      #   extra = " " + Common.experimental() + "."
+      # if(cls._experimental):
+      #    extra = " " + Common.experimental() + "."
       if(cls._supAggregator):
          extra = " Supports -ct."
       if(cls._perfectScore is not None):
@@ -312,9 +312,9 @@ class Pit(Metric):
          if(x1 is not None):
             I = np.where(obs == x1)[0]
             pit[I] = 1 - np.random.rand(len(I)) * (1 - pit[I])
-         #I = np.where((fcst > 2) & (fcst < 2000))[0]
-         #I = np.where((fcst > 20))[0]
-         #pit = pit[I]
+         # I = np.where((fcst > 2) & (fcst < 2000))[0]
+         # I = np.where((fcst > 20))[0]
+         # pit = pit[I]
       return pit
 
    def name(self):
@@ -324,7 +324,7 @@ class Pit(Metric):
 # Returns all PIT values
 class PitDev(Metric):
    _min = 0
-   #_max = 1
+   # _max = 1
    _perfectScore = 1
    _description = "Deviation of the PIT histogram"
 
@@ -576,7 +576,7 @@ class Threshold(Metric):
    # The second is best for precip, when doing Brier score -r 0
    @staticmethod
    def within(x, range):
-      #return (x >= range[0]) & (x < range[1])
+      # return (x >= range[0]) & (x < range[1])
       return (x > range[0]) & (x <= range[1])
 
 

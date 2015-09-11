@@ -5,11 +5,11 @@ import datetime
 import verif.Common as Common
 import verif.Metric as Metric
 import numpy as np
+import os
+import inspect
 import sys
 reload(sys)
 sys.setdefaultencoding('ISO-8859-1')
-import os
-import inspect
 
 
 def getAllOutputs():
@@ -61,7 +61,7 @@ class Output:
       self._top = None
       self._left = None
       self._right = None
-      #self._pad = pad
+      # self._pad = pad
       self._xaxis = self.defaultAxis()
       self._binType = self.defaultBinType()
       self._showPerfect = False
@@ -99,8 +99,8 @@ class Output:
    @classmethod
    def description(cls):
       extra = ""
-      #if(cls._experimental):
-      #   extra = " " + Common.experimental()
+      # if(cls._experimental):
+      #    extra = " " + Common.experimental()
       return cls._description + extra
 
    @classmethod
@@ -200,7 +200,7 @@ class Output:
    def setRight(self, right):
       self._right = right
 
-   #def setPad(self, pad):
+   # def setPad(self, pad):
    #   self._pad = pad
 
    def setShowPerfect(self, showPerfect):
@@ -239,7 +239,7 @@ class Output:
    # Draws a map of the data
    def map(self, data):
       self._mapCore(data)
-      #self._legend(data, self._legNames)
+      # self._legend(data, self._legNames)
       self._savePlot(data)
 
    def _getLegendNames(self, data):
@@ -385,16 +385,16 @@ class Output:
             tick.label.set_fontsize(self._tickfs)
          ax.set_xlabel(ax.get_xlabel(), fontsize=self._labfs)
          ax.set_ylabel(ax.get_ylabel(), fontsize=self._labfs)
-         #mpl.rcParams['axes.labelsize'] = self._labfs
+         # mpl.rcParams['axes.labelsize'] = self._labfs
 
          # Tick lines
          if(len(mpl.yticks()[0]) >= 2 and len(mpl.xticks()[0]) >= 2):
             # matplotlib crashes if there are fewer than 2 tick lines
             # when determining where to put minor ticks
             mpl.minorticks_on()
-         if(not self._minlth is None):
+         if(self._minlth is not None):
             mpl.tick_params('both', length=self._minlth, which='minor')
-         if(not self._majlth is None):
+         if(self._majlth is not None):
             mpl.tick_params('both', length=self._majlth, width=self._majwid,
                   which='major')
          for label in ax.get_xticklabels():
@@ -455,7 +455,7 @@ class Output:
       mpl.plot(x, -y, style, color=color, lw=lw, zorder=-100)
 
    def _plotConfidence(self, x, y, variance, n, color):
-      #variance = y*(1-y) # For bins
+      # variance = y*(1-y) # For bins
 
       # Remove missing points
       I = np.where(n != 0)[0]
@@ -846,10 +846,10 @@ class Hist(Output):
 
          for i in range(0, len(xx)):
             if(i == len(xx) - 1):
-               I = np.where((allValues[f][0] >= edges[i]) &\
+               I = np.where((allValues[f][0] >= edges[i]) &
                             (allValues[f][0] <= edges[i + 1]))[0]
             else:
-               I = np.where((allValues[f][0] >= edges[i]) &\
+               I = np.where((allValues[f][0] >= edges[i]) &
                             (allValues[f][0] < edges[i + 1]))[0]
             y[f, i] = len(I) * 1.0
          x[f, :] = xx
@@ -1449,7 +1449,6 @@ class Reliability(Output):
          edges = np.linspace(0, 1, N + 1)
          edges = np.array([0, 0.05, 0.15, 0.25, 0.35, 0.45,
             0.55, 0.65, 0.75, 0.85, 0.95, 1])
-         #edges = np.linspace(0,1,101)
          x = np.zeros([len(edges) - 1, F], 'float')
 
          y = np.nan * np.zeros([F, len(edges) - 1], 'float')
@@ -1472,7 +1471,7 @@ class Reliability(Output):
                p = 1 - p
                obs = obs > threshold
             else:
-               Common.error("Bin type must be one of 'below' or"\
+               Common.error("Bin type must be one of 'below' or"
                      "'above' for reliability plot")
 
             clim = np.mean(obs)
@@ -1589,7 +1588,7 @@ class IgnContrib(Output):
             p = 1 - p
             obs = obs > threshold
          else:
-            Common.error("Bin type must be one of 'below' or 'above' "\
+            Common.error("Bin type must be one of 'below' or 'above' "
                          "for reliability plot")
 
          clim = np.mean(obs)
@@ -1659,7 +1658,7 @@ class DRoc(Output):
             fthresholds = self._fthresholds
          else:
             if(data.getVariable() == "Precip"):
-               fthresholds = [0, 1e-7, 1e-6, 1e-5, 1e-4, 0.001, 0.005,\
+               fthresholds = [0, 1e-7, 1e-6, 1e-5, 1e-4, 0.001, 0.005,
                      0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 1, 2, 3, 5, 10, 20, 100]
             else:
                N = 31
@@ -1694,8 +1693,8 @@ class DRoc(Output):
                      y[i] = np.nan
                   if(np.isinf(x[i])):
                      x[i] = np.nan
-               if(self._showThresholds and (not np.isnan(x[i])
-                     and not np.isnan(y[i]) and f == 0)):
+               if(self._showThresholds and (not np.isnan(x[i]) and
+                     not np.isnan(y[i]) and f == 0)):
                   mpl.text(x[i], y[i], "%2.1f" % fthreshold, color=color)
          if(not self._doNorm):
             # Add end points at 0,0 and 1,1:
@@ -1804,9 +1803,9 @@ class Against(Output):
                      mpl.plot(x[Iy], y[Iy], "b.", ms=self._ms, alpha=alpha)
 
                # Contour of the frequency
-               #q = np.histogram2d(x[1,:], x[0,:], [np.linspace(lower,upper,100), np.linspace(lower,upper,100)])
-               #[X,Y] = np.meshgrid(q[1],q[2])
-               #mpl.contour(X[1:,1:],Y[1:,1:],q[0],[1,100],zorder=90)
+               # q = np.histogram2d(x[1,:], x[0,:], [np.linspace(lower,upper,100), np.linspace(lower,upper,100)])
+               # [X,Y] = np.meshgrid(q[1],q[2])
+               # mpl.contour(X[1:,1:],Y[1:,1:],q[0],[1,100],zorder=90)
 
                mpl.xlabel(labels[f0], color="r")
                mpl.ylabel(labels[f1], color="b")

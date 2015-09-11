@@ -560,8 +560,8 @@ def showDescription(data=None):
       desc = m[1].summary()
       if(desc != ""):
          print Common.formatArgument(name, desc)
-         #print "   %-14s%s" % (name, textwrap.fill(desc, 80).replace('\n', '\n                 ')),
-         #print ""
+         # print "   %-14s%s" % (name, textwrap.fill(desc, 80).replace('\n', '\n                 ')),
+         # print ""
    if(data is not None):
       print ""
       print "  Or one of the following, which plots the raw score from the file:"

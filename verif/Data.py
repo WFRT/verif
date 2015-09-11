@@ -5,7 +5,7 @@ import re
 import sys
 import os
 import verif.Input as Input
-from matplotlib.dates  import *
+from matplotlib.dates import *
 from matplotlib.ticker import ScalarFormatter
 
 
@@ -81,8 +81,8 @@ class Data:
          for i in range(0, len(lat)):
             currLat = float(lat[i])
             currLon = float(lon[i])
-            if(currLat >= minLat and currLat <= maxLat and currLon >= minLon
-                  and currLon <= maxLon):
+            if(currLat >= minLat and currLat <= maxLat and
+                  currLon >= minLon and currLon <= maxLon):
                latlonLocations.append(locId[i])
          useLocations = list()
          if(locations is not None):
@@ -164,7 +164,7 @@ class Data:
       for i in range(0, len(metrics)):
          metric = metrics[i]
          temp = self._getScore(metric)
-         #print self._axis
+         # print self._axis
 
          if(self._axis == "date"):
             data[metric] = temp[self._index, :, :].flatten()
@@ -337,9 +337,9 @@ class Data:
 
       # Load all files
       for f in range(0, self.getNumFilesWithClim()):
-         if(not metric in self._cache[f]):
+         if(metric not in self._cache[f]):
             file = self._files[f]
-            if(not metric in file.getVariables()):
+            if(metric not in file.getVariables()):
                Common.error("Variable '" + metric + "' does not exist in " +
                      self.getFilenames()[f])
             temp = file.getScores(metric)
@@ -369,7 +369,7 @@ class Data:
    # Checks that all files have the variable
    def hasMetric(self, metric):
       for f in range(0, self.getNumFilesWithClim()):
-         if(not metric in self._files[f].getVariables()):
+         if(metric not in self._files[f].getVariables()):
             return False
       return True
 
@@ -564,8 +564,8 @@ class Data:
          return 0
       elif(axis == "offset"):
          return 1
-      elif(axis == "location" or axis == "locationId" or axis == "locationElev"
-            or axis == "locationLat" or axis == "locationLon"):
+      elif(axis == "location" or axis == "locationId" or axis == "locationElev" or
+            axis == "locationLat" or axis == "locationLon"):
          return 2
       else:
          return None
