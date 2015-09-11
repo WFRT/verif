@@ -326,18 +326,18 @@ class Text(Input):
       import time
       start = time.time()
       # Read the data into dictionary with (date,offset,lat,lon,elev) as key and obs/fcst as values
-      for row in file:
-         if(row[0] == "#"):
-            curr = row[1:]
+      for rowstr in file:
+         if(rowstr[0] == "#"):
+            curr = rowstr[1:]
             curr = curr.split()
             if(curr[0] == "variable:"):
                self._variable = curr[1]
             elif(curr[0] == "units:"):
                self._units = curr[1]
             else:
-               Common.warning("Ignoring line '" + row.strip() + "' in file '" + filename + "'")
+               Common.warning("Ignoring line '" + rowstr.strip() + "' in file '" + filename + "'")
          else:
-            row = row.split()
+            row = rowstr.split()
             if(header is None):
                # Parse the header so we know what each column represents
                header = row
@@ -367,6 +367,9 @@ class Text(Input):
                      msg = "Could not parse %s: Missing column '%s'" % (filename, col)
                      Common.error(msg)
             else:
+               if(len(row) is not len(header)):
+                  Common.error("Incorrect number of columns (expecting %d) in row '%s'"
+                        % (len(header), rowstr.strip()))
                if("date" in indices):
                   date = self._clean(row[indices["date"]])
                self._dates.add(date)
