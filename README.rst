@@ -42,19 +42,12 @@ Features
 
 For a full list, run ``verif`` without arguments.
 
-Requirements
-------------
-
-* Python
-* matplotlib
-* numpy
-* scipy
-
 Installation Instructions
 -------------------------
 
 Download the source code of the prototype version: https://github.com/WFRT/verif/releases/. Unzip
-the file and navigate into the extracted folder.
+the file and navigate into the extracted folder. ``verif`` requires python as well as the python
+packages numpy, scipy, and matplotlib.
 
 **Ubuntu**
 
@@ -111,7 +104,7 @@ commands to test out:
 
 Text-based input
 ----------------
-The easiest option is to put the data into the following format:
+To verify your own forecasts, the easiest option is to put the data into the following format:
 
 .. code-block:: bash
 
@@ -124,11 +117,16 @@ The easiest option is to put the data into the following format:
 
 Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After
 that is a header line that must describe the data columns below. The following attributes are
-recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon
-(in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability
-at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing
-column. The columns can be in any order. If 'id' is not provided, then they are assigned
-sequentially starting at 0.
+recognized:
+* date (in YYYYMMDD)
+* offset (forecast lead time in hours)
+* id (station identifier)
+* lat (in degrees)
+* lon (in degrees)
+* obs (observations)
+* fcst (deterministic forecast)
+* p<number> (cumulative probability at a threshold of 10)
+obs and fcst are the only required columns.  Note that the file will likely have many rows with repeated values of offsetid/lat/lon/elev. If station and lead time information is missing, then ``verif`` assumes they are all for the same station and lead time. The columns can be in any order.
 
 Deterministic forecasts will only have "obs" and "fcst", however probabilistic forecasts can provide
 any number of cumulative probabilities. For probabilistic forecasts, "fcst" could represent the
