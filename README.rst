@@ -178,9 +178,10 @@ Available metrics
 -----------------
 Here is a list of currently supported metrics. Note that the plots that are possible to make depend
 on what variables are available in the input files.
-======================  =========================================
+
+======================  ===============================================================
 **Deterministic**       **Description**
-----------------------  -----------------------------------------
+----------------------  ---------------------------------------------------------------
 ``-m bias``             Mean error
 ``-m cmae``             Cube-root mean absolute cubic error
 ``-m corr``             Pearson correlation between obs and forecast
@@ -199,9 +200,9 @@ on what variables are available in the input files.
 ``-m rmsf``             Root mean squared factor
 ``-m stderror``         Standard error
 ``-m within``           Percentage of forecasts that are within some error bound
-----------------------  -----------------------------------------
+----------------------  ---------------------------------------------------------------
 **Threshold**           **Description**
-----------------------  -----------------------------------------
+----------------------  ---------------------------------------------------------------
 ``-m baserate``         Climatological frequency
 ``-m biasfreq``         Numer of forecasts / number of observations
 ``-m count``            Number of forecasts wabove a threshold
@@ -223,9 +224,9 @@ on what variables are available in the input files.
 ``-m seds``             Symmetric extreme dependency score
 ``-m threat``           Threat score
 ``-m yulesq``           Yule's Q (odds ratio skill score)
-----------------------  -----------------------------------------
+----------------------  ---------------------------------------------------------------
 **Probabilistic**       **Description**
-----------------------  -----------------------------------------
+----------------------  ---------------------------------------------------------------
 ``-m bs``               Brier score
 ``-m bsrel``            Reliability component of Brier score
 ``-m bsres``            Resolution component of Brier score
@@ -238,9 +239,9 @@ on what variables are available in the input files.
 ``-m pithist``          Histogram of PIT values
 ``-m reliability``      Reliability diagram for a specified threshold
 ``-m spherical``        Pherical probabilistic scoring rule
-----------------------  -----------------------------------------
+----------------------  ---------------------------------------------------------------
 **Special plots**       **Description**
-----------------------  -----------------------------------------
+----------------------  ---------------------------------------------------------------
 ``-m cond``             Plots forecasts as a function of obs
 ``-m error``            Decomposition of RMSE into systematic and unsystematic components
 ``-m freq``             Show frequency distribution of obs and fcst
@@ -250,8 +251,7 @@ on what variables are available in the input files.
 ``-m spreadskilldiff``  Difference between spread and skill
 ``-m taylor``           Taylor diagram showing correlation and fcst stdev
 ``-m timeseries``       Time series of obs and forecasts
-======================  =========================================
-
+======================  ===============================================================
 
 Copyright and license
 ---------------------
