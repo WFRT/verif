@@ -1,5 +1,11 @@
+verif (0.2.0) precise; urgency=low
+
+  * Prototype release suitable for testing
+
+ -- Thomas Nipen <thomas.nipen@met.no>  Sun, 13 Sep 2015 22:09:13 +0200
+
 verif (0.1.0) precise; urgency=low
 
-  * Initial version from COMPS
+  * This is just a reference to the version of the program when it was first added to github
 
  -- Thomas Nipen <thomas.nipen@met.no>  Sat, 8 Aug 2015 19:15:27 -0700                                                                                

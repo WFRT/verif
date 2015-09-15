@@ -42,19 +42,12 @@ Features
 
 For a full list, run ``verif`` without arguments.
 
-Requirements
-------------
-
-* Python
-* matplotlib
-* numpy
-* scipy
-
 Installation Instructions
 -------------------------
 
 Download the source code of the prototype version: https://github.com/WFRT/verif/releases/. Unzip
-the file and navigate into the extracted folder.
+the file and navigate into the extracted folder. ``verif`` requires python as well as the python
+packages numpy, scipy, and matplotlib.
 
 **Ubuntu**
 
@@ -111,7 +104,7 @@ commands to test out:
 
 Text-based input
 ----------------
-The easiest option is to put the data into the following format:
+To verify your own forecasts, the easiest option is to put the data into the following format:
 
 .. code-block:: bash
 
@@ -124,11 +117,16 @@ The easiest option is to put the data into the following format:
 
 Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After
 that is a header line that must describe the data columns below. The following attributes are
-recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon
-(in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability
-at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing
-column. The columns can be in any order. If 'id' is not provided, then they are assigned
-sequentially starting at 0.
+recognized:
+* date (in YYYYMMDD)
+* offset (forecast lead time in hours)
+* id (station identifier)
+* lat (in degrees)
+* lon (in degrees)
+* obs (observations)
+* fcst (deterministic forecast)
+* p<number> (cumulative probability at a threshold of 10)
+obs and fcst are the only required columns.  Note that the file will likely have many rows with repeated values of offsetid/lat/lon/elev. If station and lead time information is missing, then ``verif`` assumes they are all for the same station and lead time. The columns can be in any order.
 
 Deterministic forecasts will only have "obs" and "fcst", however probabilistic forecasts can provide
 any number of cumulative probabilities. For probabilistic forecasts, "fcst" could represent the
@@ -173,6 +171,85 @@ proposal, based on the NetCDF/CF standard:
       : Units = "^oC";                               // Used to label axes
       : Conventions = "verif_1.0.0";
       }
+
+Available metrics
+-----------------
+Here is a list of currently supported metrics. Note that the plots that are possible to make depend
+on what variables are available in the input files.
+
+======================  ===============================================================
+**Deterministic**       **Description**
+----------------------  ---------------------------------------------------------------
+``-m bias``             Mean error
+``-m cmae``             Cube-root mean absolute cubic error
+``-m corr``             Pearson correlation between obs and forecast
+``-m crmse``            Centered root mean squared error
+``-m droc``             receiver operating characteristic for deterministic forecast
+``-m dmb``              Degree of mass balance (mean obs / mean fcst)
+``-m ef``               Exceedance fraction: fraction that fcst > obs
+``-m fcst``             Average forecast value
+``-m kendallcorr``      Kendall correlation
+``-m mae``              Mean of forecasts
+``-m num``              Number of valid forecasts
+``-m obs``              Mean of observations
+``-m qq``               Quantile-quantile plot
+``-m rankcorr``         Spearman rank correlation
+``-m rmse``             Root mean squared error
+``-m rmsf``             Root mean squared factor
+``-m stderror``         Standard error
+``-m within``           Percentage of forecasts that are within some error bound
+----------------------  ---------------------------------------------------------------
+**Threshold**           **Description**
+----------------------  ---------------------------------------------------------------
+``-m baserate``         Climatological frequency
+``-m biasfreq``         Numer of forecasts / number of observations
+``-m count``            Number of forecasts wabove a threshold
+``-m diff``             Difference between false alarms and misses
+``-m edi``              Extremal dependency index
+``-m eds``              Extreme dependency score
+``-m ets``              Equitable threat score
+``-m fa``               False alarm rate
+``-m far``              False alarm ratio
+``-m hit``              Hit rate
+``-m hss``              Heidke skill score
+``-m kss``              Hanssen-Kuiper skill score
+``-m lor``              Log odds ratio
+``-m miss``             Miss rate
+``-m or``               Odds ratio
+``-m pc``               Proportions correct
+``-m quantilescore``    Quantile score
+``-m sedi``             Symmetric extremal dependency index
+``-m seds``             Symmetric extreme dependency score
+``-m threat``           Threat score
+``-m yulesq``           Yule's Q (odds ratio skill score)
+----------------------  ---------------------------------------------------------------
+**Probabilistic**       **Description**
+----------------------  ---------------------------------------------------------------
+``-m bs``               Brier score
+``-m bsrel``            Reliability component of Brier score
+``-m bsres``            Resolution component of Brier score
+``-m bss``              Brier skill score
+``-m bsres``            Uncertainty component of Brier score
+``-m invreliability``   Reliability diagram for a specified quantile
+``-m marginal``         Marginal distribution for a specified threshold
+``-m marginalratio``    Ratio of marginal probability of obs to that of fcst
+``-m pitdev``           Deviation of the PIT histogram
+``-m pithist``          Histogram of PIT values
+``-m reliability``      Reliability diagram for a specified threshold
+``-m spherical``        Pherical probabilistic scoring rule
+----------------------  ---------------------------------------------------------------
+**Special plots**       **Description**
+----------------------  ---------------------------------------------------------------
+``-m cond``             Plots forecasts as a function of obs
+``-m error``            Decomposition of RMSE into systematic and unsystematic components
+``-m freq``             Show frequency distribution of obs and fcst
+``-m obsfcst``          A plot showing both obs and fcst
+``-m scatter``          A scatter plt of obs and fcst
+``-m spreadskill``      Plots forecast spread vs forecast skilL
+``-m spreadskilldiff``  Difference between spread and skill
+``-m taylor``           Taylor diagram showing correlation and fcst stdev
+``-m timeseries``       Time series of obs and forecasts
+======================  ===============================================================
 
 Copyright and license
 ---------------------
