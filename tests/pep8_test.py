@@ -9,33 +9,37 @@ ignore_patterns = ('.svn', 'bin', 'lib' + os.sep + 'python', 'devel')
 
 
 def ignore(dir):
-  """Should the directory be ignored?"""
-  for pattern in ignore_patterns:
-    if pattern in dir:
-      return True
-  return False
+   """Should the directory be ignored?"""
+   for pattern in ignore_patterns:
+      if pattern in dir:
+         return True
+   return False
 
 
 class TestPep8(unittest.TestCase):
-  def test_pep8(self):
-    style = pep8.StyleGuide(quiet=True)
-    style.options.ignore += ('E111',)  # 4-spacing is just too much
-    style.options.ignore += ('E501',)
-    style.options.ignore += ('E114',)
-    style.options.ignore += ('E121',)
-    style.options.ignore += ('E122',)
-    style.options.ignore += ('E126',)
-    style.options.ignore += ('E127',)
-    style.options.ignore += ('E128',)
-    # style.options.max_line_length = 100  # because it isn't 1928 anymore
+   def test_pep8(self):
+      style = pep8.StyleGuide(quiet=False)
+      style.options.ignore += ('E111',)  # 4-spacing is just too much
+      style.options.ignore += ('E501',)
+      style.options.ignore += ('E114',)
+      style.options.ignore += ('E121',)
+      style.options.ignore += ('E122',)
+      style.options.ignore += ('E126',)
+      style.options.ignore += ('E127',)
+      style.options.ignore += ('E128',)
+      # style.options.max_line_length = 100  # because it isn't 1928 anymore
 
-    errors = 0
-    for root, _, files in os.walk('verif/'):
-      if ignore(root):
-        continue
+      errors = 0
+      for dir in ['verif/', 'tests/']:
+         for root, _, files in os.walk(dir):
+            if ignore(root):
+               continue
 
-      python_files = [os.path.join(root, f) for f in files if f.endswith('.py')]
-      errors += style.check_files(python_files).total_errors
+         python_files = [os.path.join(root, f) for f in files if f.endswith('.py')]
+         report = style.check_files(python_files)
+         errors += report.total_errors
 
-    self.assertEqual(errors, 0, 'PEP8 style errors: %d' % errors)
+      self.assertEqual(errors, 0, 'There are %dPEP8 style errors in the source files' % errors)
 
+if __name__ == "__main__":
+   unittest.main()

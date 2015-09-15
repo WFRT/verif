@@ -1,11 +1,12 @@
-import matplotlib
-matplotlib.use('Agg')
 import unittest
 import verif.Driver as Driver
 import verif.Common as Common
 import os
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 np.seterr('raise')
+
 
 class IntegrationTest(unittest.TestCase):
    # Runs a verif command line
