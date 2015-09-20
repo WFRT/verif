@@ -381,6 +381,8 @@ def run(argv):
       # Probabilistic
       elif(metric == "pit"):
          m = Metric.Mean(Metric.Pit())
+      elif(metric == "quantilescore"):
+         m = Metric.QuantileScore()
       elif(metric == "pitdev"):
          m = Metric.PitDev()
       elif(metric == "marginalratio"):
