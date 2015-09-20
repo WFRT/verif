@@ -1630,6 +1630,96 @@ class IgnContrib(Output):
       mpl.subplot(2, 1, 1)
 
 
+class EconomicValue(Output):
+   _description = "Economic value diagram for a single "\
+         "threshold (-r). Shows what fraction of costs/loses can be reduced by"\
+         " the forecast relative to using climatology."
+   _reqThreshold = True
+   _supX = False
+   _experimental = True
+
+   def __init__(self):
+      Output.__init__(self)
+
+   def _plotCore(self, data):
+      labels = data.getFilenames()
+
+      if(len(self._thresholds) != 1):
+         Common.error("Economic value diagram requires exactly one threshold")
+      threshold = self._thresholds[0]
+
+      F = data.getNumFiles()
+
+      units = " " + data.getUnits()
+      titlestr = "Economic value for obs > " +\
+                 str(self._thresholds[0]) + units
+      mpl.title(titlestr)
+
+      data.setAxis("none")
+      data.setIndex(0)
+      data.setFileIndex(0)
+      var = data.getPvar(threshold)
+      [obs, p] = data.getScores(["obs", var])
+
+      # Determine the number of bins to use # (at least 11, at most 25)
+      N = min(25, max(11, int(len(obs) / 1000)))
+      N = 20
+      costLossRatios = np.linspace(0, 1, N + 1)
+      # import scipy.stats
+      # costLossRatios = scipy.stats.norm(0,1).cdf(np.linspace(-5,5,N))
+      costLossRatios = np.linspace(0, 1, N + 1)**3
+
+      x = costLossRatios
+      y = np.nan * np.zeros([F, len(costLossRatios)], 'float')
+      n = np.zeros([F, len(costLossRatios)], 'float')
+
+      # Draw reliability lines
+      for f in range(0, F):
+         color = self._getColor(f, F)
+         style = self._getStyle(f, F)
+         data.setFileIndex(f)
+         data.setAxis("none")
+         data.setIndex(0)
+         var = data.getPvar(threshold)
+         [obs, p] = data.getScores(["obs", var])
+
+         if(self._binType == "below"):
+            p = p
+            obs = obs < threshold
+         elif(self._binType == "above"):
+            p = 1 - p
+            obs = obs > threshold
+         else:
+            Common.error("Bin type must be one of 'below' or 'above' " "for economicvalue plot")
+
+         clim = np.mean(obs)
+         # Compute frequencies
+         for i in range(0, len(costLossRatios)):
+            costLossRatio = costLossRatios[i]
+            Icost = np.where(p >= costLossRatio)[0]
+            Iloss = np.where((p < costLossRatio) & (obs == 1))[0]
+            loss = 1
+            cost = costLossRatio * loss
+            totalCost = cost * len(Icost) + loss * len(Iloss)
+            totalCost = totalCost / len(obs)
+            # Cost when using a climatological forecast
+            climCost = min(clim * loss, cost)
+            perfectCost = clim * cost
+            economicValue = 0
+            if(climCost != 0):
+               economicValue = (climCost-totalCost) / (climCost - perfectCost)
+            y[f, i] = economicValue
+
+         label = labels[f]
+         mpl.plot(costLossRatios, y[f], style, color=color,
+               lw=self._lw, ms=self._ms, label=label)
+      mpl.xlabel("Cost-loss ratio")
+      mpl.ylabel("Economic value")
+      mpl.xlim([0,1])
+      mpl.ylim([0,1])
+      mpl.grid()
+
+
 # doClassic: Use the classic definition, by not varying the forecast threshold
 #            i.e. using the same threshold for observation and forecast.
 class DRoc(Output):

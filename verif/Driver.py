@@ -271,6 +271,8 @@ def run(argv):
       pl = Output.InvReliability()
    elif(metric == "igncontrib"):
       pl = Output.IgnContrib()
+   elif(metric == "economicvalue"):
+      pl = Output.EconomicValue()
    elif(metric == "marginal"):
       pl = Output.Marginal()
    else:
