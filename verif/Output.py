@@ -1715,8 +1715,8 @@ class EconomicValue(Output):
                lw=self._lw, ms=self._ms, label=label)
       mpl.xlabel("Cost-loss ratio")
       mpl.ylabel("Economic value")
-      mpl.xlim([0,1])
-      mpl.ylim([0,1])
+      mpl.xlim([0, 1])
+      mpl.ylim([0, 1])
       mpl.grid()
 
 
