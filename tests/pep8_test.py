@@ -5,7 +5,7 @@ import unittest
 import pep8
 
 # ignore stuff in virtualenvs or version control directories
-ignore_patterns = ('.svn', 'bin', 'lib' + os.sep + 'python', 'devel')
+ignore_patterns = ('.svn', 'bin', 'lib' + os.sep + 'python', 'verif/devel', 'tests/devel', 'devel')
 
 
 def ignore(dir):
@@ -35,9 +35,9 @@ class TestPep8(unittest.TestCase):
             if ignore(root):
                continue
 
-         python_files = [os.path.join(root, f) for f in files if f.endswith('.py')]
-         report = style.check_files(python_files)
-         errors += report.total_errors
+            python_files = [os.path.join(root, f) for f in files if f.endswith('.py')]
+            report = style.check_files(python_files)
+            errors += report.total_errors
 
       self.assertEqual(errors, 0, 'There are %dPEP8 style errors in the source files' % errors)
 
