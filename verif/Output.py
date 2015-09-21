@@ -788,7 +788,9 @@ class Default(Output):
                  (y[f, :] < np.mean(y, 0) - minDiff)
          isValid = (np.isnan(y[f, :]) == 0)
          if(self._showRank):
-            lmissing = map.scatter(x0[I], y0[I], s=40, c="k", marker="x")
+            lmissing = None
+            if(len(I) > 0):
+               lmissing = map.scatter(x0[I], y0[I], s=40, c="k", marker="x")
             lsimilar = map.scatter(x0[isValid], y0[isValid], s=40, c="w")
             lmax = map.scatter(x0[isMax], y0[isMax], s=40, c="r")
             lmin = map.scatter(x0[isMin], y0[isMin], s=40, c="b")
