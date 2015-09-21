@@ -1591,7 +1591,7 @@ class IgnContrib(Output):
             obs = obs > threshold
          else:
             Common.error("Bin type must be one of 'below' or 'above' "
-                         "for reliability plot")
+                         "for igncontrib plot")
 
          clim = np.mean(obs)
          # Compute frequencies
