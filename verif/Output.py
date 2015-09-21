@@ -103,6 +103,11 @@ class Output:
       #    extra = " " + Common.experimental()
       return cls._description + extra
 
+   # Is this a valid output that should be created be called?
+   @classmethod
+   def isValid(cls):
+      return cls.summary() is not ""
+
    @classmethod
    def summary(cls):
       return cls.description()

@@ -277,118 +277,14 @@ def run(argv):
       pl = Output.Marginal()
    else:
       # Standard plots
-      '''
       # Attempt at automating
       metrics = Metric.getAllMetrics()
       m = None
       for mm in metrics:
-         if(metric == mm[0].lower() and mm[1].isStandard()):
+         if(metric == mm[0].lower() and mm[1].isValid()):
             m = mm[1]()
             break
       if(m is None):
-         m = Metric.Default(metric)
-         '''
-
-      # Determine metric
-      if(metric == "rmse"):
-         m = Metric.Rmse()
-      elif(metric == "obs"):
-         m = Metric.Obs()
-      elif(metric == "fcst"):
-         m = Metric.Fcst()
-      elif(metric == "rmsf"):
-         m = Metric.Rmsf()
-      elif(metric == "crmse"):
-         m = Metric.Crmse()
-      elif(metric == "cmae"):
-         m = Metric.Cmae()
-      elif(metric == "dmb"):
-         m = Metric.Dmb()
-      elif(metric == "num"):
-         m = Metric.Num()
-      elif(metric == "corr"):
-         m = Metric.Corr()
-      elif(metric == "rankcorr"):
-         m = Metric.RankCorr()
-      elif(metric == "kendallcorr"):
-         m = Metric.KendallCorr()
-      elif(metric == "bias"):
-         m = Metric.Bias()
-      elif(metric == "ef"):
-         m = Metric.Ef()
-      elif(metric == "stderror"):
-         m = Metric.StdError()
-      elif(metric == "mae"):
-         m = Metric.Mae()
-      # Contingency metrics
-      elif(metric == "ets"):
-         m = Metric.Ets()
-      elif(metric == "threat"):
-         m = Metric.Threat()
-      elif(metric == "pc"):
-         m = Metric.Pc()
-      elif(metric == "diff"):
-         m = Metric.Diff()
-      elif(metric == "edi"):
-         m = Metric.Edi()
-      elif(metric == "sedi"):
-         m = Metric.Sedi()
-      elif(metric == "eds"):
-         m = Metric.Eds()
-      elif(metric == "seds"):
-         m = Metric.Seds()
-      elif(metric == "biasfreq"):
-         m = Metric.BiasFreq()
-      elif(metric == "hss"):
-         m = Metric.Hss()
-      elif(metric == "baserate"):
-         m = Metric.BaseRate()
-      elif(metric == "yulesq"):
-         m = Metric.YulesQ()
-      elif(metric == "or"):
-         m = Metric.Or()
-      elif(metric == "lor"):
-         m = Metric.Lor()
-      elif(metric == "yulesq"):
-         m = Metric.YulesQ()
-      elif(metric == "kss"):
-         m = Metric.Kss()
-      elif(metric == "hit"):
-         m = Metric.Hit()
-      elif(metric == "miss"):
-         m = Metric.Miss()
-      elif(metric == "fa"):
-         m = Metric.Fa()
-      elif(metric == "far"):
-         m = Metric.Far()
-      # Other threshold
-      elif(metric == "bs"):
-         m = Metric.Bs()
-      elif(metric == "bss"):
-         m = Metric.Bss()
-      elif(metric == "bsrel"):
-         m = Metric.BsRel()
-      elif(metric == "bsunc"):
-         m = Metric.BsUnc()
-      elif(metric == "bsres"):
-         m = Metric.BsRes()
-      elif(metric == "ign0"):
-         m = Metric.Ign0()
-      elif(metric == "spherical"):
-         m = Metric.Spherical()
-      elif(metric == "within"):
-         m = Metric.Within()
-      # Probabilistic
-      elif(metric == "pit"):
-         m = Metric.Mean(Metric.Pit())
-      elif(metric == "quantilescore"):
-         m = Metric.QuantileScore()
-      elif(metric == "pitdev"):
-         m = Metric.PitDev()
-      elif(metric == "marginalratio"):
-         m = Metric.MarginalRatio()
-      # Default
-      else:
          m = Metric.Mean(Metric.Default(metric))
 
       m.setAggregator(cType)
@@ -561,8 +457,8 @@ def showDescription(data=None):
    metricOutputs.sort(key=lambda x: x[0].lower(), reverse=False)
    for m in metricOutputs:
       name = m[0].lower()
-      desc = m[1].summary()
-      if(desc != ""):
+      if(m[1].isValid()):
+         desc = m[1].summary()
          print Common.formatArgument(name, desc)
          # print "   %-14s%s" % (name, textwrap.fill(desc, 80).replace('\n', '\n                 ')),
          # print ""
