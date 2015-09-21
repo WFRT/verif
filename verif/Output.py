@@ -1706,7 +1706,7 @@ class EconomicValue(Output):
             climCost = min(clim * loss, cost)
             perfectCost = clim * cost
             economicValue = 0
-            if(climCost != 0):
+            if(climCost != perfectCost):
                economicValue = (climCost-totalCost) / (climCost - perfectCost)
             y[f, i] = economicValue
 
