@@ -23,3 +23,6 @@ clean:
 	find . -name '*.pyc' -delete
 	rm -rf deb_dist
 	rm -rf verif.egg-info
+
+count:
+	@wc -l verif/*.py | tail -1
