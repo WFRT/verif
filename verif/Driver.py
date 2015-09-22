@@ -259,6 +259,8 @@ def run(argv):
       pl = Output.Error()
    elif(metric == "freq"):
       pl = Output.Freq()
+   elif(metric == "roc"):
+      pl = Output.Roc()
    elif(metric == "droc"):
       pl = Output.DRoc()
    elif(metric == "droc0"):

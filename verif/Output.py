@@ -1727,6 +1727,71 @@ class EconomicValue(Output):
       mpl.grid()
 
 
+class Roc(Output):
+   _description = "Plots the receiver operating characteristics curve for a single threshold (-r)"
+   _supX = False
+   _reqThreshold = True
+
+   def __init__(self):
+      Output.__init__(self)
+
+   def _plotCore(self, data):
+      threshold = self._thresholds[0]   # Observation threshold
+      if(threshold is None):
+         Common.error("Roc plot needs a threshold (use -r)")
+
+      fthresholds = list(data.getQuantiles())
+      if(len(fthresholds) == 0):
+         Common.error("Your files do not have any quantiles")
+      fthresholds.sort()
+      fthresholds = fthresholds[::-1]
+
+      F = data.getNumFiles()
+      labels = data.getFilenames()
+      for f in range(0, F):
+         color = self._getColor(f, F)
+         style = self._getStyle(f, F)
+         data.setAxis("none")
+         data.setIndex(0)
+         data.setFileIndex(f)
+         scores = data.getScores(["obs", "fcst"]+fthresholds)
+         obs = scores[0]
+         fcst = scores[1]
+         scores = scores[2:]
+         y = np.nan * np.zeros([len(fthresholds), 1], 'float')
+         x = np.nan * np.zeros([len(fthresholds), 1], 'float')
+         for i in range(0, len(fthresholds)):
+            fthreshold = scores[i]
+            a = np.ma.sum((fthreshold >= threshold) & (obs >= threshold))  # Hit
+            b = np.ma.sum((fthreshold >= threshold) & (obs < threshold))   # FA
+            c = np.ma.sum((fthreshold < threshold) & (obs >= threshold))   # Miss
+            d = np.ma.sum((fthreshold < threshold) & (obs < threshold))    # CR
+            if(a + c > 0 and b + d > 0):
+               y[i] = a / 1.0 / (a + c)
+               x[i] = b / 1.0 / (b + d)
+         # Add end points at 0,0 and 1,1:
+         xx = x
+         yy = y
+         x = np.zeros([len(fthresholds) + 2, 1], 'float')
+         y = np.zeros([len(fthresholds) + 2, 1], 'float')
+         x[1:-1] = xx
+         y[1:-1] = yy
+         x[0] = 1
+         y[0] = 1
+         x[len(x) - 1] = 0
+         y[len(y) - 1] = 0
+         mpl.plot(x, y, style, color=color, label=labels[f], lw=self._lw,
+               ms=self._ms)
+      mpl.plot([0, 1], [0, 1], color="k")
+      mpl.axis([0, 1, 0, 1])
+      mpl.xlabel("False alarm rate")
+      mpl.ylabel("Hit rate")
+      self._plotPerfectScore([0, 0, 1], [0, 1, 1])
+      units = " " + data.getUnits()
+      mpl.title("Threshold: " + str(threshold) + units)
+      mpl.grid()
+
+
 # doClassic: Use the classic definition, by not varying the forecast threshold
 #            i.e. using the same threshold for observation and forecast.
 class DRoc(Output):
