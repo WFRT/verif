@@ -350,10 +350,11 @@ class Output:
          mpl.show()
 
    def _legend(self, data, names=None):
-      if(names is None):
-         mpl.legend(loc=self._legLoc, prop={'size': self._legfs})
-      else:
-         mpl.legend(names, loc=self._legLoc, prop={'size': self._legfs})
+      if(self._legfs > 0):
+         if(names is None):
+            mpl.legend(loc=self._legLoc, prop={'size': self._legfs})
+         else:
+            mpl.legend(names, loc=self._legLoc, prop={'size': self._legfs})
 
    def _getThresholdLimits(self, thresholds):
       x = thresholds
@@ -556,7 +557,8 @@ class Default(Output):
       return [x, y]
 
    def _legend(self, data, names=None):
-      mpl.legend(loc=self._legLoc, prop={'size': self._legfs})
+      if(self._legfs > 0):
+         mpl.legend(loc=self._legLoc, prop={'size': self._legfs})
 
    def _plotCore(self, data):
 

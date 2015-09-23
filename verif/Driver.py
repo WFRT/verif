@@ -434,7 +434,7 @@ def showDescription(data=None):
    print Common.formatArgument("-lw width", "How wide should lines be?")
    print Common.formatArgument("-labfs size", "Font size for axis labels")
    print Common.formatArgument("-left value", "Left boundary location for saved figure [range 0-1]")
-   print Common.formatArgument("-legfs size", "Font size for legend")
+   print Common.formatArgument("-legfs size", "Font size for legend. Set to 0 to hide legend.")
    print Common.formatArgument("-majlth length", "Length of major tick marks")
    print Common.formatArgument("-majtwid width", "Adjust the thickness of the major tick marks")
    print Common.formatArgument("-minlth length", "Length of minor tick marks")
