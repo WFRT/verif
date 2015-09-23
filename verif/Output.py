@@ -1371,6 +1371,8 @@ class PitHist(Output):
       Output.__init__(self)
       self._numBins = 10
       self._metric = metric
+      self._showStats = True
+      self._showExpectedLine = True
 
    def _legend(self, data, names=None):
       pass
@@ -1403,25 +1405,27 @@ class PitHist(Output):
          else:
             mpl.gca().set_yticks([])
 
-         # Multiply by 100 to get to percent
-         std = Metric.PitDev.deviationStd(pit, self._numBins) * 100
+         if(self._showExpectedLine):
+            # Multiply by 100 to get to percent
+            std = Metric.PitDev.deviationStd(pit, self._numBins) * 100
 
-         mpl.plot([0, 1], [100.0 / self._numBins - 2 * std,
-            100.0 / self._numBins - 2 * std], "r-")
-         mpl.plot([0, 1], [100.0 / self._numBins + 2 * std,
-            100.0 / self._numBins + 2 * std], "r-")
-         lower = [100.0 / self._numBins - 2 * std,
-               100.0 / self._numBins - 2 * std]
-         upper = [100.0 / self._numBins + 2 * std,
-               100.0 / self._numBins + 2 * std]
-         Common.fill([0, 1], lower, upper, "r", zorder=100, alpha=0.5)
+            mpl.plot([0, 1], [100.0 / self._numBins - 2 * std,
+               100.0 / self._numBins - 2 * std], "r-")
+            mpl.plot([0, 1], [100.0 / self._numBins + 2 * std,
+               100.0 / self._numBins + 2 * std], "r-")
+            lower = [100.0 / self._numBins - 2 * std,
+                  100.0 / self._numBins - 2 * std]
+            upper = [100.0 / self._numBins + 2 * std,
+                  100.0 / self._numBins + 2 * std]
+            Common.fill([0, 1], lower, upper, "r", zorder=100, alpha=0.5)
 
          # Compute calibration deviation
-         D = Metric.PitDev.deviation(pit, self._numBins)
-         D0 = Metric.PitDev.expectedDeviation(pit, self._numBins)
-         ign = Metric.PitDev.ignorancePotential(pit, self._numBins)
-         mpl.text(0, mpl.ylim()[1], "Dev: %2.4f\nExp: %2.4f\nIgn: %2.4f"
-               % (D, D0, ign), verticalalignment="top")
+         if(self._showStats):
+            D = Metric.PitDev.deviation(pit, self._numBins)
+            D0 = Metric.PitDev.expectedDeviation(pit, self._numBins)
+            ign = Metric.PitDev.ignorancePotential(pit, self._numBins)
+            mpl.text(0, mpl.ylim()[1], "Dev: %2.4f\nExp: %2.4f\nIgn: %2.4f"
+                  % (D, D0, ign), verticalalignment="top")
 
          mpl.xlabel("Cumulative probability")
 
