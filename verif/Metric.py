@@ -51,6 +51,11 @@ class Metric:
    def description(cls):
       return cls._description
 
+   # Is this a valid metric that should be created be called?
+   @classmethod
+   def isValid(cls):
+      return cls.summary() is not ""
+
    @classmethod
    def summary(cls):
       desc = cls.description()
