@@ -1435,13 +1435,15 @@ class Reliability(Output):
    def __init__(self):
       Output.__init__(self)
       self._shadeNoSkill = True
+      self._showCount = False
 
    def _plotCore(self, data):
       labels = data.getFilenames()
 
       F = data.getNumFiles()
       ax = mpl.gca()
-      axi = mpl.axes([0.2, 0.65, 0.2, 0.2])
+      if(self._showCount):
+         axi = mpl.axes([0.2, 0.65, 0.2, 0.2])
       mpl.sca(ax)
 
       data.setAxis("none")
@@ -1509,15 +1511,16 @@ class Reliability(Output):
             self._plotConfidence(x[:, f], y[f], v[f], n[f], color=color)
 
          # Draw lines in inset diagram
-         if(np.max(n) > 1):
-            for f in range(0, F):
-               color = self._getColor(f, F)
-               axi.plot(x[:, f], n[f], style, color=color, lw=self._lw,
-                     ms=self._ms * 0.75)
-            axi.xaxis.set_major_locator(mpl.NullLocator())
-            axi.set_yscale('log')
-            axi.set_title("Number")
-            axi.grid('on')
+         if(self._showCount):
+            if(np.max(n) > 1):
+               for f in range(0, F):
+                  color = self._getColor(f, F)
+                  axi.plot(x[:, f], n[f], style, color=color, lw=self._lw,
+                        ms=self._ms * 0.75)
+               axi.xaxis.set_major_locator(mpl.NullLocator())
+               axi.set_yscale('log')
+               axi.set_title("Number")
+               axi.grid('on')
       mpl.sca(ax)
       self._plotObs([0, 1], [0, 1])
       mpl.axis([0, 1, 0, 1])
@@ -2274,6 +2277,7 @@ class InvReliability(Output):
 
    def __init__(self):
       Output.__init__(self)
+      self._showCount = False
 
    def _plotCore(self, data):
       labels = data.getFilenames()
@@ -2281,10 +2285,11 @@ class InvReliability(Output):
       F = data.getNumFiles()
       ax = mpl.gca()
       quantiles = self._thresholds
-      if(quantiles[0] < 0.5):
-         axi = mpl.axes([0.66, 0.65, 0.2, 0.2])
-      else:
-         axi = mpl.axes([0.66, 0.15, 0.2, 0.2])
+      if(self._showCount):
+         if(quantiles[0] < 0.5):
+            axi = mpl.axes([0.66, 0.65, 0.2, 0.2])
+         else:
+            axi = mpl.axes([0.66, 0.15, 0.2, 0.2])
       mpl.sca(ax)
 
       data.setAxis("none")
@@ -2343,10 +2348,11 @@ class InvReliability(Output):
          for f in range(0, F):
             color = self._getColor(f, F)
             self._plotConfidence(x[:, f], y[f], v[f], n[f], color=color)
-            axi.plot(x[:, f], n[f], style, color=color, lw=self._lw, ms=self._ms)
-            axi.xaxis.set_major_locator(mpl.NullLocator())
-            axi.set_yscale('log')
-            axi.set_title("Number")
+            if(self._showCount):
+               axi.plot(x[:, f], n[f], style, color=color, lw=self._lw, ms=self._ms)
+               axi.xaxis.set_major_locator(mpl.NullLocator())
+               axi.set_yscale('log')
+               axi.set_title("Number")
       mpl.sca(ax)
       mpl.ylim([0, 1])
       color = "gray"
