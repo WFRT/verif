@@ -733,6 +733,15 @@ class Default(Output):
       urcrnrlat = min(90, max(lats) + dlat / 10)
       llcrnrlon = min(lons) - dlon / 10
       urcrnrlon = max(lons) + dlon / 10
+
+      # Check if we are wrapped across the dateline
+      if(max(lons) - min(lons) > 180):
+         minEastLon = min(lons[lons > 0])
+         maxWestLon = max(lons[lons < 0])
+         if(minEastLon - maxWestLon > 180):
+            llcrnrlon = minEastLon - dlon / 10
+            urcrnrlon = maxWestLon + dlon / 10 + 360
+
       res = Common.getMapResolution(lats, lons)
       dlon = max(lons) - min(lons)
       dlat = max(lats) - min(lats)
