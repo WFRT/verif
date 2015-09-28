@@ -144,11 +144,15 @@ def fill(x, yLower, yUpper, col, alpha=1, zorder=0, hatch=''):
 def clean(data):
    data = data[:].astype(float)
    q = deepcopy(data)
-   mask = np.where(q == -999)
-   q[mask] = np.nan
+   # Remove missing values. Convert to -999 and then back to nan to avoid
+   # warning messages when doing <, >, and == comparisons with nan.
+   mask = np.where(np.isnan(q))
+   q[mask] = -999
    mask = np.where(q < -100000)
-   q[mask] = np.nan
+   q[mask] = -999
    mask = np.where(q > 1e30)
+   q[mask] = -999
+   mask = np.where(q == -999)
    q[mask] = np.nan
    return q
 
