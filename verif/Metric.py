@@ -466,7 +466,7 @@ class Rmsf(Deterministic):
       return np.exp(np.mean((np.log(fcst / obs)) ** 2) ** 0.5)
 
    def name(self):
-      return "RMSE"
+      return "RMSF"
 
 
 class Crmse(Deterministic):
