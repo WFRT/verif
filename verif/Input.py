@@ -139,7 +139,7 @@ class Comps(Input):
          if(metric not in self._dimensionMetrics):
             if(metric[0] == "p" and metric != "pit"):
                metric = self._toPvarVerif(metric)
-               thresholds.append(metric)
+               thresholds.append(float(metric[1:]))
       return thresholds
 
    def getQuantiles(self):
@@ -147,7 +147,7 @@ class Comps(Input):
       for (metric, v) in self._file.variables.iteritems():
          if(metric not in self._dimensionMetrics):
             if(metric[0] == "q"):
-               quantiles.append(metric)
+               quantiles.append(float(metric[1:]))
       return quantiles
 
    def getMetrics(self):
