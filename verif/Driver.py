@@ -65,6 +65,7 @@ def run(argv):
    listThresholds = False
    listQuantiles = False
    listLocations = False
+   listDates = False
 
    # Read command line arguments
    i = 1
@@ -82,6 +83,8 @@ def run(argv):
             listQuantiles = True
          elif(arg == "--list-locations"):
             listLocations = True
+         elif(arg == "--list-dates"):
+            listDates = True
          elif(arg == "-sp"):
             showPerfect = True
          elif(arg == "-hist"):
@@ -204,7 +207,7 @@ def run(argv):
    else:
       data = None
 
-   if(listThresholds or listQuantiles or listLocations):
+   if(listThresholds or listQuantiles or listLocations or listDates):
       if(len(ifiles) == 0):
          Common.error("Files are required in order to list thresholds or quantiles")
       if(listThresholds):
@@ -222,6 +225,12 @@ def run(argv):
          for station in data.getStations():
             print "%6d %7.2f %7.2f %7.1f" % (station.id(), station.lat(),
                   station.lon(), station.elev())
+         print ""
+      if(listDates):
+         dates = data.getAxisValues("date")
+         dates = Common.convertToYYYYMMDD(dates)
+         for date in dates:
+            print "%d" % date
          print ""
       return
    elif(len(argv) == 1 or len(ifiles) == 0 or metric is None):

@@ -19,6 +19,14 @@ def convertDates(dates):
    return dates2
 
 
+def convertToYYYYMMDD(dates):
+   numDates = len(dates)
+   dates2 = np.zeros([numDates], 'int')
+   for i in range(0, numDates):
+      dates2[i] = int(num2date(dates[i]).strftime("%Y%m%d"))
+   return dates2
+
+
 def red(text):
    return "\033[31m" + text + "\033[0m"
 
