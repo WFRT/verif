@@ -64,6 +64,7 @@ def run(argv):
    version = None
    listThresholds = False
    listQuantiles = False
+   listLocations = False
 
    # Read command line arguments
    i = 1
@@ -79,6 +80,8 @@ def run(argv):
             listThresholds = True
          elif(arg == "--list-quantiles"):
             listQuantiles = True
+         elif(arg == "--list-locations"):
+            listLocations = True
          elif(arg == "-sp"):
             showPerfect = True
          elif(arg == "-hist"):
@@ -201,7 +204,7 @@ def run(argv):
    else:
       data = None
 
-   if(listThresholds or listQuantiles):
+   if(listThresholds or listQuantiles or listLocations):
       if(len(ifiles) == 0):
          Common.error("Files are required in order to list thresholds or quantiles")
       if(listThresholds):
@@ -213,6 +216,12 @@ def run(argv):
          print "Quantiles:",
          for quantile in data.getQuantiles():
             print "%g" % quantile,
+         print ""
+      if(listLocations):
+         print "    id     lat     lon    elev"
+         for station in data.getStations():
+            print "%6d %7.2f %7.2f %7.1f" % (station.id(), station.lat(),
+                  station.lon(), station.elev())
          print ""
       return
    elif(len(argv) == 1 or len(ifiles) == 0 or metric is None):
@@ -391,7 +400,7 @@ def showDescription(data=None):
    print textwrap.fill(desc, Common.getTextWidth())
    print ""
    print "usage: verif files -m metric [options]"
-   print "       verif files [--list-thresholds] [--list-quantiles]"
+   print "       verif files [--list-thresholds] [--list-quantiles] [--list-locations]"
    print "       verif --version"
    print ""
    print Common.green("Arguments:")
@@ -399,6 +408,7 @@ def showDescription(data=None):
    print Common.formatArgument("-m metric", "Which verification metric to use? See 'Metrics' below.")
    print Common.formatArgument("--list-thresholds", "What thresholds are available in the files?")
    print Common.formatArgument("--list-quantiles", "What quantiles are available in the files?")
+   print Common.formatArgument("--list-locations", "What locations are available in the files?")
    print Common.formatArgument("--version", "What version of verif is this?")
    print ""
    print Common.green("Options:")
