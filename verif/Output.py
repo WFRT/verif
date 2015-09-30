@@ -827,7 +827,10 @@ class Default(Output):
             names = self._legNames
          else:
             names = data.getFilenames()
-         mpl.title(names[f])
+         if(self._title is not None):
+            mpl.title(self._title)
+         else:
+            mpl.title(names[f])
 
       # Legend
       if(self._showRank):
