@@ -1579,7 +1579,13 @@ class Reliability(Output):
       mpl.xlabel("Forecasted probability")
       mpl.ylabel("Observed frequency")
       units = " " + data.getUnits()
-      mpl.title("Reliability diagram for obs > " + str(threshold) + units)
+      if(self._binType == "below"):
+         mpl.title("Reliability diagram for obs < " + str(threshold) + units)
+      elif(self._binType == "above"):
+         mpl.title("Reliability diagram for obs > " + str(threshold) + units)
+      else:
+         Common.error("Bin type must be one of 'below' or"
+               "'above' for reliability plot")
 
 
 class IgnContrib(Output):
