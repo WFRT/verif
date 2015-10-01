@@ -741,6 +741,12 @@ class Default(Output):
          if(minEastLon - maxWestLon > 180):
             llcrnrlon = minEastLon - dlon / 10
             urcrnrlon = maxWestLon + dlon / 10 + 360
+      if(self._xlim is not None):
+         llcrnrlon = self._xlim[0]
+         urcrnrlon = self._xlim[1]
+      if(self._ylim is not None):
+         llcrnrlat = self._ylim[0]
+         urcrnrlat = self._ylim[1]
 
       res = Common.getMapResolution(lats, lons)
       dlon = max(lons) - min(lons)
