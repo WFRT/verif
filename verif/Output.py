@@ -1104,6 +1104,7 @@ class Scatter(Output):
    _description = "Scatter plot of forecasts vs obs"
    _supThreshold = False
    _supX = False
+   _showQuantiles = True
 
    def __init__(self):
       Output.__init__(self)
@@ -1119,8 +1120,25 @@ class Scatter(Output):
          style = self._getStyle(f, F, connectingLine=False)
 
          [x, y] = data.getScores(["obs", "fcst"])
-         mpl.plot(x, y, ".", color=color, label=labels[f], lw=self._lw,
-               ms=self._ms, alpha=0.2)
+         mpl.plot(x, y, ".", color=color, label=labels[f], lw=self._lw, ms=self._ms, alpha=0.2)
+         if(self._showQuantiles):
+            N = 50
+            edges = np.linspace(min(np.min(x), np.min(y)), max(np.max(x), np.max(y)), N)
+            # edges = np.percentile(y, np.linspace(0,100,N))
+            bins = (edges[1:] + edges[0:-1])/2
+            quantiles = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
+            for q in range(0, len(quantiles)):
+               line = np.zeros([len(bins)], 'float')
+               for i in range(0, len(edges)-1):
+                  I = np.where((y >= edges[i]) & (y < edges[i+1]))
+                  line[i] = np.percentile(x[I], quantiles[q]*100)
+               style = 'k-'
+               lw = 1
+               if(q == 0 or q == len(quantiles)-1):
+                  style = 'k--'
+               elif(q == (len(quantiles)-1)/2):
+                  lw = 2
+               mpl.plot(line, bins, style, lw=lw)
       mpl.ylabel("Forecasts (" + data.getUnits() + ")")
       mpl.xlabel("Observations (" + data.getUnits() + ")")
       ylim = mpl.ylim()
