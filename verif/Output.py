@@ -436,11 +436,11 @@ class Output:
       mpl.gcf().subplots_adjust(bottom=self._bot, top=self._top,
             left=self._left, right=self._right)
 
-   def _plotObs(self, x, y, isCont=True, zorder=0):
+   def _plotObs(self, x, y, isCont=True, zorder=0, label="obs"):
       if(isCont):
-         mpl.plot(x, y, ".-", color="gray", lw=5, label="obs", zorder=zorder)
+         mpl.plot(x, y, ".-", color="gray", lw=5, label=label, zorder=zorder)
       else:
-         mpl.plot(x, y, "o", color="gray", ms=self._ms, label="obs",
+         mpl.plot(x, y, "o", color="gray", ms=self._ms, label=label,
                zorder=zorder)
 
    # maxradius: Don't let the circle go outside an envelope circle with this
@@ -1562,7 +1562,7 @@ class Reliability(Output):
                axi.set_title("Number")
                axi.grid('on')
       mpl.sca(ax)
-      self._plotObs([0, 1], [0, 1])
+      self._plotObs([0, 1], [0, 1], label="")
       mpl.axis([0, 1, 0, 1])
       color = "gray"
       # Climatology line
@@ -2382,7 +2382,7 @@ class InvReliability(Output):
                label = ""
             mpl.plot(x[:, f], y[f], style, color=color, lw=self._lw,
                   ms=self._ms, label=label)
-         self._plotObs(edges, 0 * edges + quantile)
+         self._plotObs(edges, 0 * edges + quantile, label="")
 
          # Draw confidence bands (do this separately so that these lines don't sneak into the legend)
          for f in range(0, F):
