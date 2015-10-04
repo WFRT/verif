@@ -159,6 +159,15 @@ class Data:
                I = np.where((dates >= months[self._index]) &
                             (dates < months[self._index+1]))
             clim = temp[I, :, :].flatten()
+         elif(self._axis == "year"):
+            dates = self.getAxisValues("date")
+            years = self.getAxisValues("year")
+            if(self._index == years.shape[0]-1):
+               I = np.where(dates >= years[self._index])
+            else:
+               I = np.where((dates >= years[self._index]) &
+                            (dates < years[self._index+1]))
+            clim = temp[I, :, :].flatten()
          elif(self._axis == "offset"):
             clim = temp[:, self._index, :].flatten()
          elif(self.isLocationAxis(self._axis)):
@@ -185,6 +194,15 @@ class Data:
             else:
                I = np.where((dates >= months[self._index]) &
                             (dates < months[self._index+1]))
+            data[metric] = temp[I, :, :].flatten()
+         elif(self._axis == "year"):
+            dates = self.getAxisValues("date")
+            years = self.getAxisValues("year")
+            if(self._index == years.shape[0]-1):
+               I = np.where(dates >= years[self._index])
+            else:
+               I = np.where((dates >= years[self._index]) &
+                            (dates < years[self._index+1]))
             data[metric] = temp[I, :, :].flatten()
          elif(self._axis == "offset"):
             data[metric] = temp[:, self._index, :].flatten()
@@ -432,6 +450,10 @@ class Data:
          dates = self._getScore("Date").astype(int)
          months = np.unique((dates / 100) * 100 + 1)
          return Common.convertDates(months)
+      elif(axis == "year"):
+         dates = self._getScore("Date").astype(int)
+         years = np.unique((dates / 10000) * 10000 + 101)
+         return Common.convertDates(years)
       elif(axis == "offset"):
          return self._getScore("Offset").astype(int)
       elif(axis == "none"):
@@ -456,7 +478,7 @@ class Data:
    def isAxisContinuous(self, axis=None):
       if(axis is None):
          axis = self._axis
-      return axis in ["date", "offset", "threshold", "month"]
+      return axis in ["date", "offset", "threshold", "month", "year"]
 
    def getAxisFormatter(self, axis=None):
       if(axis is None):
@@ -465,6 +487,8 @@ class Data:
          return DateFormatter('\n%Y-%m-%d')
       elif(axis == "month"):
          return DateFormatter('\n%Y-%m')
+      elif(axis == "year"):
+         return DateFormatter('\n%Y')
       else:
          return ScalarFormatter()
 
@@ -530,6 +554,8 @@ class Data:
          return "Offset (h)"
       elif(axis == "month"):
          return "Month"
+      elif(axis == "year"):
+         return "Year"
       elif(axis == "locationElev"):
          return "Elevation (m)"
       elif(axis == "locationLat"):
