@@ -480,6 +480,11 @@ class Data:
          axis = self._axis
       return axis in ["date", "offset", "threshold", "month", "year"]
 
+   def isAxisDate(self, axis=None):
+      if(axis is None):
+         axis = self._axis
+      return axis in ["date", "month", "year"]
+
    def getAxisFormatter(self, axis=None):
       if(axis is None):
          axis = self._axis

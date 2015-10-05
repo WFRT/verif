@@ -613,7 +613,10 @@ class Default(Output):
          mpl.xlabel(data.getAxisLabel())
          mpl.ylabel(self._metric.label(data))
 
-         mpl.gca().xaxis.set_major_formatter(data.getAxisFormatter())
+         if(data.isAxisDate()):
+            mpl.gca().xaxis_date()
+         else:
+            mpl.gca().xaxis.set_major_formatter(data.getAxisFormatter())
          perfectScore = self._metric.perfectScore()
          self._plotPerfectScore(x[0], perfectScore)
 
