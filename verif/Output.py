@@ -233,7 +233,7 @@ class Output:
    # Call this to create a plot, saves to file
    def plot(self, data):
       self._plotCore(data)
-      self._adjustAxes()
+      self._adjustAxes(data)
       self._legend(data, self._legNames)
       self._savePlot(data)
 
@@ -381,7 +381,7 @@ class Output:
          ylim[1] = currYlim[1]
       mpl.ylim(ylim)
 
-   def _adjustAxes(self):
+   def _adjustAxes(self, data):
       # Apply adjustements to all subplots
       for ax in mpl.gcf().get_axes():
          # Tick font sizes
@@ -408,7 +408,11 @@ class Output:
 
       for ax in mpl.gcf().get_axes():
          if(self._xlim is not None):
-            mpl.xlim(self._xlim)
+            xlim = self._xlim
+            # Convert date to datetime objects
+            if(data.isAxisDate()):
+               xlim = Common.convertDates(xlim)
+            mpl.xlim(xlim)
          if(self._ylim is not None):
             mpl.ylim(self._ylim)
          if(self._clim is not None):
