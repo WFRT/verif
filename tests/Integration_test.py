@@ -1,6 +1,6 @@
 import unittest
 import verif.Driver as Driver
-import verif.Common as Common
+import verif.Util as Util
 import os
 import numpy as np
 import matplotlib

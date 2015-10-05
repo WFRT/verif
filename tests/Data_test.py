@@ -1,6 +1,6 @@
 import unittest
 import verif.Data as Data
-import verif.Common as Common
+import verif.Util as Util
 import numpy as np
 
 

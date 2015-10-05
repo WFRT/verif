@@ -1,7 +1,7 @@
 from scipy import io
 import numpy as np
 import verif.Station as Station
-import verif.Common as Common
+import verif.Util as Util
 
 
 # Abstract base class representing verification data
@@ -82,7 +82,7 @@ class Input:
 # Original fileformat used by OutputVerif in COMPS
 class Comps(Input):
    _dimensionMetrics = ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]
-   _description = Common.formatArgument("netcdf", "Undocumented legacy " +
+   _description = Util.formatArgument("netcdf", "Undocumented legacy " +
          "NetCDF format, to be phased out. A new NetCDF based format will " +
          "be defined.")
 
@@ -94,10 +94,10 @@ class Comps(Input):
       return self._file.variables
 
    def getStations(self):
-      lat = Common.clean(self._file.variables["Lat"])
-      lon = Common.clean(self._file.variables["Lon"])
-      id = Common.clean(self._file.variables["Location"])
-      elev = Common.clean(self._file.variables["Elev"])
+      lat = Util.clean(self._file.variables["Lat"])
+      lon = Util.clean(self._file.variables["Lon"])
+      id = Util.clean(self._file.variables["Location"])
+      elev = Util.clean(self._file.variables["Elev"])
       stations = list()
       for i in range(0, lat.shape[0]):
          station = Station.Station(id[i], lat[i], lon[i], elev[i])
@@ -106,7 +106,7 @@ class Comps(Input):
 
    def getScores(self, metric):
       metric = self._toPvarComps(metric)
-      temp = Common.clean(self._file.variables[metric])
+      temp = Util.clean(self._file.variables[metric])
       return temp
 
    def _toPvarVerif(self, metric):
@@ -128,10 +128,10 @@ class Comps(Input):
       return self._file.variables[metric].dimensions
 
    def getDates(self):
-      return Common.clean(self._file.variables["Date"])
+      return Util.clean(self._file.variables["Date"])
 
    def getOffsets(self):
-      return Common.clean(self._file.variables["Offset"])
+      return Util.clean(self._file.variables["Offset"])
 
    def getThresholds(self):
       thresholds = list()
@@ -208,10 +208,10 @@ class NetcdfCf(Input):
       return valid
 
    def getStations(self):
-      lat = Common.clean(self._file.variables["lat"])
-      lon = Common.clean(self._file.variables["lon"])
-      id = Common.clean(self._file.variables["id"])
-      elev = Common.clean(self._file.variables["elev"])
+      lat = Util.clean(self._file.variables["lat"])
+      lon = Util.clean(self._file.variables["lon"])
+      id = Util.clean(self._file.variables["id"])
+      elev = Util.clean(self._file.variables["elev"])
       stations = list()
       for i in range(0, lat.shape[0]):
          station = Station.Station(id[i], lat[i], lon[i], elev[i])
@@ -219,39 +219,39 @@ class NetcdfCf(Input):
       return stations
 
    def getScores(self, metric):
-      temp = Common.clean(self._file.variables[metric])
+      temp = Util.clean(self._file.variables[metric])
       return temp
 
    def getObs(self):
-      return Common.clean(self._file.variables["obs"])
+      return Util.clean(self._file.variables["obs"])
 
    def getFcst(self):
-      return Common.clean(self._file.variables["fcst"])
+      return Util.clean(self._file.variables["fcst"])
 
    def getEns(self):
-      return Common.clean(self._file.variables["ens"])
+      return Util.clean(self._file.variables["ens"])
 
    def getCdf(self, threshold):
       # thresholds = getThresholds()
       # I = np.where(thresholds == threshold)[0]
       # assert(len(I) == 1)
-      temp = Common.clean(self._file.variables["cdf"])
+      temp = Util.clean(self._file.variables["cdf"])
       return temp
 
    def getDims(self, metric):
       return self._file.variables[metric].dimensions
 
    def getDates(self):
-      return Common.clean(self._file.variables["date"])
+      return Util.clean(self._file.variables["date"])
 
    def getOffsets(self):
-      return Common.clean(self._file.variables["offset"])
+      return Util.clean(self._file.variables["offset"])
 
    def getThresholds(self):
-      return Common.clean(self._file.variables["thresholds"])
+      return Util.clean(self._file.variables["thresholds"])
 
    def getQuantiles(self):
-      return Common.clean(self._file.variables["quantiles"])
+      return Util.clean(self._file.variables["quantiles"])
 
    def getMetrics(self):
       metrics = list()
@@ -283,16 +283,16 @@ class NetcdfCf(Input):
 
 # Flat text file format
 class Text(Input):
-   _description = Common.formatArgument("text", "Data organized in rows and columns with space as a delimiter. Each row represents one forecast/obs pair, and each column represents one attribute of the data. Here is an example:") + "\n"\
-   + Common.formatArgument("", "") + "\n"\
-   + Common.formatArgument("", "# variable: Temperature") + "\n"\
-   + Common.formatArgument("", "# units: $^oC$") + "\n"\
-   + Common.formatArgument("", "date     offset id      lat     lon      elev obs fcst      p10") + "\n"\
-   + Common.formatArgument("", "20150101 0      214     49.2    -122.1   92 3.4 2.1     0.91") + "\n"\
-   + Common.formatArgument("", "20150101 1      214     49.2    -122.1   92 4.7 4.2      0.85") + "\n"\
-   + Common.formatArgument("", "20150101 0      180     50.3    -120.3   150 0.2 -1.2 0.99") + "\n"\
-   + Common.formatArgument("", "") + "\n"\
-   + Common.formatArgument("", " Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0.")
+   _description = Util.formatArgument("text", "Data organized in rows and columns with space as a delimiter. Each row represents one forecast/obs pair, and each column represents one attribute of the data. Here is an example:") + "\n"\
+   + Util.formatArgument("", "") + "\n"\
+   + Util.formatArgument("", "# variable: Temperature") + "\n"\
+   + Util.formatArgument("", "# units: $^oC$") + "\n"\
+   + Util.formatArgument("", "date     offset id      lat     lon      elev obs fcst      p10") + "\n"\
+   + Util.formatArgument("", "20150101 0      214     49.2    -122.1   92 3.4 2.1     0.91") + "\n"\
+   + Util.formatArgument("", "20150101 1      214     49.2    -122.1   92 4.7 4.2      0.85") + "\n"\
+   + Util.formatArgument("", "20150101 0      180     50.3    -120.3   150 0.2 -1.2 0.99") + "\n"\
+   + Util.formatArgument("", "") + "\n"\
+   + Util.formatArgument("", " Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0.")
 
    def __init__(self, filename):
       import csv
@@ -335,7 +335,7 @@ class Text(Input):
             elif(curr[0] == "units:"):
                self._units = curr[1]
             else:
-               Common.warning("Ignoring line '" + rowstr.strip() + "' in file '" + filename + "'")
+               Util.warning("Ignoring line '" + rowstr.strip() + "' in file '" + filename + "'")
          else:
             row = rowstr.split()
             if(header is None):
@@ -365,10 +365,10 @@ class Text(Input):
                for col in requiredColumns:
                   if(col not in indices):
                      msg = "Could not parse %s: Missing column '%s'" % (filename, col)
-                     Common.error(msg)
+                     Util.error(msg)
             else:
                if(len(row) is not len(header)):
-                  Common.error("Incorrect number of columns (expecting %d) in row '%s'"
+                  Util.error("Incorrect number of columns (expecting %d) in row '%s'"
                         % (len(header), rowstr.strip()))
                if("date" in indices):
                   date = self._clean(row[indices["date"]])
@@ -511,23 +511,23 @@ class Text(Input):
          return self._fcst
       elif(metric == "pit"):
          if(self._pit is None):
-            Common.error("File does not contain 'pit'")
+            Util.error("File does not contain 'pit'")
          return self._pit
       elif(metric[0] == "p"):
          threshold = float(metric[1:])
          I = np.where(abs(self._thresholds - threshold) < 0.0001)[0]
          if(len(I) == 0):
-            Common.error("Cannot find " + metric)
+            Util.error("Cannot find " + metric)
          elif(len(I) > 1):
-            Common.error("Could not find unique threshold: " + str(threshold))
+            Util.error("Could not find unique threshold: " + str(threshold))
          return self._cdf[:, :, :, I[0]]
       elif(metric[0] == "q"):
          quantile = float(metric[1:])
          I = np.where(abs(self._quantiles - quantile) < 0.0001)[0]
          if(len(I) == 0):
-            Common.error("Cannot find " + metric)
+            Util.error("Cannot find " + metric)
          elif(len(I) > 1):
-            Common.error("Could not find unique quantile: " + str(quantile))
+            Util.error("Could not find unique quantile: " + str(quantile))
          return self._x[:, :, :, I[0]]
       elif(metric == "Offset"):
          return self._offsets
@@ -550,7 +550,7 @@ class Text(Input):
                values[i] = station.elev()
          return values
       else:
-         Common.error("Cannot find " + metric)
+         Util.error("Cannot find " + metric)
 
    def getDims(self, metric):
       if(metric in ["Date", "Offset", "Location"]):

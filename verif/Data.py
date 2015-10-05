@@ -1,6 +1,6 @@
 from scipy import io
 import numpy as np
-import verif.Common as Common
+import verif.Util as Util
 import re
 import sys
 import os
@@ -38,7 +38,7 @@ class Data:
       self._clim = None
       for filename in filenames:
          if(not os.path.exists(filename)):
-            Common.error("File '" + filename + "' does not exist")
+            Util.error("File '" + filename + "' does not exist")
          if(Input.NetcdfCf.isValid(filename)):
             file = Input.NetcdfCf(filename)
          elif(Input.Comps.isValid(filename)):
@@ -46,12 +46,12 @@ class Data:
          elif(Input.Text.isValid(filename)):
             file = Input.Text(filename)
          else:
-            Common.error("File '" + filename + "' is not a valid input file")
+            Util.error("File '" + filename + "' is not a valid input file")
          self._files.append(file)
          self._cache.append(dict())
       if(clim is not None):
          if(not os.path.exists(clim)):
-            Common.error("File '" + clim + "' does not exist")
+            Util.error("File '" + clim + "' does not exist")
          if(Input.NetcdfCf.isValid(clim)):
             self._clim = Input.NetcdfCf(clim)
          elif(Input.Comps.isValid(clim)):
@@ -59,10 +59,10 @@ class Data:
          elif(Input.Text.isValid(clim)):
             self._clim = Input.Text(clim)
          else:
-            Common.error("File '" + clim + "' is not a valid climatology file")
+            Util.error("File '" + clim + "' is not a valid climatology file")
          self._cache.append(dict())
          if(not (climType == "subtract" or climType == "divide")):
-            Common.error("Data: climType must be 'subtract' or 'divide")
+            Util.error("Data: climType must be 'subtract' or 'divide")
          self._climType = climType
 
       # Climatology file
@@ -93,7 +93,7 @@ class Data:
          else:
             useLocations = latlonLocations
          if(len(useLocations) == 0):
-            Common.error("No available locations within lat/lon range")
+            Util.error("No available locations within lat/lon range")
       else:
          useLocations = locations
 
@@ -108,27 +108,27 @@ class Data:
             currElev = float(elev[i])
             if(currElev >= minElev and currElev <= maxElev):
                elevLocations.append(locId[i])
-         useLocations = Common.intersect(useLocations, elevLocations)
+         useLocations = Util.intersect(useLocations, elevLocations)
          if(len(useLocations) == 0):
-            Common.error("No available locations within elevation range")
+            Util.error("No available locations within elevation range")
 
       # Find common indicies
-      self._datesI = Data._getCommonIndices(self._files, "Date", dates)
-      self._offsetsI = Data._getCommonIndices(self._files, "Offset", offsets)
-      self._locationsI = Data._getCommonIndices(self._files, "Location",
+      self._datesI = Data._getUtilIndices(self._files, "Date", dates)
+      self._offsetsI = Data._getUtilIndices(self._files, "Offset", offsets)
+      self._locationsI = Data._getUtilIndices(self._files, "Location",
             useLocations)
       if(len(self._datesI[0]) == 0):
-         Common.error("No valid dates selected")
+         Util.error("No valid dates selected")
       if(len(self._offsetsI[0]) == 0):
-         Common.error("No valid offsets selected")
+         Util.error("No valid offsets selected")
       if(len(self._locationsI[0]) == 0):
-         Common.error("No valid locations selected")
+         Util.error("No valid locations selected")
 
       # Training
       if(training is not None):
          for f in range(0, len(self._datesI)):
             if(len(self._datesI[f]) <= training):
-               Common.error("Training period too long for " +
+               Util.error("Training period too long for " +
                      self.getFilenames()[f] + ". Max training period is " +
                      str(len(self._datesI[f]) - 1) + ".")
             self._datesI[f] = self._datesI[f][training:]
@@ -213,7 +213,7 @@ class Data:
          elif(self._axis == "all"):
             data[metric] = temp
          else:
-            Common.error("Data.py: unrecognized value of self._axis: " +
+            Util.error("Data.py: unrecognized value of self._axis: " +
                   self._axis)
 
          # Subtract climatology
@@ -259,7 +259,7 @@ class Data:
    # Find indicies of elements that are present in all files
    # Merge in values in 'aux' as well
    @staticmethod
-   def _getCommonIndices(files, name, aux=None):
+   def _getUtilIndices(files, name, aux=None):
       # Find common values among all files
       values = aux
       for file in files:
@@ -346,7 +346,7 @@ class Data:
       elif(axis == "location"):
          I = self._getLocationIndices(findex)
       else:
-         Common.error("Could not get indices for axis: " + str(axis))
+         Util.error("Could not get indices for axis: " + str(axis))
       return I
 
    def _getDateIndices(self, findex=None):
@@ -376,11 +376,11 @@ class Data:
          if(metric not in self._cache[f]):
             file = self._files[f]
             if(metric not in file.getVariables()):
-               Common.error("Variable '" + metric + "' does not exist in " +
+               Util.error("Variable '" + metric + "' does not exist in " +
                      self.getFilenames()[f])
             temp = file.getScores(metric)
             dims = file.getDims(metric)
-            temp = Common.clean(temp)
+            temp = Util.clean(temp)
             for i in range(0, len(dims)):
                I = self._getIndices(dims[i].lower(), f)
                if(i == 0):
@@ -445,15 +445,15 @@ class Data:
       if(axis is None):
          axis = self._axis
       if(axis == "date"):
-         return Common.convertDates(self._getScore("Date").astype(int))
+         return Util.convertDates(self._getScore("Date").astype(int))
       elif(axis == "month"):
          dates = self._getScore("Date").astype(int)
          months = np.unique((dates / 100) * 100 + 1)
-         return Common.convertDates(months)
+         return Util.convertDates(months)
       elif(axis == "year"):
          dates = self._getScore("Date").astype(int)
          years = np.unique((dates / 10000) * 10000 + 101)
-         return Common.convertDates(years)
+         return Util.convertDates(years)
       elif(axis == "offset"):
          return self._getScore("Offset").astype(int)
       elif(axis == "none"):
@@ -470,7 +470,7 @@ class Data:
          elif(axis == "locationLon"):
             data = self._getScore("Lon")
          else:
-            Common.error("Data.getAxisValues has a bad axis name: " + axis)
+            Util.error("Data.getAxisValues has a bad axis name: " + axis)
          return data
       else:
          return [0]
@@ -640,6 +640,6 @@ class Data:
          var = "q" + minus + str(int(abs(quantile)))
 
       if(not self.hasMetric(var) and quantile == 50):
-         Common.warning("Could not find q50, using fcst instead")
+         Util.warning("Could not find q50, using fcst instead")
          return "fcst"
       return var

@@ -1,5 +1,5 @@
 import numpy as np
-import verif.Common as Common
+import verif.Util as Util
 import sys
 import inspect
 
@@ -44,7 +44,7 @@ class Metric:
 
    # Implement this
    def computeCore(self, data, tRange):
-      Common.error("Metric '" + self.getClassName() +
+      Util.error("Metric '" + self.getClassName() +
             "' has not been implemented yet")
 
    @classmethod
@@ -63,7 +63,7 @@ class Metric:
          return ""
       extra = ""
       # if(cls._experimental):
-      #    extra = " " + Common.experimental() + "."
+      #    extra = " " + Util.experimental() + "."
       if(cls._supAggregator):
          extra = " Supports -ct."
       if(cls._perfectScore is not None):
@@ -117,9 +117,9 @@ class Metric:
       elif(name == "std"):
          self._aggregator = np.std
       elif(name == "range"):
-         self._aggregator = Common.nprange
+         self._aggregator = Util.nprange
       else:
-         Common.error("Invalid aggregator")
+         Util.error("Invalid aggregator")
 
    def getClassName(self):
       name = self.__class__.__name__
@@ -203,7 +203,7 @@ class Deterministic(Metric):
    #     - length >= 1
    #     - no missing values
    def _computeObsFcst(self, obs, fcst):
-      Common.error("Metric " + self.name() +
+      Util.error("Metric " + self.name() +
             " has not implemented _computeObsFcst()")
 
 
@@ -675,7 +675,7 @@ class Bs(Threshold):
          I = np.where((p >= self._edges[i]) & (p < self._edges[i + 1]))[0]
          if(len(I) > 0):
             bs[I] = (np.mean(p[I]) - obsP[I]) ** 2
-      return Common.nanmean(bs)
+      return Util.nanmean(bs)
 
    @staticmethod
    def getP(data, tRange):
@@ -725,7 +725,7 @@ class Bss(Threshold):
          I = np.where((p >= self._edges[i]) & (p < self._edges[i + 1]))[0]
          if(len(I) > 0):
             bs[I] = (np.mean(p[I]) - obsP[I]) ** 2
-      bs = Common.nanmean(bs)
+      bs = Util.nanmean(bs)
       bsunc = np.mean(obsP) * (1 - np.mean(obsP))
       if(bsunc == 0):
          bss = np.nan
@@ -756,7 +756,7 @@ class BsRel(Threshold):
          if(len(I) > 0):
             meanObsI = np.mean(obsP[I])
             bs[I] = (np.mean(p[I]) - meanObsI) ** 2
-      return Common.nanmean(bs)
+      return Util.nanmean(bs)
 
    def label(self, data):
       return "Brier score, reliability term"
@@ -796,7 +796,7 @@ class BsRes(Threshold):
          if(len(I) > 0):
             meanObsI = np.mean(obsP[I])
             bs[I] = (meanObsI - meanObs) ** 2
-      return Common.nanmean(bs)
+      return Util.nanmean(bs)
 
    def label(self, data):
       return "Brier score, resolution term"
@@ -867,7 +867,7 @@ class Contingency(Threshold):
 
    def computeCore(self, data, tRange):
       if(tRange is None):
-         Common.error("Metric " + self.getClassName() +
+         Util.error("Metric " + self.getClassName() +
                " requires '-r <threshold>'")
       [obs, fcst] = data.getScores(["obs", "fcst"])
       value = np.nan

@@ -2,7 +2,7 @@
 import matplotlib.pyplot as mpl
 import re
 import datetime
-import verif.Common as Common
+import verif.Util as Util
 import verif.Metric as Metric
 import numpy as np
 import os
@@ -100,7 +100,7 @@ class Output:
    def description(cls):
       extra = ""
       # if(cls._experimental):
-      #    extra = " " + Common.experimental()
+      #    extra = " " + Util.experimental()
       return cls._description + extra
 
    # Is this a valid output that should be created be called?
@@ -147,17 +147,17 @@ class Output:
 
    def setXLim(self, lim):
       if(len(lim) != 2):
-         Common.error("xlim must be a vector of length 2")
+         Util.error("xlim must be a vector of length 2")
       self._xlim = lim
 
    def setYLim(self, lim):
       if(len(lim) != 2):
-         Common.error("ylim must be a vector of length 2")
+         Util.error("ylim must be a vector of length 2")
       self._ylim = lim
 
    def setCLim(self, lim):
       if(len(lim) != 2):
-         Common.error("clim must be a vector of length 2")
+         Util.error("clim must be a vector of length 2")
       self._clim = lim
 
    def setMarkerSize(self, ms):
@@ -266,13 +266,13 @@ class Output:
 
    # Implement these methods
    def _plotCore(self, data):
-      Common.error("This type does not plot")
+      Util.error("This type does not plot")
 
    def _textCore(self, data):
-      Common.error("This type does not output text")
+      Util.error("This type does not output text")
 
    def _mapCore(self, data):
-      Common.error("This type does not produce maps")
+      Util.error("This type does not produce maps")
 
    # Helper functions
    def _getColor(self, i, total):
@@ -287,7 +287,7 @@ class Output:
                   string = string.replace("[", "")
                   numList.append(float(string))
                else:
-                  Common.error("Invalid rgba arg \"{}\"".format(string))
+                  Util.error("Invalid rgba arg \"{}\"".format(string))
 
             elif("]" in string):
                if(numList):
@@ -296,7 +296,7 @@ class Output:
                   finalList.append(numList)
                   numList = []
                else:
-                  Common.error("Invalid rgba arg \"{}\"".format(string))
+                  Util.error("Invalid rgba arg \"{}\"".format(string))
 
             # append to rgba lists if present, otherwise grayscale intensity
             elif(isNumber(string)):
@@ -309,7 +309,7 @@ class Output:
                if(not numList):  # string args and hexcodes
                   finalList.append(string)
                else:
-                  Common.error("Cannot read color args.")
+                  Util.error("Cannot read color args.")
          self.colors = finalList
          return self.colors[i % len(self.colors)]
 
@@ -341,7 +341,7 @@ class Output:
          mpl.gcf().set_size_inches(int(self._figsize[0]),
                                    int(self._figsize[1]))
       if(not self._showMargin):
-         Common.removeMargin()
+         Util.removeMargin()
       if(self._filename is not None):
          mpl.savefig(self._filename, bbox_inches='tight', dpi=self._dpi)
       else:
@@ -369,7 +369,7 @@ class Output:
          upperT = thresholds[1:]
          x = [(lowerT[i] + upperT[i]) / 2 for i in range(0, len(lowerT))]
       else:
-         Common.error("Unrecognized bintype")
+         Util.error("Unrecognized bintype")
       return [lowerT, upperT, x]
 
    def _setYAxisLimits(self, metric):
@@ -411,7 +411,7 @@ class Output:
             xlim = self._xlim
             # Convert date to datetime objects
             if(data.isAxisDate()):
-               xlim = Common.convertDates(xlim)
+               xlim = Util.convertDates(xlim)
             mpl.xlim(xlim)
          if(self._ylim is not None):
             mpl.ylim(self._ylim)
@@ -429,11 +429,11 @@ class Output:
       # Ticks
       if(self._xticks is not None):
          if(len(self._xticks) <= 1):
-            Common.error("Xticks must have at least 2 values")
+            Util.error("Xticks must have at least 2 values")
          mpl.xticks(self._xticks)
       if(self._yticks is not None):
          if(len(self._yticks) <= 1):
-            Common.error("Yticks must have at least 2 values")
+            Util.error("Yticks must have at least 2 values")
          mpl.yticks(self._yticks)
 
       # Margins
@@ -493,7 +493,7 @@ class Output:
             label="")
       mpl.plot(x, lower, style, color=color, lw=self._lw, ms=self._ms,
             label="")
-      Common.fill(x, lower, upper, color, alpha=0.3)
+      Util.fill(x, lower, upper, color, alpha=0.3)
 
 
 class Default(Output):
@@ -549,7 +549,7 @@ class Default(Output):
             yy = yy / len(thresholds)
 
          if(sum(np.isnan(yy)) == len(yy)):
-            Common.warning("No valid scores for " + filenames[f])
+            Util.warning("No valid scores for " + filenames[f])
          if(y is None):
             y = np.zeros([F, len(yy)], 'float')
             x = np.zeros([F, len(xx)], 'float')
@@ -575,7 +575,7 @@ class Default(Output):
          try:
             labels[0:len(self._legNames)] = self._legNames
          except ValueError:
-            Common.error("Too many legend names")
+            Util.error("Too many legend names")
 
       self._legNames = labels
 
@@ -587,7 +587,7 @@ class Default(Output):
       if(self._setLegSort):
          if(not self._showAcc):
             # averaging for non-acc plots
-            averages = (Common.nanmean(y, axis=1))
+            averages = (Util.nanmean(y, axis=1))
             ids = averages.argsort()[::-1]
 
          else:
@@ -675,8 +675,8 @@ class Default(Output):
          self._printLine(y[:, i], maxlength, "float")
 
       # Print stats
-      for func in [Common.nanmin, Common.nanmean, Common.nanmax,
-            Common.nanstd]:
+      for func in [Util.nanmin, Util.nanmean, Util.nanmax,
+            Util.nanstd]:
          name = func.__name__[3:]
          print lineDescFmt % name,
          values = np.zeros(F, 'float')
@@ -685,7 +685,7 @@ class Default(Output):
          self._printLine(values, maxlength, "float")
 
       # Print count stats
-      for func in [Common.nanmin, Common.nanmax]:
+      for func in [Util.nanmin, Util.nanmax]:
          name = func.__name__[3:]
          print lineDescFmt % ("num " + name),
          values = np.zeros(F, 'float')
@@ -708,9 +708,9 @@ class Default(Output):
          else:
             txt = fmt % value
          if(minI == f):
-            print Common.green(txt),
+            print Util.green(txt),
          elif(maxI == f):
-            print Common.red(txt),
+            print Util.red(txt),
          else:
             print txt,
       print ""
@@ -724,7 +724,7 @@ class Default(Output):
       try:
          from mpl_toolkits.basemap import Basemap
       except ImportError:
-         Common.warning("Cannot load Basemap package")
+         Util.warning("Cannot load Basemap package")
          import matplotlib.pylab as map
          hasBasemap = False
 
@@ -755,7 +755,7 @@ class Default(Output):
          llcrnrlat = self._ylim[0]
          urcrnrlat = self._ylim[1]
 
-      res = Common.getMapResolution(lats, lons)
+      res = Util.getMapResolution(lats, lons)
       dlon = max(lons) - min(lons)
       dlat = max(lats) - min(lats)
       if(dlon < 5):
@@ -774,8 +774,8 @@ class Default(Output):
       [x, y] = self.getXY(data)
 
       # Colorbar limits should be the same for all subplots
-      clim = [Common.nanpercentile(y.flatten(), self._mapLowerPerc),
-              Common.nanpercentile(y.flatten(), self._mapUpperPerc)]
+      clim = [Util.nanpercentile(y.flatten(), self._mapLowerPerc),
+              Util.nanpercentile(y.flatten(), self._mapUpperPerc)]
 
       symmetricScore = False
       cmap = mpl.cm.jet
@@ -790,11 +790,11 @@ class Default(Output):
          clim[1] = -clim[0]
          cmap = mpl.cm.RdBu
 
-      std = Common.nanstd(y)
+      std = Util.nanstd(y)
       minDiff = std / 50
 
       for f in range(0, F):
-         Common.subplot(f, F)
+         Util.subplot(f, F)
          if(hasBasemap):
             map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
                   urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
@@ -941,7 +941,7 @@ class Hist(Output):
          self._printLine(y[:, i], maxlength, "int")
 
       # Print count stats
-      for func in [Common.nanmin, Common.nanmax]:
+      for func in [Util.nanmin, Util.nanmax]:
          name = func.__name__[3:]
          print lineDescFmt % ("num " + name),
          values = np.zeros(F, 'float')
@@ -964,9 +964,9 @@ class Hist(Output):
          else:
             txt = fmt % value
          if(minI == f):
-            print Common.green(txt),
+            print Util.green(txt),
          elif(maxI == f):
-            print Common.red(txt),
+            print Util.red(txt),
          else:
             print txt,
       print ""
@@ -1193,8 +1193,8 @@ class Change(Output):
 
          for i in range(0, len(bins)):
             I = (change > edges[i]) & (change <= edges[i + 1])
-            y[i] = Common.nanmean(err[I])
-            x[i] = Common.nanmean(change[I])
+            y[i] = Util.nanmean(err[I])
+            x[i] = Util.nanmean(change[I])
          mpl.plot(x, y, style, color=color, lw=self._lw, ms=self._ms,
                label=labels[f])
       self._plotPerfectScore(x, 0)
@@ -1354,9 +1354,9 @@ class TimeSeries(Output):
       obs = data.getScores("obs")[0]
       for d in range(0, obs.shape[0]):
          x = dates[d] + offsets / 24.0
-         y = Common.nanmean(obs[d, :, :], axis=1)
+         y = Util.nanmean(obs[d, :, :], axis=1)
          if(connect and d < obs.shape[0] - 1):
-            obsmean = Common.nanmean(obs[d + 1, 0, :], axis=0)
+            obsmean = Util.nanmean(obs[d + 1, 0, :], axis=0)
             x = np.insert(x, x.shape[0], dates[d + 1] + minOffset / 24.0)
             y = np.insert(y, y.shape[0], obsmean)
 
@@ -1379,10 +1379,10 @@ class TimeSeries(Output):
 
             fcst = data.getScores("fcst")[0]
             x = dates[d] + offsets / 24.0
-            y = Common.nanmean(fcst[d, :, :], axis=1)
+            y = Util.nanmean(fcst[d, :, :], axis=1)
             if(connect and d < obs.shape[0] - 1):
                x = np.insert(x, x.shape[0], dates[d + 1] + minOffset / 24.0)
-               y = np.insert(y, y.shape[0], Common.nanmean(fcst[d + 1, 0, :]))
+               y = np.insert(y, y.shape[0], Util.nanmean(fcst[d + 1, 0, :]))
             lab = labels[f] if d == 0 else ""
             mpl.rcParams['ytick.major.pad'] = '20'
             mpl.rcParams['xtick.major.pad'] = '20'
@@ -1425,7 +1425,7 @@ class PitHist(Output):
       F = data.getNumFiles()
       labels = self._getLegendNames(data)
       for f in range(0, F):
-         Common.subplot(f, F)
+         Util.subplot(f, F)
          color = self._getColor(f, F)
          data.setAxis("none")
          data.setIndex(0)
@@ -1461,7 +1461,7 @@ class PitHist(Output):
                   100.0 / self._numBins - 2 * std]
             upper = [100.0 / self._numBins + 2 * std,
                   100.0 / self._numBins + 2 * std]
-            Common.fill([0, 1], lower, upper, "r", zorder=100, alpha=0.5)
+            Util.fill([0, 1], lower, upper, "r", zorder=100, alpha=0.5)
 
          # Compute calibration deviation
          if(self._showStats):
@@ -1530,7 +1530,7 @@ class Reliability(Output):
                p = 1 - p
                obs = obs > threshold
             else:
-               Common.error("Bin type must be one of 'below' or"
+               Util.error("Bin type must be one of 'below' or"
                      "'above' for reliability plot")
 
             clim = np.mean(obs)
@@ -1579,9 +1579,9 @@ class Reliability(Output):
       # No-skill line
       mpl.plot([0, 1], [clim / 2, 1 - (1 - clim) / 2], "--", color=color)
       if(self._shadeNoSkill):
-         Common.fill([clim, 1], [0, 0], [clim, 1 - (1 - clim) / 2],
+         Util.fill([clim, 1], [0, 0], [clim, 1 - (1 - clim) / 2],
                col=[1, 1, 1], zorder=-100, hatch="\\")
-         Common.fill([0, clim], [clim / 2, clim, 0], [1, 1],
+         Util.fill([0, clim], [clim / 2, clim, 0], [1, 1],
                col=[1, 1, 1], zorder=-100, hatch="\\")
       mpl.xlabel("Forecasted probability")
       mpl.ylabel("Observed frequency")
@@ -1591,7 +1591,7 @@ class Reliability(Output):
       elif(self._binType == "above"):
          mpl.title("Reliability diagram for obs > " + str(threshold) + units)
       else:
-         Common.error("Bin type must be one of 'below' or"
+         Util.error("Bin type must be one of 'below' or"
                "'above' for reliability plot")
 
 
@@ -1611,7 +1611,7 @@ class IgnContrib(Output):
       labels = data.getFilenames()
 
       if(len(self._thresholds) != 1):
-         Common.error("IgnContrib diagram requires exactly one threshold")
+         Util.error("IgnContrib diagram requires exactly one threshold")
       threshold = self._thresholds[0]
 
       F = data.getNumFiles()
@@ -1654,7 +1654,7 @@ class IgnContrib(Output):
             p = 1 - p
             obs = obs > threshold
          else:
-            Common.error("Bin type must be one of 'below' or 'above' "
+            Util.error("Bin type must be one of 'below' or 'above' "
                          "for igncontrib plot")
 
          clim = np.mean(obs)
@@ -1711,7 +1711,7 @@ class EconomicValue(Output):
       labels = data.getFilenames()
 
       if(len(self._thresholds) != 1):
-         Common.error("Economic value diagram requires exactly one threshold")
+         Util.error("Economic value diagram requires exactly one threshold")
       threshold = self._thresholds[0]
 
       F = data.getNumFiles()
@@ -1756,7 +1756,7 @@ class EconomicValue(Output):
             p = 1 - p
             obs = obs > threshold
          else:
-            Common.error("Bin type must be one of 'below' or 'above' " "for economicvalue plot")
+            Util.error("Bin type must be one of 'below' or 'above' " "for economicvalue plot")
 
          clim = np.mean(obs)
          # Compute frequencies
@@ -1797,11 +1797,11 @@ class Roc(Output):
    def _plotCore(self, data):
       threshold = self._thresholds[0]   # Observation threshold
       if(threshold is None):
-         Common.error("Roc plot needs a threshold (use -r)")
+         Util.error("Roc plot needs a threshold (use -r)")
 
       fthresholds = list(data.getQuantiles())
       if(len(fthresholds) == 0):
-         Common.error("Your files do not have any quantiles")
+         Util.error("Your files do not have any quantiles")
       fthresholds.sort()
       fthresholds = fthresholds[::-1]
 
@@ -1870,7 +1870,7 @@ class DRoc(Output):
    def _plotCore(self, data):
       threshold = self._thresholds[0]   # Observation threshold
       if(threshold is None):
-         Common.error("DRoc plot needs a threshold (use -r)")
+         Util.error("DRoc plot needs a threshold (use -r)")
 
       if(self._doClassic):
          fthresholds = [threshold]
@@ -1980,7 +1980,7 @@ class Against(Output):
    def _plotCore(self, data):
       F = data.getNumFiles()
       if(F < 2):
-         Common.error("Cannot use Against plot with less than 2 configurations")
+         Util.error("Cannot use Against plot with less than 2 configurations")
 
       data.setAxis("none")
       data.setIndex(0)
@@ -2187,7 +2187,7 @@ class Error(Output):
       for f in range(0, F):
          color = self._getColor(f, F)
          style = self._getStyle(f, F, lineOnly=True)
-         self._drawCircle(Common.nanmean(rmse[:, f]), style=style, color=color)
+         self._drawCircle(Util.nanmean(rmse[:, f]), style=style, color=color)
 
       # Set axis limits
       maxx = xlim[1]
@@ -2248,7 +2248,7 @@ class Marginal(Output):
                p = 1 - p
                obs = obs > threshold
             else:
-               Common.error("Bin type must be one of 'below' or 'above' for reliability plot")
+               Util.error("Bin type must be one of 'below' or 'above' for reliability plot")
 
             clim[t] = np.mean(obs)
             y[t] = np.mean(p)
@@ -2359,9 +2359,9 @@ class InvReliability(Output):
          N = 21
          edges = np.linspace(0, 20, N + 1)
          if(data.getVariable() == "Precip"):
-            edges = np.linspace(0, np.sqrt(Common.nanmax(obs)), N + 1) ** 2
+            edges = np.linspace(0, np.sqrt(Util.nanmax(obs)), N + 1) ** 2
          else:
-            edges = np.linspace(Common.nanmin(obs), Common.nanmax(obs), N + 1)
+            edges = np.linspace(Util.nanmin(obs), Util.nanmax(obs), N + 1)
 
          x = np.zeros([len(edges) - 1, F], 'float')
          y = np.nan * np.zeros([F, len(edges) - 1], 'float')
