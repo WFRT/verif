@@ -1029,7 +1029,10 @@ class ObsFcst(Output):
       mpl.ylabel(data.getVariableAndUnits())
       mpl.xlabel(data.getAxisLabel())
       mpl.grid()
-      mpl.gca().xaxis.set_major_formatter(data.getAxisFormatter())
+      if(data.isAxisDate()):
+         mpl.gca().xaxis_date()
+      else:
+         mpl.gca().xaxis.set_major_formatter(data.getAxisFormatter())
 
 
 class QQ(Output):
