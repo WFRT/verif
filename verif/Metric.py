@@ -505,6 +505,20 @@ class Dmb(Deterministic):
       return "Degree of mass balance (obs/fcst)"
 
 
+class Mbias(Deterministic):
+   _description = "Multiplicative bias (obs/fcst)"
+   _perfectScore = 1
+
+   def _computeObsFcst(self, obs, fcst):
+      return (np.mean(obs) / np.mean(fcst))
+
+   def name(self):
+      return self._description
+
+   def label(self, data):
+      return self._description
+
+
 class Num(Metric):
    _description = "Number of valid forecasts"
 
