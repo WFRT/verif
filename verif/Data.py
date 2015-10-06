@@ -597,7 +597,7 @@ class Data:
                   elevs[i])
             descs.append(string)
          return descs
-      if(axis == "date"):
+      if(self.isAxisDate(axis)):
          values = self.getAxisValues(axis)
          values = num2date(values)
          dates = list()
