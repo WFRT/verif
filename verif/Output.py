@@ -1109,7 +1109,7 @@ class QQ(Output):
 
 
 class Scatter(Output):
-   _description = "Scatter plot of forecasts vs obs"
+   _description = "Scatter plot of forecasts vs obs and lines showing quantiles of obs given forecast (use -r to specify)"
    _supThreshold = False
    _supX = False
    _showQuantiles = True
@@ -1130,23 +1130,73 @@ class Scatter(Output):
          [x, y] = data.getScores(["obs", "fcst"])
          mpl.plot(x, y, ".", color=color, label=labels[f], lw=self._lw, ms=self._ms, alpha=0.2)
          if(self._showQuantiles):
-            N = 50
-            edges = np.linspace(min(np.min(x), np.min(y)), max(np.max(x), np.max(y)), N)
-            # edges = np.percentile(y, np.linspace(0,100,N))
+            # Determine bin edges for computing quantiles
+            # Use those provided by -r
+            if(self._thresholds[0] is not None):
+               edges = self._thresholds
+            # For precip, we want a bin at exacly 0
+            elif(re.compile("Precip.*").match(data.getVariable())):
+               # Number of bins
+               N = 10
+               # The second to last edge should be such that we have at least
+               # Nmin data points above
+               Nmin = 50.0
+               pUpper = 100.0 - Nmin / y.shape[0] * 100.0
+               # But no lower than 90th percentile, incase we don't have very many values
+               if(pUpper < 90):
+                  pUpper = 90
+               edges = np.linspace(0, 50, 21)
+               edges = np.array([0, 0.001, 1, 2, 3, 5, 7, 10, 13, 16, 20, 25, 30, 35, 40, 45, 50])
+               edges = np.append(np.array([0]), np.linspace(0.001, np.percentile(y, pUpper), N-1), np.array([np.max(y)]))
+            # Regular variables
+            else:
+               # How many quantile boxes should we make?
+               N = max(8, min(30, x.shape[0] / 100))
+
+               # We want the lower bin to cointain at least 50 points, so find
+               # which percentile will give us 50 points
+               Nmin = 50.0
+               pLower = Nmin / y.shape[0] * 100.0
+               # If we don't have very much data, then use an upper bound of 10%tile
+               if(pLower > 10):
+                  pLower = 10
+               pUpper = 100.0 - pLower
+               # Create evenly spaced values from the point where we have at 50
+               # below to 50 above
+               edges = np.linspace(np.percentile(y, pLower), np.percentile(y, pUpper), N)
+               # Add on the end points
+               edges = np.append(np.array([np.min(y)]), edges, np.array([np.max(y)]))
+
             bins = (edges[1:] + edges[0:-1])/2
+
+            # What quantile lines should be drawn?
             quantiles = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
+            values = np.nan*np.zeros([len(quantiles), len(bins)], 'float')
             for q in range(0, len(quantiles)):
-               line = np.zeros([len(bins)], 'float')
-               for i in range(0, len(edges)-1):
-                  I = np.where((y >= edges[i]) & (y < edges[i+1]))
-                  line[i] = np.percentile(x[I], quantiles[q]*100)
+               for i in range(0, len(bins)):
+                  I = np.where((y >= edges[i]) & (y < edges[i+1]))[0]
+                  if(len(I) > 0):
+                     values[q, i] = np.percentile(x[I], quantiles[q]*100)
                style = 'k-'
-               lw = 1
+               lw = 2
                if(q == 0 or q == len(quantiles)-1):
-                  style = 'k--'
+                  style = 'ko--'
                elif(q == (len(quantiles)-1)/2):
-                  lw = 2
-               mpl.plot(line, bins, style, lw=lw)
+                  style = 'ko-'
+                  lw = 4
+               # Write labels for the quantile lines, but only do it for one file
+               label = ""
+               if(f == 0):
+                  if(q == 0 or q == len(quantiles) - 1):
+                     label = "%d%%" % (quantiles[q] * 100)
+                  # Instead of writing all labels, only summarize the middle ones
+                  elif(q == 1 and len(quantiles) > 3):
+                     label = "%d%%-%d%%" % (quantiles[1] * 100, (quantiles[len(quantiles) - 2] * 100))
+                  elif(q == 1 and len(quantiles) == 3):
+                     label = "%d%%" % (quantiles[1] * 100)
+               mpl.plot(values[q, :], bins, style, lw=lw, alpha=0.5, label=label)
+            for i in range(0, len(bins)):
+               mpl.plot([values[0, i], values[-1, i]], [bins[i], bins[i]], 'k-')
       mpl.ylabel("Forecasts (" + data.getUnits() + ")")
       mpl.xlabel("Observations (" + data.getUnits() + ")")
       ylim = mpl.ylim()
