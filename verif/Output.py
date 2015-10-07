@@ -8,6 +8,7 @@ import numpy as np
 import os
 import inspect
 import sys
+import matplotlib.dates as mpldates
 reload(sys)
 sys.setdefaultencoding('ISO-8859-1')
 
@@ -1453,6 +1454,98 @@ class TimeSeries(Output):
          # make new ticks, to start from the first day of the desired interval
          mpl.gca().set_xticks(tickRange)
          mpl.autoscale(enable=True, axis=u'x', tight=True)  # make xaxis tight
+
+
+class Meteo(Output):
+   _description = "Plot a meteogram, with deterministic forecast, all quantile lines available, and observations. If multiple dates and stations are used, then the average is made."
+   _supThreshold = False
+   _supX = False
+   _obsCol = [1, 0, 0]
+   _fcstCol = [0, 1, 0]
+
+   def _plotCore(self, data):
+      F = data.getNumFiles()
+      data.setAxis("all")
+      dates = data.getAxisValues("date")
+      offsets = data.getAxisValues("offset")
+      x = dates[0] + offsets/24.0
+      isSingleDate = len(dates) == 1
+
+      # Plot obs line
+      obs = data.getScores("obs")[0]
+      obs = np.mean(np.mean(obs, axis=0), axis=1)
+      mpl.plot(x, obs, "o-", color=self._obsCol, lw=2, ms=8, label="Observations")
+
+      # Plot deterministic forecast
+      fcst = data.getScores("fcst")[0]
+      fcst = np.mean(np.mean(fcst, axis=0), axis=1)
+      mpl.plot(x, fcst, "o-", color=self._fcstCol, lw=2, ms=8, label="Deterministic")
+
+      # Plot quantiles
+      quantiles = data.getQuantiles()
+      quantiles = np.sort(quantiles)
+      y = np.zeros([len(offsets), len(quantiles)], 'float')
+      for i in range(0, len(quantiles)):
+         quantile = quantiles[i]/100
+         var = data.getQvar(quantile)
+         y[:, i] = np.mean(np.mean(data.getScores(var)[0], axis=0), axis=1)
+      for i in range(0, len(quantiles)):
+         style = "k-"
+         if(i == 0 or i == len(quantiles) - 1):
+            style = "k--"
+         label = "%d%%" % (quantiles[i])
+         mpl.plot(x, y[:, i], style, label=label, zorder=-1)
+
+      # Fill areas betweeen lines
+      Ncol = (len(quantiles)-1)/2
+      for i in range(0, Ncol):
+         color = [(1 - (i + 0.0) / Ncol)] * 3
+         Util.fill(x, y[:, i], y[:, len(quantiles) - 1 - i], color,
+               zorder=-2)
+
+      # Labels and ticks
+      if(self._ylabel is None):
+         mpl.ylabel(data.getVariableAndUnits())
+      else:
+         mpl.ylabel(self._ylabel)
+      mpl.grid()
+      if(data.isAxisDate()):
+         mpl.gca().xaxis_date()
+      else:
+         mpl.gca().xaxis.set_major_formatter(data.getAxisFormatter())
+
+      mpl.xlim(np.min(x), np.max(x))
+      mpl.gca().xaxis.set_major_locator(mpldates.DayLocator(interval=1))
+      mpl.gca().xaxis.set_minor_locator(mpldates.HourLocator(interval=6))
+      mpl.gca().xaxis.set_major_formatter(mpldates.DateFormatter('\n  %a %d %b %Y'))
+      mpl.gca().xaxis.set_minor_formatter(mpldates.DateFormatter('%H'))
+
+      # Hour labels
+      minlabels = [tick.label1 for tick in mpl.gca().xaxis.get_minor_ticks()]
+      for i in minlabels:
+         i.set_fontsize(self._tickfs)
+
+      # Date labels
+      majlabels = [tick.label1 for tick in mpl.gca().xaxis.get_major_ticks()]
+      for i in range(0, len(majlabels)):
+         label = majlabels[i]
+         if(isSingleDate and i < len(majlabels)-1):
+            label.set_horizontalalignment('left')
+            label.set_verticalalignment('top')
+            label.set_fontsize(self._tickfs)
+            # Moves major labels to the top of the graph. The x-coordinate
+            # seems to be irrelevant. When y-coord is 1, the label is near the
+            # top. For 1.1 it is above the graph
+            label.set_position((0, -0.035))
+         else:
+            # Turn off the last date label, since it is outside the graph
+            label.set_visible(0)
+      if(not isSingleDate):
+         mpl.xlabel("Time of day (h)")
+
+      mpl.gca().xaxis.grid(True, which='major', color='k', zorder=-10, linestyle='-', linewidth=2)
+      mpl.gca().xaxis.grid(True, which='minor', color='k', zorder=0, linestyle='--')
+      mpl.gca().yaxis.grid(True, which='major', color='k', zorder=0)
 
 
 class PitHist(Output):

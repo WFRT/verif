@@ -257,6 +257,8 @@ def run(argv):
       pl = Output.ObsFcst()
    elif(metric == "timeseries"):
       pl = Output.TimeSeries()
+   elif(metric == "meteo"):
+      pl = Output.Meteo()
    elif(metric == "qq"):
       pl = Output.QQ()
    elif(metric == "cond"):
