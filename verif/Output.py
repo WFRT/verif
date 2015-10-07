@@ -394,10 +394,6 @@ class Output:
          # mpl.rcParams['axes.labelsize'] = self._labfs
 
          # Tick lines
-         if(len(mpl.yticks()[0]) >= 2 and len(mpl.xticks()[0]) >= 2):
-            # matplotlib crashes if there are fewer than 2 tick lines
-            # when determining where to put minor ticks
-            mpl.minorticks_on()
          if(self._minlth is not None):
             mpl.tick_params('both', length=self._minlth, which='minor')
          if(self._majlth is not None):
