@@ -307,7 +307,7 @@ def run(argv):
             m = mm[1]()
             break
       if(m is None):
-         m = Metric.Mean(Metric.Default(metric))
+         m = Metric.Default(metric)
 
       m.setAggregator(cType)
 

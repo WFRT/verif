@@ -136,11 +136,12 @@ class Default(Metric):
    def __init__(self, name):
       self._name = name
 
-   def compute(self, data, tRange):
-      return data.getScores(self._name)
+   def computeCore(self, data, tRange):
+      values = data.getScores(self._name)
+      return self._aggregator(values)
 
    def name(self):
-      return self._name
+      return self._aggregatorName.title() + " of " + self._name
 
 
 class Mean(Metric):

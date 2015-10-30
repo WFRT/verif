@@ -1009,11 +1009,13 @@ class ObsFcst(Output):
       isCont = data.isAxisContinuous()
 
       # Obs line
-      mObs = Metric.Mean(Metric.Default("obs"))
+      mObs = Metric.Default("obs")
+      mObs.setAggregator("mean")
       y = mObs.compute(data, None)
       self._plotObs(x, y, isCont)
 
-      mFcst = Metric.Mean(Metric.Default("fcst"))
+      mFcst = Metric.Default("fcst")
+      mFcst.setAggregator("mean")
       labels = data.getFilenames()
       for f in range(0, F):
          data.setFileIndex(f)
