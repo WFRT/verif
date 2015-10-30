@@ -343,7 +343,6 @@ class PitDev(Metric):
 
    def computeCore(self, data, tRange):
       pit = self._metric.compute(data, tRange)
-      I = np.where(np.isnan(pit) == 0)[0]
       pit = pit[np.isnan(pit) == 0]
 
       nb = len(self._bins) - 1
@@ -631,6 +630,8 @@ class Conditional(Threshold):
    def computeCore(self, data, tRange):
       [obs, fcst] = data.getScores([self._x, self._y])
       I = np.where(self.within(obs, tRange))[0]
+      if(len(I) == 0):
+         return np.nan
       return self._func(fcst[I])
 
 
@@ -645,6 +646,8 @@ class XConditional(Threshold):
    def computeCore(self, data, tRange):
       [obs, fcst] = data.getScores([self._x, self._y])
       I = np.where(self.within(obs, tRange))[0]
+      if(len(I) == 0):
+         return np.nan
       return np.median(obs[I])
 
 
@@ -655,6 +658,8 @@ class Count(Threshold):
    def computeCore(self, data, tRange):
       values = data.getScores(self._x)
       I = np.where(self.within(values, tRange))[0]
+      if(len(I) == 0):
+         return np.nan
       return len(I)
 
 
