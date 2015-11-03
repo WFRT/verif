@@ -1310,7 +1310,7 @@ class Cond(Output):
 class SpreadSkill(Output):
    _supThreshold = False
    _supX = False
-   _description = "Spread skill"
+   _description = "Spread/skill plot showing RMSE of ensemble mean as a function of ensemble spread"
 
    def __init__(self):
       Output.__init__(self)
@@ -1326,11 +1326,11 @@ class SpreadSkill(Output):
          data.setFileIndex(f)
 
          data.setFileIndex(f)
-         [obs, fcst, spread] = data.getScores(["obs", "fcst", "ensSpread"])
-         spread = np.sqrt(spread.flatten())
-         skill = abs(obs.flatten() - fcst.flatten())
-         x = np.zeros(len(self._thresholds), 'float')
-         y = np.zeros(len(x), 'float')
+         [obs, fcst, spread] = data.getScores(["obs", "fcst", "spread"])
+         spread = spread.flatten()
+         skill = (obs.flatten() - fcst.flatten())**2
+         x = np.nan*np.zeros(len(self._thresholds), 'float')
+         y = np.nan*np.zeros(len(x), 'float')
          for i in range(1, len(self._thresholds)):
             I = np.where((np.isnan(spread) == 0) &
                          (np.isnan(skill) == 0) &
@@ -1338,12 +1338,21 @@ class SpreadSkill(Output):
                          (spread <= self._thresholds[i]))[0]
             if(len(I) > 0):
                x[i] = np.mean(spread[I])
-               y[i] = np.mean(skill[I])
+               y[i] = np.sqrt(np.mean(skill[I]))
 
          style = self._getStyle(f, F)
          mpl.plot(x, y, style, color=color, label=labels[f])
+      ylim = list(mpl.ylim())
+      xlim = list(mpl.xlim())
+      ylim[0] = 0
+      xlim[0] = 0
+      axismin = min(min(ylim), min(xlim))
+      axismax = max(max(ylim), max(xlim))
+      mpl.xlim(xlim)
+      mpl.ylim(ylim)
+      self._plotPerfectScore([axismin, axismax], [axismin, axismax])
       mpl.xlabel("Spread (" + data.getUnits() + ")")
-      mpl.ylabel("MAE (" + data.getUnits() + ")")
+      mpl.ylabel("RMSE (" + data.getUnits() + ")")
       mpl.grid()
 
 
