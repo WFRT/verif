@@ -1499,7 +1499,7 @@ class Meteo(Output):
       for i in range(0, len(quantiles)):
          quantile = quantiles[i]/100
          var = data.getQvar(quantile)
-         y[:, i] = np.mean(np.mean(data.getScores(var)[0], axis=0), axis=1)
+         y[:, i] = np.nanmean(np.nanmean(data.getScores(var)[0], axis=0), axis=1)
       for i in range(0, len(quantiles)):
          style = "k-"
          if(i == 0 or i == len(quantiles) - 1):
@@ -1525,7 +1525,10 @@ class Meteo(Output):
       else:
          mpl.gca().xaxis.set_major_formatter(data.getAxisFormatter())
 
-      mpl.xlim(np.min(x), np.max(x))
+      if(np.min(x) == np.max(x)):
+         mpl.xlim(x[0], x[0] + 1)
+      else:
+         mpl.xlim(np.min(x), np.max(x))
       mpl.gca().xaxis.set_major_locator(mpldates.DayLocator(interval=1))
       mpl.gca().xaxis.set_minor_locator(mpldates.HourLocator(interval=6))
       mpl.gca().xaxis.set_major_formatter(mpldates.DateFormatter('\n  %a %d %b %Y'))
