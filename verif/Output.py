@@ -1149,7 +1149,8 @@ class Scatter(Output):
                   pUpper = 90
                edges = np.linspace(0, 50, 21)
                edges = np.array([0, 0.001, 1, 2, 3, 5, 7, 10, 13, 16, 20, 25, 30, 35, 40, 45, 50])
-               edges = np.append(np.array([0]), np.linspace(0.001, np.percentile(y, pUpper), N-1), np.array([np.max(y)]))
+               edges = np.append(np.array([0]), np.linspace(0.001, np.percentile(y, pUpper), N - 1))
+               edges = np.append(edges, np.array([np.max(y)]))
             # Regular variables
             else:
                # How many quantile boxes should we make?
