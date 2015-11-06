@@ -325,7 +325,7 @@ class Data:
          else:
             thresholds = set(thresholds) & set(currThresholds)
 
-      return thresholds
+      return np.sort(thresholds)
 
    def getQuantiles(self):
       quantiles = None
@@ -336,7 +336,7 @@ class Data:
          else:
             quantiles = set(quantiles) & set(currQuantiles)
 
-      return quantiles
+      return np.sort(quantiles)
 
    def _getIndices(self, axis, findex=None):
       if(axis == "date"):
