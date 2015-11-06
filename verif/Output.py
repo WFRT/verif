@@ -814,15 +814,15 @@ class Default(Output):
          isMin = (y[f, :] == np.amin(y, 0)) &\
                  (y[f, :] < np.mean(y, 0) - minDiff)
          isValid = (np.isnan(y[f, :]) == 0)
+         s = self._ms*self._ms
          if(self._showRank):
             lmissing = None
             if(len(I) > 0):
-               lmissing = map.scatter(x0[I], y0[I], s=40, c="k", marker="x")
-            lsimilar = map.scatter(x0[isValid], y0[isValid], s=40, c="w")
-            lmax = map.scatter(x0[isMax], y0[isMax], s=40, c="r")
-            lmin = map.scatter(x0[isMin], y0[isMin], s=40, c="b")
+               lmissing = map.scatter(x0[I], y0[I], s=s, c="k", marker="x")
+            lsimilar = map.scatter(x0[isValid], y0[isValid], s=s, c="w")
+            lmax = map.scatter(x0[isMax], y0[isMax], s=s, c="r")
+            lmin = map.scatter(x0[isMin], y0[isMin], s=s, c="b")
          else:
-            s = 40
             map.scatter(x0, y0, c=y[f, :], s=s, cmap=cmap)
             cb = map.colorbar()
             cb.set_label(self._metric.label(data))
