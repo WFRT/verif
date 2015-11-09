@@ -1640,6 +1640,7 @@ class Reliability(Output):
    def __init__(self):
       Output.__init__(self)
       self._shadeNoSkill = True
+      self._shadeConfidence = False
       self._showCount = False
 
    def _plotCore(self, data):
@@ -1713,7 +1714,8 @@ class Reliability(Output):
          # sneak into the legend)
          for f in range(0, F):
             color = self._getColor(f, F)
-            self._plotConfidence(x[:, f], y[f], v[f], n[f], color=color)
+            if(self._shadeConfidence):
+               self._plotConfidence(x[:, f], y[f], v[f], n[f], color=color)
 
          # Draw lines in inset diagram
          if(self._showCount):
