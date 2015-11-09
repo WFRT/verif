@@ -569,10 +569,10 @@ class Default(Output):
       # specify the order
       labels = np.array(data.getFilenames())
       if(self._legNames):  # append legend names to file list
-         try:
-            labels[0:len(self._legNames)] = self._legNames
-         except ValueError:
+         if(len(labels) != len(self._legNames)):
             Util.error("Too many legend names")
+         else:
+            labels = self._legNames
 
       self._legNames = labels
 
