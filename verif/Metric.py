@@ -133,11 +133,17 @@ class Metric:
 
 
 class Default(Metric):
-   def __init__(self, name):
+   # aux: When reading the score, also pull values for 'aux' to ensure
+   # only common data points are returned
+   def __init__(self, name, aux=None):
       self._name = name
+      self._aux = aux
 
    def computeCore(self, data, tRange):
-      values = data.getScores(self._name)
+      if(self._aux is not None):
+         [values, aux] = data.getScores([self._name, self._aux])
+      else:
+         values = data.getScores(self._name)
       return self._aggregator(values)
 
    def name(self):
