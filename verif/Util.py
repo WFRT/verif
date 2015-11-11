@@ -205,6 +205,14 @@ def nanpercentile(data, pers):
    return p
 
 
+def isnumeric(x):
+   try:
+      float(x)
+      return True
+   except ValueError:
+      return False
+
+
 def nprange(data):
    return np.max(data) - np.min(data)
 

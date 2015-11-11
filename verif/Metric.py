@@ -118,6 +118,10 @@ class Metric:
          self._aggregator = np.std
       elif(name == "range"):
          self._aggregator = Util.nprange
+      elif(Util.isnumeric(name)):
+         def func(x):
+            return np.percentile(x, float(name))
+         self._aggregator = func
       else:
          Util.error("Invalid aggregator")
 
