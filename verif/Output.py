@@ -1168,7 +1168,8 @@ class Scatter(Output):
                # below to 50 above
                edges = np.linspace(np.percentile(y, pLower), np.percentile(y, pUpper), N)
                # Add on the end points
-               edges = np.append(np.array([np.min(y)]), edges, np.array([np.max(y)]))
+               edges = np.append(np.array([np.min(y)]), edges)
+               edges = np.append(edges, np.array([np.max(y)]))
 
             bins = (edges[1:] + edges[0:-1])/2
 
