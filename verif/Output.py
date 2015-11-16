@@ -618,6 +618,8 @@ class Default(Output):
             mpl.gca().xaxis_date()
          else:
             mpl.gca().xaxis.set_major_formatter(data.getAxisFormatter())
+            # NOTE: Don't call the locator on a date axis
+            mpl.gca().xaxis.set_major_locator(data.getAxisLocator())
          perfectScore = self._metric.perfectScore()
          self._plotPerfectScore(x[0], perfectScore)
 

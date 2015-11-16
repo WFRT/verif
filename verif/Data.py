@@ -6,7 +6,7 @@ import sys
 import os
 import verif.Input as Input
 from matplotlib.dates import *
-from matplotlib.ticker import ScalarFormatter
+import matplotlib.ticker
 
 
 # Access verification data from a set of COMPS NetCDF files
@@ -497,7 +497,31 @@ class Data:
       elif(axis == "year"):
          return DateFormatter('\n%Y')
       else:
-         return ScalarFormatter()
+         return matplotlib.ticker.ScalarFormatter()
+
+   def getAxisLocator(self, axis=None):
+      if(axis is None):
+         axis = self._axis
+      if(axis == "offset"):
+         # Define our own locators, since in general we want multiples of 24
+         # (or even fractions thereof) to make the ticks repeat each day. Aim
+         # for a maximum of 12 ticks.
+         offsets = self.getAxisValues("offset")
+         span = max(offsets) - min(offsets)
+         if(span > 300):
+            return matplotlib.ticker.AutoLocator()
+         elif(span > 144):
+            return matplotlib.ticker.MultipleLocator(24)
+         elif(span > 72):
+            return matplotlib.ticker.MultipleLocator(12)
+         elif(span > 36):
+            return matplotlib.ticker.MultipleLocator(6)
+         elif(span > 12):
+            return matplotlib.ticker.MultipleLocator(3)
+         else:
+            return matplotlib.ticker.MultipleLocator(1)
+      else:
+         return matplotlib.ticker.AutoLocator()
 
    # filename including path
    def getFullFilenames(self):
