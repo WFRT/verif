@@ -1879,9 +1879,13 @@ class EconomicValue(Output):
       F = data.getNumFiles()
 
       units = " " + data.getUnits()
-      titlestr = "Economic value for obs > " +\
-                 str(self._thresholds[0]) + units
-      mpl.title(titlestr)
+      if(self._binType == "below"):
+         mpl.title("Economic value for obs < " + str(self._thresholds[0]) + units)
+      elif(self._binType == "above"):
+         mpl.title("Economic value for obs > " + str(self._thresholds[0]) + units)
+      else:
+         Util.error("Bin type must be one of 'below' or"
+               "'above' for reliability plot")
 
       data.setAxis("none")
       data.setIndex(0)
