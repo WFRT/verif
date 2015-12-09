@@ -1,4 +1,7 @@
-from scipy import io
+try:
+   from netCDF4 import Dataset as netcdf
+except:
+   from scipy.io.netcdf import netcdf_file as netcdf
 import numpy as np
 import verif.Station as Station
 import verif.Util as Util
@@ -88,7 +91,7 @@ class Comps(Input):
 
    def __init__(self, filename):
       Input.__init__(self, filename)
-      self._file = io.netcdf.netcdf_file(filename, 'r')
+      self._file = netcdf(filename, 'r')
 
    def getName(self):
       return self._file.variables
@@ -182,7 +185,7 @@ class Comps(Input):
    @staticmethod
    def isValid(filename):
       try:
-         file = io.netcdf.netcdf_file(filename, 'r')
+         file = netcdf(filename, 'r')
       except:
          return False
       return True
@@ -192,12 +195,12 @@ class Comps(Input):
 class NetcdfCf(Input):
    def __init__(self, filename):
       Input.__init__(self, filename)
-      self._file = io.netcdf.netcdf_file(filename, 'r')
+      self._file = netcdf(filename, 'r')
 
    @staticmethod
    def isValid(filename):
       try:
-         file = io.netcdf.netcdf_file(filename, 'r')
+         file = netcdf(filename, 'r')
       except:
          return False
       valid = False
