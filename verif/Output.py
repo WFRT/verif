@@ -2248,7 +2248,7 @@ class Taylor(Output):
          y = std * np.sin(ang)
          mpl.plot(x, y, style, color=color, label=labels[f], lw=self._lw,
                ms=self._ms)
-         stdobs = np.mean(stdobs)
+         stdobs = np.nanmean(stdobs)
 
          # Minimum CRMSE
          # stdopt = stdobs * np.cos(ang)
