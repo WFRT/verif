@@ -2250,6 +2250,16 @@ class Taylor(Output):
                ms=self._ms)
          stdobs = np.mean(stdobs)
 
+         # Minimum CRMSE
+         # stdopt = stdobs * np.cos(ang)
+         # xopt = stdopt * np.cos(ang)
+         # yopt = stdopt * np.sin(ang)
+         # mpl.plot(xopt, yopt, style, color=color, label=labels[f], lw=self._lw,
+         #       ms=self._ms)
+
+      # Draw minimum CRMSE
+      self._drawCircle(stdobs/2, xcenter=stdobs/2, ycenter=0, style="--", color="orange", lw=3)
+
       # Set axis limits
       # Enforce a minimum radius beyond the obs-radius
       if(maxstd < 1.25 * stdobs):
