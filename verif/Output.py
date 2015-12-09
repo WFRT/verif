@@ -2214,9 +2214,8 @@ class Against(Output):
 
 class Taylor(Output):
    _description = "Taylor diagram showing correlation and forecast standard deviation"
-   _supThreshold = False
-   _supX = False
-   _defaultAxis = "none"
+   _supThreshold = True
+   _supX = True
    _legLoc = "upper left"
 
    def _plotCore(self, data):
