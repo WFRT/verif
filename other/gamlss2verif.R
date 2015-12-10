@@ -23,9 +23,11 @@ require(gamlss)
 #    ENS1...ENSN: (Optional) Put each ensemble member in a separate column, needed when model="raw"
 # y: evaluation dataset with the same format as 'x'
 # filename: where should the verification data be stored?
-# variable: Which variable is this (Precip or T). Used to write units, etc
+# variable: Which variable is this (Precip,  T, or WindSpeed). Used to write units, etc
 # quantiles: Which quantiles should be written?
 # thresholds: Which thresholds should probabilities be computed for?
+# useMedian: Should the median be used to create the deterministic forecast? Otherwise the mean
+#            but this might not work for anything other than NO and ZAGA.
 #
 # Example:
 # obs = rnorm(1000, 2, 5)
@@ -34,21 +36,27 @@ require(gamlss)
 # data = data.frame(LAT=60+rnorm(1000, 0, 0.3), LON=10+rnorm(1000, 0, 0.3), ELEV=5, SITE=1:1000,
 #                   DATE=20150101, OFFSET=5,
 #                   OBS=obs, MEAN=ensmean, SPREAD=ensspread)
-# fit = list(mu=OBS~MEAN, sigma=~1, family=NO)
-# gamlss2verif(fit, data, data, "fit.nc")
+# model = list(mu=OBS~MEAN, sigma=~SPREAD, family=NO)
+# gamlss2verif(model, data, data, "fit.nc")
+#
+# Then run verif like this:
+# verif fit.nc -m reliability -r 0
+# verif fit.nc -m pithist
+# verif fit.nc -m mae -type map
 
 gamlss2verif <- function(model, x, xeval, filename, variable="Precip",
                     quantiles=c(0.01,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.99),
-                    thresholds=NA) {
+                    thresholds=NA,
+                    useMedian=TRUE) {
    library("ncdf")
    MV  = -1e30
    MVL = -999
    # Which thresholds should CDFs be written for?
    if(is.na(thresholds)) {
-      if(variable == "Precip") {
+      if(variable == "Precip" | variable == "WindSpeed") {
          thresholds <- c(0,0.2,0.3,0.4,0.5,0.7,1,2,5,10,15,20)
       }
-      else {
+      else if(variable == "T"){
          thresholds <- c(-60,-55,-50,-45,-40,-35,-30,-25,-20,-15,-10,-5,0,5,10,15,20)
       }
    }
@@ -120,7 +128,7 @@ gamlss2verif <- function(model, x, xeval, filename, variable="Precip",
          sigma=model$sigma
          nu=model$nu
          tau=model$tau
-         family=model$model
+         family=model$family
          fit = gamlss(mu, sigma.formula=sigma, nu.formula=nu, tau.formula=tau, family=family, data=xt)
       }
       else {
@@ -130,9 +138,10 @@ gamlss2verif <- function(model, x, xeval, filename, variable="Precip",
       # Precompute parameters
       par <- getMoments(fit, xe)
 
-      #fit$sigma.coefficients[1] = fit$sigma.coefficients[2] * 1.2
-      xfcst[I] <- mG(fit, xe, par)  # Mean, doesn't seem to work for many distributions
-      #xfcst[I] <- qG(0.5, fit, xe, par)
+      if(useMedian)
+         xfcst[I] <- qG(0.5, fit, xe, par)
+      else
+         xfcst[I] <- mG(fit, xe, par)  # Mean, doesn't seem to work for many distributions
       xpit[I]  <- pG(xe$OBS, fit, xe, par)
       xspread[I]  <- (qG(0.84, fit, xe, par)-qG(0.16, fit, xe, par))/2
       # We don't need to randomize PIT, because verif does that
@@ -330,12 +339,19 @@ getValues <- function(q, fit, x, type, par=NULL) {
       nu = par$nu
       tau = par$tau
 
+      # Computing the mean of the distribution:
+      # For ZAGA the mean is mu*(1-nu)
+      # For NO the mean is mu
+      # For other distributions I am unsure...
       if(type == "m") {
          values = matrix(NA, nrow=dim(x)[1], ncol=1)
-         if(!is.null(nu))
+         if(family == "ZAGA" & !is.null(nu))
             values[,1] = mu*(1-nu)
          else
             values[,1] = mu
+         if(family != "ZAGA" & family != "NO") {
+            print(paste("Computing the mean of the distribution for", family, "is not tested..."))
+         }
          return(values)
       }
       # qZAGA is really slow, use optimized function
