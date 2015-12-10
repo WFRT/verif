@@ -510,6 +510,8 @@ class Data:
          span = max(offsets) - min(offsets)
          if(span > 300):
             return matplotlib.ticker.AutoLocator()
+         elif(span > 200):
+            return matplotlib.ticker.MultipleLocator(48)
          elif(span > 144):
             return matplotlib.ticker.MultipleLocator(24)
          elif(span > 72):
