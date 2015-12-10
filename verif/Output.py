@@ -1643,8 +1643,8 @@ class Reliability(Output):
    def __init__(self):
       Output.__init__(self)
       self._shadeNoSkill = True
-      self._shadeConfidence = False
-      self._showCount = False
+      self._shadeConfidence = True
+      self._showCount = True
 
    def _plotCore(self, data):
       labels = data.getFilenames()
