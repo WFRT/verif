@@ -1488,12 +1488,12 @@ class Meteo(Output):
 
       # Plot obs line
       obs = data.getScores("obs")[0]
-      obs = np.mean(np.mean(obs, axis=0), axis=1)
+      obs = Util.nanmean(Util.nanmean(obs, axis=0), axis=1)
       mpl.plot(x, obs, "o-", color=self._obsCol, lw=2, ms=8, label="Observations")
 
       # Plot deterministic forecast
       fcst = data.getScores("fcst")[0]
-      fcst = np.mean(np.mean(fcst, axis=0), axis=1)
+      fcst = Util.nanmean(Util.nanmean(fcst, axis=0), axis=1)
       mpl.plot(x, fcst, "o-", color=self._fcstCol, lw=2, ms=8, label="Deterministic")
 
       # Plot quantiles
