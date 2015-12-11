@@ -46,8 +46,11 @@ Installation Instructions
 -------------------------
 
 Download the source code of the prototype version: https://github.com/WFRT/verif/releases/. Unzip
-the file and navigate into the extracted folder. ``verif`` requires the NetCDF library as well as
-python and its packages numpy, scipy, and matplotlib.
+the file and navigate into the extracted folder. ``verif`` requires python as well as the python
+packages numpy, scipy, and matplotlib. The python package basemap is optional, but provide a
+background map when verification scores are plotted on a map. NetCDF4/HDF5 is not required, but will make
+reading of NetCDF files faster. If this package is not found, the NetCDF capabilities from scipy will
+be used instead.
 
 **Ubuntu**
 
@@ -55,7 +58,7 @@ Install the required pacakges:
 
 .. code-block:: bash
 
-  sudo apt-get install python-numpy python-scipy python-matplotlib libnetcdf-dev
+  sudo apt-get install python-numpy python-scipy python-matplotlib
 
 Then install ``verif`` by executing the following inside the extracted folder:
 

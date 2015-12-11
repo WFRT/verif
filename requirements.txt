@@ -3,4 +3,3 @@ numpy
 matplotlib
 coveralls
 pep8
-basemap
