@@ -1,3 +1,18 @@
+verif (0.3.0) precise; urgency=low
+
+  * New features:
+    - Added -x month and -x year
+    - Added -m meteo
+    - Added -m roc
+    - Added -m economicvalue
+    - Added -m quantilescore
+  * Better date support:
+    - Dates can be parsed in -xlim
+    - Nicer date labels on the x-axis
+    - Prefer 3h, 6h, 12h, 24h gridline increments
+
+ -- Thomas Nipen <thomas.nipen@met.no>  Fri, 11 Dec 2015 13:43:29 +0100
+
 verif (0.2.0) precise; urgency=low
 
   * Prototype release suitable for testing
