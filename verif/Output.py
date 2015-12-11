@@ -1979,7 +1979,7 @@ class Roc(Output):
          data.setAxis("none")
          data.setIndex(0)
          data.setFileIndex(f)
-         scores = data.getScores(["obs", "fcst"]+fthresholds)
+         scores = data.getScores(["obs", "fcst"]+data.getQuantileNames())
          obs = scores[0]
          fcst = scores[1]
          scores = scores[2:]
@@ -2001,10 +2001,10 @@ class Roc(Output):
          y = np.zeros([len(fthresholds) + 2, 1], 'float')
          x[1:-1] = xx
          y[1:-1] = yy
-         x[0] = 1
-         y[0] = 1
-         x[len(x) - 1] = 0
-         y[len(y) - 1] = 0
+         x[0] = 0
+         y[0] = 0
+         x[len(x) - 1] = 1
+         y[len(y) - 1] = 1
          mpl.plot(x, y, style, color=color, label=labels[f], lw=self._lw,
                ms=self._ms)
       mpl.plot([0, 1], [0, 1], color="k")

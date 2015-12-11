@@ -340,6 +340,11 @@ class Data:
       quantiles = sorted(quantiles)
       return quantiles
 
+   # Get the names of all quantile scores
+   def getQuantileNames(self):
+      quantiles = self.getQuantiles()
+      return [self.getQvar(quantile / 100) for quantile in quantiles]
+
    def _getIndices(self, axis, findex=None):
       if(axis == "date"):
          I = self._getDateIndices(findex)

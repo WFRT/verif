@@ -7,3 +7,7 @@ build
 cover
 .*.swp
 deb_dist
+test.csh
+testPlots/
+stdeb.cfg
+devel/
