@@ -45,7 +45,7 @@ For a full list, run ``verif`` without arguments.
 Installation Instructions
 -------------------------
 
-Download the source code of the prototype version: https://github.com/WFRT/verif/releases/. Unzip
+Download the source code of the latest version: https://github.com/WFRT/verif/releases/. Unzip
 the file and navigate into the extracted folder. ``verif`` requires python as well as the python
 packages numpy, scipy, and matplotlib. The python package basemap is optional, but provide a
 background map when verification scores are plotted on a map. NetCDF4/HDF5 is not required, but will make
@@ -135,46 +135,6 @@ Deterministic forecasts will only have "obs" and "fcst", however probabilistic f
 any number of cumulative probabilities. For probabilistic forecasts, "fcst" could represent the
 ensemble mean (or any other method to reduce the ensemble to a deterministic forecast).
 
-Proposed NetCDF input
----------------------
-We are working on defining a NetCDF format that can also be read by ``verif``. Here is our current
-proposal, based on the NetCDF/CF standard:
-
-.. code-block:: bash
-
-   netcdf format {
-   dimensions :
-      date    = UNLIMITED;
-      offset  = 48;
-      station = 10;
-      ensemble = 21;
-      threshold = 11;
-      quantile = 11;
-   variables:
-      int id(station);
-      int offset(offset);
-      int date(date);
-      float threshold(threshold);
-      float quantile(quantile);
-      float lat(station);
-      float lon(station);
-      float elev(station);
-      float obs(date, offset, station);              // Observations
-      float ens(date, offset, ensemble, station);    // Ensemble forecast
-      float fcst(date, offset, station);             // Deterministic forecast
-      float cdf(date, offset, threshold, station);   // Accumulated prob at threshold
-      float pdf(date, offset, threshold, station);   // Pdf at threshold
-      float x(date, offset, quantile, station);      // Threshold corresponding to quantile
-      float pit(date, offset, station);              // CDF for threshold=observation
-
-   global attributes:
-      : name = "raw";                                // Used as configuration name
-      : long_name = "Temperature";                   // Used to label plots
-      : standard_name = "air_temperature_2m";
-      : Units = "^oC";                               // Used to label axes
-      : Conventions = "verif_1.0.0";
-      }
-
 Available metrics
 -----------------
 Here is a list of currently supported metrics. Note that the plots that are possible to make depend
@@ -233,19 +193,23 @@ on what variables are available in the input files.
 ``-m bsres``            Resolution component of Brier score
 ``-m bss``              Brier skill score
 ``-m bsres``            Uncertainty component of Brier score
+``-m economicvalue``    Economic value for a specified threshold
 ``-m invreliability``   Reliability diagram for a specified quantile
 ``-m marginal``         Marginal distribution for a specified threshold
 ``-m marginalratio``    Ratio of marginal probability of obs to that of fcst
 ``-m pitdev``           Deviation of the PIT histogram
 ``-m pithist``          Histogram of PIT values
 ``-m reliability``      Reliability diagram for a specified threshold
+``-m roc``              Receiver operating characteristics plot for a specified threshold
 ``-m spherical``        Pherical probabilistic scoring rule
 ----------------------  ---------------------------------------------------------------
 **Special plots**       **Description**
 ----------------------  ---------------------------------------------------------------
+``-m against``          Plots the determinstic forecasts from each file against each other
 ``-m cond``             Plots forecasts as a function of obs
 ``-m error``            Decomposition of RMSE into systematic and unsystematic components
 ``-m freq``             Show frequency distribution of obs and fcst
+``-m meteo``            Show forecasts and obs in a meteogram
 ``-m obsfcst``          A plot showing both obs and fcst
 ``-m scatter``          A scatter plt of obs and fcst
 ``-m spreadskill``      Plots forecast spread vs forecast skilL
@@ -253,6 +217,46 @@ on what variables are available in the input files.
 ``-m taylor``           Taylor diagram showing correlation and fcst stdev
 ``-m timeseries``       Time series of obs and forecasts
 ======================  ===============================================================
+
+Proposed NetCDF input
+---------------------
+We are working on defining a NetCDF format that can also be read by ``verif``. Here is our current
+proposal, based on the NetCDF/CF standard:
+
+.. code-block:: bash
+
+   netcdf format {
+   dimensions :
+      date    = UNLIMITED;
+      offset  = 48;
+      station = 10;
+      ensemble = 21;
+      threshold = 11;
+      quantile = 11;
+   variables:
+      int id(station);
+      int offset(offset);
+      int date(date);
+      float threshold(threshold);
+      float quantile(quantile);
+      float lat(station);
+      float lon(station);
+      float elev(station);
+      float obs(date, offset, station);              // Observations
+      float ens(date, offset, ensemble, station);    // Ensemble forecast
+      float fcst(date, offset, station);             // Deterministic forecast
+      float cdf(date, offset, threshold, station);   // Accumulated prob at threshold
+      float pdf(date, offset, threshold, station);   // Pdf at threshold
+      float x(date, offset, quantile, station);      // Threshold corresponding to quantile
+      float pit(date, offset, station);              // CDF for threshold=observation
+
+   global attributes:
+      : name = "raw";                                // Used as configuration name
+      : long_name = "Temperature";                   // Used to label plots
+      : standard_name = "air_temperature_2m";
+      : Units = "^oC";                               // Used to label axes
+      : Conventions = "verif_1.0.0";
+      }
 
 Copyright and license
 ---------------------
