@@ -504,6 +504,33 @@ class Cmae(Deterministic):
       return "CMAE"
 
 
+class Leps(Deterministic):
+   _min = 0
+   _description = "Linear error in probability space"
+   _perfectScore = 0
+
+   def _computeObsFcst(self, obs, fcst):
+      N = len(obs)
+      # Compute obs quantiles
+      Iobs = np.array(np.argsort(obs), 'float')
+      qobs = Iobs / N
+
+      # Compute the quantiles that the forecasts are relative
+      # to the observations
+      qfcst = np.zeros(N, 'float')
+      sortobs = np.sort(obs)
+      for i in range(0, N):
+         I = np.where(fcst[i] < sortobs)[0]
+         if(len(I) > 0):
+            qfcst[i] = float(I[0]) / N
+         else:
+            qfcst[i] = 1
+      return np.mean(abs(qfcst - qobs))
+
+   def name(self):
+      return "LEPS"
+
+
 class Dmb(Deterministic):
    _description = "Degree of mass balance (obs/fcst)"
    _perfectScore = 1
