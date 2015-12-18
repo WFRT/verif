@@ -447,7 +447,7 @@ class Output:
    # maxradius: Don't let the circle go outside an envelope circle with this
    # radius (centered on the origin)
    def _drawCircle(self, radius, xcenter=0, ycenter=0, maxradius=np.inf,
-         style="--", color="k", lw=1, label=""):
+         style="--", color="k", lw=1, label="", zorder=-100):
       angles = np.linspace(-np.pi / 2, np.pi / 2, 360)
       x = np.sin(angles) * radius + xcenter
       y = np.cos(angles) * radius + ycenter
@@ -458,8 +458,8 @@ class Output:
          return
       x = x[I]
       y = y[I]
-      mpl.plot(x, y, style, color=color, lw=lw, zorder=-100, label=label)
-      mpl.plot(x, -y, style, color=color, lw=lw, zorder=-100)
+      mpl.plot(x, y, style, color=color, lw=lw, zorder=zorder, label=label)
+      mpl.plot(x, -y, style, color=color, lw=lw, zorder=zorder)
 
    def _plotConfidence(self, x, y, variance, n, color):
       # variance = y*(1-y) # For bins
@@ -2248,17 +2248,7 @@ class Taylor(Output):
          y = std * np.sin(ang)
          mpl.plot(x, y, style, color=color, label=labels[f], lw=self._lw,
                ms=self._ms)
-         stdobs = np.nanmean(stdobs)
-
-         # Minimum CRMSE
-         # stdopt = stdobs * np.cos(ang)
-         # xopt = stdopt * np.cos(ang)
-         # yopt = stdopt * np.sin(ang)
-         # mpl.plot(xopt, yopt, style, color=color, label=labels[f], lw=self._lw,
-         #       ms=self._ms)
-
-      # Draw minimum CRMSE
-      self._drawCircle(stdobs/2, xcenter=stdobs/2, ycenter=0, style="--", color="orange", lw=3)
+         stdobs = Util.nanmean(stdobs)
 
       # Set axis limits
       # Enforce a minimum radius beyond the obs-radius
@@ -2282,7 +2272,7 @@ class Taylor(Output):
       # Draw obs point/lines
       orange = [1, 0.8, 0.4]
       self._drawCircle(stdobs, style='-', lw=5, color=orange)
-      mpl.plot(stdobs, 0, 's-', color=orange, label="Observation", mew=2, ms=self._ms, clip_on=False)
+      mpl.plot(stdobs, 0, 's-', color=orange, label="Obs stdev", mew=2, ms=self._ms, clip_on=False)
 
       # Draw diagonals
       corrs = [-1, -0.99, -0.95, -0.9, -0.8, -0.5, 0, 0.5, 0.8, 0.9, 0.95,
@@ -2308,6 +2298,10 @@ class Taylor(Output):
                mpl.text(x, y, str(R), horizontalalignment="right",
                      verticalalignment="bottom", fontsize=self._labfs,
                      color="gray")
+
+      # Draw minimum CRMSE
+      self._drawCircle(stdobs/2, xcenter=stdobs/2, ycenter=0, style="--",
+            color="orange", lw=3, label="Min CRMSE", zorder=0)
 
       # Draw std rings
       for X in mpl.xticks()[0]:
