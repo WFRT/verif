@@ -692,6 +692,7 @@ class Within(Threshold):
 # For a given range of x-values, what is the average y-value?
 class Conditional(Threshold):
    _orientation = 0
+
    def __init__(self, x="obs", y="fcst", func=np.mean):
       self._x = x
       self._y = y
@@ -725,6 +726,7 @@ class XConditional(Threshold):
 
 class Count(Threshold):
    _orientation = 0
+
    def __init__(self, x):
       self._x = x
 

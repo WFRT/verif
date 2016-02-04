@@ -2312,6 +2312,64 @@ class Taylor(Output):
       mpl.gca().set_aspect(1)
 
 
+class Categorical(Output):
+   _description = "Categorical performance diagram showing POD, FAR, bias, and Threat score"
+   _supThreshold = True
+   _supX = True
+   _legLoc = "upper left"
+
+   def _plotCore(self, data):
+      data.setAxis(self._xaxis)
+      data.setIndex(0)
+      labels = data.getFilenames()
+      F = data.getNumFiles()
+
+      # Plot points
+      maxstd = 0
+      for f in range(0, F):
+         data.setFileIndex(f)
+         color = self._getColor(f, F)
+         style = self._getStyle(f, F)
+
+         size = data.getAxisSize()
+         sr = np.zeros(size, 'float')
+         pod = np.zeros(size, 'float')
+         Far = Metric.Far()
+         Hit = Metric.Hit()
+         threshold = self._thresholds[0]
+         for i in range(0, size):
+            data.setIndex(i)
+            far = Far.computeCore(data, [threshold, np.inf])
+            hit = Hit.computeCore(data, [threshold, np.inf])
+            sr[i] = 1 - far
+            pod[i] = hit
+         mpl.plot(sr, pod, style, color=color, label=labels[f], lw=self._lw,
+               ms=self._ms)
+
+      # Plot bias lines
+      biases = [0.3, 0.5, 0.8, 1, 1.3, 1.5, 2, 3, 5, 10]
+      for i in range(0, len(biases)):
+         bias = biases[i]
+         mpl.plot([0, 1], [0, bias], 'k-')
+         if(bias <= 1):
+            mpl.text(1, bias, "%2.1f" % (bias))
+         else:
+            mpl.text(1.0/bias, 1, "%2.1f" % (bias))
+
+      # Plot threat score lines
+      threats = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+      for i in range(0, len(threats)):
+         threat = threats[i]
+         x = np.linspace(threat, 1, 100)
+         mpl.plot(x, threat / 10 / (x - threat) + threat, 'k--')
+
+      mpl.xlabel("Success ratio (1 - FAR)")
+      mpl.ylabel("Probability of detection")
+      mpl.xlim([0, 1])
+      mpl.ylim([0, 1])
+      mpl.grid()
+
+
 class Error(Output):
    _description = "Decomposition of RMSE into systematic and unsystematic components"
    _supThreshold = False
