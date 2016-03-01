@@ -134,9 +134,6 @@ class Output:
    def setFilename(self, filename):
       self._filename = filename
 
-   def setLegend(self, legend):
-      self._legNames = legend
-
    def setLegLoc(self, legLoc):
       self._legLoc = legLoc
 
@@ -235,7 +232,7 @@ class Output:
    def plot(self, data):
       self._plotCore(data)
       self._adjustAxes(data)
-      self._legend(data, self._legNames)
+      self._legend(data)
       self._savePlot(data)
 
    # Call this to write text output
@@ -245,15 +242,8 @@ class Output:
    # Draws a map of the data
    def map(self, data):
       self._mapCore(data)
-      # self._legend(data, self._legNames)
+      # self._legend(data)
       self._savePlot(data)
-
-   def _getLegendNames(self, data):
-      if(self._legNames is not None):
-         names = self._legNames
-      else:
-         names = data.getShortNames()
-      return(names)
 
    def _plotPerfectScore(self, x, perfect, color="gray", zorder=-1000):
       if(perfect is None):
@@ -567,14 +557,7 @@ class Default(Output):
 
       # We have to derive the legend list here, because we might want to
       # specify the order
-      labels = np.array(data.getFilenames())
-      if(self._legNames):  # append legend names to file list
-         if(len(labels) != len(self._legNames)):
-            Util.error("Too many legend names")
-         else:
-            labels = self._legNames
-
-      self._legNames = labels
+      labels = np.array(data.getLegend())
 
       F = data.getNumFiles()
       [x, y] = self.getXY(data)
@@ -591,7 +574,7 @@ class Default(Output):
             ends = y[:, -1]  # take last points for acc plots
             ids = ends.argsort()[::-1]
 
-         self._legNames = [self._legNames[i] for i in ids]
+         labels = [labels[i] for i in ids]
 
       else:
          ids = range(0, F)
@@ -608,7 +591,7 @@ class Default(Output):
             style = self._getStyle(ids[f], F, data.isAxisContinuous())
             alpha = (1 if(data.isAxisContinuous()) else 0.55)
             mpl.plot(x[ids[f]], y[ids[f]], style, color=color,
-                  label=self._legNames[f], lw=self._lw, ms=self._ms,
+                  label=labels[f], lw=self._lw, ms=self._ms,
                   alpha=alpha)
 
          mpl.xlabel(data.getAxisLabel())
@@ -641,7 +624,7 @@ class Default(Output):
       data.setAxis(self._xaxis)
 
       # Set configuration names
-      names = self._getLegendNames(data)
+      names = data.getLegend()
 
       F = data.getNumFiles()
       [x, y] = self.getXY(data)
@@ -728,7 +711,7 @@ class Default(Output):
          hasBasemap = False
 
       data.setAxis("location")
-      labels = self._getLegendNames(data)
+      labels = data.getLegend()
       F = data.getNumFiles()
       lats = data.getLats()
       lons = data.getLons()
@@ -836,10 +819,7 @@ class Default(Output):
 
                if(not np.isnan(value)):
                   mpl.text(x0[i], y0[i], "%d %3.2f" % (ids[i], value))
-         if(self._legNames is not None):
-            names = self._legNames
-         else:
-            names = data.getFilenames()
+         names = data.getLegend()
          if(self._title is not None):
             mpl.title(self._title)
          else:
@@ -891,7 +871,7 @@ class Hist(Output):
 
    def _plotCore(self, data):
       data.setAxis("none")
-      labels = self._getLegendNames(data)
+      labels = data.getLegend()
       F = data.getNumFiles()
       [x, y] = self.getXY(data)
       for f in range(0, F):
@@ -910,7 +890,7 @@ class Hist(Output):
 
    def _textCore(self, data):
       data.setAxis("none")
-      labels = self._getLegendNames(data)
+      labels = data.getLegend()
 
       F = data.getNumFiles()
       [x, y] = self.getXY(data)
@@ -981,7 +961,7 @@ class Sort(Output):
 
    def _plotCore(self, data):
       data.setAxis("none")
-      labels = self._getLegendNames(data)
+      labels = data.getLegend()
       F = data.getNumFiles()
       for f in range(0, F):
          data.setFileIndex(f)
@@ -1018,7 +998,7 @@ class ObsFcst(Output):
 
       mFcst = Metric.Default("fcst", aux="obs")
       mFcst.setAggregator("mean")
-      labels = data.getFilenames()
+      labels = data.getLegend()
       for f in range(0, F):
          data.setFileIndex(f)
          color = self._getColor(f, F)
@@ -1058,7 +1038,7 @@ class QQ(Output):
    def _plotCore(self, data):
       data.setAxis("none")
       data.setIndex(0)
-      labels = data.getFilenames()
+      labels = data.getLegend()
       F = data.getNumFiles()
       [x, y] = self.getXY(data)
       for f in range(0, F):
@@ -1079,17 +1059,17 @@ class QQ(Output):
    def _textCore(self, data):
       data.setAxis("none")
       data.setIndex(0)
-      labels = data.getFilenames()
+      labels = data.getLegend()
       F = data.getNumFiles()
 
       # Header
       maxlength = 0
-      for name in data.getFilenames():
+      for name in labels:
          maxlength = max(maxlength, len(name))
       maxlength = int(np.ceil(maxlength / 2) * 2)
       fmt = "%" + str(maxlength) + "s"
-      for filename in data.getFilenames():
-         print fmt % filename,
+      for label in labels:
+         print fmt % label,
       print ""
       fmt = "%" + str(int(np.ceil(maxlength / 2))) + ".1f"
       fmt = fmt + fmt
@@ -1124,7 +1104,7 @@ class Scatter(Output):
    def _plotCore(self, data):
       data.setAxis("none")
       data.setIndex(0)
-      labels = data.getFilenames()
+      labels = data.getLegend()
       F = data.getNumFiles()
       for f in range(0, F):
          data.setFileIndex(f)
@@ -1226,7 +1206,7 @@ class Change(Output):
    def _plotCore(self, data):
       data.setAxis("all")
       data.setIndex(0)
-      labels = data.getFilenames()
+      labels = data.getLegend()
       # Find range
       data.setFileIndex(0)
       [obs, fcst] = data.getScores(["obs", "fcst"])
@@ -1276,7 +1256,7 @@ class Cond(Output):
       data.setIndex(0)
       [lowerT, upperT, x] = self._getThresholdLimits(self._thresholds)
 
-      labels = data.getFilenames()
+      labels = data.getLegend()
       F = data.getNumFiles()
       for f in range(0, F):
          color = self._getColor(f, F)
@@ -1322,7 +1302,7 @@ class SpreadSkill(Output):
    def _plotCore(self, data):
       data.setAxis("all")
       data.setIndex(0)
-      labels = data.getFilenames()
+      labels = data.getLegend()
       F = data.getNumFiles()
       for f in range(0, F):
          color = self._getColor(f, F)
@@ -1375,7 +1355,7 @@ class Count(Output):
       data.setIndex(0)
       [lowerT, upperT, x] = self._getThresholdLimits(self._thresholds)
 
-      labels = data.getFilenames()
+      labels = data.getLegend()
       F = data.getNumFiles()
       for f in range(0, F):
          color = self._getColor(f, F)
@@ -1436,7 +1416,7 @@ class TimeSeries(Output):
          mpl.plot(x, y, ".-", color=[0.3, 0.3, 0.3], lw=5, label=lab)
 
          # Forecast lines
-         labels = data.getFilenames()
+         labels = data.getLegend()
          for f in range(0, F):
             data.setFileIndex(f)
             color = self._getColor(f, F)
@@ -1583,7 +1563,7 @@ class PitHist(Output):
 
    def _plotCore(self, data):
       F = data.getNumFiles()
-      labels = self._getLegendNames(data)
+      labels = data.getLegend()
       for f in range(0, F):
          Util.subplot(f, F)
          color = self._getColor(f, F)
@@ -1647,7 +1627,7 @@ class Reliability(Output):
       self._showCount = True
 
    def _plotCore(self, data):
-      labels = data.getFilenames()
+      labels = data.getLegend()
 
       F = data.getNumFiles()
       ax = mpl.gca()
@@ -1770,7 +1750,7 @@ class IgnContrib(Output):
       Output.__init__(self)
 
    def _plotCore(self, data):
-      labels = data.getFilenames()
+      labels = data.getLegend()
 
       if(len(self._thresholds) != 1):
          Util.error("IgnContrib diagram requires exactly one threshold")
@@ -1870,7 +1850,7 @@ class EconomicValue(Output):
       Output.__init__(self)
 
    def _plotCore(self, data):
-      labels = data.getFilenames()
+      labels = data.getLegend()
 
       if(len(self._thresholds) != 1):
          Util.error("Economic value diagram requires exactly one threshold")
@@ -1972,7 +1952,7 @@ class Roc(Output):
       fthresholds = fthresholds[::-1]
 
       F = data.getNumFiles()
-      labels = data.getFilenames()
+      labels = data.getLegend()
       for f in range(0, F):
          color = self._getColor(f, F)
          style = self._getStyle(f, F)
@@ -2052,7 +2032,7 @@ class DRoc(Output):
                fthresholds = np.linspace(threshold - 10, threshold + 10, N)
 
       F = data.getNumFiles()
-      labels = data.getFilenames()
+      labels = data.getLegend()
       for f in range(0, F):
          color = self._getColor(f, F)
          style = self._getStyle(f, F)
@@ -2150,7 +2130,7 @@ class Against(Output):
 
       data.setAxis("none")
       data.setIndex(0)
-      labels = data.getFilenames()
+      labels = data.getLegend()
       for f0 in range(0, F):
          for f1 in range(0, F):
             if(f0 != f1 and (F != 2 or f0 == 0)):
@@ -2221,7 +2201,7 @@ class Taylor(Output):
    def _plotCore(self, data):
       data.setAxis(self._xaxis)
       data.setIndex(0)
-      labels = data.getFilenames()
+      labels = data.getLegend()
       F = data.getNumFiles()
 
       # Plot points
@@ -2321,7 +2301,7 @@ class Categorical(Output):
    def _plotCore(self, data):
       data.setAxis(self._xaxis)
       data.setIndex(0)
-      labels = data.getFilenames()
+      labels = data.getLegend()
       F = data.getNumFiles()
 
       # Plot points
@@ -2379,7 +2359,7 @@ class Error(Output):
    def _plotCore(self, data):
       data.setAxis(self._xaxis)
       data.setIndex(0)
-      labels = data.getFilenames()
+      labels = data.getLegend()
       F = data.getNumFiles()
 
       mpl.gca().set_aspect(1)
@@ -2446,7 +2426,7 @@ class Marginal(Output):
       Output.__init__(self)
 
    def _plotCore(self, data):
-      labels = data.getFilenames()
+      labels = data.getLegend()
 
       F = data.getNumFiles()
 
@@ -2500,7 +2480,7 @@ class Freq(Output):
       Output.__init__(self)
 
    def _plotCore(self, data):
-      labels = data.getFilenames()
+      labels = data.getLegend()
 
       F = data.getNumFiles()
 
@@ -2561,7 +2541,7 @@ class InvReliability(Output):
       self._showCount = False
 
    def _plotCore(self, data):
-      labels = data.getFilenames()
+      labels = data.getLegend()
 
       F = data.getNumFiles()
       ax = mpl.gca()

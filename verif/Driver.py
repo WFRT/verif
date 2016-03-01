@@ -203,7 +203,7 @@ def run(argv):
    if(len(ifiles) > 0):
       data = Data.Data(ifiles, clim=climFile, climType=climType, dates=dates,
             offsets=offsets, locations=locations, latlonRange=latlonRange,
-            training=training)
+            training=training, legend=leg)
    else:
       data = None
 
@@ -386,7 +386,6 @@ def run(argv):
       pl.setCLim(clim)
    pl.setFilename(ofile)
    pl.setThresholds(thresholds)
-   pl.setLegend(leg)
    pl.setFigsize(figSize)
    pl.setDpi(dpi)
    pl.setAxis(xdim)
