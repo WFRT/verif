@@ -289,6 +289,8 @@ def run(argv):
       pl = Output.DRocNorm()
    elif(metric == "reliability"):
       pl = Output.Reliability()
+   elif(metric == "discrimination"):
+      pl = Output.Discrimination()
    elif(metric == "categorical"):
       pl = Output.Categorical()
    elif(metric == "invreliability"):

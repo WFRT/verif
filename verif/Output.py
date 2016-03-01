@@ -1614,6 +1614,94 @@ class PitHist(Output):
          mpl.xlabel("Cumulative probability")
 
 
+class Discrimination(Output):
+   _description = "Discrimination diagram for a certain threshold (-r)"
+   _reqThreshold = True
+   _supX = False
+
+   def __init__(self):
+      Output.__init__(self)
+      self._numBins = 10
+
+   def _plotCore(self, data):
+      labels = data.getLegend()
+
+      F = data.getNumFiles()
+
+      data.setAxis("none")
+      data.setIndex(0)
+      data.setFileIndex(0)
+      mpl.bar(np.nan, np.nan, color="w", ec="k", lw=self._lw, label="Observed")
+      mpl.bar(np.nan, np.nan, color="k", ec="k", lw=self._lw, label="Not observed")
+      for t in range(0, len(self._thresholds)):
+         threshold = self._thresholds[t]
+         var = data.getPvar(threshold)
+         [obs, p] = data.getScores(["obs", var])
+
+         # Determine the number of bins to use # (at least 11, at most 25)
+         edges = np.linspace(0, 1, self._numBins + 1)
+
+         y1 = np.nan * np.zeros([F, len(edges) - 1], 'float')
+         y0 = np.nan * np.zeros([F, len(edges) - 1], 'float')
+         n = np.zeros([F, len(edges) - 1], 'float')
+         for f in range(0, F):
+            color = self._getColor(f, F)
+            style = self._getStyle(f, F)
+            data.setFileIndex(f)
+            data.setAxis("none")
+            data.setIndex(0)
+            var = data.getPvar(threshold)
+            [obs, p] = data.getScores(["obs", var])
+
+            if(self._binType == "below"):
+               p = p
+               obs = obs < threshold
+            elif(self._binType == "above"):
+               p = 1 - p
+               obs = obs > threshold
+            else:
+               Util.error("Bin type must be one of 'below' or"
+                     "'above' for discrimination diagram")
+
+            clim = np.mean(obs)
+            I1 = np.where(obs == 1)[0]
+            I0 = np.where(obs == 0)[0]
+            # Compute frequencies
+            for i in range(0, len(edges) - 1):
+               y0[f, i] = np.mean((p[I0] >= edges[i]) & (p[I0] < edges[i + 1]))
+               y1[f, i] = np.mean((p[I1] >= edges[i]) & (p[I1] < edges[i + 1]))
+            label = labels[f]
+            if(not t == 0):
+               label = ""
+            # Figure out where to put the bars. Each file will have pairs of
+            # bars, so try to space them nicely.
+            width = 1.0 / self._numBins
+            space = 1.0 / self._numBins * 0.2
+            shift = (0.5 / self._numBins - width)
+            center = (edges[0:-1]+edges[1:])/2
+            clustercenter = edges[0:-1] + 1.0*(f + 1) / (F + 1) * width
+            clusterwidth = width * 0.8 / F
+            barwidth = clusterwidth / 2
+            shift = barwidth
+            mpl.bar(clustercenter-shift, y1[f, :], barwidth, color=color,
+                  ec=color, lw=self._lw, label=label)
+            mpl.bar(clustercenter, y0[f, :], barwidth, color="w", ec=color,
+                  lw=self._lw)
+         mpl.plot([clim, clim], [0, 1], "k-")
+
+      mpl.xlim([0, 1])
+      mpl.xlabel("Forecasted probability")
+      mpl.ylabel("Frequency")
+      units = " " + data.getUnits()
+      if(self._binType == "below"):
+         mpl.title("Discrimination diagram for obs < " + str(threshold) + units)
+      elif(self._binType == "above"):
+         mpl.title("Discrimination diagram for obs > " + str(threshold) + units)
+      else:
+         Util.error("Bin type must be one of 'below' or"
+               "'above' for discrimination diagram")
+
+
 class Reliability(Output):
    _description = "Reliability diagram for a certain threshold (-r)"
    _reqThreshold = True
