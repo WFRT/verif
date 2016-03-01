@@ -1503,7 +1503,7 @@ class Meteo(Output):
       for i in range(0, len(quantiles)):
          quantile = quantiles[i]/100
          var = data.getQvar(quantile)
-         y[:, i] = np.nanmean(np.nanmean(data.getScores(var)[0], axis=0), axis=1)
+         y[:, i] = Util.nanmean(Util.nanmean(data.getScores(var)[0], axis=0), axis=1)
       for i in range(0, len(quantiles)):
          style = "k-"
          if(i == 0 or i == len(quantiles) - 1):
