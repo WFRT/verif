@@ -1,3 +1,13 @@
+verif (0.4.0) precise; urgency=low
+
+  * New features:
+    - Added -m categorical
+    - Added -m discrimination
+    - Added -m leps
+  * Better handling of legend entries
+
+ -- Thomas Nipen <thomas.nipen@met.no>  Tue, 1 Mar 2016 23:55:00 +0100
+
 verif (0.3.0) precise; urgency=low
 
   * New features:
