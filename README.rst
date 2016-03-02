@@ -153,6 +153,7 @@ on what variables are available in the input files.
 ``-m fcst``             Average forecast value
 ``-m kendallcorr``      Kendall correlation
 ``-m mae``              Mean of forecasts
+``-m nsec``             Nash-Sutcliffe efficiency coefficient
 ``-m num``              Number of valid forecasts
 ``-m obs``              Mean of observations
 ``-m qq``               Quantile-quantile plot

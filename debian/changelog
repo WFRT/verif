@@ -4,6 +4,7 @@ verif (0.4.0) precise; urgency=low
     - Added -m categorical
     - Added -m discrimination
     - Added -m leps
+    - Added -m nsec
   * Better handling of legend entries
 
  -- Thomas Nipen <thomas.nipen@met.no>  Tue, 1 Mar 2016 23:55:00 +0100

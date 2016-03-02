@@ -528,6 +528,29 @@ class Cmae(Deterministic):
       return "CMAE"
 
 
+class Nsec(Deterministic):
+   _min = 0
+   _description = "Nash-Sutcliffe efficiency coefficient"
+   _perfectScore = 1
+   _orientation = 1
+   _max = 1
+
+   def _computeObsFcst(self, obs, fcst):
+      meanobs = np.mean(obs)
+      num = np.sum((fcst - obs) ** 2)
+      denom = np.sum((obs - meanobs) ** 2)
+      if(denom == 0):
+         return np.nan
+      else:
+         return 1 - num / denom
+
+   def name(self):
+      return "NSEC"
+
+   def label(self, data):
+      return self.name()
+
+
 class Leps(Deterministic):
    _min = 0
    _description = "Linear error in probability space"
