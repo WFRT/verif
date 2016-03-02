@@ -551,6 +551,31 @@ class Nsec(Deterministic):
       return self.name()
 
 
+class Alphaindex(Deterministic):
+   _min = 0
+   _description = "Alpha index"
+   _perfectScore = 0
+   _orientation = -1
+   _max = 2
+   _min = 0
+
+   def _computeObsFcst(self, obs, fcst):
+      meanobs = np.mean(obs)
+      meanfcst = np.mean(fcst)
+      num = np.sum((fcst - obs - meanfcst + meanobs) ** 2)
+      denom = np.sum((fcst - meanfcst) ** 2 + (obs - meanobs) ** 2)
+      if(denom == 0):
+         return np.nan
+      else:
+         return 1 - num / denom
+
+   def name(self):
+      return "Alpha index"
+
+   def label(self, data):
+      return self.name()
+
+
 class Leps(Deterministic):
    _min = 0
    _description = "Linear error in probability space"

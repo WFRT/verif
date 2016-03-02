@@ -143,6 +143,7 @@ on what variables are available in the input files.
 ======================  ===============================================================
 **Deterministic**       **Description**
 ----------------------  ---------------------------------------------------------------
+``-m alphaindex``       Alpha index
 ``-m bias``             Mean error
 ``-m cmae``             Cube-root mean absolute cubic error
 ``-m corr``             Pearson correlation between obs and forecast
