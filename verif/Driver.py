@@ -304,12 +304,7 @@ def run(argv):
    else:
       # Standard plots
       # Attempt at automating
-      metrics = Metric.getAllMetrics()
-      m = None
-      for mm in metrics:
-         if(metric == mm[0].lower() and mm[1].isValid()):
-            m = mm[1]()
-            break
+      m = Metric.getMetric(metric)
       if(m is None):
          m = Metric.Default(metric)
 

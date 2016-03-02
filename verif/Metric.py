@@ -4,10 +4,19 @@ import sys
 import inspect
 
 
+# Returns a list of all metric classes
 def getAllMetrics():
    temp = inspect.getmembers(sys.modules[__name__], inspect.isclass)
    return temp
 
+# Returns a metric object of a class with the given name
+def getMetric(name):
+   metrics = getAllMetrics()
+   m = None
+   for mm in metrics:
+      if(name == mm[0].lower() and mm[1].isValid()):
+         m = mm[1]()
+   return m
 
 # Computes scores for each xaxis value
 class Metric:
