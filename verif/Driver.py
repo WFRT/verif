@@ -233,6 +233,11 @@ def run(argv):
             print "%d" % date
          print ""
       return
+   elif(len(ifiles) == 0 and metric is not None):
+      m = Metric.getMetric(metric)
+      if(m is not None):
+         print m.help()
+      return
    elif(len(argv) == 1 or len(ifiles) == 0 or metric is None):
       showDescription(data)
       return
@@ -474,6 +479,7 @@ def showDescription(data=None):
    metrics = Metric.getAllMetrics()
    outputs = Output.getAllOutputs()
    print Util.green("Metrics (-m):")
+   print "  (For a full description, run verif -m <metric>)"
    metricOutputs = metrics + outputs
    metricOutputs.sort(key=lambda x: x[0].lower(), reverse=False)
    for m in metricOutputs:

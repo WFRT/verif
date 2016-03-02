@@ -9,6 +9,7 @@ def getAllMetrics():
    temp = inspect.getmembers(sys.modules[__name__], inspect.isclass)
    return temp
 
+
 # Returns a metric object of a class with the given name
 def getMetric(name):
    metrics = getAllMetrics()
@@ -18,10 +19,10 @@ def getMetric(name):
          m = mm[1]()
    return m
 
+
 # Computes scores for each xaxis value
 class Metric:
    # Overload these variables
-   _description = ""  # This will show up in the documentation of ./verif
    _min = None  # Minimum value this metric can produce
    _max = None  # Maximum value this mertic can produce
    _defaultAxis = "offset"  # If no axis is specified, use this axis as default
@@ -33,7 +34,17 @@ class Metric:
    _aggregator = np.mean
    _aggregatorName = "mean"
    _supAggregator = False  # Does this metric use self._aggregator?
-   _orientation = 0     # 1 for +, -1 for -, 0 for all other
+   _orientation = 0  # 1 for +, -1 for -, 0 for all other
+   # Information about metric. The y-axis label is controlled by self.label()
+   # Also, self.name() is the name of the metric
+
+   # A short one-liner describing the metric. This will show up in the
+   # main verif documentation.
+   _description = ""
+   # A longer description. This will show up in the documentation when a
+   # specific metric is chosen.
+   _long = None
+   _reference = None  # A string with an academic reference
 
    # Compute the score
    # data: use getScores([metric1, metric2...]) to get data
@@ -67,10 +78,38 @@ class Metric:
    def description(cls):
       return cls._description
 
+   @classmethod
+   def reference(cls):
+      return cls._reference
+
    # Is this a valid metric that should be created be called?
    @classmethod
    def isValid(cls):
       return cls.summary() is not ""
+
+   @classmethod
+   def help(cls):
+      s = cls.getClassName().lower() + ": "
+      s = s + cls.description()
+      if(cls.orientation is not 0):
+         s = s + "\n" + Util.green("Orientation: ")
+         if(cls.orientation == 1):
+            s = s + "Positive"
+         elif(cls.orientation == -1):
+            s = s + "Negative"
+         else:
+            s = s + "None"
+      if(cls.perfectScore is not None):
+         s = s + "\n" + Util.green("Perfect score: ") + str(cls._perfectScore)
+      if(cls.min is not None):
+         s = s + "\n" + Util.green("Minimum value: ") + str(cls._min)
+      if(cls.max is not None):
+         s = s + "\n" + Util.green("Maximum value: ") + str(cls._max)
+      if(cls._long is not None):
+         s = s + "\n" + Util.green("Description: ") + cls._long
+      if(cls.reference() is not None):
+         s = s + "\n" + Util.green("Reference: ") + cls.reference()
+      return s
 
    @classmethod
    def summary(cls):
@@ -141,15 +180,22 @@ class Metric:
       else:
          Util.error("Invalid aggregator")
 
-   def getClassName(self):
-      name = self.__class__.__name__
+   @classmethod
+   def getClassName(cls):
+      name = cls.__name__
       return name
 
+   # This is the y-axis label for this metric. Override this if
+   # the metric does not have the same units as the forecast variable
    def label(self, data):
       return self.name() + " (" + data.getUnits() + ")"
 
+   # Cannot be a classmethod, since it might use self._aggregator
    def name(self):
       return self.getClassName()
+
+   def label(self, data):
+      return self.name() + " (" + data.getUnits() + ")"
 
 
 class Default(Metric):
@@ -270,6 +316,9 @@ class Ef(Deterministic):
    def _computeObsFcst(self, obs, fcst):
       Nfcst = np.sum(obs < fcst)
       return Nfcst / 1.0 / len(fcst) * 100
+
+   def name(self):
+      return "Exceedance fraction"
 
    def label(self, data):
       return "% times fcst > obs"
@@ -801,6 +850,7 @@ class Bs(Threshold):
    _description = "Brier score"
    _perfectScore = 0
    _orientation = 1
+   _reference = "Glenn W. Brier, 1950: Verification of forecasts expressed in terms of probability. Mon. Wea. Rev., 78, 1-3."
 
    def __init__(self, numBins=10):
       self._edges = np.linspace(0, 1.0001, numBins)
@@ -1105,6 +1155,7 @@ class Edi(Contingency):
    _description = "Extremal dependency index"
    _perfectScore = 1
    _orientation = 1
+   _reference = "Christopher A. T. Ferro and David B. Stephenson, 2011: Extremal Dependence Indices: Improved Verification Measures for Deterministic Forecasts of Rare Binary Events. Wea. Forecasting, 26, 699-713."
 
    def calc(self, a, b, c, d):
       N = a + b + c + d
@@ -1125,6 +1176,7 @@ class Sedi(Contingency):
    _description = "Symmetric extremal dependency index"
    _perfectScore = 1
    _orientation = 1
+   _reference = Edi.reference()
 
    def calc(self, a, b, c, d):
       N = a + b + c + d
@@ -1147,6 +1199,7 @@ class Eds(Contingency):
    _min = None
    _perfectScore = 1
    _orientation = 1
+   _reference = "Stephenson, D. B., B. Casati, C. A. T. Ferro, and C. A.  Wilson, 2008: The extreme dependency score: A non-vanishing measure for forecasts of rare events. Meteor. Appl., 15, 41-50."
 
    def calc(self, a, b, c, d):
       N = a + b + c + d
