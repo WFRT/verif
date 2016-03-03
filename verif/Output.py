@@ -2027,17 +2027,16 @@ class Roc(Output):
 
    def __init__(self):
       Output.__init__(self)
+      self._labelQuantiles = True
 
    def _plotCore(self, data):
       threshold = self._thresholds[0]   # Observation threshold
       if(threshold is None):
          Util.error("Roc plot needs a threshold (use -r)")
 
-      fthresholds = list(data.getQuantiles())
-      if(len(fthresholds) == 0):
+      quantiles = list(data.getQuantiles())
+      if(len(quantiles) == 0):
          Util.error("Your files do not have any quantiles")
-      fthresholds.sort()
-      fthresholds = fthresholds[::-1]
 
       F = data.getNumFiles()
       labels = data.getLegend()
@@ -2047,26 +2046,27 @@ class Roc(Output):
          data.setAxis("none")
          data.setIndex(0)
          data.setFileIndex(f)
-         scores = data.getScores(["obs", "fcst"]+data.getQuantileNames())
+         scores = data.getScores(["obs"] + data.getQuantileNames())
          obs = scores[0]
-         fcst = scores[1]
-         scores = scores[2:]
-         y = np.nan * np.zeros([len(fthresholds), 1], 'float')
-         x = np.nan * np.zeros([len(fthresholds), 1], 'float')
-         for i in range(0, len(fthresholds)):
-            fthreshold = scores[i]
-            a = np.ma.sum((fthreshold >= threshold) & (obs >= threshold))  # Hit
-            b = np.ma.sum((fthreshold >= threshold) & (obs < threshold))   # FA
-            c = np.ma.sum((fthreshold < threshold) & (obs >= threshold))   # Miss
-            d = np.ma.sum((fthreshold < threshold) & (obs < threshold))    # CR
+         fcsts = scores[1:]
+         y = np.nan * np.zeros([len(quantiles)], 'float')
+         x = np.nan * np.zeros([len(quantiles)], 'float')
+         for i in range(0, len(quantiles)):
+            # Compute the hit rate and false alarm rate by using the given
+            # quantile from the distribution as the forecast
+            fcst = fcsts[i]
+            a = np.ma.sum((fcst >= threshold) & (obs >= threshold))  # Hit
+            b = np.ma.sum((fcst >= threshold) & (obs < threshold))   # FA
+            c = np.ma.sum((fcst < threshold) & (obs >= threshold))   # Miss
+            d = np.ma.sum((fcst < threshold) & (obs < threshold))    # CR
             if(a + c > 0 and b + d > 0):
                y[i] = a / 1.0 / (a + c)
                x[i] = b / 1.0 / (b + d)
          # Add end points at 0,0 and 1,1:
          xx = x
          yy = y
-         x = np.zeros([len(fthresholds) + 2, 1], 'float')
-         y = np.zeros([len(fthresholds) + 2, 1], 'float')
+         x = np.zeros([len(quantiles) + 2], 'float')
+         y = np.zeros([len(quantiles) + 2], 'float')
          x[1:-1] = xx
          y[1:-1] = yy
          x[0] = 0
@@ -2075,6 +2075,9 @@ class Roc(Output):
          y[len(y) - 1] = 1
          mpl.plot(x, y, style, color=color, label=labels[f], lw=self._lw,
                ms=self._ms)
+         if(self._labelQuantiles):
+            for i in range(0, len(quantiles)):
+               mpl.text(x[i + 1], y[i + 1], " %g%%" % quantiles[i], verticalalignment='center')
       mpl.plot([0, 1], [0, 1], color="k")
       mpl.axis([0, 1, 0, 1])
       mpl.xlabel("False alarm rate")
@@ -2693,7 +2696,8 @@ class InvReliability(Output):
                   ms=self._ms, label=label)
          self._plotObs(edges, 0 * edges + quantile, label="")
 
-         # Draw confidence bands (do this separately so that these lines don't sneak into the legend)
+         # Draw confidence bands (do this separately so that these lines don't
+         # sneak into the legend)
          for f in range(0, F):
             color = self._getColor(f, F)
             self._plotConfidence(x[:, f], y[f], v[f], n[f], color=color)
