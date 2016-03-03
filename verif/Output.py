@@ -1286,7 +1286,7 @@ class Cond(Output):
 class SpreadSkill(Output):
    _supThreshold = False
    _supX = False
-   _description = "Spread/skill plot showing RMSE of ensemble mean as a function of ensemble spread"
+   _description = "Spread/skill plot showing RMSE of ensemble mean as a function of ensemble spread (use -r to specify spread thresholds)"
 
    def __init__(self):
       Output.__init__(self)
@@ -1317,7 +1317,7 @@ class SpreadSkill(Output):
                y[i] = np.sqrt(np.mean(skill[I]))
 
          style = self._getStyle(f, F)
-         mpl.plot(x, y, style, color=color, label=labels[f])
+         mpl.plot(x, y, style, color=color, lw=self._lw, ms=self._ms, label=labels[f])
       ylim = list(mpl.ylim())
       xlim = list(mpl.xlim())
       ylim[0] = 0
