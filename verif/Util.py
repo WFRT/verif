@@ -262,3 +262,11 @@ def getTextWidth():
 
 def getPvar(threshold):
    return "p%g" % (threshold)
+
+
+def isNumber(s):
+   try:
+      float(s)
+      return True
+   except ValueError:
+      return False

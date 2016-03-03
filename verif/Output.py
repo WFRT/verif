@@ -18,14 +18,6 @@ def getAllOutputs():
    return temp
 
 
-def isNumber(s):
-   try:
-      float(s)
-      return True
-   except ValueError:
-      return False
-
-
 class Output:
    _description = ""
    _defaultAxis = "offset"
@@ -290,7 +282,7 @@ class Output:
                   Util.error("Invalid rgba arg \"{}\"".format(string))
 
             # append to rgba lists if present, otherwise grayscale intensity
-            elif(isNumber(string)):
+            elif(Util.isNumber(string)):
                if(numList):
                   numList.append(float(string))
                else:
