@@ -156,7 +156,7 @@ class Output:
    def setLineWidth(self, lw):
       self._lw = lw
 
-   def setLineColor(self, lc):
+   def setLineColors(self, lc):
       self._lc = lc
 
    def setLineStyle(self, ls):

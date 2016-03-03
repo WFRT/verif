@@ -40,6 +40,7 @@ def run(argv):
    binType = None
    markerSize = None
    lineWidth = None
+   lineColors = None
    tickFontSize = None
    labFontSize = None
    legFontSize = None
@@ -154,6 +155,8 @@ def run(argv):
                markerSize = float(argv[i + 1])
             elif(arg == "-lw"):
                lineWidth = float(argv[i + 1])
+            elif(arg == "-lc"):
+               lineColors = argv[i + 1]
             elif(arg == "-tickfs"):
                tickFontSize = float(argv[i + 1])
             elif(arg == "-labfs"):
@@ -352,6 +355,8 @@ def run(argv):
       pl.setMarkerSize(markerSize)
    if(lineWidth is not None):
       pl.setLineWidth(lineWidth)
+   if(lineColors is not None):
+      pl.setLineColors(lineColors)
    if(labFontSize is not None):
       pl.setLabFontSize(labFontSize)
    if(legFontSize is not None):
@@ -456,6 +461,7 @@ def showDescription(data=None):
    print Util.formatArgument("-fs size", "Set figure size width,height (in inches). Default 8x6.")
    print Util.formatArgument("-leg titles", "Comma-separated list of legend titles. Use '_' to represent space.")
    print Util.formatArgument("-lw width", "How wide should lines be?")
+   print Util.formatArgument("-lc colors", "Comma-separated list of line colors, such as red,[0.3,0,0],0.3")
    print Util.formatArgument("-labfs size", "Font size for axis labels")
    print Util.formatArgument("-left value", "Left boundary location for saved figure [range 0-1]")
    print Util.formatArgument("-legfs size", "Font size for legend. Set to 0 to hide legend.")
