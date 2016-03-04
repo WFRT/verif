@@ -68,6 +68,7 @@ class Output:
       self._xticks = None
       self._yticks = None
       self._tight = False
+      self._simple = False
 
    @classmethod
    def defaultAxis(cls):
@@ -149,6 +150,9 @@ class Output:
       if(len(lim) != 2):
          Util.error("clim must be a vector of length 2")
       self._clim = lim
+
+   def setSimple(self, flag):
+      self._simple = flag
 
    def setMarkerSize(self, ms):
       self._ms = ms
@@ -1547,8 +1551,12 @@ class PitHist(Output):
       Output.__init__(self)
       self._numBins = 10
       self._metric = metric
-      self._showStats = True
-      self._showExpectedLine = True
+
+   def _showStats(self):
+      return not self._simple
+
+   def _showExpectedLine(self):
+      return not self._simple
 
    def _legend(self, data, names=None):
       pass
@@ -1581,7 +1589,7 @@ class PitHist(Output):
          else:
             mpl.gca().set_yticks([])
 
-         if(self._showExpectedLine):
+         if(self._showExpectedLine()):
             # Multiply by 100 to get to percent
             std = Metric.PitDev.deviationStd(pit, self._numBins) * 100
 
@@ -1596,7 +1604,7 @@ class PitHist(Output):
             Util.fill([0, 1], lower, upper, "r", zorder=100, alpha=0.5)
 
          # Compute calibration deviation
-         if(self._showStats):
+         if(self._showStats()):
             D = Metric.PitDev.deviation(pit, self._numBins)
             D0 = Metric.PitDev.expectedDeviation(pit, self._numBins)
             ign = Metric.PitDev.ignorancePotential(pit, self._numBins)
@@ -1702,17 +1710,23 @@ class Reliability(Output):
 
    def __init__(self):
       Output.__init__(self)
-      self._shadeNoSkill = True
-      self._shadeConfidence = True
-      self._showCount = True
       self._minCount = 5  # Min number of valid data points to show in graph
+
+   def _showCount(self):
+      return not self._simple
+
+   def _shadeConfidence(self):
+      return not self._simple
+
+   def _shadeNoSkill(self):
+      return not self._simple
 
    def _plotCore(self, data):
       labels = data.getLegend()
 
       F = data.getNumFiles()
       ax = mpl.gca()
-      if(self._showCount):
+      if(self._showCount()):
          axi = mpl.axes([0.2, 0.65, 0.2, 0.2])
       mpl.sca(ax)
 
@@ -1778,11 +1792,11 @@ class Reliability(Output):
          # sneak into the legend)
          for f in range(0, F):
             color = self._getColor(f, F)
-            if(self._shadeConfidence):
+            if(self._shadeConfidence()):
                self._plotConfidence(x[:, f], y[f], v[f], n[f], color=color)
 
          # Draw lines in inset diagram
-         if(self._showCount):
+         if(self._showCount()):
             if(np.max(n) > 1):
                for f in range(0, F):
                   color = self._getColor(f, F)
@@ -1801,7 +1815,7 @@ class Reliability(Output):
       mpl.plot([clim, clim], [0, 1], "--", color=color)
       # No-skill line
       mpl.plot([0, 1], [clim / 2, 1 - (1 - clim) / 2], "--", color=color)
-      if(self._shadeNoSkill):
+      if(self._shadeNoSkill()):
          Util.fill([clim, 1], [0, 0], [clim, 1 - (1 - clim) / 2],
                col=[1, 1, 1], zorder=-100, hatch="\\")
          Util.fill([0, clim], [clim / 2, clim, 0], [1, 1],
@@ -2622,7 +2636,9 @@ class InvReliability(Output):
 
    def __init__(self):
       Output.__init__(self)
-      self._showCount = False
+
+   def _showCount(self):
+      return False
 
    def _plotCore(self, data):
       labels = data.getLegend()
@@ -2630,7 +2646,7 @@ class InvReliability(Output):
       F = data.getNumFiles()
       ax = mpl.gca()
       quantiles = self._thresholds
-      if(self._showCount):
+      if(self._showCount()):
          if(quantiles[0] < 0.5):
             axi = mpl.axes([0.66, 0.65, 0.2, 0.2])
          else:
@@ -2694,7 +2710,7 @@ class InvReliability(Output):
          for f in range(0, F):
             color = self._getColor(f, F)
             self._plotConfidence(x[:, f], y[f], v[f], n[f], color=color)
-            if(self._showCount):
+            if(self._showCount()):
                axi.plot(x[:, f], n[f], style, color=color, lw=self._lw, ms=self._ms)
                axi.xaxis.set_major_locator(mpl.NullLocator())
                axi.set_yscale('log')

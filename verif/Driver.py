@@ -38,6 +38,7 @@ def run(argv):
    showMap = False
    noMargin = False
    binType = None
+   simple = None
    markerSize = None
    lineWidth = None
    lineColors = None
@@ -94,6 +95,8 @@ def run(argv):
             doAcc = True
          elif(arg == "-sort"):
             doSort = True
+         elif(arg == "-simple"):
+            simple = True
          else:
             if(arg == "-f"):
                ofile = argv[i + 1]
@@ -351,6 +354,8 @@ def run(argv):
             thresholds.")
 
    # Set plot parameters
+   if(simple is not None):
+      pl.setSimple(simple)
    if(markerSize is not None):
       pl.setMarkerSize(markerSize)
    if(lineWidth is not None):
@@ -471,6 +476,7 @@ def showDescription(data=None):
    print Util.formatArgument("-ms size", "How big should markers be?")
    print Util.formatArgument("-nomargin", "Remove margins (whitespace) in the plot not x[i] <= T.")
    print Util.formatArgument("-right value", "Right boundary location for saved figure [range 0-1]")
+   print Util.formatArgument("-simple", "Make a simpler plot, without extra lines, subplots, etc.")
    print Util.formatArgument("-sp", "Show a line indicating the perfect score")
    print Util.formatArgument("-tickfs size", "Font size for axis ticks")
    print Util.formatArgument("-title text", "Custom title to chart top")
