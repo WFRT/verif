@@ -199,6 +199,14 @@ class Metric:
    def label(self, data):
       return self.name() + " (" + data.getUnits() + ")"
 
+   # Is x within the range?
+   @staticmethod
+   def within(x, range):
+      # TODO: Which is correct?
+      # The second is best for precip, when doing Brier score -r 0
+      # return (x >= range[0]) & (x < range[1])
+      return (x > range[0]) & (x <= range[1])
+
 
 class Default(Metric):
    # aux: When reading the score, also pull values for 'aux' to ensure
@@ -723,7 +731,7 @@ class MarginalRatio(Metric):
          pvar0 = data.getPvar(tRange[0])
          pvar1 = data.getPvar(tRange[1])
          [obs, p0, p1] = data.getScores(["obs", pvar0, pvar1])
-      obs = Threshold.within(obs, tRange)
+      obs = Metric.within(obs, tRange)
       p = p1 - p0
       if(np.mean(p) == 0):
          return np.nan
@@ -766,25 +774,14 @@ class Num(Metric):
       return "Number of valid observations"
 
 
-# Metrics based on 2x2 contingency table for a given threshold
-class Threshold(Metric):
-   _reqThreshold = True
-   _supThreshold = True
-
-   # TODO: Which is correct?
-   # The second is best for precip, when doing Brier score -r 0
-   @staticmethod
-   def within(x, range):
-      # return (x >= range[0]) & (x < range[1])
-      return (x > range[0]) & (x <= range[1])
-
-
-class Within(Threshold):
+class Within(Metric):
    _min = 0
    _max = 100
    _description = "The percentage of forecasts within some"\
          " error bound (use -r)"
    _defaultBinType = "below"
+   _reqThreshold = True
+   _supThreshold = True
    _perfectScore = 100
    _orientation = -1
 
@@ -802,8 +799,10 @@ class Within(Threshold):
 
 # Mean y conditioned on x
 # For a given range of x-values, what is the average y-value?
-class Conditional(Threshold):
+class Conditional(Metric):
    _orientation = 0
+   _reqThreshold = True
+   _supThreshold = True
 
    def __init__(self, x="obs", y="fcst", func=np.mean):
       self._x = x
@@ -821,8 +820,10 @@ class Conditional(Threshold):
 # Mean x when conditioned on x. Average x-value that is within a given range.
 # The reason the y-variable is added is to ensure that the same data is used
 # for this metric as for the Conditional metric.
-class XConditional(Threshold):
+class XConditional(Metric):
    _orientation = 0
+   _reqThreshold = True
+   _supThreshold = True
 
    def __init__(self, x="obs", y="fcst"):
       self._x = x
@@ -836,8 +837,12 @@ class XConditional(Threshold):
       return np.median(obs[I])
 
 
-class Count(Threshold):
+# Counts how many values of a specific variable is within the threshold range
+# Not a real metric.
+class Count(Metric):
    _orientation = 0
+   _reqThreshold = True
+   _supThreshold = True
 
    def __init__(self, x):
       self._x = x
@@ -850,10 +855,12 @@ class Count(Threshold):
       return len(I)
 
 
-class Bs(Threshold):
+class Bs(Metric):
    _min = 0
    _max = 1
    _description = "Brier score"
+   _reqThreshold = True
+   _supThreshold = True
    _perfectScore = 0
    _orientation = 1
    _reference = "Glenn W. Brier, 1950: Verification of forecasts expressed in terms of probability. Mon. Wea. Rev., 78, 1-3."
@@ -901,7 +908,7 @@ class Bs(Threshold):
          var1 = data.getPvar(tRange[1])
          [obs, p1] = data.getScores(["obs", var1])
 
-      obsP = Threshold.within(obs, tRange)
+      obsP = Metric.within(obs, tRange)
       p = p1 - p0  # Prob of obs within range
       return [obsP, p]
 
@@ -918,10 +925,12 @@ class Bs(Threshold):
       return "Brier score"
 
 
-class Bss(Threshold):
+class Bss(Metric):
    _min = 0
    _max = 1
    _description = "Brier skill score"
+   _reqThreshold = True
+   _supThreshold = True
    _perfectScore = 1
    _orientation = 1
 
@@ -947,10 +956,12 @@ class Bss(Threshold):
       return "Brier skill score"
 
 
-class BsRel(Threshold):
+class BsRel(Metric):
    _min = 0
    _max = 1
    _description = "Brier score, reliability term"
+   _reqThreshold = True
+   _supThreshold = True
    _perfectScore = 0
    _orientation = 1
 
@@ -973,10 +984,12 @@ class BsRel(Threshold):
       return "Brier score, reliability term"
 
 
-class BsUnc(Threshold):
+class BsUnc(Metric):
    _min = 0
    _max = 1
    _description = "Brier score, uncertainty term"
+   _reqThreshold = True
+   _supThreshold = True
    _perfectScore = None
    _orientation = 1
 
@@ -990,10 +1003,12 @@ class BsUnc(Threshold):
       return "Brier score, uncertainty term"
 
 
-class BsRes(Threshold):
+class BsRes(Metric):
    _min = 0
    _max = 1
    _description = "Brier score, resolution term"
+   _reqThreshold = True
+   _supThreshold = True
    _perfectScore = 1
    _orientation = 1
 
@@ -1015,10 +1030,12 @@ class BsRes(Threshold):
       return "Brier score, resolution term"
 
 
-class QuantileScore(Threshold):
+class QuantileScore(Metric):
    _min = 0
    _description = "Quantile score. Requires quantiles to be stored"\
                   "(e.g q10, q90...).  Use -x to set which quantiles to use."
+   _reqThreshold = True
+   _supThreshold = True
    _perfectScore = 0
    _orientation = -1
 
@@ -1030,8 +1047,10 @@ class QuantileScore(Threshold):
       return np.mean(qs)
 
 
-class Ign0(Threshold):
+class Ign0(Metric):
    _description = "Ignorance of the binary probability based on threshold"
+   _reqThreshold = True
+   _supThreshold = True
    _orientation = -1
 
    def computeCore(self, data, tRange):
@@ -1047,8 +1066,10 @@ class Ign0(Threshold):
       return "Binary Ignorance"
 
 
-class Spherical(Threshold):
+class Spherical(Metric):
    _description = "Spherical probabilistic scoring rule for binary events"
+   _reqThreshold = True
+   _supThreshold = True
    _max = 1
    _min = 0
    _orientation = -1
@@ -1067,11 +1088,13 @@ class Spherical(Threshold):
       return "Spherical score"
 
 
-class Contingency(Threshold):
+# Metrics based on 2x2 contingency table for a given threshold
+class Contingency(Metric):
    _min = 0
    _max = 1
    _defaultAxis = "threshold"
    _reqThreshold = True
+   _supThreshold = True
    _usingQuantiles = False
 
    @staticmethod
