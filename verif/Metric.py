@@ -173,6 +173,8 @@ class Metric:
          self._aggregator = np.std
       elif(name == "range"):
          self._aggregator = Util.nprange
+      elif(name == "count"):
+         self._aggregator = Util.numvalid
       elif(Util.isnumeric(name)):
          def func(x):
             return np.percentile(x, float(name))
@@ -235,7 +237,7 @@ class Obs(Metric):
    _orientation = 0
 
    def computeCore(self, data, tRange):
-      obs = data.getScores("obs")
+      obs = data.getScores("obs")[0]
       return self._aggregator(obs)
 
    def name(self):
@@ -248,8 +250,8 @@ class Fcst(Metric):
    _orientation = 0
 
    def computeCore(self, data, tRange):
-      obs = data.getScores("fcst")
-      return self._aggregator(obs)
+      fcst = data.getScores("fcst")[0]
+      return self._aggregator(fcst)
 
    def name(self):
       return self._aggregatorName.title() + " of forecast"

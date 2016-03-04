@@ -205,6 +205,11 @@ def nanpercentile(data, pers):
    return p
 
 
+def numvalid(data, **args):
+   I = np.where(np.isnan(data.flatten()) == 0)[0]
+   return len(I)
+
+
 def isnumeric(x):
    try:
       float(x)
