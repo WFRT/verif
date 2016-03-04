@@ -762,18 +762,6 @@ class SpreadSkillDiff(Metric):
       return "Spread-skill difference (%)"
 
 
-class Num(Metric):
-   _description = "Number of valid forecasts"
-   _orientation = 0
-
-   def computeCore(self, data, tRange):
-      [obs] = data.getScores(["obs"])
-      return obs.shape[0]
-
-   def name(self):
-      return "Number of valid observations"
-
-
 class Within(Metric):
    _min = 0
    _max = 100
