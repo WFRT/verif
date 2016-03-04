@@ -1066,6 +1066,7 @@ class Contingency(Threshold):
    _max = 1
    _defaultAxis = "threshold"
    _reqThreshold = True
+   _usingQuantiles = False
 
    @staticmethod
    def getAxisFormatter(self, data):
@@ -1079,6 +1080,16 @@ class Contingency(Threshold):
       [obs, fcst] = data.getScores(["obs", "fcst"])
       return self.computeObsFcst(obs, fcst, tRange)
 
+   # convert a range of quantiles to thresholds, for example converting
+   # [10%, 50%] of some precip values to [5 mm, 25 mm]
+   def _quantileToThreshold(self, values, tRange):
+      sorted = np.sort(values)
+      qRange = [-np.inf, np.inf]
+      for i in range(0, 1):
+         if(not np.isinf(abs(tRange[i]))):
+            qRange[i] = np.percentile(sorted, tRange[i] * 100)
+      return qRange
+
    def computeObsFcst(self, obs, fcst, tRange):
       if(tRange is None):
          Util.error("Metric " + self.getClassName() +
@@ -1086,14 +1097,28 @@ class Contingency(Threshold):
       value = np.nan
       if(len(fcst) > 0):
          # Compute frequencies
-         a = np.ma.sum((self.within(fcst, tRange)) &
-               (self.within(obs, tRange)))  # Hit
-         b = np.ma.sum((self.within(fcst, tRange)) &
-               (self.within(obs, tRange) == 0))  # FA
-         c = np.ma.sum((self.within(fcst, tRange) == 0) &
-               (self.within(obs, tRange)))  # Miss
-         d = np.ma.sum((self.within(fcst, tRange) == 0) &
-               (self.within(obs, tRange) == 0))  # CR
+         if(self._usingQuantiles):
+            fcstSort = np.sort(fcst)
+            obsSort = np.sort(obs)
+            fRange = self._quantileToThreshold(fcstSort, tRange)
+            oRange = self._quantileToThreshold(obsSort, tRange)
+            a = np.ma.sum((self.within(fcst, fRange)) &
+                  (self.within(obs, oRange)))  # Hit
+            b = np.ma.sum((self.within(fcst, fRange)) &
+                  (self.within(obs, oRange) == 0))  # FA
+            c = np.ma.sum((self.within(fcst, fRange) == 0) &
+                  (self.within(obs, oRange)))  # Miss
+            d = np.ma.sum((self.within(fcst, fRange) == 0) &
+                  (self.within(obs, oRange) == 0))  # CR
+         else:
+            a = np.ma.sum((self.within(fcst, tRange)) &
+                  (self.within(obs, tRange)))  # Hit
+            b = np.ma.sum((self.within(fcst, tRange)) &
+                  (self.within(obs, tRange) == 0))  # FA
+            c = np.ma.sum((self.within(fcst, tRange) == 0) &
+                  (self.within(obs, tRange)))  # Miss
+            d = np.ma.sum((self.within(fcst, tRange) == 0) &
+                  (self.within(obs, tRange) == 0))  # CR
          value = self.calc(a, b, c, d)
          if(np.isinf(value)):
             value = np.nan
