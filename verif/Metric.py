@@ -326,46 +326,6 @@ class Ef(Deterministic):
       return "% times fcst > obs"
 
 
-class Extreme(Metric):
-   def calc(self, data, func, variable):
-      [value] = data.getScores([variable])
-      if(len(value) == 0):
-         return np.nan
-      return func(value)
-
-
-class MaxObs(Extreme):
-   _description = "Maximum observed value"
-   _orientation = 0
-
-   def computeCore(self, data, tRange):
-      return self.calc(data, np.max, "obs")
-
-
-class MinObs(Extreme):
-   _description = "Minimum observed value"
-   _orientation = 0
-
-   def computeCore(self, data, tRange):
-      return self.calc(data, np.min, "obs")
-
-
-class MaxFcst(Extreme):
-   _description = "Maximum forecasted value"
-   _orientation = 0
-
-   def computeCore(self, data, tRange):
-      return self.calc(data, np.max, "fcst")
-
-
-class MinFcst(Extreme):
-   _description = "Minimum forecasted value"
-   _orientation = 0
-
-   def computeCore(self, data, tRange):
-      return self.calc(data, np.min, "fcst")
-
-
 class StdError(Deterministic):
    _min = 0
    _description = "Standard error (i.e. RMSE if forecast had no bias)"
@@ -378,161 +338,6 @@ class StdError(Deterministic):
 
    def name(self):
       return "Standard error"
-
-
-# Returns all PIT values
-class Pit(Metric):
-   _min = 0
-   _max = 1
-   _orientation = 0
-
-   def __init__(self, name="pit"):
-      self._name = name
-
-   def label(self, data):
-      return "PIT"
-
-   def compute(self, data, tRange):
-      x0 = data.getX0()
-      x1 = data.getX1()
-      if(x0 is None and x1 is None):
-         [pit] = data.getScores([self._name])
-      else:
-         [obs, pit] = data.getScores(["obs", self._name])
-         if(x0 is not None):
-            I = np.where(obs == x0)[0]
-            pit[I] = np.random.rand(len(I)) * pit[I]
-         if(x1 is not None):
-            I = np.where(obs == x1)[0]
-            pit[I] = 1 - np.random.rand(len(I)) * (1 - pit[I])
-         # I = np.where((fcst > 2) & (fcst < 2000))[0]
-         # I = np.where((fcst > 20))[0]
-         # pit = pit[I]
-      return pit
-
-   def name(self):
-      return "PIT"
-
-
-# Returns all PIT values
-class PitDev(Metric):
-   _min = 0
-   # _max = 1
-   _perfectScore = 1
-   _description = "Deviation of the PIT histogram"
-   _orientation = -1
-
-   def __init__(self, numBins=11):
-      self._metric = Pit()
-      self._bins = np.linspace(0, 1, numBins)
-
-   def label(self, data):
-      return "PIT histogram deviation"
-
-   def computeCore(self, data, tRange):
-      pit = self._metric.compute(data, tRange)
-      pit = pit[np.isnan(pit) == 0]
-
-      nb = len(self._bins) - 1
-      D = self.deviation(pit, nb)
-      D0 = self.expectedDeviation(pit, nb)
-      dev = D / D0
-      return dev
-
-   def name(self):
-      return "PIT deviation factor"
-
-   @staticmethod
-   def expectedDeviation(values, numBins):
-      if(len(values) == 0 or numBins == 0):
-         return np.nan
-      return np.sqrt((1.0 - 1.0 / numBins) / (len(values) * numBins))
-
-   @staticmethod
-   def deviation(values, numBins):
-      if(len(values) == 0 or numBins == 0):
-         return np.nan
-      x = np.linspace(0, 1, numBins + 1)
-      n = np.histogram(values, x)[0]
-      n = n * 1.0 / sum(n)
-      return np.sqrt(1.0 / numBins * np.sum((n - 1.0 / numBins) ** 2))
-
-   @staticmethod
-   def deviationStd(values, numBins):
-      if(len(values) == 0 or numBins == 0):
-         return np.nan
-      n = len(values)
-      p = 1.0 / numBins
-      numPerBinStd = np.sqrt(n * p * (1 - p))
-      std = numPerBinStd / n
-      return std
-
-   # What reduction in ignorance is possible by calibrating the PIT-histogram?
-   @staticmethod
-   def ignorancePotential(values, numBins):
-      if(len(values) == 0 or numBins == 0):
-         return np.nan
-      x = np.linspace(0, 1, numBins + 1)
-      n = np.histogram(values, x)[0]
-      n = n * 1.0 / sum(n)
-      expected = 1.0 / numBins
-      ign = np.sum(n * np.log2(n / expected)) / sum(n)
-      return ign
-
-
-class MarginalRatio(Metric):
-   _min = 0
-   _description = "Ratio of marginal probability of obs to marginal" \
-         " probability of fcst. Use -r."
-   _perfectScore = 1
-   _reqThreshold = True
-   _supThreshold = True
-   _defaultAxis = "threshold"
-   _experimental = True
-   _orientation = 0
-
-   def computeCore(self, data, tRange):
-      if(np.isinf(tRange[0])):
-         pvar = data.getPvar(tRange[1])
-         [obs, p1] = data.getScores(["obs", pvar])
-         p0 = 0 * p1
-      elif(np.isinf(tRange[1])):
-         pvar = data.getPvar(tRange[0])
-         [obs, p0] = data.getScores(["obs", pvar])
-         p1 = 0 * p0 + 1
-      else:
-         pvar0 = data.getPvar(tRange[0])
-         pvar1 = data.getPvar(tRange[1])
-         [obs, p0, p1] = data.getScores(["obs", pvar0, pvar1])
-      obs = Threshold.within(obs, tRange)
-      p = p1 - p0
-      if(np.mean(p) == 0):
-         return np.nan
-      return np.mean(obs) / np.mean(p)
-
-   def label(self, data):
-      return "Ratio of marginal probs: Pobs/Pfcst"
-
-
-class SpreadSkillDiff(Metric):
-   _description = "Difference between spread and skill in %"
-   _perfectScore = 0
-   _orientation = 0
-
-   def computeCore(self, data, tRange):
-      import scipy.stats
-      [obs, fcst, spread] = data.getScores(["obs", "fcst", "spread"])
-      if(len(obs) <= 1):
-         return np.nan
-      rmse = np.sqrt(np.mean((obs - fcst) ** 2))
-      spread = np.mean(spread) / 2.563103
-      return 100 * (spread / rmse - 1)
-
-   def name(self):
-      return "Spread-skill difference"
-
-   def label(self, data):
-      return "Spread-skill difference (%)"
 
 
 class Rmse(Deterministic):
@@ -691,18 +496,6 @@ class Mbias(Deterministic):
       return self._description
 
 
-class Num(Metric):
-   _description = "Number of valid forecasts"
-   _orientation = 0
-
-   def computeCore(self, data, tRange):
-      [obs] = data.getScores(["obs"])
-      return obs.shape[0]
-
-   def name(self):
-      return "Number of valid observations"
-
-
 class Corr(Deterministic):
    _min = 0  # Technically -1, but values below 0 are not as interesting
    _max = 1
@@ -764,6 +557,213 @@ class KendallCorr(Deterministic):
 
    def label(self, data):
       return "Kendall correlation"
+
+
+class Extreme(Metric):
+   def calc(self, data, func, variable):
+      [value] = data.getScores([variable])
+      if(len(value) == 0):
+         return np.nan
+      return func(value)
+
+
+class MaxObs(Extreme):
+   _description = "Maximum observed value"
+   _orientation = 0
+
+   def computeCore(self, data, tRange):
+      return self.calc(data, np.max, "obs")
+
+
+class MinObs(Extreme):
+   _description = "Minimum observed value"
+   _orientation = 0
+
+   def computeCore(self, data, tRange):
+      return self.calc(data, np.min, "obs")
+
+
+class MaxFcst(Extreme):
+   _description = "Maximum forecasted value"
+   _orientation = 0
+
+   def computeCore(self, data, tRange):
+      return self.calc(data, np.max, "fcst")
+
+
+class MinFcst(Extreme):
+   _description = "Minimum forecasted value"
+   _orientation = 0
+
+   def computeCore(self, data, tRange):
+      return self.calc(data, np.min, "fcst")
+
+
+# Returns all PIT values
+class Pit(Metric):
+   _min = 0
+   _max = 1
+   _orientation = 0
+
+   def __init__(self, name="pit"):
+      self._name = name
+
+   def label(self, data):
+      return "PIT"
+
+   def compute(self, data, tRange):
+      x0 = data.getX0()
+      x1 = data.getX1()
+      if(x0 is None and x1 is None):
+         [pit] = data.getScores([self._name])
+      else:
+         [obs, pit] = data.getScores(["obs", self._name])
+         if(x0 is not None):
+            I = np.where(obs == x0)[0]
+            pit[I] = np.random.rand(len(I)) * pit[I]
+         if(x1 is not None):
+            I = np.where(obs == x1)[0]
+            pit[I] = 1 - np.random.rand(len(I)) * (1 - pit[I])
+         # I = np.where((fcst > 2) & (fcst < 2000))[0]
+         # I = np.where((fcst > 20))[0]
+         # pit = pit[I]
+      return pit
+
+   def name(self):
+      return "PIT"
+
+
+# Returns all PIT values
+class PitDev(Metric):
+   _min = 0
+   # _max = 1
+   _perfectScore = 1
+   _description = "Deviation of the PIT histogram"
+   _orientation = -1
+
+   def __init__(self, numBins=11):
+      self._metric = Pit()
+      self._bins = np.linspace(0, 1, numBins)
+
+   def label(self, data):
+      return "PIT histogram deviation"
+
+   def computeCore(self, data, tRange):
+      pit = self._metric.compute(data, tRange)
+      pit = pit[np.isnan(pit) == 0]
+
+      nb = len(self._bins) - 1
+      D = self.deviation(pit, nb)
+      D0 = self.expectedDeviation(pit, nb)
+      dev = D / D0
+      return dev
+
+   def name(self):
+      return "PIT deviation factor"
+
+   @staticmethod
+   def expectedDeviation(values, numBins):
+      if(len(values) == 0 or numBins == 0):
+         return np.nan
+      return np.sqrt((1.0 - 1.0 / numBins) / (len(values) * numBins))
+
+   @staticmethod
+   def deviation(values, numBins):
+      if(len(values) == 0 or numBins == 0):
+         return np.nan
+      x = np.linspace(0, 1, numBins + 1)
+      n = np.histogram(values, x)[0]
+      n = n * 1.0 / sum(n)
+      return np.sqrt(1.0 / numBins * np.sum((n - 1.0 / numBins) ** 2))
+
+   @staticmethod
+   def deviationStd(values, numBins):
+      if(len(values) == 0 or numBins == 0):
+         return np.nan
+      n = len(values)
+      p = 1.0 / numBins
+      numPerBinStd = np.sqrt(n * p * (1 - p))
+      std = numPerBinStd / n
+      return std
+
+   # What reduction in ignorance is possible by calibrating the PIT-histogram?
+   @staticmethod
+   def ignorancePotential(values, numBins):
+      if(len(values) == 0 or numBins == 0):
+         return np.nan
+      x = np.linspace(0, 1, numBins + 1)
+      n = np.histogram(values, x)[0]
+      n = n * 1.0 / sum(n)
+      expected = 1.0 / numBins
+      ign = np.sum(n * np.log2(n / expected)) / sum(n)
+      return ign
+
+
+class MarginalRatio(Metric):
+   _min = 0
+   _description = "Ratio of marginal probability of obs to marginal" \
+         " probability of fcst. Use -r."
+   _perfectScore = 1
+   _reqThreshold = True
+   _supThreshold = True
+   _defaultAxis = "threshold"
+   _experimental = True
+   _orientation = 0
+
+   def computeCore(self, data, tRange):
+      if(np.isinf(tRange[0])):
+         pvar = data.getPvar(tRange[1])
+         [obs, p1] = data.getScores(["obs", pvar])
+         p0 = 0 * p1
+      elif(np.isinf(tRange[1])):
+         pvar = data.getPvar(tRange[0])
+         [obs, p0] = data.getScores(["obs", pvar])
+         p1 = 0 * p0 + 1
+      else:
+         pvar0 = data.getPvar(tRange[0])
+         pvar1 = data.getPvar(tRange[1])
+         [obs, p0, p1] = data.getScores(["obs", pvar0, pvar1])
+      obs = Threshold.within(obs, tRange)
+      p = p1 - p0
+      if(np.mean(p) == 0):
+         return np.nan
+      return np.mean(obs) / np.mean(p)
+
+   def label(self, data):
+      return "Ratio of marginal probs: Pobs/Pfcst"
+
+
+class SpreadSkillDiff(Metric):
+   _description = "Difference between spread and skill in %"
+   _perfectScore = 0
+   _orientation = 0
+
+   def computeCore(self, data, tRange):
+      import scipy.stats
+      [obs, fcst, spread] = data.getScores(["obs", "fcst", "spread"])
+      if(len(obs) <= 1):
+         return np.nan
+      rmse = np.sqrt(np.mean((obs - fcst) ** 2))
+      spread = np.mean(spread) / 2.563103
+      return 100 * (spread / rmse - 1)
+
+   def name(self):
+      return "Spread-skill difference"
+
+   def label(self, data):
+      return "Spread-skill difference (%)"
+
+
+class Num(Metric):
+   _description = "Number of valid forecasts"
+   _orientation = 0
+
+   def computeCore(self, data, tRange):
+      [obs] = data.getScores(["obs"])
+      return obs.shape[0]
+
+   def name(self):
+      return "Number of valid observations"
 
 
 # Metrics based on 2x2 contingency table for a given threshold
