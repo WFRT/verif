@@ -1342,6 +1342,7 @@ class Kss(Contingency):
    _description = "Hanssen-Kuiper skill score"
    _perfectScore = 1
    _orientation = 1
+   _reference = "Hanssen , A., W. Kuipers, 1965: On the relationship between the frequency of rain and various meteorological parameters. - Meded. Verh. 81, 2-15."
 
    def calc(self, a, b, c, d):
       if((a + c) * (b + d) == 0):
