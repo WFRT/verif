@@ -1151,6 +1151,26 @@ class Ets(Contingency):
       return "ETS"
 
 
+class Dscore(Contingency):
+   _description = "Generalized discrimination score"
+   _perfectScore = 1
+   _orientation = 1
+   _reference = "Simon J. Mason and Andreas P. Weigel, 2009: A Generic Forecast Verification Framework for Administrative Purposes. Mon. Wea. Rev., 137, 331-349."
+   _max = 1
+   _min = 0
+
+   def calc(self, a, b, c, d):
+      N = a + b + c + d
+      num = a*d + 0.5*(a*b + c*d)
+      denom = (a + c) * (b + d)
+      if(denom == 0):
+         return np.nan
+      return num / denom
+
+   def name(self):
+      return "Discrimination"
+
+
 class Threat(Contingency):
    _description = "Threat score"
    _perfectScore = 1
