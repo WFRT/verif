@@ -711,6 +711,8 @@ class Corr(Deterministic):
    def _computeObsFcst(self, obs, fcst):
       if(len(obs) <= 1):
          return np.nan
+      if(np.var(fcst) == 0):
+         return np.nan
       return np.corrcoef(obs, fcst)[1, 0]
 
    def name(self):
@@ -750,6 +752,8 @@ class KendallCorr(Deterministic):
    def _computeObsFcst(self, obs, fcst):
       import scipy.stats
       if(len(obs) <= 1):
+         return np.nan
+      if(np.var(fcst) == 0):
          return np.nan
       return scipy.stats.kendalltau(obs, fcst)[0]
 
