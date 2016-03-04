@@ -1705,6 +1705,7 @@ class Reliability(Output):
       self._shadeNoSkill = True
       self._shadeConfidence = True
       self._showCount = True
+      self._minCount = 5  # Min number of valid data points to show in graph
 
    def _plotCore(self, data):
       labels = data.getLegend()
@@ -1762,7 +1763,7 @@ class Reliability(Output):
                if(len(I) > 0):
                   n[f, i] = len(obs[I])
                   # Need at least 10 data points to be valid
-                  if(n[f, i] >= 1):
+                  if(n[f, i] >= self._minCount):
                      y[f, i] = np.mean(obs[I])
                      v[f, i] = np.var(obs[I])
                   x[i, f] = np.mean(p[I])
