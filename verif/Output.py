@@ -1115,7 +1115,7 @@ class Scatter(Output):
             if(self._thresholds[0] is not None):
                edges = self._thresholds
             # For precip, we want a bin at exacly 0
-            elif(re.compile("Precip.*").match(data.getVariable())):
+            elif(re.compile("Precip.*").match(data.getVariable().name())):
                # Number of bins
                N = 10
                # The second to last edge should be such that we have at least
@@ -2122,7 +2122,7 @@ class DRoc(Output):
          if(self._fthresholds is not None):
             fthresholds = self._fthresholds
          else:
-            if(data.getVariable() == "Precip"):
+            if(data.getVariable().name() == "Precip"):
                fthresholds = [0, 1e-7, 1e-6, 1e-5, 1e-4, 0.001, 0.005,
                      0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 1, 2, 3, 5, 10, 20, 100]
             else:
@@ -2665,7 +2665,7 @@ class InvReliability(Output):
          N = min(25, max(11, int(len(obs) / 1000)))
          N = 21
          edges = np.linspace(0, 20, N + 1)
-         if(data.getVariable() == "Precip"):
+         if(data.getVariable().name() == "Precip"):
             edges = np.linspace(0, np.sqrt(Util.nanmax(obs)), N + 1) ** 2
          else:
             edges = np.linspace(Util.nanmin(obs), Util.nanmax(obs), N + 1)

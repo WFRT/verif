@@ -5,6 +5,7 @@ except:
 import numpy as np
 import verif.Station as Station
 import verif.Util as Util
+from verif.Variable import *
 
 
 # Abstract base class representing verification data
@@ -48,6 +49,10 @@ class Input:
       pass
 
    def getUnits(self):
+      var = self.getVariable()
+      return var.units()
+
+   def getVariable(self):
       pass
 
    def getLats(self):
@@ -159,19 +164,17 @@ class Comps(Input):
          metrics[i] = self._toPvarVerif(metrics[i])
       return metrics
 
-   def getUnits(self):
+   def getVariable(self):
+      name = self._file.Variable
+      units = "No units"
       if(hasattr(self._file, "Units")):
          if(self._file.Units == ""):
-            return "No units"
+            units = "No units"
          elif(self._file.Units == "%"):
-            return "%"
+            units = "%"
          else:
-            return "$" + self._file.Units + "$"
-      else:
-         return "No units"
-
-   def getVariable(self):
-      return self._file.Variable
+            units = "$" + self._file.Units + "$"
+      return Variable(name, units)
 
    @staticmethod
    def isValid(filename):
@@ -260,19 +263,17 @@ class NetcdfCf(Input):
          metrics.append(metric)
       return metrics
 
-   def getUnits(self):
+   def getVariable(self):
+      name = self._file.standard_name
+      units = "No units"
       if(hasattr(self._file, "Units")):
          if(self._file.Units == ""):
-            return "No units"
+            units = "No units"
          elif(self._file.Units == "%"):
-            return "%"
+            units = "%"
          else:
-            return "$" + self._file.Units + "$"
-      else:
-         return "No units"
-
-   def getVariable(self):
-      return self._file.standard_name
+            units = "$" + self._file.Units + "$"
+      return Variable(name, units)
 
 
 # Flat text file format
@@ -577,11 +578,8 @@ class Text(Input):
       metrics = self.getMetrics() + ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]
       return metrics
 
-   def getUnits(self):
-      return self._units
-
    def getVariable(self):
-      return self._variable
+      return Variable(self._variable, self._units)
 
    @staticmethod
    def isValid(filename):

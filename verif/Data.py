@@ -580,21 +580,8 @@ class Data:
       return self._files[0].getVariable()
 
    def getVariableAndUnits(self):
-      return self.getVariable() + " (" + self.getUnits() + ")"
-
-   def getX0(self):
-      x0 = None
-      prog = re.compile("Precip.*")
-      if(prog.match(self.getVariable())):
-         x0 = 0
-      return x0
-
-   def getX1(self):
-      x1 = None
-      prog = re.compile("RH")
-      if(prog.match(self.getVariable())):
-         x1 = 100
-      return x1
+      var = self.getVariable()
+      return var.name() + " (" + var.units() + ")"
 
    def getAxisLabel(self, axis=None):
       if(axis is None):

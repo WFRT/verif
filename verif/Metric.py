@@ -620,8 +620,8 @@ class Pit(Metric):
       return "PIT"
 
    def compute(self, data, tRange):
-      x0 = data.getX0()
-      x1 = data.getX1()
+      x0 = data.getVariable().getX0()
+      x1 = data.getVariable().getX1()
       if(x0 is None and x1 is None):
          [pit] = data.getScores([self._name])
       else:
