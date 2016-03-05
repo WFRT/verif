@@ -262,7 +262,8 @@ def getScreenWidth():
 
 # How wide should the text be output?
 def getTextWidth():
-   return max(50, min(100, getScreenWidth()))
+   # return max(50, min(100, getScreenWidth()))
+   return 80
 
 
 def getPvar(threshold):
