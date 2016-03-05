@@ -9,11 +9,11 @@ from matplotlib.dates import *
 import matplotlib.ticker
 
 
-# Access verification data from a set of COMPS NetCDF files
+# Access verification data from a set of Input files
 # Only returns data that is available for all files, for fair comparisons
 # i.e if some dates/offsets/locations are missing
 #
-# filenames: COMPS NetCDF verification files
+# filenames: Input files. The types are autodetected.
 # dates: Only allow these dates
 # offsets: Only allow these offsets
 # locations: Only allow these locationIds
@@ -420,6 +420,8 @@ class Data:
             return False
       return True
 
+   # Set the axis along which data is aggregated. One of offset, date, month,
+   # year, location, locationLat, locationLon, locationElev.
    def setAxis(self, axis):
       self._index = 0  # Reset index
       self._axis = axis

@@ -418,9 +418,9 @@ def run(argv):
 
 
 def showDescription(data=None):
-   desc = "Program to compute verification scores for weather forecasts. Can be\
-   used to compare forecasts from different files. In that case only dates,\
-   offsets, and locations that are common to all forecast files are used."
+   desc = "Program to compute verification scores for weather forecasts. Can be " \
+          "used to compare forecasts from different files. In that case only dates, "\
+          "offsets, and locations that are common to all forecast files are used."
    print textwrap.fill(desc, Util.getTextWidth())
    print ""
    print "usage: verif files -m metric [options]"

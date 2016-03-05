@@ -14,15 +14,10 @@ class Input:
    def __init__(self, filename):
       self._filename = filename
 
-   def getName(self):
-      pass
-
-   def getFilename(self):
-      return self.getName()
-
    def getDates(self):
       pass
 
+   # Returns a list of Station objects available
    def getStations(self):
       pass
 
@@ -35,13 +30,12 @@ class Input:
    def getQuantiles(self):
       pass
 
+   # Returns a 3D numpy array of observations with dims [date, offset, loc]
    def getObs(self):
       pass
 
+   # Returns a 3D numpy array of forecasts with dims [date, offset, loc]
    def getDeterministic(self):
-      pass
-
-   def getOther(self, name):
       pass
 
    def getMetrics(self):
@@ -84,7 +78,7 @@ class Input:
 
 # Original fileformat used by OutputVerif in COMPS
 class Comps(Input):
-   _dimensionMetrics = ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]
+   _dimensionNames = ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]
    _description = Util.formatArgument("netcdf", "Undocumented legacy " +
          "NetCDF format, to be phased out. A new NetCDF based format will " +
          "be defined.")
@@ -92,9 +86,6 @@ class Comps(Input):
    def __init__(self, filename):
       Input.__init__(self, filename)
       self._file = netcdf(filename, 'r')
-
-   def getName(self):
-      return self._file.variables
 
    def getStations(self):
       lat = Util.clean(self._file.variables["Lat"])
@@ -139,7 +130,7 @@ class Comps(Input):
    def getThresholds(self):
       thresholds = list()
       for (metric, v) in self._file.variables.iteritems():
-         if(metric not in self._dimensionMetrics):
+         if(metric not in self._dimensionNames):
             if(metric[0] == "p" and metric != "pit"):
                metric = self._toPvarVerif(metric)
                thresholds.append(float(metric[1:]))
@@ -148,7 +139,7 @@ class Comps(Input):
    def getQuantiles(self):
       quantiles = list()
       for (metric, v) in self._file.variables.iteritems():
-         if(metric not in self._dimensionMetrics):
+         if(metric not in self._dimensionNames):
             if(metric[0] == "q"):
                quantiles.append(float(metric[1:]))
       return quantiles
@@ -156,7 +147,7 @@ class Comps(Input):
    def getMetrics(self):
       metrics = list()
       for (metric, v) in self._file.variables.iteritems():
-         if(metric not in self._dimensionMetrics):
+         if(metric not in self._dimensionNames):
             metrics.append(metric)
       return metrics
 
