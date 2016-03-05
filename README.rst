@@ -143,6 +143,7 @@ on what variables are available in the input files.
 ======================  ===============================================================
 **Deterministic**       **Description**
 ----------------------  ---------------------------------------------------------------
+``-m alphaindex``       Alpha index
 ``-m bias``             Mean error
 ``-m cmae``             Cube-root mean absolute cubic error
 ``-m corr``             Pearson correlation between obs and forecast
@@ -153,6 +154,7 @@ on what variables are available in the input files.
 ``-m fcst``             Average forecast value
 ``-m kendallcorr``      Kendall correlation
 ``-m mae``              Mean of forecasts
+``-m nsec``             Nash-Sutcliffe efficiency coefficient
 ``-m num``              Number of valid forecasts
 ``-m obs``              Mean of observations
 ``-m qq``               Quantile-quantile plot
@@ -166,6 +168,7 @@ on what variables are available in the input files.
 ----------------------  ---------------------------------------------------------------
 ``-m baserate``         Climatological frequency
 ``-m biasfreq``         Numer of forecasts / number of observations
+``-m categorical``      Diagram showing POD, FAR, bias, and threat score
 ``-m count``            Number of forecasts wabove a threshold
 ``-m diff``             Difference between false alarms and misses
 ``-m edi``              Extremal dependency index
@@ -193,8 +196,10 @@ on what variables are available in the input files.
 ``-m bsres``            Resolution component of Brier score
 ``-m bss``              Brier skill score
 ``-m bsres``            Uncertainty component of Brier score
+``-m discrimination``   Discrimination diagram for a specified threshold
 ``-m economicvalue``    Economic value for a specified threshold
 ``-m invreliability``   Reliability diagram for a specified quantile
+``-m leps``             Linear error in probability space
 ``-m marginal``         Marginal distribution for a specified threshold
 ``-m marginalratio``    Ratio of marginal probability of obs to that of fcst
 ``-m pitdev``           Deviation of the PIT histogram
