@@ -26,15 +26,11 @@ import matplotlib.ticker
 class Data:
    def __init__(self, filenames, dates=None, offsets=None, locations=None,
          latlonRange=None, elevRange=None, clim=None, climType="subtract",
-         training=None, legend=None):
+         training=None):
       if(not isinstance(filenames, list)):
          filenames = [filenames]
       self._axis = "date"
       self._index = 0
-
-      if(legend is not None and len(filenames) is not len(legend)):
-         Util.error("Need one legend entry for each filename")
-      self._legend = legend
 
       # Organize files
       self._files = list()
@@ -554,13 +550,6 @@ class Data:
          I = names[i].rfind('/')
          names[i] = names[i][I + 1:]
       return names
-
-   def getLegend(self):
-      if(self._legend is None):
-         legend = self.getFilenames()
-      else:
-         legend = self._legend
-      return legend
 
    def getShortNames(self):
       names = self.getFilenames()
