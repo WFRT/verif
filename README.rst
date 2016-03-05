@@ -266,5 +266,5 @@ proposal, based on the NetCDF/CF standard:
 Copyright and license
 ---------------------
 
-Copyright © 2015 UBC Weather Forecast Research Team. ``verif`` is licensed under the 3-clause BSD
-license. See LICENSE file.
+Copyright © 2015-2016 UBC Weather Forecast Research Team. ``verif`` is licensed under the 3-clause
+BSD license. See LICENSE file.
