@@ -26,11 +26,12 @@ import matplotlib.ticker
 class Data:
    def __init__(self, filenames, dates=None, offsets=None, locations=None,
          latlonRange=None, elevRange=None, clim=None, climType="subtract",
-         training=None, legend=None):
+         training=None, legend=None, removeMissingAcrossAll=True):
       if(not isinstance(filenames, list)):
          filenames = [filenames]
       self._axis = "date"
       self._index = 0
+      self._removeMissingAcrossAll = removeMissingAcrossAll
 
       if(legend is not None and len(filenames) is not len(legend)):
          Util.error("Need one legend entry for each filename")
@@ -405,11 +406,12 @@ class Data:
       # Remove missing. If one configuration has a missing value, set all
       # configurations to missing This can happen when the dates are available,
       # but have missing values
-      isMissing = np.isnan(self._cache[0][metric])
-      for f in range(1, self.getNumFilesWithClim()):
-         isMissing = isMissing | (np.isnan(self._cache[f][metric]))
-      for f in range(0, self.getNumFilesWithClim()):
-         self._cache[f][metric][isMissing] = np.nan
+      if self._removeMissingAcrossAll:
+         isMissing = np.isnan(self._cache[0][metric])
+         for f in range(1, self.getNumFilesWithClim()):
+            isMissing = isMissing | (np.isnan(self._cache[f][metric]))
+         for f in range(0, self.getNumFilesWithClim()):
+            self._cache[f][metric][isMissing] = np.nan
 
       return self._cache[findex][metric]
 
