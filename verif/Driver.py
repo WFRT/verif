@@ -56,7 +56,7 @@ def run(argv):
    Left = None
    Pad = None
    showPerfect = None
-   cType = "mean"
+   aggregatorName = "mean"
    doHist = False
    doSort = False
    doAcc = False
@@ -151,7 +151,7 @@ def run(argv):
             elif(arg == "-s"):
                sdim = argv[i + 1]
             elif(arg == "-ct"):
-               cType = argv[i + 1]
+               aggregatorName = argv[i + 1]
             elif(arg == "-r"):
                thresholds = Util.parseNumbers(argv[i + 1])
             elif(arg == "-ms"):
@@ -319,7 +319,7 @@ def run(argv):
       if(m is None):
          m = Metric.Default(metric)
 
-      m.setAggregator(cType)
+      m.setAggregator(aggregatorName)
 
       # Output type
       if(type == "plot" or type == "text" or type == "map" or
@@ -401,6 +401,7 @@ def run(argv):
    pl.setFigsize(figSize)
    pl.setDpi(dpi)
    pl.setAxis(xdim)
+   pl.setAggregatorName(aggregatorName)
    pl.setShowMargin(not noMargin)
    pl.setYlabel(ylabel)
    pl.setXlabel(xlabel)

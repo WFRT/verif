@@ -223,6 +223,9 @@ class Output:
    def setTight(self, tight):
       self._tight = tight
 
+   def setAggregatorName(self, name):
+      self._aggregatorName = name
+
    # Public
    # Call this to create a plot, saves to file
    def plot(self, data):
@@ -988,12 +991,12 @@ class ObsFcst(Output):
 
       # Obs line
       mObs = Metric.Default("obs", aux="fcst")
-      mObs.setAggregator("mean")
+      mObs.setAggregator(self._aggregatorName)
       y = mObs.compute(data, None)
       self._plotObs(x, y, isCont)
 
       mFcst = Metric.Default("fcst", aux="obs")
-      mFcst.setAggregator("mean")
+      mFcst.setAggregator(self._aggregatorName)
       labels = data.getLegend()
       for f in range(0, F):
          data.setFileIndex(f)
