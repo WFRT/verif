@@ -175,6 +175,8 @@ class Metric:
          self._aggregator = Util.nprange
       elif(name == "count"):
          self._aggregator = Util.numvalid
+      elif(name == "meanabs"):
+         self._aggregator = Util.meanabs
       elif(Util.isnumeric(name)):
          def func(x):
             return np.percentile(x, float(name))

@@ -454,7 +454,7 @@ def showDescription(data=None):
    print Util.formatArgument("-b type", "One of 'below', 'within', or 'above'. For threshold plots (ets, hit, within, etc) 'below/above' computes frequency below/above the threshold, and 'within' computes the frequency between consecutive thresholds.")
    print Util.formatArgument("-c file", "File containing climatology data. Subtract all forecasts and obs with climatology values.")
    print Util.formatArgument("-C file", "File containing climatology data. Divide all forecasts and obs by climatology values.")
-   print Util.formatArgument("-ct type", "Collapsing type: 'count', 'min', 'mean', 'median', 'max', 'std', 'range', or a number between 0 and 1. Some metrics computes a value for each value on the x-axis. Which function should be used to do the collapsing? Default is 'mean'. Only supported by some metrics. A number between 0 and 1 returns a specific quantile (e.g.  0.5 is the median)")
+   print Util.formatArgument("-ct type", "Collapsing type: 'count', 'min', 'mean', 'meanabs', 'median', 'max', 'range', 'std', or a number between 0 and 1. Some metrics computes a value for each value on the x-axis. Which function should be used to do the collapsing? Default is 'mean'. 'meanabs' is the mean absolute value. Only supported by some metrics. A number between 0 and 1 returns a specific quantile (e.g.  0.5 is the median)")
    print Util.formatArgument("-hist", "Plot values as histogram. Only works for non-derived metrics")
    print Util.formatArgument("-sort", "Plot values sorted. Only works for non-derived metrics")
 

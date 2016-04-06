@@ -210,6 +210,11 @@ def numvalid(data, **args):
    return len(I)
 
 
+# Compute the mean absolute value
+def meanabs(data, **args):
+   return np.mean(abs(data))
+
+
 def isnumeric(x):
    try:
       float(x)
