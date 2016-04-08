@@ -835,9 +835,9 @@ class Hist(Output):
    _reqThreshold = True
    _supThreshold = False
 
-   def __init__(self, name):
+   def __init__(self, metric):
       Output.__init__(self)
-      self._name = name
+      self._metric = metric
 
       # Settings
       self._showPercent = True
@@ -848,28 +848,28 @@ class Hist(Output):
       edges = self._thresholds
       for f in range(0, F):
          data.setFileIndex(f)
-         allValues[f] = data.getScores(self._name)
+         allValues[f] = self._metric.compute(data, [-np.inf, np.inf])
 
       xx = (edges[0:-1] + edges[1:]) / 2
       y = np.zeros([F, len(xx)], 'float')
       x = np.zeros([F, len(xx)], 'float')
       for f in range(0, F):
          data.setFileIndex(f)
-         N = len(allValues[f][0])
+         N = len(allValues[f])
 
          for i in range(0, len(xx)):
             if(i == len(xx) - 1):
-               I = np.where((allValues[f][0] >= edges[i]) &
-                            (allValues[f][0] <= edges[i + 1]))[0]
+               I = np.where((allValues[f] >= edges[i]) &
+                            (allValues[f] <= edges[i + 1]))[0]
             else:
-               I = np.where((allValues[f][0] >= edges[i]) &
-                            (allValues[f][0] < edges[i + 1]))[0]
+               I = np.where((allValues[f] >= edges[i]) &
+                            (allValues[f] < edges[i + 1]))[0]
             y[f, i] = len(I) * 1.0
          x[f, :] = xx
       return [x, y]
 
    def _plotCore(self, data):
-      data.setAxis("none")
+      data.setAxis(self._xaxis)
       labels = data.getLegend()
       F = data.getNumFiles()
       [x, y] = self.getXY(data)
@@ -954,17 +954,17 @@ class Sort(Output):
    _reqThreshold = False
    _supThreshold = False
 
-   def __init__(self, name):
+   def __init__(self, metric):
       Output.__init__(self)
-      self._name = name
+      self._metric = metric
 
    def _plotCore(self, data):
-      data.setAxis("none")
+      data.setAxis(self._xaxis)
       labels = data.getLegend()
       F = data.getNumFiles()
       for f in range(0, F):
          data.setFileIndex(f)
-         [x] = data.getScores(self._name)
+         x = self._metric.compute(data, [-np.inf, np.inf])
          x = np.sort(x)
          color = self._getColor(f, F)
          style = self._getStyle(f, F)
