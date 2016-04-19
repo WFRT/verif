@@ -201,7 +201,9 @@ def nanstd(data, **args):
 
 def nanpercentile(data, pers):
    I = np.where(np.isnan(data.flatten()) == 0)[0]
-   p = np.percentile(data.flatten()[I], pers)
+   p = np.nan
+   if(len(I) > 0):
+      p = np.percentile(data.flatten()[I], pers)
    return p
 
 
