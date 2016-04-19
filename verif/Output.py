@@ -69,6 +69,7 @@ class Output:
       self._yticks = None
       self._tight = False
       self._simple = False
+      self._showSatellite = False
 
    @classmethod
    def defaultAxis(cls):
@@ -225,6 +226,9 @@ class Output:
 
    def setAggregatorName(self, name):
       self._aggregatorName = name
+
+   def setShowSatellite(self, flag):
+      self._showSatellite = flag
 
    # Public
    # Call this to create a plot, saves to file
@@ -777,9 +781,15 @@ class Default(Output):
       for f in range(0, F):
          Util.subplot(f, F)
          if(hasBasemap):
-            map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
-                  urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
-                  resolution=res)
+            if(self._showSatellite):
+               # arcgisimage requires basemap to have an epsg option passed
+               map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
+                     urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
+                     resolution=res, epsg=4269)
+            else:
+               map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
+                     urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
+                     resolution=res)
             map.drawcoastlines(linewidth=0.25)
             map.drawcountries(linewidth=0.25)
             map.drawmapboundary()
@@ -787,6 +797,9 @@ class Default(Output):
             map.drawmeridians(np.arange(-180., 420., dx), labels=[0, 0, 0, 1])
             map.fillcontinents(color='coral', lake_color='aqua', zorder=-1)
             x0, y0 = map(lons, lats)
+            if(self._showSatellite):
+               sattype = 'ESRI_Imagery_World_2D'
+               map.arcgisimage(service=sattype, xpixels=2000, verbose=False)
          else:
             x0 = lons
             y0 = lats

@@ -68,6 +68,7 @@ def run(argv):
    listQuantiles = False
    listLocations = False
    listDates = False
+   showSatellite = False
 
    # Read command line arguments
    i = 1
@@ -97,6 +98,8 @@ def run(argv):
             doSort = True
          elif(arg == "-simple"):
             simple = True
+         elif(arg == "-sat"):
+            showSatellite = True
          else:
             if(arg == "-f"):
                ofile = argv[i + 1]
@@ -407,6 +410,7 @@ def run(argv):
    pl.setYlabel(ylabel)
    pl.setXlabel(xlabel)
    pl.setTitle(title)
+   pl.setShowSatellite(showSatellite)
 
    if(type == "text"):
       pl.text(data)
@@ -478,6 +482,7 @@ def showDescription(data=None):
    print Util.formatArgument("-ms size", "How big should markers be?")
    print Util.formatArgument("-nomargin", "Remove margins (whitespace) in the plot not x[i] <= T.")
    print Util.formatArgument("-right value", "Right boundary location for saved figure [range 0-1]")
+   print Util.formatArgument("-sat", "Show satellite image if plotting a map (slow)")
    print Util.formatArgument("-simple", "Make a simpler plot, without extra lines, subplots, etc.")
    print Util.formatArgument("-sp", "Show a line indicating the perfect score")
    print Util.formatArgument("-tickfs size", "Font size for axis ticks")
