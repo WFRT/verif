@@ -178,8 +178,12 @@ class Metric:
       elif(name == "meanabs"):
          self._aggregator = Util.meanabs
       elif(Util.isnumeric(name)):
+         quantile = float(name)
+         if quantile < 0 or quantile > 1:
+            Util.error("Number after -ct must must be between 0 and 1")
+
          def func(x):
-            return np.percentile(x, float(name))
+            return np.percentile(x, quantile*100)
          self._aggregator = func
       else:
          Util.error("Invalid aggregator")
