@@ -20,6 +20,7 @@ def run(argv):
    metric = None
    locations = None
    latlonRange = None
+   elevRange = None
    training = 0
    thresholds = None
    dates = None
@@ -107,6 +108,8 @@ def run(argv):
                locations = Util.parseNumbers(argv[i + 1])
             elif(arg == "-llrange"):
                latlonRange = Util.parseNumbers(argv[i + 1])
+            elif(arg == "-elevrange"):
+               elevRange = Util.parseNumbers(argv[i + 1])
             elif(arg == "-t"):
                training = int(argv[i + 1])
             elif(arg == "-x"):
@@ -209,10 +212,13 @@ def run(argv):
    if(latlonRange is not None and len(latlonRange) != 4):
       Util.error("-llRange <values> must have exactly 4 values")
 
+   if(elevRange is not None and len(elevRange) != 2):
+      Util.error("-elevRange <values> must have exactly 2 values")
+
    if(len(ifiles) > 0):
       data = Data.Data(ifiles, clim=climFile, climType=climType, dates=dates,
             offsets=offsets, locations=locations, latlonRange=latlonRange,
-            training=training, legend=leg)
+            elevRange=elevRange, training=training, legend=leg)
    else:
       data = None
 
@@ -445,6 +451,7 @@ def showDescription(data=None):
    print "Note: vectors can be entered using commas, or MATLAB syntax (i.e 3:5 is 3,4,5 and 3:2:7 is 3,5,7)"
    # Dimensions
    print Util.green("  Dimensions and subset:")
+   print Util.formatArgument("-elevrange range", "Limit the verification to locations within minelev,maxelev.")
    print Util.formatArgument("-d dates", "A vector of dates in YYYYMMDD format, e.g.  20130101:20130201.")
    print Util.formatArgument("-l locations", "Limit the verification to these location IDs.")
    print Util.formatArgument("-llrange range", "Limit the verification to locations within minlon,maxlon,minlat,maxlat.")

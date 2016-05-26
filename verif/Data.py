@@ -99,20 +99,22 @@ class Data:
             useLocations = latlonLocations
          if(len(useLocations) == 0):
             Util.error("No available locations within lat/lon range")
-      else:
+      elif locations is not None:
          useLocations = locations
+      else:
+         useLocations = self._files[0].getStationIds()
 
       # Elevation range
       if(elevRange is not None):
-         lat = self._files[0].getElevs()
-         locId = self._files[0].getStationIds()
-         elevLocations = list()
+         stations = self._files[0].getStations()
          minElev = elevRange[0]
          maxElev = elevRange[1]
-         for i in range(0, len(elev)):
-            currElev = float(elev[i])
+         elevLocations = list()
+         for i in range(0, len(stations)):
+            currElev = float(stations[i].elev())
+            id = stations[i].id()
             if(currElev >= minElev and currElev <= maxElev):
-               elevLocations.append(locId[i])
+               elevLocations.append(id)
          useLocations = Util.intersect(useLocations, elevLocations)
          if(len(useLocations) == 0):
             Util.error("No available locations within elevation range")
