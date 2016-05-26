@@ -2352,7 +2352,6 @@ class Taylor(Output):
       # Allow for some padding outside the outer ring
       mpl.xlim([-maxstd * 1.05, maxstd * 1.05])
       mpl.ylim([0, maxstd * 1.05])
-      mpl.xlabel("Standard deviation (" + data.getUnits() + ")")
       xticks = mpl.xticks()[0]
       mpl.xticks(xticks[xticks >= 0])
       mpl.xlim([-maxstd * 1.05, maxstd * 1.05])
@@ -2361,7 +2360,13 @@ class Taylor(Output):
             "Correlation", rotation=-45, fontsize=self._labfs,
             horizontalalignment="center", verticalalignment="bottom")
       mpl.gca().yaxis.set_visible(False)
+      # Remove box around plot
+      mpl.gca().spines['bottom'].set_visible(False)
+      mpl.gca().spines['top'].set_visible(False)
+      mpl.gca().spines['left'].set_visible(False)
+      mpl.gca().spines['right'].set_visible(False)
       mpl.gca().xaxis.set_ticks_position('bottom')
+      mpl.xlabel("Standard deviation (" + data.getUnits() + ")")
 
       # Draw obs point/lines
       orange = [1, 0.8, 0.4]
@@ -2403,6 +2408,9 @@ class Taylor(Output):
             self._drawCircle(X, style=":")
       self._drawCircle(maxstd, style="-", lw=3)
 
+      # Draw bottom line
+      mpl.plot([-maxstd, maxstd], [0, 0], "k-", lw=3)
+      # Make axes square
       mpl.gca().set_aspect(1)
 
 
