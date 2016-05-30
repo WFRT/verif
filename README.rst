@@ -58,7 +58,7 @@ Install the required pacakges:
 
 .. code-block:: bash
 
-  sudo apt-get install python-numpy python-scipy python-matplotlib
+  sudo apt-get install python-numpy python-scipy python-matplotlib python-setuptools
 
 Then install ``verif`` by executing the following inside the extracted folder:
 
