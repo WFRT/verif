@@ -2309,7 +2309,7 @@ class Against(Output):
 
 
 class Taylor(Output):
-   _description = "Taylor diagram showing correlation and forecast standard deviation"
+   _description = "Taylor diagram showing correlation and forecast standard deviation. Use '-x none' to collapse all data showing only one point.  Otherwise, the whole graph is normalized by the standard deviation of the observations."
    _supThreshold = True
    _supX = True
    _legLoc = "upper left"
@@ -2338,13 +2338,25 @@ class Taylor(Output):
                corr[i] = np.corrcoef(obs, fcst)[1, 0]
                std[i] = np.sqrt(np.var(fcst))
                stdobs[i] = np.sqrt(np.var(obs))
+         # Normalize
+         if size > 1:
+            std = std / stdobs
+            stdobs = 1.0
+            xlabel = "Normalized standard deviation"
+            crmseLabel = "Norm CRMSE"
+            minCrmseLabel = "Min norm CRMSE"
+         else:
+            stdobs = Util.nanmean(stdobs)
+            xlabel = "Standard deviation (" + data.getUnits() + ")"
+            crmseLabel = "CRMSE"
+            minCrmseLabel = "Min CRMSE"
+
          maxstd = max(maxstd, max(std))
          ang = np.arccos(corr)
          x = std * np.cos(ang)
          y = std * np.sin(ang)
          mpl.plot(x, y, style, color=color, label=labels[f], lw=self._lw,
                ms=self._ms)
-         stdobs = Util.nanmean(stdobs)
 
       # Set axis limits
       # Enforce a minimum radius beyond the obs-radius
@@ -2368,12 +2380,12 @@ class Taylor(Output):
       mpl.gca().spines['left'].set_visible(False)
       mpl.gca().spines['right'].set_visible(False)
       mpl.gca().xaxis.set_ticks_position('bottom')
-      mpl.xlabel("Standard deviation (" + data.getUnits() + ")")
+      mpl.xlabel(xlabel)
 
       # Draw obs point/lines
       orange = [1, 0.8, 0.4]
       self._drawCircle(stdobs, style='-', lw=5, color=orange)
-      mpl.plot(stdobs, 0, 's-', color=orange, label="Obs stdev", mew=2, ms=self._ms, clip_on=False)
+      mpl.plot(stdobs, 0, 's-', color=orange, label="Obs", mew=2, ms=self._ms, clip_on=False)
 
       # Draw diagonals
       corrs = [-1, -0.99, -0.95, -0.9, -0.8, -0.5, 0, 0.5, 0.8, 0.9, 0.95,
@@ -2387,7 +2399,7 @@ class Taylor(Output):
 
       # Draw CRMSE rings
       xticks = mpl.xticks()[0]
-      self._drawCircle(0, style="-", color="gray", lw=3, label="CRMSE")
+      self._drawCircle(0, style="-", color="gray", lw=3, label=crmseLabel)
       Rs = np.linspace(0, 2 * max(xticks), 4 * max(xticks) / (xticks[1] -
          xticks[0]) + 1)
       for R in Rs:
@@ -2402,7 +2414,7 @@ class Taylor(Output):
 
       # Draw minimum CRMSE
       self._drawCircle(stdobs/2, xcenter=stdobs/2, ycenter=0, style="--",
-            color="orange", lw=3, label="Min CRMSE", zorder=0)
+            color="orange", lw=3, label=minCrmseLabel, zorder=0)
 
       # Draw std rings
       for X in mpl.xticks()[0]:
