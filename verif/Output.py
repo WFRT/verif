@@ -1108,10 +1108,12 @@ class Scatter(Output):
    _description = "Scatter plot of forecasts vs obs and lines showing quantiles of obs given forecast (use -r to specify)"
    _supThreshold = False
    _supX = False
-   _showQuantiles = True
 
    def __init__(self):
       Output.__init__(self)
+
+   def _showQuantiles(self):
+      return not self._simple
 
    def _plotCore(self, data):
       data.setAxis("none")
@@ -1125,7 +1127,7 @@ class Scatter(Output):
 
          [x, y] = data.getScores(["obs", "fcst"])
          mpl.plot(x, y, ".", color=color, label=labels[f], lw=self._lw, ms=self._ms, alpha=0.2)
-         if(self._showQuantiles):
+         if(self._showQuantiles()):
             # Determine bin edges for computing quantiles
             # Use those provided by -r
             if(self._thresholds[0] is not None):
