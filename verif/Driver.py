@@ -266,7 +266,11 @@ def run(argv):
    m = None
 
    # Handle special plots
-   if(metric == "pithist"):
+   if(doHist):
+      pl = Output.Hist(metric)
+   elif(doSort):
+      pl = Output.Sort(metric)
+   elif(metric == "pithist"):
       m = Metric.Pit("pit")
       pl = Output.PitHist(m)
    elif(metric == "obsfcst"):
@@ -329,13 +333,8 @@ def run(argv):
       # Output type
       if(type == "plot" or type == "text" or type == "map" or
             type == "maprank"):
-         if(doHist):
-            pl = Output.Hist(m)
-         elif(doSort):
-            pl = Output.Sort(m)
-         else:
-            pl = Output.Default(m)
-            pl.setShowAcc(doAcc)
+         pl = Output.Default(m)
+         pl.setShowAcc(doAcc)
       else:
          Util.error("Type not understood")
 
