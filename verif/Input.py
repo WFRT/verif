@@ -326,7 +326,7 @@ class Text(Input):
             curr = rowstr[1:]
             curr = curr.split()
             if(curr[0] == "variable:"):
-               self._variable = curr[1]
+               self._variable = ' '.join(curr[1:])
             elif(curr[0] == "units:"):
                self._units = curr[1]
             else:
