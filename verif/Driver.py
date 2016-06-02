@@ -70,6 +70,8 @@ def run(argv):
    listLocations = False
    listDates = False
    showSatellite = False
+   logX = False
+   logY = False
 
    # Read command line arguments
    i = 1
@@ -99,6 +101,10 @@ def run(argv):
             doSort = True
          elif(arg == "-simple"):
             simple = True
+         elif(arg == "-logx"):
+            logX = True
+         elif(arg == "-logy"):
+            logY = True
          elif(arg == "-sat"):
             showSatellite = True
          else:
@@ -405,6 +411,10 @@ def run(argv):
       pl.setYLim(ylim)
    if(clim is not None):
       pl.setCLim(clim)
+   if(logX is not None):
+      pl.setLogX(logX)
+   if(logY is not None):
+      pl.setLogY(logY)
    pl.setFilename(ofile)
    pl.setThresholds(thresholds)
    pl.setFigsize(figSize)
@@ -482,6 +492,8 @@ def showDescription(data=None):
    print Util.formatArgument("-labfs size", "Font size for axis labels")
    print Util.formatArgument("-left value", "Left boundary location for saved figure [range 0-1]")
    print Util.formatArgument("-legfs size", "Font size for legend. Set to 0 to hide legend.")
+   print Util.formatArgument("-logx", "Use a logarithmic x-axis")
+   print Util.formatArgument("-logy", "Use a logarithmic y-axis")
    print Util.formatArgument("-majlth length", "Length of major tick marks")
    print Util.formatArgument("-majtwid width", "Adjust the thickness of the major tick marks")
    print Util.formatArgument("-minlth length", "Length of minor tick marks")

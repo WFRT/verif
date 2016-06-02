@@ -27,6 +27,8 @@ class Output:
    _supX = True
    _experimental = False
    _legLoc = "best"  # Where should the legend go?
+   _logX = False
+   _logY = False
 
    def __init__(self):
       self._filename = None
@@ -230,6 +232,12 @@ class Output:
    def setShowSatellite(self, flag):
       self._showSatellite = flag
 
+   def setLogX(self, flag):
+      self._logX = flag
+
+   def setLogY(self, flag):
+      self._logY = flag
+
    # Public
    # Call this to create a plot, saves to file
    def plot(self, data):
@@ -407,6 +415,10 @@ class Output:
             mpl.ylim(self._ylim)
          if(self._clim is not None):
             mpl.clim(self._clim)
+         if self._logX:
+            ax.set_xscale('log')
+         if self._logY:
+            ax.set_yscale('log')
 
       # Labels
       if(self._xlabel is not None):
