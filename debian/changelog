@@ -10,9 +10,11 @@ verif (0.4.0) precise; urgency=low
     -m nsec
   * New options:
     Added -elevrange
+    Added -lc to specify line colours
+    Added -legloc to specify legend location
+    Added -logx and -logy to logx logarithmic axes
     Added -sat to show satellite image on maps
     Added -simple to ask for a simpler diagram, when possible
-    Added -lc to specify line colours
   * Better handling of legend entries
 
  -- Thomas Nipen <thomas.nipen@met.no>  Tue, 1 Mar 2016 23:55:00 +0100
