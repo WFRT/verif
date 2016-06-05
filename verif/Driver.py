@@ -46,6 +46,7 @@ def run(argv):
    tickFontSize = None
    labFontSize = None
    legFontSize = None
+   legLoc = None
    type = "plot"
    XRotation = None
    MajorLength = None
@@ -178,6 +179,8 @@ def run(argv):
                labFontSize = float(argv[i + 1])
             elif(arg == "-legfs"):
                legFontSize = float(argv[i + 1])
+            elif(arg == "-legloc"):
+               legLoc = argv[i + 1].replace('_', ' ')
             elif(arg == "-xrot"):
                XRotation = float(argv[i + 1])
             elif(arg == "-majlth"):
@@ -381,6 +384,8 @@ def run(argv):
       pl.setLabFontSize(labFontSize)
    if(legFontSize is not None):
       pl.setLegFontSize(legFontSize)
+   if(legLoc is not None):
+      pl.setLegLoc(legLoc)
    if(tickFontSize is not None):
       pl.setTickFontSize(tickFontSize)
    if(XRotation is not None):
@@ -486,12 +491,13 @@ def showDescription(data=None):
    print Util.formatArgument("-dpi value", "Resolution of image in dots per inch (default 100)")
    print Util.formatArgument("-f file", "Save image to this filename")
    print Util.formatArgument("-fs size", "Set figure size width,height (in inches). Default 8x6.")
-   print Util.formatArgument("-leg titles", "Comma-separated list of legend titles. Use '_' to represent space.")
-   print Util.formatArgument("-lw width", "How wide should lines be?")
-   print Util.formatArgument("-lc colors", "Comma-separated list of line colors, such as red,[0.3,0,0],0.3")
    print Util.formatArgument("-labfs size", "Font size for axis labels")
+   print Util.formatArgument("-lc colors", "Comma-separated list of line colors, such as red,[0.3,0,0],0.3")
    print Util.formatArgument("-left value", "Left boundary location for saved figure [range 0-1]")
+   print Util.formatArgument("-leg titles", "Comma-separated list of legend titles. Use '_' to represent space.")
    print Util.formatArgument("-legfs size", "Font size for legend. Set to 0 to hide legend.")
+   print Util.formatArgument("-legloc loc", "Where should the legend be placed?  Locations such as 'best', 'upper_left', 'lower_right', 'center'. Use underscore when using two words.")
+   print Util.formatArgument("-lw width", "How wide should lines be?")
    print Util.formatArgument("-logx", "Use a logarithmic x-axis")
    print Util.formatArgument("-logy", "Use a logarithmic y-axis")
    print Util.formatArgument("-majlth length", "Length of major tick marks")
