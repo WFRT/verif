@@ -14,7 +14,7 @@ install:
 
 script:
    - pip install coveralls pep8
-   - nosetests --with-coverage --cover-erase --cover-package=verif
+   - nosetests -v --with-coverage --cover-erase --cover-package=verif
 
 after_success:
    - coveralls
