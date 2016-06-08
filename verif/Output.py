@@ -1138,7 +1138,10 @@ class Scatter(Output):
          style = self._getStyle(f, F, connectingLine=False)
 
          [x, y] = data.getScores(["obs", "fcst"])
-         mpl.plot(x, y, ".", color=color, label=labels[f], lw=self._lw, ms=self._ms, alpha=0.2)
+         alpha = 0.2
+         if self._simple:
+            alpha = 1
+         mpl.plot(x, y, ".", color=color, label=labels[f], lw=self._lw, ms=self._ms, alpha=alpha)
          if(self._showQuantiles()):
             # Determine bin edges for computing quantiles
             # Use those provided by -r
