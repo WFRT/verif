@@ -7,8 +7,7 @@ verif (0.4.0) precise; urgency=low
     -m dscore
     -m leps
     -m nsec
-    -m nsec
-  * New options:
+  * New features:
     Added -elevrange
     Added -lc to specify line colours
     Added -legloc to specify legend location

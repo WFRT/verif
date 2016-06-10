@@ -121,15 +121,15 @@ To verify your own forecasts, the easiest option is to put the data into the fol
 Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After
 that is a header line that must describe the data columns below. The following attributes are
 recognized:
-* date (in YYYYMMDD)
-* offset (forecast lead time in hours)
-* id (station identifier)
-* lat (in degrees)
-* lon (in degrees)
-* obs (observations)
-* fcst (deterministic forecast)
-* p<number> (cumulative probability at a threshold of 10)
-obs and fcst are the only required columns.  Note that the file will likely have many rows with repeated values of offsetid/lat/lon/elev. If station and lead time information is missing, then ``verif`` assumes they are all for the same station and lead time. The columns can be in any order.
+ * date (in YYYYMMDD)
+ * offset (forecast lead time in hours)
+ * id (station identifier)
+ * lat (in degrees)
+ * lon (in degrees)
+ * obs (observations)
+ * fcst (deterministic forecast)
+ * p<number> (cumulative probability at a threshold of 10)
+obs and fcst are the only required columns. Note that the file will likely have many rows with repeated values of offsetid/lat/lon/elev. If station and lead time information is missing, then ``verif`` assumes they are all for the same station and lead time. The columns can be in any order.
 
 Deterministic forecasts will only have "obs" and "fcst", however probabilistic forecasts can provide
 any number of cumulative probabilities. For probabilistic forecasts, "fcst" could represent the
@@ -171,6 +171,7 @@ on what variables are available in the input files.
 ``-m categorical``      Diagram showing POD, FAR, bias, and threat score
 ``-m count``            Number of forecasts wabove a threshold
 ``-m diff``             Difference between false alarms and misses
+``-m dscore``           Generalized discrimination score
 ``-m edi``              Extremal dependency index
 ``-m eds``              Extreme dependency score
 ``-m ets``              Equitable threat score
