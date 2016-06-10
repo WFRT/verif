@@ -2206,24 +2206,11 @@ class DRoc(Output):
          x = np.nan * np.zeros([len(fthresholds), 1], 'float')
          for i in range(0, len(fthresholds)):
             fthreshold = fthresholds[i]
-            a = np.ma.sum((fcst >= fthreshold) & (obs >= threshold))  # Hit
-            b = np.ma.sum((fcst >= fthreshold) & (obs < threshold))   # FA
-            c = np.ma.sum((fcst < fthreshold) & (obs >= threshold))   # Miss
-            d = np.ma.sum((fcst < fthreshold) & (obs < threshold))    # CR
-            if(a + c > 0 and b + d > 0):
-               y[i] = a / 1.0 / (a + c)
-               x[i] = b / 1.0 / (b + d)
-               if(self._doNorm):
-                  from scipy.stats import norm
-                  y[i] = norm.ppf(a / 1.0 / (a + c))
-                  x[i] = norm.ppf(b / 1.0 / (b + d))
-                  if(np.isinf(y[i])):
-                     y[i] = np.nan
-                  if(np.isinf(x[i])):
-                     x[i] = np.nan
-               if(self._showThresholds and (not np.isnan(x[i]) and
-                     not np.isnan(y[i]) and f == 0)):
-                  mpl.text(x[i], y[i], "%2.1f" % fthreshold, color=color)
+            x[i] = Metric.Fa().computeObsFcst(obs, fcst + threshold - fthresholds[i], [threshold, np.inf])
+            y[i] = Metric.Hit().computeObsFcst(obs, fcst + threshold - fthresholds[i], [threshold, np.inf])
+            if(self._showThresholds and (not np.isnan(x[i]) and
+                  not np.isnan(y[i]) and f == 0)):
+               mpl.text(x[i], y[i], "%2.1f" % fthreshold, color=color)
          if(not self._doNorm):
             # Add end points at 0,0 and 1,1:
             xx = x
