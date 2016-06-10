@@ -261,6 +261,10 @@ def run(argv):
       m = Metric.getMetric(metric)
       if(m is not None):
          print m.help()
+      else:
+         m = Output.getOutput(metric)
+         if(m is not None):
+            print m.help()
       return
    elif(len(argv) == 1 or len(ifiles) == 0 or metric is None):
       showDescription(data)

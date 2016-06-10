@@ -18,6 +18,16 @@ def getAllOutputs():
    return temp
 
 
+# Returns a metric object of a class with the given name
+def getOutput(name):
+   outputs = getAllOutputs()
+   m = None
+   for mm in outputs:
+      if(name == mm[0].lower() and mm[1].isValid()):
+         m = mm[1]()
+   return m
+
+
 class Output:
    _description = ""
    _defaultAxis = "offset"
@@ -29,6 +39,8 @@ class Output:
    _legLoc = "best"  # Where should the legend go?
    _logX = False
    _logY = False
+   _reference = None
+   _long = None
 
    def __init__(self):
       self._filename = None
@@ -94,6 +106,11 @@ class Output:
       return cls._supThreshold
 
    @classmethod
+   def getClassName(cls):
+      name = cls.__name__
+      return name
+
+   @classmethod
    def description(cls):
       extra = ""
       # if(cls._experimental):
@@ -104,6 +121,19 @@ class Output:
    @classmethod
    def isValid(cls):
       return cls.summary() is not ""
+
+   @classmethod
+   def reference(cls):
+      return cls._reference
+
+   @classmethod
+   def help(cls):
+      s = cls.description()
+      if(cls._long is not None):
+         s = s + "\n" + Util.green("Description: ") + cls._long
+      if(cls.reference() is not None):
+         s = s + "\n" + Util.green("Reference: ") + cls.reference()
+      return s
 
    @classmethod
    def summary(cls):

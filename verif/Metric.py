@@ -89,8 +89,7 @@ class Metric:
 
    @classmethod
    def help(cls):
-      s = cls.getClassName().lower() + ": "
-      s = s + cls.description()
+      s = cls.description()
       if(cls.orientation is not 0):
          s = s + "\n" + Util.green("Orientation: ")
          if(cls.orientation == 1):
@@ -1390,7 +1389,7 @@ class Kss(Contingency):
 
 
 class Hit(Contingency):
-   _description = "Hit rate"
+   _description = "Hit rate (a.k.a. probability of detection)"
    _perfectScore = 1
    _orientation = 1
 
