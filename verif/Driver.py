@@ -358,7 +358,7 @@ def run(argv):
 
    # Reset dimension if 'threshold' is not allowed
    if(xdim == "threshold" and
-         ((not pl.supportsThreshold()) or (not m.supportsThreshold()))):
+         ((not pl.supportsThreshold()) or (m is not None and not m.supportsThreshold()))):
       Util.warning(metric + " does not support '-x threshold'. Ignoring it.")
       thresholds = None
       xdim = None
