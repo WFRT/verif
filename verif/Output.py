@@ -2478,6 +2478,7 @@ class Categorical(Output):
    _supThreshold = True
    _supX = True
    _legLoc = "upper left"
+   _reference = "Roebber, P.J., 2009: Visualizing multiple measures of forecast quality. Wea. Forecasting, 24, 601-608."
 
    def _plotCore(self, data):
       data.setAxis(self._xaxis)
@@ -2529,6 +2530,7 @@ class Categorical(Output):
       mpl.xlim([0, 1])
       mpl.ylim([0, 1])
       mpl.grid()
+      mpl.gca().set_aspect(1)
 
 
 class Error(Output):
