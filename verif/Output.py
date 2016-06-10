@@ -2461,11 +2461,17 @@ class Taylor(Output):
 
 
 class Categorical(Output):
-   _description = "Categorical performance diagram showing POD, FAR, bias, and Threat score"
+   _description = "Categorical performance diagram showing POD, FAR, bias, and Threat score. Also shows the scores the forecasts would attain by using different forecast thresholds (turn off using -simple)"
    _supThreshold = True
+   _reqThreshold = True
    _supX = True
    _legLoc = "upper left"
    _reference = "Roebber, P.J., 2009: Visualizing multiple measures of forecast quality. Wea. Forecasting, 24, 601-608."
+
+   # Should lines be drawn to show how the scores can vary with chosen forecast
+   # threshold?
+   def _showPotential(self):
+      return not self._simple
 
    def _plotCore(self, data):
       data.setAxis(self._xaxis)
@@ -2478,28 +2484,48 @@ class Categorical(Output):
       for f in range(0, F):
          data.setFileIndex(f)
          color = self._getColor(f, F)
-         style = self._getStyle(f, F)
+         style = self._getStyle(f, F, False)
 
          size = data.getAxisSize()
-         sr = np.zeros(size, 'float')
-         pod = np.zeros(size, 'float')
-         Far = Metric.Far()
-         Hit = Metric.Hit()
-         threshold = self._thresholds[0]
-         for i in range(0, size):
-            data.setIndex(i)
-            far = Far.computeCore(data, [threshold, np.inf])
-            hit = Hit.computeCore(data, [threshold, np.inf])
-            sr[i] = 1 - far
-            pod[i] = hit
-         mpl.plot(sr, pod, style, color=color, label=labels[f], lw=self._lw,
-               ms=self._ms)
+         for t in range(0, len(self._thresholds)):
+            threshold = self._thresholds[t]
+            sr = np.zeros(size, 'float')
+            pod = np.zeros(size, 'float')
+            Fa = Metric.Fa()
+            Hit = Metric.Hit()
+            for i in range(0, size):
+               data.setIndex(i)
+               [obs, fcst] = data.getScores(["obs", "fcst"])
+               fa = Fa.computeObsFcst(obs, fcst, [threshold, np.inf])
+               hit = Hit.computeObsFcst(obs, fcst, [threshold, np.inf])
+               sr[i] = 1 - fa
+               pod[i] = hit
+
+               # Compute the potential that the forecast can attan by using
+               # different forecast thresholds
+               if self._showPotential():
+                  J = 10
+                  x = np.zeros(J, 'float')
+                  y = np.zeros(J, 'float')
+                  dx = threshold - np.percentile(np.unique(np.sort(fcst)), np.linspace(0, 100, J))
+                  for j in range(0, J):
+                     x[j] = 1 - Fa.computeObsFcst(obs, fcst + dx[j], [threshold, np.inf])
+                     y[j] = Hit.computeObsFcst(obs, fcst + dx[j], [threshold, np.inf])
+                  mpl.plot(x, y, "-", color=color, lw=2*self._lw, zorder=-100, alpha=0.3)
+
+            label = ""
+            if t == 0:
+               label = labels[f]
+            mpl.plot(sr, pod, style, color=color, label=label, lw=self._lw, ms=self._ms)
 
       # Plot bias lines
       biases = [0.3, 0.5, 0.8, 1, 1.3, 1.5, 2, 3, 5, 10]
       for i in range(0, len(biases)):
          bias = biases[i]
-         mpl.plot([0, 1], [0, bias], 'k-')
+         label = ""
+         if i == 0:
+            label = "Bias frequency"
+         mpl.plot([0, 1], [0, bias], 'k-', label=label)
          if(bias <= 1):
             mpl.text(1, bias, "%2.1f" % (bias))
          else:
@@ -2510,7 +2536,13 @@ class Categorical(Output):
       for i in range(0, len(threats)):
          threat = threats[i]
          x = np.linspace(threat, 1, 100)
-         mpl.plot(x, threat / 10 / (x - threat) + threat, 'k--')
+         label = ""
+         if i == 0:
+            label = "Threat score"
+         y = 1.0 / (1 + 1.0/threat - 1.0 / x)
+         mpl.plot(x, y, 'k--', label=label)
+         xx = 2.0 / (1 + 1.0/threat)
+         mpl.text(xx, xx, str(threat))
 
       mpl.xlabel("Success ratio (1 - FAR)")
       mpl.ylabel("Probability of detection")
