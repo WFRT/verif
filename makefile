@@ -23,6 +23,17 @@ clean:
 	find . -name '*.pyc' -delete
 	rm -rf deb_dist
 	rm -rf verif.egg-info
+	rm -f verif.sh verifOptions.txt
 
 count:
 	@wc -l verif/*.py | tail -1
+
+# Bash completion script
+# 1) Install verif as normal (so that verif command is availble on the path)
+# 2) Make this target
+# 3) Move verif.sh into wherever bash completion scripts are kept (e.g. /etc/bash_completion.d or run the
+#    script in your ~/.bashrc
+verif.sh:
+	 verif | grep "^[ ]* -" | awk '{print $$1}' > verifOptions.txt
+	 python bashCompletion.py verifOptions.txt > $@
+	 rm verifOptions.txt
