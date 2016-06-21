@@ -2491,12 +2491,12 @@ class Performance(Output):
             threshold = self._thresholds[t]
             sr = np.zeros(size, 'float')
             pod = np.zeros(size, 'float')
-            Fa = Metric.Fa()
+            Far = Metric.Far()
             Hit = Metric.Hit()
             for i in range(0, size):
                data.setIndex(i)
                [obs, fcst] = data.getScores(["obs", "fcst"])
-               fa = Fa.computeObsFcst(obs, fcst, [threshold, np.inf])
+               fa = Far.computeObsFcst(obs, fcst, [threshold, np.inf])
                hit = Hit.computeObsFcst(obs, fcst, [threshold, np.inf])
                sr[i] = 1 - fa
                pod[i] = hit
@@ -2504,14 +2504,22 @@ class Performance(Output):
                # Compute the potential that the forecast can attan by using
                # different forecast thresholds
                if self._showPotential():
-                  J = 10
+                  J = 20
+                  dx = threshold - np.percentile(np.unique(np.sort(fcst)), np.linspace(1, 99, J))
+                  # Put a point in forecast point (so that the line goes
+                  # through the point
+                  dx = np.unique(np.sort(np.append(dx, 0)))
+                  # Alternatively, nudge the closest point to 0
+                  # Iclosest = np.argmin(np.abs(dx))
+                  # dx[Iclosest] = 0
+
+                  J = len(dx)
                   x = np.zeros(J, 'float')
                   y = np.zeros(J, 'float')
-                  dx = threshold - np.percentile(np.unique(np.sort(fcst)), np.linspace(0, 100, J))
                   for j in range(0, J):
-                     x[j] = 1 - Fa.computeObsFcst(obs, fcst + dx[j], [threshold, np.inf])
+                     x[j] = 1 - Far.computeObsFcst(obs, fcst + dx[j], [threshold, np.inf])
                      y[j] = Hit.computeObsFcst(obs, fcst + dx[j], [threshold, np.inf])
-                  mpl.plot(x, y, "-", color=color, lw=2*self._lw, zorder=-100, alpha=0.3)
+                  mpl.plot(x, y, ".-", color=color, ms=3*self._lw, lw=2*self._lw, zorder=-100, alpha=0.3)
 
             label = ""
             if t == 0:
