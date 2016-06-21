@@ -2460,7 +2460,7 @@ class Taylor(Output):
       mpl.gca().set_aspect(1)
 
 
-class Categorical(Output):
+class Performance(Output):
    _description = "Categorical performance diagram showing POD, FAR, bias, and Threat score. Also shows the scores the forecasts would attain by using different forecast thresholds (turn off using -simple)"
    _supThreshold = True
    _reqThreshold = True

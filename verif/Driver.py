@@ -324,8 +324,8 @@ def run(argv):
       pl = Output.Reliability()
    elif(metric == "discrimination"):
       pl = Output.Discrimination()
-   elif(metric == "categorical"):
-      pl = Output.Categorical()
+   elif(metric == "performance"):
+      pl = Output.Performance()
    elif(metric == "invreliability"):
       pl = Output.InvReliability()
    elif(metric == "igncontrib"):

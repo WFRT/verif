@@ -168,7 +168,6 @@ on what variables are available in the input files.
 ----------------------  ---------------------------------------------------------------
 ``-m baserate``         Climatological frequency
 ``-m biasfreq``         Numer of forecasts / number of observations
-``-m categorical``      Diagram showing POD, FAR, bias, and threat score
 ``-m count``            Number of forecasts wabove a threshold
 ``-m diff``             Difference between false alarms and misses
 ``-m dscore``           Generalized discrimination score
@@ -184,6 +183,7 @@ on what variables are available in the input files.
 ``-m miss``             Miss rate
 ``-m or``               Odds ratio
 ``-m pc``               Proportions correct
+``-m performance``      Diagram showing POD, FAR, bias, and threat score
 ``-m quantilescore``    Quantile score
 ``-m sedi``             Symmetric extremal dependency index
 ``-m seds``             Symmetric extreme dependency score
