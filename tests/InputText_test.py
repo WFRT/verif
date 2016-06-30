@@ -2,6 +2,7 @@ import unittest
 import verif.Input as Input
 import verif.Station as Station
 import numpy as np
+import verif.Data as Data
 
 
 class MyTest(unittest.TestCase):
@@ -29,6 +30,20 @@ class MyTest(unittest.TestCase):
       self.assertTrue(Station.Station(0, 0, 0, 1) in stations)
       self.assertTrue(Station.Station(0, 0, 0, 2) in stations)
       self.assertTrue(Station.Station(0, 2, 2, 1) in stations)
+
+   def test_conflictingStations(self):
+      data = Data.Data(filenames=["tests/fileConflictingInfo.txt"])
+
+   def test_noId(self):
+      data = Data.Data(filenames=["tests/fileNoId.txt"])
+
+   def test_noElev(self):
+      data = Data.Data(filenames=["tests/fileNoElev.txt"])
+      self.assertEqual(2, len(data.getStations()))
+
+   def test_noLat(self):
+      data = Data.Data(filenames=["tests/fileNoLat.txt"])
+      self.assertEqual(2, len(data.getStations()))
 
    def test_getScores(self):
       input = Input.Text("tests/example.txt")

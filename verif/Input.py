@@ -287,7 +287,7 @@ class Text(Input):
    + Util.formatArgument("", "20150101 1      214     49.2    -122.1   92 4.7 4.2      0.85") + "\n"\
    + Util.formatArgument("", "20150101 0      180     50.3    -120.3   150 0.2 -1.2 0.99") + "\n"\
    + Util.formatArgument("", "") + "\n"\
-   + Util.formatArgument("", " Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0.")
+   + Util.formatArgument("", " Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0. If there is conflicting information (for example different lat/lon/elev for the same id), then the information from the first row containing id will be used.")
 
    def __init__(self, filename):
       import csv
@@ -317,6 +317,8 @@ class Text(Input):
       lat = 0
       lon = 0
       elev = 0
+      # Store station data, to ensure we don't have conflicting lat/lon/elev info for the same ids
+      stationInfo = dict()
 
       import time
       start = time.time()
@@ -375,14 +377,37 @@ class Text(Input):
                   id = self._clean(row[indices["id"]])
                else:
                   id = np.nan
+
+               # Lookup previous stationInfo
+               currLat = np.nan
+               currLon = np.nan
+               currElev = np.nan
                if("lat" in indices):
-                  lat = self._clean(row[indices["lat"]])
+                  currLat = self._clean(row[indices["lat"]])
                if("lon" in indices):
-                  lon = self._clean(row[indices["lon"]])
+                  currLon = self._clean(row[indices["lon"]])
                if("elev" in indices):
-                  elev = self._clean(row[indices["elev"]])
-               station = Station.Station(id, lat, lon, elev)
-               self._stations.add(station)
+                  currElev = self._clean(row[indices["elev"]])
+               if not np.isnan(id) and id in stationInfo:
+                  lat = stationInfo[id].lat()
+                  lon = stationInfo[id].lon()
+                  elev = stationInfo[id].elev()
+                  if (not np.isnan(currLat) and currLat is not lat) or (not np.isnan(currLon) and currLon is not lon) or (not np.isnan(currElev) and currElev is not elev):
+                     Util.warning("Conflicting lat/lon/elev information: (%f,%f,%f) does not match (%f,%f,%f)" % (currLat, currLon, currElev, lat, lon, elev))
+               else:
+                  if np.isnan(currLat):
+                     currLat = 0
+                  if np.isnan(currLon):
+                     currLon = 0
+                  if np.isnan(currElev):
+                     currElev = 0
+                  station = Station.Station(id, currLat, currLon, currElev)
+                  self._stations.add(station)
+                  stationInfo[id] = station
+
+               lat = stationInfo[id].lat()
+               lon = stationInfo[id].lon()
+               elev = stationInfo[id].elev()
                key = (date, offset, lat, lon, elev)
                obs[key] = self._clean(row[indices["obs"]])
                fcst[key] = self._clean(row[indices["fcst"]])
@@ -400,6 +425,7 @@ class Text(Input):
                   self._thresholds.add(threshold)
                   key = (date, offset, lat, lon, elev, threshold)
                   cdf[key] = self._clean(row[indices[field]])
+
       end = time.time()
       file.close()
       self._dates = list(self._dates)
