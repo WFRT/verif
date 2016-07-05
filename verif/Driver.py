@@ -73,6 +73,7 @@ def run(argv):
    showSatellite = False
    logX = False
    logY = False
+   cmap = None
 
    # Read command line arguments
    i = 1
@@ -199,6 +200,8 @@ def run(argv):
                Left = float(argv[i + 1])
             elif(arg == "-pad"):
                Pad = argv[i + 1]
+            elif(arg == "-cmap"):
+               cmap = argv[i + 1]
             elif(arg == "-m"):
                metric = argv[i + 1]
             else:
@@ -424,6 +427,8 @@ def run(argv):
       pl.setLogX(logX)
    if(logY is not None):
       pl.setLogY(logY)
+   if(cmap is not None):
+      pl.setCmap(cmap)
    pl.setFilename(ofile)
    pl.setThresholds(thresholds)
    pl.setFigsize(figSize)
@@ -492,6 +497,7 @@ def showDescription(data=None):
    print Util.green("  Plotting options:")
    print Util.formatArgument("-bot value", "Bottom boundary location for saved figure [range 0-1]")
    print Util.formatArgument("-clim limits", "Force colorbar limits to the two values lower,upper")
+   print Util.formatArgument("-cmap colormap", "Use this colormap when possible (e.g. jet, inferno, RdBu)")
    print Util.formatArgument("-dpi value", "Resolution of image in dots per inch (default 100)")
    print Util.formatArgument("-f file", "Save image to this filename")
    print Util.formatArgument("-fs size", "Set figure size width,height (in inches). Default 8x6.")

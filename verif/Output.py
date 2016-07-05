@@ -84,6 +84,7 @@ class Output:
       self._tight = False
       self._simple = False
       self._showSatellite = False
+      self._cmap = mpl.cm.jet
 
    @classmethod
    def defaultAxis(cls):
@@ -267,6 +268,11 @@ class Output:
 
    def setLogY(self, flag):
       self._logY = flag
+
+   def setCmap(self, cmap):
+      if isinstance(cmap, basestring):
+         cmap = mpl.cm.get_cmap(cmap)
+      self._cmap = cmap
 
    # Public
    # Call this to create a plot, saves to file
@@ -805,7 +811,7 @@ class Default(Output):
               Util.nanpercentile(y.flatten(), self._mapUpperPerc)]
 
       symmetricScore = False
-      cmap = mpl.cm.jet
+      cmap = self._cmap
 
       # Forced limits
       if(self._clim is not None):
