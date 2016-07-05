@@ -2,12 +2,13 @@ verif (0.4.0) precise; urgency=low
 
   * New metrics:
     -m alphaindex
-    -m categorical
+    -m performance
     -m discrimination
     -m dscore
     -m leps
     -m nsec
   * New features:
+    Added -cmap to specify colormap
     Added -elevrange
     Added -lc to specify line colours
     Added -legloc to specify legend location
