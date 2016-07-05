@@ -1257,6 +1257,7 @@ class Scatter(Output):
       mpl.plot([axismin, axismax], [axismin, axismax], "--",
             color=[0.3, 0.3, 0.3], lw=3, zorder=-100)
       mpl.grid()
+      mpl.gca().set_aspect(1)
 
 
 class Change(Output):
@@ -1354,6 +1355,7 @@ class Cond(Output):
       axismax = max(max(ylim), max(xlim))
       self._plotPerfectScore([axismin, axismax], [axismin, axismax])
       mpl.grid()
+      mpl.gca().set_aspect(1)
 
 
 class SpreadSkill(Output):
@@ -1796,7 +1798,7 @@ class Reliability(Output):
       F = data.getNumFiles()
       ax = mpl.gca()
       if(self._showCount()):
-         axi = mpl.axes([0.2, 0.65, 0.2, 0.2])
+         axi = mpl.axes([0.3, 0.65, 0.2, 0.2])
       mpl.sca(ax)
 
       data.setAxis("none")
@@ -1899,6 +1901,7 @@ class Reliability(Output):
       else:
          Util.error("Bin type must be one of 'below' or"
                "'above' for reliability plot")
+      mpl.gca().set_aspect(1)
 
 
 class IgnContrib(Output):
@@ -2341,6 +2344,7 @@ class Against(Output):
                         color=[0.3, 0.3, 0.3], lw=3, zorder=100)
                if(F == 2):
                   break
+      mpl.gca().set_aspect(1)
 
    def _legend(self, data, names=None):
       pass
@@ -2462,7 +2466,6 @@ class Taylor(Output):
 
       # Draw bottom line
       mpl.plot([-maxstd, maxstd], [0, 0], "k-", lw=3)
-      # Make axes square
       mpl.gca().set_aspect(1)
 
 
