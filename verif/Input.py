@@ -319,6 +319,7 @@ class Text(Input):
       elev = 0
       # Store station data, to ensure we don't have conflicting lat/lon/elev info for the same ids
       stationInfo = dict()
+      shownConflictingWarning = False
 
       import time
       start = time.time()
@@ -392,8 +393,11 @@ class Text(Input):
                   lat = stationInfo[id].lat()
                   lon = stationInfo[id].lon()
                   elev = stationInfo[id].elev()
-                  if (not np.isnan(currLat) and currLat is not lat) or (not np.isnan(currLon) and currLon is not lon) or (not np.isnan(currElev) and currElev is not elev):
-                     Util.warning("Conflicting lat/lon/elev information: (%f,%f,%f) does not match (%f,%f,%f)" % (currLat, currLon, currElev, lat, lon, elev))
+                  if not shownConflictingWarning:
+                     if (not np.isnan(currLat) and abs(currLat - lat) > 0.0001) or (not np.isnan(currLon) and abs(currLon - lon) > 0.0001) or (not np.isnan(currElev) and abs(currElev - elev) > 0.001):
+                        print currLat - lat, currLon - lon, currElev - elev
+                        Util.warning("Conflicting lat/lon/elev information: (%f,%f,%f) does not match (%f,%f,%f)" % (currLat, currLon, currElev, lat, lon, elev))
+                        shownConflictingWarning = True
                else:
                   if np.isnan(currLat):
                      currLat = 0
