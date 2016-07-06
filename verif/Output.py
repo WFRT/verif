@@ -552,7 +552,7 @@ class Default(Output):
       # Settings
       self._mapLowerPerc = 0    # Lower percentile (%) to show in colourmap
       self._mapUpperPerc = 100  # Upper percentile (%) to show in colourmap
-      self._mapLabelLocations = False  # Show locationIds in map?
+      self._mapLabelLocations = True  # Show locationIds in map?
 
    def setShowRank(self, showRank):
       self._showRank = showRank
@@ -749,17 +749,22 @@ class Default(Output):
       print ""
 
    def _mapCore(self, data):
-      # Use the Basemap package if it is available
-      # Note that the word 'map' is an object if Basemap is loaded
-      # otherwise it is a shorthand name for matplotlib. This is possible
-      # because Basemap shares the plotting command names with matplotlib
-      hasBasemap = True
-      try:
-         from mpl_toolkits.basemap import Basemap
-      except ImportError:
-         Util.warning("Cannot load Basemap package")
+      if self._simple:
          import matplotlib.pylab as map
          hasBasemap = False
+      else:
+         # Use the Basemap package if it is available
+         # Note that the word 'map' is an object if Basemap is loaded
+         # otherwise it is a shorthand name for matplotlib. This is possible
+         # because Basemap shares the plotting command names with matplotlib
+         hasBasemap = True
+         try:
+            from mpl_toolkits.basemap import Basemap
+         except ImportError:
+            Util.warning("Cannot load Basemap package")
+            import matplotlib.pylab as map
+            hasBasemap = False
+
 
       data.setAxis("location")
       labels = data.getLegend()
@@ -847,7 +852,7 @@ class Default(Output):
             x0, y0 = map(lons, lats)
             if(self._showSatellite):
                sattype = 'ESRI_Imagery_World_2D'
-               map.arcgisimage(service=sattype, xpixels=2000, verbose=False)
+               map.arcgisimage(service=sattype, xpixels=2000, verbose=True)
          else:
             x0 = lons
             y0 = lats
