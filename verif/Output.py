@@ -2523,7 +2523,7 @@ class Performance(Output):
                # different forecast thresholds
                if self._showPotential():
                   J = 20
-                  dx = threshold - np.percentile(np.unique(np.sort(fcst)), np.linspace(1, 99, J))
+                  dx = threshold - np.percentile(np.unique(np.sort(fcst)), np.linspace(0, 100, J))
                   # Put a point in forecast point (so that the line goes
                   # through the point
                   dx = np.unique(np.sort(np.append(dx, 0)))
