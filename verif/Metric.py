@@ -90,11 +90,11 @@ class Metric:
    @classmethod
    def help(cls):
       s = cls.description()
-      if(cls.orientation is not 0):
+      if(cls.orientation() is not 0):
          s = s + "\n" + Util.green("Orientation: ")
-         if(cls.orientation == 1):
+         if(cls.orientation() == 1):
             s = s + "Positive"
-         elif(cls.orientation == -1):
+         elif(cls.orientation() == -1):
             s = s + "Negative"
          else:
             s = s + "None"
