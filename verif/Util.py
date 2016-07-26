@@ -277,3 +277,20 @@ def isNumber(s):
       return True
    except ValueError:
       return False
+
+# Computes the great circle distance between two points using the
+# haversine formula. Values can be vectors.
+def distance(lat1, lon1, lat2, lon2):
+    # convert decimal degrees to radians 
+    pi = 3.14159265
+    lon1 = lon1 * 2 * pi / 360
+    lat1 = lat1 * 2 * pi / 360
+    lon2 = lon2 * 2 * pi / 360
+    lat2 = lat2 * 2 * pi / 360
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1 
+    a = np.sin(dlat / 2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2)**2
+    c = 2 * np.arcsin(np.sqrt(a)) 
+    distance = 6.367e6 * c
+    return distance
+
