@@ -887,8 +887,12 @@ class Default(Output):
 
       # Legend
       if(self._showRank):
-         lines = [lmin, lsimilar, lmax, lmissing]
-         names = ["min", "similar", "max", "missing"]
+         lines = [lmin, lsimilar, lmax]
+         names = ["min", "similar", "max"]
+         if lmissing is not None:
+             lines.append(lmissing)
+             names.append("missing")
+
          mpl.figlegend(lines, names, "lower center", ncol=4)
 
 
