@@ -1151,6 +1151,42 @@ class Contingency(Metric):
       return self.description()
 
 
+class A(Contingency):
+   _description = "Hit"
+
+   def calc(self, a, b, c, d):
+      return 1.0 * a / (a + b + c + d)
+
+
+class B(Contingency):
+   _description = "False alarm"
+
+   def calc(self, a, b, c, d):
+      return 1.0 * b / (a + b + c + d)
+
+
+class C(Contingency):
+   _description = "Miss"
+
+   def calc(self, a, b, c, d):
+      return 1.0 * c / (a + b + c + d)
+
+
+class D(Contingency):
+   _description = "Correct rejection"
+
+   def calc(self, a, b, c, d):
+      return 1.0 * d / (a + b + c + d)
+
+
+class N(Contingency):
+   _description = "Total cases"
+   _max = None
+
+   def calc(self, a, b, c, d):
+      return a + b + c + d
+
+
 class Ets(Contingency):
    _description = "Equitable threat score"
    _perfectScore = 1
