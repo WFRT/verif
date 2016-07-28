@@ -1262,6 +1262,8 @@ class Edi(Contingency):
 
    def calc(self, a, b, c, d):
       N = a + b + c + d
+      if b + d == 0 or a + c == 0:
+         return np.nan
       F = b / 1.0 / (b + d)
       H = a / 1.0 / (a + c)
       if(H == 0 or F == 0):
@@ -1283,6 +1285,8 @@ class Sedi(Contingency):
 
    def calc(self, a, b, c, d):
       N = a + b + c + d
+      if b + d == 0 or a + c == 0:
+         return np.nan
       F = b / 1.0 / (b + d)
       H = a / 1.0 / (a + c)
       if(F == 0 or F == 1 or H == 0 or H == 1):
@@ -1306,6 +1310,8 @@ class Eds(Contingency):
 
    def calc(self, a, b, c, d):
       N = a + b + c + d
+      if a + c == 0:
+         return np.nan
       H = a / 1.0 / (a + c)
       p = (a + c) / 1.0 / N
       if(H == 0 or p == 0):
@@ -1327,6 +1333,8 @@ class Seds(Contingency):
 
    def calc(self, a, b, c, d):
       N = a + b + c + d
+      if a + c == 0:
+         return np.nan
       H = a / 1.0 / (a + c)
       p = (a + c) / 1.0 / N
       q = (a + b) / 1.0 / N
