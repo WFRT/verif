@@ -548,6 +548,7 @@ class Default(Output):
       self._showRank = False
       self._showAcc = False
       self._setLegSort = False
+      self._showSmoothingLine = False  # Draw a smoothed line through the points
 
       # Settings
       self._mapLowerPerc = 0    # Lower percentile (%) to show in colourmap
@@ -644,6 +645,17 @@ class Default(Output):
             mpl.plot(x[ids[f]], y[ids[f]], style, color=color,
                   label=labels[f], lw=self._lw, ms=self._ms,
                   alpha=alpha)
+            if self._showSmoothingLine:
+               from scipy import ndimage
+               I = np.argsort(x[ids[f]])
+               xx = np.sort(x[ids[f]])
+               yy = y[ids[f]][I]
+               I = np.where((np.isnan(xx) == 0) & (np.isnan(yy) == 0))[0]
+               xx = xx[I]
+               yy = yy[I]
+               N = 21
+               yy = ndimage.convolve(yy, 1.0/N*np.ones(N), mode="mirror")
+               mpl.plot(xx, yy, "--", color=color, lw=self._lw, ms=self._ms)
 
          mpl.xlabel(data.getAxisLabel())
          mpl.ylabel(self._metric.label(data))
@@ -764,7 +776,6 @@ class Default(Output):
             Util.warning("Cannot load Basemap package")
             import matplotlib.pylab as map
             hasBasemap = False
-
 
       data.setAxis("location")
       labels = data.getLegend()
