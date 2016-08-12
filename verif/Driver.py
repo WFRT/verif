@@ -46,6 +46,7 @@ def run(argv):
    tickFontSize = None
    labFontSize = None
    legFontSize = None
+   titleFontSize = None
    legLoc = None
    type = "plot"
    XRotation = None
@@ -200,6 +201,8 @@ def run(argv):
                Left = float(argv[i + 1])
             elif(arg == "-pad"):
                Pad = argv[i + 1]
+            elif(arg == "-titlefs"):
+               titleFontSize = float(argv[i + 1])
             elif(arg == "-cmap"):
                cmap = argv[i + 1]
             elif(arg == "-m"):
@@ -391,6 +394,8 @@ def run(argv):
       pl.setLabFontSize(labFontSize)
    if(legFontSize is not None):
       pl.setLegFontSize(legFontSize)
+   if(titleFontSize is not None):
+      pl.setTitleFontSize(titleFontSize)
    if(legLoc is not None):
       pl.setLegLoc(legLoc)
    if(tickFontSize is not None):
@@ -520,6 +525,7 @@ def showDescription(data=None):
    print Util.formatArgument("-simple", "Make a simpler plot, without extra lines, subplots, etc.")
    print Util.formatArgument("-sp", "Show a line indicating the perfect score")
    print Util.formatArgument("-tickfs size", "Font size for axis ticks")
+   print Util.formatArgument("-titlefs size", "Font size for title.")
    print Util.formatArgument("-title text", "Custom title to chart top")
    print Util.formatArgument("-top value", "Top boundary location for saved figure [range 0-1]")
    print Util.formatArgument("-type type", "One of 'plot' (default), 'text', 'map', or 'maprank'.")

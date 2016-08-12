@@ -58,6 +58,7 @@ class Output:
       self._labfs = 16
       self._tickfs = 16
       self._legfs = 16
+      self._titlefs = 16
       self._figsize = [5, 8]
       self._showMargin = True
       self._xrot = 0
@@ -208,6 +209,9 @@ class Output:
 
    def setLegFontSize(self, fs):
       self._legfs = fs
+
+   def setTitleFontSize(self, fs):
+      self._titlefs = fs
 
    def setXRotation(self, xrot):
       self._xrot = xrot
@@ -422,6 +426,7 @@ class Output:
    def _adjustAxes(self, data):
       # Apply adjustements to all subplots
       for ax in mpl.gcf().get_axes():
+         ax.set_title(ax.get_title(), fontsize=self._titlefs)
          # Tick font sizes
          for tick in ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(self._tickfs)
