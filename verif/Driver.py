@@ -142,15 +142,7 @@ def run(argv):
             elif(arg == "-dpi"):
                dpi = int(argv[i + 1])
             elif(arg == "-d"):
-               # Either format is ok:
-               # -d 20150101 20150103
-               # -d 20150101:20150103
-               if(i + 2 < len(argv) and argv[i + 2].isdigit()):
-                  dates = Util.parseNumbers("%s:%s" % (argv[i + 1],
-                     argv[i + 2]), True)
-                  i = i + 1
-               else:
-                  dates = Util.parseNumbers(argv[i + 1], True)
+               dates = Util.parseNumbers(argv[i + 1], True)
             elif(arg == "-c"):
                climFile = argv[i + 1]
                climType = "subtract"
