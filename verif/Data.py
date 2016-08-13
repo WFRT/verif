@@ -618,19 +618,21 @@ class Data:
    def getLocationIds(self):
       return self._getScore("Location")
 
-   def getAxisDescriptions(self, axis=None):
+   def getAxisDescriptions(self, axis=None, csv=False):
       if(axis is None):
          axis = self._axis
-      prog = re.compile("location.*")
-      if(prog.match(axis)):
+      if self.isLocationAxis(axis):
          descs = list()
          ids = self._getScore("Location")
          lats = self._getScore("Lat")
          lons = self._getScore("Lon")
          elevs = self._getScore("Elev")
+         if csv:
+            fmt = "%d,%f,%f,%f"
+         else:
+            fmt = "%6d %5.2f %5.2f %5.0f"
          for i in range(0, len(ids)):
-            string = "%6d %5.2f %5.2f %5.0f" % (ids[i], lats[i], lons[i],
-                  elevs[i])
+            string = fmt % (ids[i], lats[i], lons[i], elevs[i])
             descs.append(string)
          return descs
       if(self.isAxisDate(axis)):
@@ -643,12 +645,15 @@ class Data:
       else:
          return self.getAxisValues(axis)
 
-   def getAxisDescriptionHeader(self, axis=None):
+   def getAxisDescriptionHeader(self, axis=None, csv=False):
       if(axis is None):
          axis = self._axis
-      prog = re.compile("location.*")
-      if(prog.match(axis)):
-         return "%6s %5s %5s %5s" % ("id", "lat", "lon", "elev")
+      if self.isLocationAxis(axis):
+         if csv:
+            fmt = "%s,%s,%s,%s"
+         else:
+            fmt = "%6s %5s %5s %5s"
+         return fmt % ("id", "lat", "lon", "elev")
       else:
          return axis
 

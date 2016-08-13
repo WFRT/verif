@@ -290,6 +290,10 @@ class Output:
    def text(self, data):
       self._textCore(data)
 
+   # Call this to write csv output
+   def csv(self, data):
+      self._csvCore(data)
+
    # Draws a map of the data
    def map(self, data):
       self._mapCore(data)
@@ -312,6 +316,9 @@ class Output:
 
    def _textCore(self, data):
       Util.error("This type does not output text")
+
+   def _csvCore(self, data):
+      Util.error("This type does not output csv")
 
    def _mapCore(self, data):
       Util.error("This type does not produce maps")
@@ -743,6 +750,37 @@ class Default(Output):
             values[f] = np.sum(y[f, :] == func(y, axis=0))
          self._printLine(values, maxlength, "int")
 
+   def _csvCore(self, data):
+      thresholds = self._thresholds
+
+      data.setAxis(self._xaxis)
+
+      # Set configuration names
+      names = data.getLegend()
+
+      F = data.getNumFiles()
+      [x, y] = self.getXY(data)
+
+      if(self._filename is not None):
+         sys.stdout = open(self._filename, 'w')
+
+      # Header line
+      header = data.getAxisDescriptionHeader(csv=True)
+      for name in names:
+         header = header + ',' + name
+      print header
+
+      # Loop over rows
+      if(data.getAxis() == "threshold"):
+         descs = self._thresholds
+      else:
+         descs = data.getAxisDescriptions(csv=True)
+      for i in range(0, len(x[0])):
+         line = str(descs[i])
+         for j in range(0, len(y[:, i])):
+            line = line + ',%g' % y[j, i]
+         print line
+
    def _printLine(self, values, colWidth, type="float"):
       if(type == "int"):
          fmt = "%-" + colWidth + "i"
@@ -1013,6 +1051,35 @@ class Hist(Output):
             values[f] = np.sum(y[f, :] == func(y, axis=0))
          self._printLine(values, maxlength, "int")
 
+   def _csvCore(self, data):
+      data.setAxis("none")
+      labels = data.getLegend()
+
+      F = data.getNumFiles()
+      [x, y] = self.getXY(data)
+
+      if(self._filename is not None):
+         sys.stdout = open(self._filename, 'w')
+
+      maxlength = 0
+      for label in labels:
+         maxlength = max(maxlength, len(label))
+      maxlength = str(maxlength)
+
+      # Header line
+      header = "threshold"
+      for label in labels:
+         header = header + "," + label
+      print header
+
+      # Loop over rows
+      descs = self._thresholds
+      for i in range(0, len(x[0])):
+         line = str(descs[i])
+         for j in range(0, len(y[:, i])):
+            line = line + ",%g" % y[j, i]
+         print line
+
    def _printLine(self, values, colWidth, type="float"):
       if(type == "int"):
          fmt = "%-" + colWidth + "i"
@@ -1141,40 +1208,30 @@ class QQ(Output):
       self._plotPerfectScore([axismin, axismax], [axismin, axismax])
       mpl.grid()
 
-   def _textCore(self, data):
+   def _csvCore(self, data):
       data.setAxis("none")
       data.setIndex(0)
       labels = data.getLegend()
       F = data.getNumFiles()
 
       # Header
-      maxlength = 0
-      for name in labels:
-         maxlength = max(maxlength, len(name))
-      maxlength = int(np.ceil(maxlength / 2) * 2)
-      fmt = "%" + str(maxlength) + "s"
+      header = ""
       for label in labels:
-         print fmt % label,
-      print ""
-      fmt = "%" + str(int(np.ceil(maxlength / 2))) + ".1f"
-      fmt = fmt + fmt
-      fmtS = "%" + str(int(np.ceil(maxlength / 2))) + "s"
-      fmtS = fmtS + fmtS
-      for f in range(0, F):
-         print fmtS % ("obs", "fcst"),
-      print ""
+         header = header + label + "(obs)" + "," + label + "(fcst)"
+      print header
 
       [x, y] = self.getXY(data)
       maxPairs = len(x[0])
       for f in range(1, F):
          maxPairs = max(maxPairs, len(x[f]))
       for i in range(0, maxPairs):
+         line = ""
          for f in range(0, F):
             if(len(x[f]) < i):
-               print " --  -- "
+               line = line + ","
             else:
-               print fmt % (x[f][i], y[f][i]),
-         print "\n",
+               line = line + "%f,%f" % (x[f][i], y[f][i])
+         print line
 
 
 class Scatter(Output):

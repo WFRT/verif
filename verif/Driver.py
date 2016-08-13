@@ -342,8 +342,7 @@ def run(argv):
       m.setAggregator(aggregatorName)
 
       # Output type
-      if(type == "plot" or type == "text" or type == "map" or
-            type == "maprank"):
+      if(type in ["plot", "text", "csv", "map", "maprank"]):
          pl = Output.Default(m)
          pl.setShowAcc(doAcc)
       else:
@@ -440,6 +439,8 @@ def run(argv):
 
    if(type == "text"):
       pl.text(data)
+   elif(type == "csv"):
+      pl.csv(data)
    elif(type == "map"):
       pl.map(data)
    elif(type == "maprank"):
@@ -520,7 +521,7 @@ def showDescription(data=None):
    print Util.formatArgument("-titlefs size", "Font size for title.")
    print Util.formatArgument("-title text", "Custom title to chart top")
    print Util.formatArgument("-top value", "Top boundary location for saved figure [range 0-1]")
-   print Util.formatArgument("-type type", "One of 'plot' (default), 'text', 'map', or 'maprank'.")
+   print Util.formatArgument("-type type", "One of 'plot' (default), 'text', 'csv', 'map', or 'maprank'.")
    print Util.formatArgument("-xlabel text", "Custom x-axis label")
    print Util.formatArgument("-xlim limits", "Force x-axis limits to the two values lower,upper")
    print Util.formatArgument("-xrot value", "Rotation angle for x-axis labels")
