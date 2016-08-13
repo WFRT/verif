@@ -593,7 +593,7 @@ class Data:
       if(axis == "date"):
          return "Date"
       elif(axis == "offset"):
-         return "Offset (h)"
+         return "Lead time (h)"
       elif(axis == "month"):
          return "Month"
       elif(axis == "year"):
