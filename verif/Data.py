@@ -425,7 +425,7 @@ class Data:
       return True
 
    # Set the axis along which data is aggregated. One of offset, date, month,
-   # year, location, locationLat, locationLon, locationElev.
+   # year, location, lat, lon, elev.
    def setAxis(self, axis):
       self._index = 0  # Reset index
       self._axis = axis
@@ -449,8 +449,7 @@ class Data:
    def isLocationAxis(self, axis):
       if(axis is None):
          return False
-      prog = re.compile("location.*")
-      return prog.match(axis)
+      return axis in ["location", "locationId", "lat", "lon", "elev"]
 
    def getAxisSize(self, axis=None):
       if(axis is None):
@@ -480,11 +479,11 @@ class Data:
             data = range(0, len(self._getScore("Location")))
          elif(axis == "locationId"):
             data = self._getScore("Location").astype(int)
-         elif(axis == "locationElev"):
+         elif(axis == "elev"):
             data = self._getScore("Elev")
-         elif(axis == "locationLat"):
+         elif(axis == "lat"):
             data = self._getScore("Lat")
-         elif(axis == "locationLon"):
+         elif(axis == "lon"):
             data = self._getScore("Lon")
          else:
             Util.error("Data.getAxisValues has a bad axis name: " + axis)
@@ -598,11 +597,11 @@ class Data:
          return "Month"
       elif(axis == "year"):
          return "Year"
-      elif(axis == "locationElev"):
+      elif(axis == "elev"):
          return "Elevation (m)"
-      elif(axis == "locationLat"):
+      elif(axis == "lat"):
          return "Latitude ($^o$)"
-      elif(axis == "locationLon"):
+      elif(axis == "lon"):
          return "Longitude ($^o$)"
       elif(axis == "threshold"):
          return self.getVariableAndUnits()
@@ -658,8 +657,8 @@ class Data:
          return 0
       elif(axis == "offset"):
          return 1
-      elif(axis == "location" or axis == "locationId" or axis == "locationElev" or
-            axis == "locationLat" or axis == "locationLon"):
+      elif(axis == "location" or axis == "locationId" or axis == "elev" or
+            axis == "lat" or axis == "lon"):
          return 2
       else:
          return None

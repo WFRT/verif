@@ -544,7 +544,7 @@ class Default(Output):
 
    def __init__(self, metric):
       Output.__init__(self)
-      # offsets, dates, location, locationElev, threshold
+      # offsets, dates, location, elev, threshold
       self._metric = metric
       if(metric.defaultAxis() is not None):
          self._xaxis = metric.defaultAxis()

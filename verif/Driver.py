@@ -486,7 +486,7 @@ def showDescription(data=None):
    print Util.formatArgument("-o offsets", "Limit the verification to these offsets (in hours).")
    print Util.formatArgument("-r thresholds", "Compute scores for these thresholds (only used by some metrics).")
    print Util.formatArgument("-t period", "Allow this many days of training, i.e. remove this many days from the beginning of the verification.")
-   print Util.formatArgument("-x dim", "Plot this dimension on the x-axis: date, offset, year, month, location, locationId, locationElev, locationLat, locationLon, threshold, or none. Not supported by all metrics. If not specified, then a default is used based on the metric. 'none' collapses all dimensions and computes one value.")
+   print Util.formatArgument("-x dim", "Plot this dimension on the x-axis: date, offset, year, month, location, locationId, elev, lat, lon, threshold, or none. Not supported by all metrics. If not specified, then a default is used based on the metric. 'none' collapses all dimensions and computes one value.")
 
    # Data manipulation
    print Util.green("  Data manipulation:")
