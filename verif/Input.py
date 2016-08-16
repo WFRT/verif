@@ -292,7 +292,7 @@ class Text(Input):
    def __init__(self, filename):
       import csv
       Input.__init__(self, filename)
-      file = open(filename, 'r')
+      file = open(filename, 'rU')
       self._units = "Unknown units"
       self._variable = "Unknown"
       self._pit = None
