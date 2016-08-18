@@ -85,6 +85,7 @@ class Output:
       self._tight = False
       self._simple = False
       self._showSatellite = False
+      self._satelliteType = 'ESRI_Imagery_World_2D'
       self._cmap = mpl.cm.jet
 
    @classmethod
@@ -266,6 +267,9 @@ class Output:
 
    def setShowSatellite(self, flag):
       self._showSatellite = flag
+
+   def setSatelliteType(self, type):
+      self._satelliteType = type
 
    def setLogX(self, flag):
       self._logX = flag
@@ -905,8 +909,7 @@ class Default(Output):
             map.fillcontinents(color='coral', lake_color='aqua', zorder=-1)
             x0, y0 = map(lons, lats)
             if(self._showSatellite):
-               sattype = 'ESRI_Imagery_World_2D'
-               map.arcgisimage(service=sattype, xpixels=2000, verbose=True)
+               map.arcgisimage(service=self._satelliteType, xpixels=2000, verbose=True)
          else:
             x0 = lons
             y0 = lats

@@ -72,6 +72,7 @@ def run(argv):
    listLocations = False
    listDates = False
    showSatellite = False
+   satelliteType = None
    logX = False
    logY = False
    cmap = None
@@ -197,6 +198,8 @@ def run(argv):
                titleFontSize = float(argv[i + 1])
             elif(arg == "-cmap"):
                cmap = argv[i + 1]
+            elif(arg == "-sattype"):
+               satelliteType = argv[i + 1]
             elif(arg == "-m"):
                metric = argv[i + 1]
             else:
@@ -425,6 +428,8 @@ def run(argv):
       pl.setLogY(logY)
    if(cmap is not None):
       pl.setCmap(cmap)
+   if(satelliteType is not None):
+      pl.setSatelliteType(satelliteType)
    pl.setFilename(ofile)
    pl.setThresholds(thresholds)
    pl.setFigsize(figSize)
@@ -515,6 +520,7 @@ def showDescription(data=None):
    print Util.formatArgument("-nomargin", "Remove margins (whitespace) in the plot not x[i] <= T.")
    print Util.formatArgument("-right value", "Right boundary location for saved figure [range 0-1]")
    print Util.formatArgument("-sat", "Show satellite image if plotting a map (slow)")
+   print Util.formatArgument("-sattype", "Satellite type. Check http://server.arcgisonline.com/arcgis/rest/services for a list of names.")
    print Util.formatArgument("-simple", "Make a simpler plot, without extra lines, subplots, etc.")
    print Util.formatArgument("-sp", "Show a line indicating the perfect score")
    print Util.formatArgument("-tickfs size", "Font size for axis ticks")
