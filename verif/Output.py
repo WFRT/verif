@@ -12,6 +12,13 @@ import matplotlib.dates as mpldates
 reload(sys)
 sys.setdefaultencoding('ISO-8859-1')
 
+allowedMapTypes = ["simple", "sat", "ESRI_Imagery_World_2D",
+         "ESRI_StreetMap_World_2D", "I3_Imagery_Prime_World",
+         "NASA_CloudCover_World", "NatGeo_World_Map", "NGS_Topo_US_2D",
+         "Ocean_Basemap", "USA_Topo_Maps", "World_Imagery",
+         "World_Physical_Map", "World_Shaded_Relief", "World_Street_Map",
+         "World_Terrain_Base", "World_Topo_Map"]
+
 
 def getAllOutputs():
    temp = inspect.getmembers(sys.modules[__name__], inspect.isclass)
@@ -84,8 +91,7 @@ class Output:
       self._yticks = None
       self._tight = False
       self._simple = False
-      self._showSatellite = False
-      self._satelliteType = 'ESRI_Imagery_World_2D'
+      self._mapType = None
       self._cmap = mpl.cm.jet
 
    @classmethod
@@ -265,11 +271,11 @@ class Output:
    def setAggregatorName(self, name):
       self._aggregatorName = name
 
-   def setShowSatellite(self, flag):
-      self._showSatellite = flag
-
-   def setSatelliteType(self, type):
-      self._satelliteType = type
+   def setMapType(self, type):
+      if type not in allowedMapTypes:
+         Util.error("Map type '%s' not recognized. Must be one of %s" % (type,
+            allowedMapTypes))
+      self._mapType = type
 
    def setLogX(self, flag):
       self._logX = flag
@@ -808,21 +814,13 @@ class Default(Output):
       print ""
 
    def _mapCore(self, data):
-      if self._simple:
-         import matplotlib.pylab as map
+      # Use the Basemap package if it is available
+      hasBasemap = True
+      try:
+         from mpl_toolkits.basemap import Basemap
+      except ImportError:
+         Util.warning("Cannot load Basemap package")
          hasBasemap = False
-      else:
-         # Use the Basemap package if it is available
-         # Note that the word 'map' is an object if Basemap is loaded
-         # otherwise it is a shorthand name for matplotlib. This is possible
-         # because Basemap shares the plotting command names with matplotlib
-         hasBasemap = True
-         try:
-            from mpl_toolkits.basemap import Basemap
-         except ImportError:
-            Util.warning("Cannot load Basemap package")
-            import matplotlib.pylab as map
-            hasBasemap = False
 
       data.setAxis("location")
       labels = data.getLegend()
@@ -891,16 +889,16 @@ class Default(Output):
 
       for f in range(0, F):
          Util.subplot(f, F)
-         if(hasBasemap):
-            if(self._showSatellite):
+         if(self._mapType is not None and hasBasemap):
+            if self._mapType == "simple":
+               map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
+                     urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
+                     resolution=res)
+            else:
                # arcgisimage requires basemap to have an epsg option passed
                map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
                      urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
                      resolution=res, epsg=4269)
-            else:
-               map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
-                     urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
-                     resolution=res)
             map.drawcoastlines(linewidth=0.25)
             map.drawcountries(linewidth=0.25)
             map.drawmapboundary()
@@ -908,9 +906,15 @@ class Default(Output):
             map.drawmeridians(np.arange(-180., 420., dx), labels=[0, 0, 0, 1])
             map.fillcontinents(color='coral', lake_color='aqua', zorder=-1)
             x0, y0 = map(lons, lats)
-            if(self._showSatellite):
-               map.arcgisimage(service=self._satelliteType, xpixels=2000, verbose=True)
+            if self._mapType != "simple":
+               if self._mapType is "sat":
+                  service = 'ESRI_Imagery_World_2D'
+               else:
+                  service = self._mapType
+               map.arcgisimage(service=service, xpixels=2000, verbose=True)
          else:
+            # Use matplotlibs plotting functions, if we do not use Basemap
+            map = mpl
             x0 = lons
             y0 = lats
          I = np.where(np.isnan(y[f, :]))[0]

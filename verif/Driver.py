@@ -71,8 +71,7 @@ def run(argv):
    listQuantiles = False
    listLocations = False
    listDates = False
-   showSatellite = False
-   satelliteType = None
+   mapType = None
    logX = False
    logY = False
    cmap = None
@@ -109,8 +108,6 @@ def run(argv):
             logX = True
          elif(arg == "-logy"):
             logY = True
-         elif(arg == "-sat"):
-            showSatellite = True
          else:
             if(arg == "-f"):
                ofile = argv[i + 1]
@@ -198,8 +195,8 @@ def run(argv):
                titleFontSize = float(argv[i + 1])
             elif(arg == "-cmap"):
                cmap = argv[i + 1]
-            elif(arg == "-sattype"):
-               satelliteType = argv[i + 1]
+            elif(arg == "-maptype"):
+               mapType = argv[i + 1]
             elif(arg == "-m"):
                metric = argv[i + 1]
             else:
@@ -428,8 +425,8 @@ def run(argv):
       pl.setLogY(logY)
    if(cmap is not None):
       pl.setCmap(cmap)
-   if(satelliteType is not None):
-      pl.setSatelliteType(satelliteType)
+   if(mapType is not None):
+      pl.setMapType(mapType)
    pl.setFilename(ofile)
    pl.setThresholds(thresholds)
    pl.setFigsize(figSize)
@@ -440,7 +437,6 @@ def run(argv):
    pl.setYlabel(ylabel)
    pl.setXlabel(xlabel)
    pl.setTitle(title)
-   pl.setShowSatellite(showSatellite)
 
    if(type == "text"):
       pl.text(data)
@@ -515,12 +511,11 @@ def showDescription(data=None):
    print Util.formatArgument("-logy", "Use a logarithmic y-axis")
    print Util.formatArgument("-majlth length", "Length of major tick marks")
    print Util.formatArgument("-majtwid width", "Adjust the thickness of the major tick marks")
+   print Util.formatArgument("-maptype", "One of 'simple', 'sat', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image. Only relevant when '-type map' has been selected.")
    print Util.formatArgument("-minlth length", "Length of minor tick marks")
    print Util.formatArgument("-ms size", "How big should markers be?")
    print Util.formatArgument("-nomargin", "Remove margins (whitespace) in the plot not x[i] <= T.")
    print Util.formatArgument("-right value", "Right boundary location for saved figure [range 0-1]")
-   print Util.formatArgument("-sat", "Show satellite image if plotting a map (slow)")
-   print Util.formatArgument("-sattype", "Satellite type. Check http://server.arcgisonline.com/arcgis/rest/services for a list of names.")
    print Util.formatArgument("-simple", "Make a simpler plot, without extra lines, subplots, etc.")
    print Util.formatArgument("-sp", "Show a line indicating the perfect score")
    print Util.formatArgument("-tickfs size", "Font size for axis ticks")
