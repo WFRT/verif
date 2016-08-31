@@ -17,7 +17,7 @@ files, ``verif`` will discard data points where one or more forecast systems hav
 Since ``verif`` is a command-line tool, it can be used in scripts to automatically create
 verification figures.
 
-A prototype version has been released (see "Installation Instruction" below). We welcome suggestions
+``verif`` version 1.0 has been released (see "Installation Instruction" below). We welcome suggestions
 for improvements. ``verif`` is developed by Thomas Nipen, David Siuta, and Tim Chui.
 
 .. image:: image.jpg
