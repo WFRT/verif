@@ -29,15 +29,6 @@ require(gamlss)
 # useMedian: Should the median be used to create the deterministic forecast? Otherwise the mean
 #            but this might not work for anything other than NO and ZAGA.
 #
-# Example:
-# obs = rnorm(1000, 2, 5)
-# ensmean = obs+rnorm(1000,2,6)
-# ensspread = exp(rnorm(1000,2,1))
-# data = data.frame(LAT=60+rnorm(1000, 0, 0.3), LON=10+rnorm(1000, 0, 0.3), ELEV=5, SITE=1:1000,
-#                   DATE=20150101, OFFSET=5,
-#                   OBS=obs, MEAN=ensmean, SPREAD=ensspread)
-# model = list(mu=OBS~MEAN, sigma=~SPREAD, family=NO)
-# gamlss2verif(model, data, data, "fit.nc")
 #
 # Then run verif like this:
 # verif fit.nc -m reliability -r 0
@@ -63,9 +54,8 @@ gamlss2verif <- function(model, x, xeval, filename, variable="Precip",
 
    # Dimensions
    date      <- sort(unique(xeval$DATE))
-   offset    <- sort(unique(xeval$OFFSET))
    offset    <- intersect(sort(unique(xeval$OFFSET)), sort(unique(x$OFFSET)))
-   location  <- intersect(sort(unique(xeval$SITE)), sort(unique(x$SITE)))
+   location  <- sort(unique(xeval$SITE))
    dDate     <- dim.def.ncdf("Date", "", date)
    dOffset   <- dim.def.ncdf("Offset", "", offset)
    dLocation <- dim.def.ncdf("Location", "", location)
@@ -136,7 +126,7 @@ gamlss2verif <- function(model, x, xeval, filename, variable="Precip",
       }
 
       # Precompute parameters
-      par <- getMoments(fit, xe)
+      par <- getMoments(fit, xt, xe)
 
       if(useMedian)
          xfcst[I] <- qG(0.5, fit, xe, par)
@@ -250,7 +240,9 @@ dG <- function(d, fit, x, par=NULL) {
 mG <- function(fit, x, par=NULL) {
    return(getValues(0, fit, x, "m", par))
 }
-getMoments <- function(fit, x) {
+# Compute moments for 'x'. For some reason, gamlss's predictAll requires access to the
+# training data used to create 'fit'. This is passed in as 'xfit'.
+getMoments <- function(fit, xfit, x) {
    cls = class(fit)
    if(length(cls) != 4 || cls[1] != "gamlss") {
       kens = grep("ENS", names(x))
@@ -258,7 +250,7 @@ getMoments <- function(fit, x) {
       return(par)
    }
    family = fit$family[1]
-   par = predictAll(fit, data=x, newdata=x)
+   par = predictAll(fit, data=xfit, newdata=x)
    return(par)
 }
 getValues <- function(q, fit, x, type, par=NULL) {
