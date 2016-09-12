@@ -66,6 +66,8 @@ def run(argv):
    xlim = None
    ylim = None
    clim = None
+   xticks = None
+   yticks = None
    version = None
    listThresholds = False
    listQuantiles = False
@@ -153,6 +155,10 @@ def run(argv):
                ylim = Util.parseNumbers(argv[i + 1])
             elif(arg == "-clim"):
                clim = Util.parseNumbers(argv[i + 1])
+            elif(arg == "-xticks"):
+               xticks = Util.parseNumbers(argv[i + 1])
+            elif(arg == "-yticks"):
+               yticks = Util.parseNumbers(argv[i + 1])
             elif(arg == "-s"):
                sdim = argv[i + 1]
             elif(arg == "-ct"):
@@ -419,6 +425,10 @@ def run(argv):
       pl.setYLim(ylim)
    if(clim is not None):
       pl.setCLim(clim)
+   if(xticks is not None):
+      pl.setXTicks(xticks)
+   if(yticks is not None):
+      pl.setYTicks(yticks)
    if(logX is not None):
       pl.setLogX(logX)
    if(logY is not None):
@@ -525,9 +535,11 @@ def showDescription(data=None):
    print Util.formatArgument("-type type", "One of 'plot' (default), 'text', 'csv', 'map', or 'maprank'.")
    print Util.formatArgument("-xlabel text", "Custom x-axis label")
    print Util.formatArgument("-xlim limits", "Force x-axis limits to the two values lower,upper")
+   print Util.formatArgument("-xticks ticks", "A vector of values to put ticks on the x-axis")
    print Util.formatArgument("-xrot value", "Rotation angle for x-axis labels")
    print Util.formatArgument("-ylabel text", "Custom y-axis label")
    print Util.formatArgument("-ylim limits", "Force y-axis limits to the two values lower,upper")
+   print Util.formatArgument("-yticks ticks", "A vector of values to put ticks on the y-axis")
    print ""
    metrics = Metric.getAllMetrics()
    outputs = Output.getAllOutputs()

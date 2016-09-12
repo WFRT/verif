@@ -84,11 +84,11 @@ class Output:
       self._xlim = None
       self._ylim = None
       self._clim = None
+      self._xticks = None
+      self._yticks = None
       self._title = None
       self._xlabel = None
       self._ylabel = None
-      self._xticks = None
-      self._yticks = None
       self._tight = False
       self._simple = False
       self._mapType = None
@@ -192,6 +192,12 @@ class Output:
       if(len(lim) != 2):
          Util.error("clim must be a vector of length 2")
       self._clim = lim
+
+   def setXTicks(self, ticks):
+      self._xticks = ticks
+
+   def setYTicks(self, ticks):
+      self._yticks = ticks
 
    def setSimple(self, flag):
       self._simple = flag
@@ -488,12 +494,8 @@ class Output:
 
       # Ticks
       if(self._xticks is not None):
-         if(len(self._xticks) <= 1):
-            Util.error("Xticks must have at least 2 values")
          mpl.xticks(self._xticks)
       if(self._yticks is not None):
-         if(len(self._yticks) <= 1):
-            Util.error("Yticks must have at least 2 values")
          mpl.yticks(self._yticks)
 
       # Margins
