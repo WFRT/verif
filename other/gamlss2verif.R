@@ -26,20 +26,17 @@ require(gamlss)
 # variable: Which variable is this (Precip,  T, or WindSpeed). Used to write units, etc
 # quantiles: Which quantiles should be written?
 # thresholds: Which thresholds should probabilities be computed for?
+# offsetRange: Allow data from neighbouring offsets to create the training. Makes the calibration
+#            more robust at the expense (benefit?) of smoothening the coefficient across leadtimes.
+#            A value of 1 means use data with offsets +-1.
 # useMedian: Should the median be used to create the deterministic forecast? Otherwise the mean
 #            but this might not work for anything other than NO and ZAGA.
-#
-#
-# Then run verif like this:
-# verif fit.nc -m reliability -r 0
-# verif fit.nc -m pithist
-# verif fit.nc -m mae -type map
 
 gamlss2verif <- function(model, x, xeval, filename, variable="Precip",
                     quantiles=c(0.01,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.99),
                     thresholds=NA,
+                    offsetRange=0,
                     useMedian=TRUE) {
-   library("ncdf")
    MV  = -1e30
    MVL = -999
    # Which thresholds should CDFs be written for?
@@ -109,7 +106,7 @@ gamlss2verif <- function(model, x, xeval, filename, variable="Precip",
    for(i in 1:length(offset)) {
       off = offset[i]
       print(paste("Offset:", off))
-      I = which(x$OFFSET == off)
+      I = which(abs(x$OFFSET - off) <= offsetRange)
       xt = x[I,]
       I = which(xeval$OFFSET == off)
       xe = xeval[I,]
@@ -144,17 +141,14 @@ gamlss2verif <- function(model, x, xeval, filename, variable="Precip",
       }
    }
 
-   #stopifnot(length(xfcst) == length(x$OBS))
    obs   <- array(MVL, c(length(location), length(offset), length(date)))
    fcst  <- array(MVL, c(length(location), length(offset), length(date)))
    pit   <- array(MVL, c(length(location), length(offset), length(date)))
    spread <- array(MVL, c(length(location), length(offset), length(date)))
    ign   <- array(MVL, c(length(location), length(offset), length(date)))
-   p     <- array(MVL, c(length(location), length(offset), length(date),
-                         length(thresholds)))
+   p     <- array(MVL, c(length(location), length(offset), length(date), length(thresholds)))
    q     <- array(MVL, c(length(location), length(offset), length(date), length(quantiles)))
    for(d in 1:length(date)) {
-      # print(paste(d, "/", length(date), sep=""))
       Id = which(xeval$DATE == date[d])
       for(o in 1:length(offset)) {
          Io = which(xeval$OFFSET == offset[o])
