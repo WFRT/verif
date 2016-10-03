@@ -578,6 +578,7 @@ class Default(Output):
       self._mapLowerPerc = 0    # Lower percentile (%) to show in colourmap
       self._mapUpperPerc = 100  # Upper percentile (%) to show in colourmap
       self._mapLabelLocations = True  # Show locationIds in map?
+      self._minLatLonRange = 0.001  # What is the smallest map size allowed (in degrees)
 
    def setShowRank(self, showRank):
       self._showRank = showRank
@@ -830,12 +831,18 @@ class Default(Output):
       lats = data.getLats()
       lons = data.getLons()
       ids = data.getLocationIds()
-      dlat = (max(lats) - min(lats))
-      dlon = (max(lons) - min(lons))
+      dlat = max(lats) - min(lats)
+      dlon = max(lons) - min(lons)
       llcrnrlat = max(-90, min(lats) - dlat / 10)
       urcrnrlat = min(90, max(lats) + dlat / 10)
       llcrnrlon = min(lons) - dlon / 10
       urcrnrlon = max(lons) + dlon / 10
+      if llcrnrlat > urcrnrlat - self._minLatLonRange:
+         llcrnrlat = llcrnrlat - self._minLatLonRange/2.0
+         urcrnrlat = urcrnrlat + self._minLatLonRange/2.0
+      if llcrnrlon > urcrnrlon - self._minLatLonRange:
+         llcrnrlon = llcrnrlon - self._minLatLonRange/2.0
+         urcrnrlon = urcrnrlon + self._minLatLonRange/2.0
 
       # Check if we are wrapped across the dateline
       if(max(lons) - min(lons) > 180):
@@ -852,8 +859,6 @@ class Default(Output):
          urcrnrlat = self._ylim[1]
 
       res = Util.getMapResolution(lats, lons)
-      dlon = max(lons) - min(lons)
-      dlat = max(lats) - min(lats)
       if(dlon < 5):
          dx = 1
       elif(dlon < 90):
@@ -919,6 +924,8 @@ class Default(Output):
             map = mpl
             x0 = lons
             y0 = lats
+            mpl.xlim([llcrnrlon, urcrnrlon])
+            mpl.ylim([llcrnrlat, urcrnrlat])
          I = np.where(np.isnan(y[f, :]))[0]
          map.plot(x0[I], y0[I], 'kx')
 
@@ -1553,9 +1560,9 @@ class TimeSeries(Output):
       connect = min(offsets) + 24 > max(offsets)
       minOffset = min(offsets)
 
-      # Obs line
       obs = data.getScores("obs")[0]
       for d in range(0, obs.shape[0]):
+         # Obs line
          x = dates[d] + offsets / 24.0
          y = Util.nanmean(obs[d, :, :], axis=1)
          if(connect and d < obs.shape[0] - 1):
