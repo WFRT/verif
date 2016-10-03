@@ -3,13 +3,13 @@ try:
 except:
    from scipy.io.netcdf import netcdf_file as netcdf
 import numpy as np
-import verif.Station as Station
-import verif.Util as Util
-from verif.Variable import *
+import verif.station
+import verif.util
+import verif.variable
 
 
 # Abstract base class representing verification data
-class Input:
+class Input(object):
    _description = ""    # Overwrite this
 
    def __init__(self, filename):
@@ -84,7 +84,7 @@ class Input:
 # Original fileformat used by OutputVerif in COMPS
 class Comps(Input):
    _dimensionNames = ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]
-   _description = Util.formatArgument("netcdf", "Undocumented legacy " +
+   _description = verif.util.formatArgument("netcdf", "Undocumented legacy " +
          "NetCDF format, to be phased out. A new NetCDF based format will " +
          "be defined.")
 
@@ -93,19 +93,19 @@ class Comps(Input):
       self._file = netcdf(filename, 'r')
 
    def getStations(self):
-      lat = Util.clean(self._file.variables["Lat"])
-      lon = Util.clean(self._file.variables["Lon"])
-      id = Util.clean(self._file.variables["Location"])
-      elev = Util.clean(self._file.variables["Elev"])
+      lat = verif.util.clean(self._file.variables["Lat"])
+      lon = verif.util.clean(self._file.variables["Lon"])
+      id = verif.util.clean(self._file.variables["Location"])
+      elev = verif.util.clean(self._file.variables["Elev"])
       stations = list()
       for i in range(0, lat.shape[0]):
-         station = Station.Station(id[i], lat[i], lon[i], elev[i])
+         station = verif.station.Station(id[i], lat[i], lon[i], elev[i])
          stations.append(station)
       return stations
 
    def getScores(self, metric):
       metric = self._toPvarComps(metric)
-      temp = Util.clean(self._file.variables[metric])
+      temp = verif.util.clean(self._file.variables[metric])
       return temp
 
    def _toPvarVerif(self, metric):
@@ -127,10 +127,10 @@ class Comps(Input):
       return self._file.variables[metric].dimensions
 
    def getDates(self):
-      return Util.clean(self._file.variables["Date"])
+      return verif.util.clean(self._file.variables["Date"])
 
    def getOffsets(self):
-      return Util.clean(self._file.variables["Offset"])
+      return verif.util.clean(self._file.variables["Offset"])
 
    def getThresholds(self):
       thresholds = list()
@@ -174,7 +174,7 @@ class Comps(Input):
             units = "%"
          else:
             units = "$" + self._file.Units + "$"
-      return Variable(name, units)
+      return verif.variable.Variable(name, units)
 
    @staticmethod
    def isValid(filename):
@@ -205,50 +205,50 @@ class NetcdfCf(Input):
       return valid
 
    def getStations(self):
-      lat = Util.clean(self._file.variables["lat"])
-      lon = Util.clean(self._file.variables["lon"])
-      id = Util.clean(self._file.variables["id"])
-      elev = Util.clean(self._file.variables["elev"])
+      lat = verif.util.clean(self._file.variables["lat"])
+      lon = verif.util.clean(self._file.variables["lon"])
+      id = verif.util.clean(self._file.variables["id"])
+      elev = verif.util.clean(self._file.variables["elev"])
       stations = list()
       for i in range(0, lat.shape[0]):
-         station = Station.Station(id[i], lat[i], lon[i], elev[i])
+         station = verif.station.Station(id[i], lat[i], lon[i], elev[i])
          stations.append(station)
       return stations
 
    def getScores(self, metric):
-      temp = Util.clean(self._file.variables[metric])
+      temp = verif.util.clean(self._file.variables[metric])
       return temp
 
    def getObs(self):
-      return Util.clean(self._file.variables["obs"])
+      return verif.util.clean(self._file.variables["obs"])
 
    def getFcst(self):
-      return Util.clean(self._file.variables["fcst"])
+      return verif.util.clean(self._file.variables["fcst"])
 
    def getEns(self):
-      return Util.clean(self._file.variables["ens"])
+      return verif.util.clean(self._file.variables["ens"])
 
    def getCdf(self, threshold):
       # thresholds = getThresholds()
       # I = np.where(thresholds == threshold)[0]
       # assert(len(I) == 1)
-      temp = Util.clean(self._file.variables["cdf"])
+      temp = verif.util.clean(self._file.variables["cdf"])
       return temp
 
    def getDims(self, metric):
       return self._file.variables[metric].dimensions
 
    def getDates(self):
-      return Util.clean(self._file.variables["date"])
+      return verif.util.clean(self._file.variables["date"])
 
    def getOffsets(self):
-      return Util.clean(self._file.variables["offset"])
+      return verif.util.clean(self._file.variables["offset"])
 
    def getThresholds(self):
-      return Util.clean(self._file.variables["thresholds"])
+      return verif.util.clean(self._file.variables["thresholds"])
 
    def getQuantiles(self):
-      return Util.clean(self._file.variables["quantiles"])
+      return verif.util.clean(self._file.variables["quantiles"])
 
    def getMetrics(self):
       metrics = list()
@@ -273,21 +273,21 @@ class NetcdfCf(Input):
             units = "%"
          else:
             units = "$" + self._file.Units + "$"
-      return Variable(name, units)
+      return verif.variable.Variable(name, units)
 
 
 # Flat text file format
 class Text(Input):
-   _description = Util.formatArgument("text", "Data organized in rows and columns with space as a delimiter. Each row represents one forecast/obs pair, and each column represents one attribute of the data. Here is an example:") + "\n"\
-   + Util.formatArgument("", "") + "\n"\
-   + Util.formatArgument("", "# variable: Temperature") + "\n"\
-   + Util.formatArgument("", "# units: $^oC$") + "\n"\
-   + Util.formatArgument("", "date     offset id      lat     lon      elev obs fcst      p10") + "\n"\
-   + Util.formatArgument("", "20150101 0      214     49.2    -122.1   92 3.4 2.1     0.91") + "\n"\
-   + Util.formatArgument("", "20150101 1      214     49.2    -122.1   92 4.7 4.2      0.85") + "\n"\
-   + Util.formatArgument("", "20150101 0      180     50.3    -120.3   150 0.2 -1.2 0.99") + "\n"\
-   + Util.formatArgument("", "") + "\n"\
-   + Util.formatArgument("", " Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0. If there is conflicting information (for example different lat/lon/elev for the same id), then the information from the first row containing id will be used.")
+   _description = verif.util.formatArgument("text", "Data organized in rows and columns with space as a delimiter. Each row represents one forecast/obs pair, and each column represents one attribute of the data. Here is an example:") + "\n"\
+   + verif.util.formatArgument("", "") + "\n"\
+   + verif.util.formatArgument("", "# variable: Temperature") + "\n"\
+   + verif.util.formatArgument("", "# units: $^oC$") + "\n"\
+   + verif.util.formatArgument("", "date     offset id      lat     lon      elev obs fcst      p10") + "\n"\
+   + verif.util.formatArgument("", "20150101 0      214     49.2    -122.1   92 3.4 2.1     0.91") + "\n"\
+   + verif.util.formatArgument("", "20150101 1      214     49.2    -122.1   92 4.7 4.2      0.85") + "\n"\
+   + verif.util.formatArgument("", "20150101 0      180     50.3    -120.3   150 0.2 -1.2 0.99") + "\n"\
+   + verif.util.formatArgument("", "") + "\n"\
+   + verif.util.formatArgument("", " Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0. If there is conflicting information (for example different lat/lon/elev for the same id), then the information from the first row containing id will be used.")
 
    def __init__(self, filename):
       import csv
@@ -333,7 +333,7 @@ class Text(Input):
             elif(curr[0] == "units:"):
                self._units = curr[1]
             else:
-               Util.warning("Ignoring line '" + rowstr.strip() + "' in file '" + filename + "'")
+               verif.util.warning("Ignoring line '" + rowstr.strip() + "' in file '" + filename + "'")
          else:
             row = rowstr.split()
             if(header is None):
@@ -363,10 +363,10 @@ class Text(Input):
                for col in requiredColumns:
                   if(col not in indices):
                      msg = "Could not parse %s: Missing column '%s'" % (filename, col)
-                     Util.error(msg)
+                     verif.util.error(msg)
             else:
                if(len(row) is not len(header)):
-                  Util.error("Incorrect number of columns (expecting %d) in row '%s'"
+                  verif.util.error("Incorrect number of columns (expecting %d) in row '%s'"
                         % (len(header), rowstr.strip()))
                if("date" in indices):
                   date = self._clean(row[indices["date"]])
@@ -396,7 +396,7 @@ class Text(Input):
                   if not shownConflictingWarning:
                      if (not np.isnan(currLat) and abs(currLat - lat) > 0.0001) or (not np.isnan(currLon) and abs(currLon - lon) > 0.0001) or (not np.isnan(currElev) and abs(currElev - elev) > 0.001):
                         print currLat - lat, currLon - lon, currElev - elev
-                        Util.warning("Conflicting lat/lon/elev information: (%f,%f,%f) does not match (%f,%f,%f)" % (currLat, currLon, currElev, lat, lon, elev))
+                        verif.util.warning("Conflicting lat/lon/elev information: (%f,%f,%f) does not match (%f,%f,%f)" % (currLat, currLon, currElev, lat, lon, elev))
                         shownConflictingWarning = True
                else:
                   if np.isnan(currLat):
@@ -405,7 +405,7 @@ class Text(Input):
                      currLon = 0
                   if np.isnan(currElev):
                      currElev = 0
-                  station = Station.Station(id, currLat, currLon, currElev)
+                  station = verif.station.Station(id, currLat, currLon, currElev)
                   self._stations.add(station)
                   stationInfo[id] = station
 
@@ -536,23 +536,23 @@ class Text(Input):
          return self._fcst
       elif(metric == "pit"):
          if(self._pit is None):
-            Util.error("File does not contain 'pit'")
+            verif.util.error("File does not contain 'pit'")
          return self._pit
       elif(metric[0] == "p"):
          threshold = float(metric[1:])
          I = np.where(abs(self._thresholds - threshold) < 0.0001)[0]
          if(len(I) == 0):
-            Util.error("Cannot find " + metric)
+            verif.util.error("Cannot find " + metric)
          elif(len(I) > 1):
-            Util.error("Could not find unique threshold: " + str(threshold))
+            verif.util.error("Could not find unique threshold: " + str(threshold))
          return self._cdf[:, :, :, I[0]]
       elif(metric[0] == "q"):
          quantile = float(metric[1:])
          I = np.where(abs(self._quantiles - quantile) < 0.0001)[0]
          if(len(I) == 0):
-            Util.error("Cannot find " + metric)
+            verif.util.error("Cannot find " + metric)
          elif(len(I) > 1):
-            Util.error("Could not find unique quantile: " + str(quantile))
+            verif.util.error("Could not find unique quantile: " + str(quantile))
          return self._x[:, :, :, I[0]]
       elif(metric == "Offset"):
          return self._offsets
@@ -575,7 +575,7 @@ class Text(Input):
                values[i] = station.elev()
          return values
       else:
-         Util.error("Cannot find " + metric)
+         verif.util.error("Cannot find " + metric)
 
    def getDims(self, metric):
       if(metric in ["Date", "Offset", "Location"]):
@@ -609,7 +609,7 @@ class Text(Input):
       return metrics
 
    def getVariable(self):
-      return Variable(self._variable, self._units)
+      return verif.variable.Variable(self._variable, self._units)
 
    @staticmethod
    def isValid(filename):

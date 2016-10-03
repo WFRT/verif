@@ -1,5 +1,5 @@
 import unittest
-import verif.Metric as Metric
+import verif.metric
 import numpy as np
 
 
@@ -11,7 +11,7 @@ class MyTest(unittest.TestCase):
       fcstSet = [[0, 2, 8],
                 [3, 2],
                 [2]]
-      metrics = [Metric.Mae(), Metric.Bias(), Metric.Ef()]
+      metrics = [verif.metric.Mae(), verif.metric.Bias(), verif.metric.Ef()]
       # Metrics in the inner lists, datasets in the outer
       expSet = [[2, -4.0 / 3, 100.0 / 3],
                 [1, -1, 50],

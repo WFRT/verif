@@ -2,8 +2,8 @@
 import matplotlib.pyplot as mpl
 import re
 import datetime
-import verif.Util as Util
-import verif.Metric as Metric
+import verif.util
+import verif.metric
 import numpy as np
 import os
 import inspect
@@ -35,7 +35,7 @@ def getOutput(name):
    return m
 
 
-class Output:
+class Output(object):
    _description = ""
    _defaultAxis = "offset"
    _defaultBinType = "above"
@@ -123,7 +123,7 @@ class Output:
    def description(cls):
       extra = ""
       # if(cls._experimental):
-      #    extra = " " + Util.experimental()
+      #    extra = " " + verif.util.experimental()
       return cls._description + extra
 
    # Is this a valid output that should be created be called?
@@ -139,9 +139,9 @@ class Output:
    def help(cls):
       s = cls.description()
       if(cls._long is not None):
-         s = s + "\n" + Util.green("Description: ") + cls._long
+         s = s + "\n" + verif.util.green("Description: ") + cls._long
       if(cls.reference() is not None):
-         s = s + "\n" + Util.green("Reference: ") + cls.reference()
+         s = s + "\n" + verif.util.green("Reference: ") + cls.reference()
       return s
 
    @classmethod
@@ -180,17 +180,17 @@ class Output:
 
    def setXLim(self, lim):
       if(len(lim) != 2):
-         Util.error("xlim must be a vector of length 2")
+         verif.util.error("xlim must be a vector of length 2")
       self._xlim = lim
 
    def setYLim(self, lim):
       if(len(lim) != 2):
-         Util.error("ylim must be a vector of length 2")
+         verif.util.error("ylim must be a vector of length 2")
       self._ylim = lim
 
    def setCLim(self, lim):
       if(len(lim) != 2):
-         Util.error("clim must be a vector of length 2")
+         verif.util.error("clim must be a vector of length 2")
       self._clim = lim
 
    def setXTicks(self, ticks):
@@ -279,7 +279,7 @@ class Output:
 
    def setMapType(self, type):
       if type not in allowedMapTypes:
-         Util.error("Map type '%s' not recognized. Must be one of %s" % (type,
+         verif.util.error("Map type '%s' not recognized. Must be one of %s" % (type,
             allowedMapTypes))
       self._mapType = type
 
@@ -328,16 +328,16 @@ class Output:
 
    # Implement these methods
    def _plotCore(self, data):
-      Util.error("This type does not plot")
+      verif.util.error("This type does not plot")
 
    def _textCore(self, data):
-      Util.error("This type does not output text")
+      verif.util.error("This type does not output text")
 
    def _csvCore(self, data):
-      Util.error("This type does not output csv")
+      verif.util.error("This type does not output csv")
 
    def _mapCore(self, data):
-      Util.error("This type does not produce maps")
+      verif.util.error("This type does not produce maps")
 
    # Helper functions
    def _getColor(self, i, total):
@@ -352,7 +352,7 @@ class Output:
                   string = string.replace("[", "")
                   numList.append(float(string))
                else:
-                  Util.error("Invalid rgba arg \"{}\"".format(string))
+                  verif.util.error("Invalid rgba arg \"{}\"".format(string))
 
             elif("]" in string):
                if(numList):
@@ -361,10 +361,10 @@ class Output:
                   finalList.append(numList)
                   numList = []
                else:
-                  Util.error("Invalid rgba arg \"{}\"".format(string))
+                  verif.util.error("Invalid rgba arg \"{}\"".format(string))
 
             # append to rgba lists if present, otherwise grayscale intensity
-            elif(Util.isNumber(string)):
+            elif(verif.util.isNumber(string)):
                if(numList):
                   numList.append(float(string))
                else:
@@ -374,7 +374,7 @@ class Output:
                if(not numList):  # string args and hexcodes
                   finalList.append(string)
                else:
-                  Util.error("Cannot read color args.")
+                  verif.util.error("Cannot read color args.")
          self.colors = finalList
          return self.colors[i % len(self.colors)]
 
@@ -406,7 +406,7 @@ class Output:
          mpl.gcf().set_size_inches(int(self._figsize[0]),
                                    int(self._figsize[1]))
       if(not self._showMargin):
-         Util.removeMargin()
+         verif.util.removeMargin()
       if(self._filename is not None):
          mpl.savefig(self._filename, bbox_inches='tight', dpi=self._dpi)
       else:
@@ -434,7 +434,7 @@ class Output:
          upperT = thresholds[1:]
          x = [(lowerT[i] + upperT[i]) / 2 for i in range(0, len(lowerT))]
       else:
-         Util.error("Unrecognized bintype")
+         verif.util.error("Unrecognized bintype")
       return [lowerT, upperT, x]
 
    def _setYAxisLimits(self, metric):
@@ -473,7 +473,7 @@ class Output:
             xlim = self._xlim
             # Convert date to datetime objects
             if(data.isAxisDate()):
-               xlim = Util.convertDates(xlim)
+               xlim = verif.util.convertDates(xlim)
             mpl.xlim(xlim)
          if(self._ylim is not None):
             mpl.ylim(self._ylim)
@@ -555,7 +555,7 @@ class Output:
             label="")
       mpl.plot(x, lower, style, color=color, lw=self._lw, ms=self._ms,
             label="")
-      Util.fill(x, lower, upper, color, alpha=0.3)
+      verif.util.fill(x, lower, upper, color, alpha=0.3)
 
 
 class Default(Output):
@@ -613,7 +613,7 @@ class Default(Output):
             yy = yy / len(thresholds)
 
          if(sum(np.isnan(yy)) == len(yy)):
-            Util.warning("No valid scores for " + filenames[f])
+            verif.util.warning("No valid scores for " + filenames[f])
          if(y is None):
             y = np.zeros([F, len(yy)], 'float')
             x = np.zeros([F, len(xx)], 'float')
@@ -644,7 +644,7 @@ class Default(Output):
       if(self._setLegSort):
          if(not self._showAcc):
             # averaging for non-acc plots
-            averages = (Util.nanmean(y, axis=1))
+            averages = (verif.util.nanmean(y, axis=1))
             ids = averages.argsort()[::-1]
 
          else:
@@ -745,8 +745,8 @@ class Default(Output):
          self._printLine(y[:, i], maxlength, "float")
 
       # Print stats
-      for func in [Util.nanmin, Util.nanmean, Util.nanmax,
-            Util.nanstd]:
+      for func in [verif.util.nanmin, verif.util.nanmean, verif.util.nanmax,
+            verif.util.nanstd]:
          name = func.__name__[3:]
          print lineDescFmt % name,
          values = np.zeros(F, 'float')
@@ -755,7 +755,7 @@ class Default(Output):
          self._printLine(values, maxlength, "float")
 
       # Print count stats
-      for func in [Util.nanmin, Util.nanmax]:
+      for func in [verif.util.nanmin, verif.util.nanmax]:
          name = func.__name__[3:]
          print lineDescFmt % ("num " + name),
          values = np.zeros(F, 'float')
@@ -809,9 +809,9 @@ class Default(Output):
          else:
             txt = fmt % value
          if(minI == f):
-            print Util.green(txt),
+            print verif.util.green(txt),
          elif(maxI == f):
-            print Util.red(txt),
+            print verif.util.red(txt),
          else:
             print txt,
       print ""
@@ -822,7 +822,7 @@ class Default(Output):
       try:
          from mpl_toolkits.basemap import Basemap
       except ImportError:
-         Util.warning("Cannot load Basemap package")
+         verif.util.warning("Cannot load Basemap package")
          hasBasemap = False
 
       data.setAxis("location")
@@ -858,7 +858,7 @@ class Default(Output):
          llcrnrlat = self._ylim[0]
          urcrnrlat = self._ylim[1]
 
-      res = Util.getMapResolution(lats, lons)
+      res = verif.util.getMapResolution(lats, lons)
       if(dlon < 5):
          dx = 1
       elif(dlon < 90):
@@ -875,8 +875,8 @@ class Default(Output):
       [x, y] = self.getXY(data)
 
       # Colorbar limits should be the same for all subplots
-      clim = [Util.nanpercentile(y.flatten(), self._mapLowerPerc),
-              Util.nanpercentile(y.flatten(), self._mapUpperPerc)]
+      clim = [verif.util.nanpercentile(y.flatten(), self._mapLowerPerc),
+              verif.util.nanpercentile(y.flatten(), self._mapUpperPerc)]
 
       cmap = self._cmap
 
@@ -884,11 +884,11 @@ class Default(Output):
       if(self._clim is not None):
          clim = self._clim
 
-      std = Util.nanstd(y)
+      std = verif.util.nanstd(y)
       minDiff = std / 50
 
       for f in range(0, F):
-         Util.subplot(f, F)
+         verif.util.subplot(f, F)
          if(self._mapType is not None and hasBasemap):
             if self._mapType == "simple":
                map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
@@ -1052,7 +1052,7 @@ class Hist(Output):
          self._printLine(y[:, i], maxlength, "int")
 
       # Print count stats
-      for func in [Util.nanmin, Util.nanmax]:
+      for func in [verif.util.nanmin, verif.util.nanmax]:
          name = func.__name__[3:]
          print lineDescFmt % ("num " + name),
          values = np.zeros(F, 'float')
@@ -1104,9 +1104,9 @@ class Hist(Output):
          else:
             txt = fmt % value
          if(minI == f):
-            print Util.green(txt),
+            print verif.util.green(txt),
          elif(maxI == f):
-            print Util.red(txt),
+            print verif.util.red(txt),
          else:
             print txt,
       print ""
@@ -1152,12 +1152,12 @@ class ObsFcst(Output):
       isCont = data.isAxisContinuous()
 
       # Obs line
-      mObs = Metric.Default("obs", aux="fcst")
+      mObs = verif.metric.Default("obs", aux="fcst")
       mObs.setAggregator(self._aggregatorName)
       y = mObs.compute(data, None)
       self._plotObs(x, y, isCont)
 
-      mFcst = Metric.Default("fcst", aux="obs")
+      mFcst = verif.metric.Default("fcst", aux="obs")
       mFcst.setAggregator(self._aggregatorName)
       labels = data.getLegend()
       for f in range(0, F):
@@ -1386,8 +1386,8 @@ class Change(Output):
 
          for i in range(0, len(bins)):
             I = (change > edges[i]) & (change <= edges[i + 1])
-            y[i] = Util.nanmean(err[I])
-            x[i] = Util.nanmean(change[I])
+            y[i] = verif.util.nanmean(err[I])
+            x[i] = verif.util.nanmean(change[I])
          mpl.plot(x, y, style, color=color, lw=self._lw, ms=self._ms,
                label=labels[f])
       self._plotPerfectScore(x, 0)
@@ -1424,11 +1424,11 @@ class Cond(Output):
          fo = np.zeros(len(x), 'float')
          xof = np.zeros(len(x), 'float')
          xfo = np.zeros(len(x), 'float')
-         mof = Metric.Conditional("obs", "fcst", np.mean)  # F | O
-         mfo = Metric.Conditional("fcst", "obs", np.mean)  # O | F
-         xmof = Metric.XConditional("obs", "fcst")  # F | O
-         xmfo = Metric.XConditional("fcst", "obs")  # O | F
-         mof0 = Metric.Conditional("obs", "fcst", np.mean)  # F | O
+         mof = verif.metric.Conditional("obs", "fcst", np.mean)  # F | O
+         mfo = verif.metric.Conditional("fcst", "obs", np.mean)  # O | F
+         xmof = verif.metric.XConditional("obs", "fcst")  # F | O
+         xmfo = verif.metric.XConditional("fcst", "obs")  # O | F
+         mof0 = verif.metric.Conditional("obs", "fcst", np.mean)  # F | O
          for i in range(0, len(lowerT)):
             fo[i] = mfo.compute(data, [lowerT[i], upperT[i]])
             of[i] = mof.compute(data, [lowerT[i], upperT[i]])
@@ -1522,8 +1522,8 @@ class Count(Output):
 
          Nobs = np.zeros(len(x), 'float')
          Nfcst = np.zeros(len(x), 'float')
-         obs = Metric.Count("obs")
-         fcst = Metric.Count("fcst")
+         obs = verif.metric.Count("obs")
+         fcst = verif.metric.Count("fcst")
          for i in range(0, len(lowerT)):
             Nobs[i] = obs.compute(data, [lowerT[i], upperT[i]])
             Nfcst[i] = fcst.compute(data, [lowerT[i], upperT[i]])
@@ -1557,9 +1557,9 @@ class TimeSeries(Output):
       for d in range(0, obs.shape[0]):
          # Obs line
          x = dates[d] + offsets / 24.0
-         y = Util.nanmean(obs[d, :, :], axis=1)
+         y = verif.util.nanmean(obs[d, :, :], axis=1)
          if(connect and d < obs.shape[0] - 1):
-            obsmean = Util.nanmean(obs[d + 1, 0, :], axis=0)
+            obsmean = verif.util.nanmean(obs[d + 1, 0, :], axis=0)
             x = np.insert(x, x.shape[0], dates[d + 1] + minOffset / 24.0)
             y = np.insert(y, y.shape[0], obsmean)
 
@@ -1582,10 +1582,10 @@ class TimeSeries(Output):
 
             fcst = data.getScores("fcst")[0]
             x = dates[d] + offsets / 24.0
-            y = Util.nanmean(fcst[d, :, :], axis=1)
+            y = verif.util.nanmean(fcst[d, :, :], axis=1)
             if(connect and d < obs.shape[0] - 1):
                x = np.insert(x, x.shape[0], dates[d + 1] + minOffset / 24.0)
-               y = np.insert(y, y.shape[0], Util.nanmean(fcst[d + 1, 0, :]))
+               y = np.insert(y, y.shape[0], verif.util.nanmean(fcst[d + 1, 0, :]))
             lab = labels[f] if d == 0 else ""
             mpl.rcParams['ytick.major.pad'] = '20'
             mpl.rcParams['xtick.major.pad'] = '20'
@@ -1626,12 +1626,12 @@ class Meteo(Output):
 
       # Plot obs line
       obs = data.getScores("obs")[0]
-      obs = Util.nanmean(Util.nanmean(obs, axis=0), axis=1)
+      obs = verif.util.nanmean(verif.util.nanmean(obs, axis=0), axis=1)
       mpl.plot(x, obs, "o-", color=self._obsCol, lw=2, ms=8, label="Observations")
 
       # Plot deterministic forecast
       fcst = data.getScores("fcst")[0]
-      fcst = Util.nanmean(Util.nanmean(fcst, axis=0), axis=1)
+      fcst = verif.util.nanmean(verif.util.nanmean(fcst, axis=0), axis=1)
       mpl.plot(x, fcst, "o-", color=self._fcstCol, lw=2, ms=8, label="Deterministic")
 
       # Plot quantiles
@@ -1641,7 +1641,7 @@ class Meteo(Output):
       for i in range(0, len(quantiles)):
          quantile = quantiles[i]/100
          var = data.getQvar(quantile)
-         y[:, i] = Util.nanmean(Util.nanmean(data.getScores(var)[0], axis=0), axis=1)
+         y[:, i] = verif.util.nanmean(verif.util.nanmean(data.getScores(var)[0], axis=0), axis=1)
       for i in range(0, len(quantiles)):
          style = "k-"
          if(i == 0 or i == len(quantiles) - 1):
@@ -1653,7 +1653,7 @@ class Meteo(Output):
       Ncol = (len(quantiles)-1)/2
       for i in range(0, Ncol):
          color = [(1 - (i + 0.0) / Ncol)] * 3
-         Util.fill(x, y[:, i], y[:, len(quantiles) - 1 - i], color,
+         verif.util.fill(x, y[:, i], y[:, len(quantiles) - 1 - i], color,
                zorder=-2)
 
       # Labels and ticks
@@ -1727,7 +1727,7 @@ class PitHist(Output):
       F = data.getNumFiles()
       labels = data.getLegend()
       for f in range(0, F):
-         Util.subplot(f, F)
+         verif.util.subplot(f, F)
          color = self._getColor(f, F)
          data.setAxis("none")
          data.setIndex(0)
@@ -1753,7 +1753,7 @@ class PitHist(Output):
 
          if(self._showExpectedLine()):
             # Multiply by 100 to get to percent
-            std = Metric.PitDev.deviationStd(pit, self._numBins) * 100
+            std = verif.metric.PitDev.deviationStd(pit, self._numBins) * 100
 
             mpl.plot([0, 1], [100.0 / self._numBins - 2 * std,
                100.0 / self._numBins - 2 * std], "r-")
@@ -1763,13 +1763,13 @@ class PitHist(Output):
                   100.0 / self._numBins - 2 * std]
             upper = [100.0 / self._numBins + 2 * std,
                   100.0 / self._numBins + 2 * std]
-            Util.fill([0, 1], lower, upper, "r", zorder=100, alpha=0.5)
+            verif.util.fill([0, 1], lower, upper, "r", zorder=100, alpha=0.5)
 
          # Compute calibration deviation
          if(self._showStats()):
-            D = Metric.PitDev.deviation(pit, self._numBins)
-            D0 = Metric.PitDev.expectedDeviation(pit, self._numBins)
-            ign = Metric.PitDev.ignorancePotential(pit, self._numBins)
+            D = verif.metric.PitDev.deviation(pit, self._numBins)
+            D0 = verif.metric.PitDev.expectedDeviation(pit, self._numBins)
+            ign = verif.metric.PitDev.ignorancePotential(pit, self._numBins)
             mpl.text(0, mpl.ylim()[1], "Dev: %2.4f\nExp: %2.4f\nIgn: %2.4f"
                   % (D, D0, ign), verticalalignment="top")
 
@@ -1822,7 +1822,7 @@ class Discrimination(Output):
                p = 1 - p
                obs = obs > threshold
             else:
-               Util.error("Bin type must be one of 'below' or"
+               verif.util.error("Bin type must be one of 'below' or"
                      "'above' for discrimination diagram")
 
             clim = np.mean(obs)
@@ -1860,7 +1860,7 @@ class Discrimination(Output):
       elif(self._binType == "above"):
          mpl.title("Discrimination diagram for obs > " + str(threshold) + units)
       else:
-         Util.error("Bin type must be one of 'below' or"
+         verif.util.error("Bin type must be one of 'below' or"
                "'above' for discrimination diagram")
 
 
@@ -1928,7 +1928,7 @@ class Reliability(Output):
                p = 1 - p
                obs = obs > threshold
             else:
-               Util.error("Bin type must be one of 'below' or"
+               verif.util.error("Bin type must be one of 'below' or"
                      "'above' for reliability plot")
 
             clim = np.mean(obs)
@@ -1978,9 +1978,9 @@ class Reliability(Output):
       # No-skill line
       mpl.plot([0, 1], [clim / 2, 1 - (1 - clim) / 2], "--", color=color)
       if(self._shadeNoSkill()):
-         Util.fill([clim, 1], [0, 0], [clim, 1 - (1 - clim) / 2],
+         verif.util.fill([clim, 1], [0, 0], [clim, 1 - (1 - clim) / 2],
                col=[1, 1, 1], zorder=-100, hatch="\\")
-         Util.fill([0, clim], [clim / 2, clim, 0], [1, 1],
+         verif.util.fill([0, clim], [clim / 2, clim, 0], [1, 1],
                col=[1, 1, 1], zorder=-100, hatch="\\")
       mpl.xlabel("Forecasted probability")
       mpl.ylabel("Observed frequency")
@@ -1990,7 +1990,7 @@ class Reliability(Output):
       elif(self._binType == "above"):
          mpl.title("Reliability diagram for obs > " + str(threshold) + units)
       else:
-         Util.error("Bin type must be one of 'below' or"
+         verif.util.error("Bin type must be one of 'below' or"
                "'above' for reliability plot")
       mpl.gca().set_aspect(1)
 
@@ -2011,7 +2011,7 @@ class IgnContrib(Output):
       labels = data.getLegend()
 
       if(len(self._thresholds) != 1):
-         Util.error("IgnContrib diagram requires exactly one threshold")
+         verif.util.error("IgnContrib diagram requires exactly one threshold")
       threshold = self._thresholds[0]
 
       F = data.getNumFiles()
@@ -2054,7 +2054,7 @@ class IgnContrib(Output):
             p = 1 - p
             obs = obs > threshold
          else:
-            Util.error("Bin type must be one of 'below' or 'above' "
+            verif.util.error("Bin type must be one of 'below' or 'above' "
                          "for igncontrib plot")
 
          clim = np.mean(obs)
@@ -2111,7 +2111,7 @@ class EconomicValue(Output):
       labels = data.getLegend()
 
       if(len(self._thresholds) != 1):
-         Util.error("Economic value diagram requires exactly one threshold")
+         verif.util.error("Economic value diagram requires exactly one threshold")
       threshold = self._thresholds[0]
 
       F = data.getNumFiles()
@@ -2122,7 +2122,7 @@ class EconomicValue(Output):
       elif(self._binType == "above"):
          mpl.title("Economic value for obs > " + str(self._thresholds[0]) + units)
       else:
-         Util.error("Bin type must be one of 'below' or"
+         verif.util.error("Bin type must be one of 'below' or"
                "'above' for reliability plot")
 
       data.setAxis("none")
@@ -2160,7 +2160,7 @@ class EconomicValue(Output):
             p = 1 - p
             obs = obs > threshold
          else:
-            Util.error("Bin type must be one of 'below' or 'above' " "for economicvalue plot")
+            verif.util.error("Bin type must be one of 'below' or 'above' " "for economicvalue plot")
 
          clim = np.mean(obs)
          # Compute frequencies
@@ -2202,11 +2202,11 @@ class Roc(Output):
    def _plotCore(self, data):
       threshold = self._thresholds[0]   # Observation threshold
       if(threshold is None):
-         Util.error("Roc plot needs a threshold (use -r)")
+         verif.util.error("Roc plot needs a threshold (use -r)")
 
       quantiles = list(data.getQuantiles())
       if(len(quantiles) == 0):
-         Util.error("Your files do not have any quantiles")
+         verif.util.error("Your files do not have any quantiles")
 
       F = data.getNumFiles()
       labels = data.getLegend()
@@ -2277,7 +2277,7 @@ class DRoc(Output):
    def _plotCore(self, data):
       threshold = self._thresholds[0]   # Observation threshold
       if(threshold is None):
-         Util.error("DRoc plot needs a threshold (use -r)")
+         verif.util.error("DRoc plot needs a threshold (use -r)")
 
       if(self._doClassic):
          fthresholds = [threshold]
@@ -2306,8 +2306,8 @@ class DRoc(Output):
          x = np.nan * np.zeros([len(fthresholds), 1], 'float')
          for i in range(0, len(fthresholds)):
             fthreshold = fthresholds[i]
-            x[i] = Metric.Fa().computeObsFcst(obs, fcst + threshold - fthresholds[i], [threshold, np.inf])
-            y[i] = Metric.Hit().computeObsFcst(obs, fcst + threshold - fthresholds[i], [threshold, np.inf])
+            x[i] = verif.metric.Fa().computeObsFcst(obs, fcst + threshold - fthresholds[i], [threshold, np.inf])
+            y[i] = verif.metric.Hit().computeObsFcst(obs, fcst + threshold - fthresholds[i], [threshold, np.inf])
             if(self._showThresholds and (not np.isnan(x[i]) and
                   not np.isnan(y[i]) and f == 0)):
                mpl.text(x[i], y[i], "%2.1f" % fthreshold, color=color)
@@ -2374,7 +2374,7 @@ class Against(Output):
    def _plotCore(self, data):
       F = data.getNumFiles()
       if(F < 2):
-         Util.error("Cannot use Against plot with less than 2 configurations")
+         verif.util.error("Cannot use Against plot with less than 2 configurations")
 
       data.setAxis("none")
       data.setIndex(0)
@@ -2479,7 +2479,7 @@ class Taylor(Output):
             crmseLabel = "Norm CRMSE"
             minCrmseLabel = "Min norm CRMSE"
          else:
-            stdobs = Util.nanmean(stdobs)
+            stdobs = verif.util.nanmean(stdobs)
             xlabel = "Standard deviation (" + data.getUnits() + ")"
             crmseLabel = "CRMSE"
             minCrmseLabel = "Min CRMSE"
@@ -2591,8 +2591,8 @@ class Performance(Output):
             threshold = self._thresholds[t]
             sr = np.zeros(size, 'float')
             pod = np.zeros(size, 'float')
-            Far = Metric.Far()
-            Hit = Metric.Hit()
+            Far = verif.metric.Far()
+            Hit = verif.metric.Hit()
             for i in range(0, size):
                data.setIndex(i)
                [obs, fcst] = data.getScores(["obs", "fcst"])
@@ -2704,7 +2704,7 @@ class Error(Output):
       for f in range(0, F):
          color = self._getColor(f, F)
          style = self._getStyle(f, F, lineOnly=True)
-         self._drawCircle(Util.nanmean(rmse[:, f]), style=style, color=color)
+         self._drawCircle(verif.util.nanmean(rmse[:, f]), style=style, color=color)
 
       # Set axis limits
       maxx = xlim[1]
@@ -2765,7 +2765,7 @@ class Marginal(Output):
                p = 1 - p
                obs = obs > threshold
             else:
-               Util.error("Bin type must be one of 'below' or 'above' for reliability plot")
+               verif.util.error("Bin type must be one of 'below' or 'above' for reliability plot")
 
             clim[t] = np.mean(obs)
             y[t] = np.mean(p)
@@ -2878,9 +2878,9 @@ class InvReliability(Output):
          N = 21
          edges = np.linspace(0, 20, N + 1)
          if(data.getVariable().name() == "Precip"):
-            edges = np.linspace(0, np.sqrt(Util.nanmax(obs)), N + 1) ** 2
+            edges = np.linspace(0, np.sqrt(verif.util.nanmax(obs)), N + 1) ** 2
          else:
-            edges = np.linspace(Util.nanmin(obs), Util.nanmax(obs), N + 1)
+            edges = np.linspace(verif.util.nanmin(obs), verif.util.nanmax(obs), N + 1)
 
          x = np.zeros([len(edges) - 1, F], 'float')
          y = np.nan * np.zeros([F, len(edges) - 1], 'float')

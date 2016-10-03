@@ -7,14 +7,15 @@ import matplotlib.pyplot as mpl
 import textwrap
 import os
 
+
 def bin(x, y, edges, func=np.mean):
    yy = np.nan*np.zeros(len(edges)-1, 'float')
    xx = (edges[0:-1] + edges[1:]) / 2
    for i in range(0, len(xx)):
-      I = np.where((x > edges[i]) & (x <= edges[i+1]))[0]
+      I = np.where((x > edges[i]) & (x <= edges[i + 1]))[0]
       if len(I) > 0:
          yy[i] = func(y[I])
-   return xx,yy
+   return xx, yy
 
 
 def convertDates(dates):

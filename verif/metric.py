@@ -1,5 +1,5 @@
 import numpy as np
-import verif.Util as Util
+import verif.util
 import sys
 import inspect
 
@@ -21,7 +21,7 @@ def getMetric(name):
 
 
 # Computes scores for each xaxis value
-class Metric:
+class Metric(object):
    # Overload these variables
    _min = None  # Minimum value this metric can produce
    _max = None  # Maximum value this mertic can produce
@@ -90,7 +90,7 @@ class Metric:
    def help(cls):
       s = cls.description()
       if(cls.orientation() is not 0):
-         s = s + "\n" + Util.green("Orientation: ")
+         s = s + "\n" + verif.util.green("Orientation: ")
          if(cls.orientation() == 1):
             s = s + "Positive"
          elif(cls.orientation() == -1):
@@ -98,15 +98,15 @@ class Metric:
          else:
             s = s + "None"
       if(cls.perfectScore is not None):
-         s = s + "\n" + Util.green("Perfect score: ") + str(cls._perfectScore)
+         s = s + "\n" + verif.util.green("Perfect score: ") + str(cls._perfectScore)
       if(cls.min is not None):
-         s = s + "\n" + Util.green("Minimum value: ") + str(cls._min)
+         s = s + "\n" + verif.util.green("Minimum value: ") + str(cls._min)
       if(cls.max is not None):
-         s = s + "\n" + Util.green("Maximum value: ") + str(cls._max)
+         s = s + "\n" + verif.util.green("Maximum value: ") + str(cls._max)
       if(cls._long is not None):
-         s = s + "\n" + Util.green("Description: ") + cls._long
+         s = s + "\n" + verif.util.green("Description: ") + cls._long
       if(cls.reference() is not None):
-         s = s + "\n" + Util.green("Reference: ") + cls.reference()
+         s = s + "\n" + verif.util.green("Reference: ") + cls.reference()
       return s
 
    @classmethod
@@ -116,7 +116,7 @@ class Metric:
          return ""
       extra = ""
       # if(cls._experimental):
-      #    extra = " " + Util.experimental() + "."
+      #    extra = " " + verif.util.experimental() + "."
       if(cls._supAggregator):
          extra = " Supports -ct."
       if(cls._perfectScore is not None):
@@ -170,23 +170,23 @@ class Metric:
       elif(name == "std"):
          self._aggregator = np.std
       elif(name == "range"):
-         self._aggregator = Util.nprange
+         self._aggregator = verif.util.nprange
       elif(name == "count"):
-         self._aggregator = Util.numvalid
+         self._aggregator = verif.util.numvalid
       elif(name == "sum"):
          self._aggregator = np.sum
       elif(name == "meanabs"):
-         self._aggregator = Util.meanabs
-      elif(Util.isnumeric(name)):
+         self._aggregator = verif.util.meanabs
+      elif(verif.util.isnumeric(name)):
          quantile = float(name)
          if quantile < 0 or quantile > 1:
-            Util.error("Number after -ct must must be between 0 and 1")
+            verif.util.error("Number after -ct must must be between 0 and 1")
 
          def func(x):
             return np.percentile(x, quantile*100)
          self._aggregator = func
       else:
-         Util.error("Invalid aggregator")
+         verif.util.error("Invalid aggregator")
 
    @classmethod
    def getClassName(cls):
@@ -294,7 +294,7 @@ class Deterministic(Metric):
    #     - length >= 1
    #     - no missing values
    def _computeObsFcst(self, obs, fcst):
-      Util.error("Metric " + self.name() +
+      verif.util.error("Metric " + self.name() +
             " has not implemented _computeObsFcst()")
 
 
@@ -859,7 +859,7 @@ class Quantile(Metric):
    def computeCore(self, data, tRange):
       var = data.getQvar(self._quantile)
       scores = data.getScores(var)
-      return Util.nanmean(scores)
+      return verif.util.nanmean(scores)
 
 
 class Bs(Metric):
@@ -898,7 +898,7 @@ class Bs(Metric):
          I = np.where((p >= self._edges[i]) & (p < self._edges[i + 1]))[0]
          if(len(I) > 0):
             bs[I] = (np.mean(p[I]) - obsP[I]) ** 2
-      return Util.nanmean(bs)
+      return verif.util.nanmean(bs)
 
    @staticmethod
    def getP(data, tRange):
@@ -951,7 +951,7 @@ class Bss(Metric):
          I = np.where((p >= self._edges[i]) & (p < self._edges[i + 1]))[0]
          if(len(I) > 0):
             bs[I] = (np.mean(p[I]) - obsP[I]) ** 2
-      bs = Util.nanmean(bs)
+      bs = verif.util.nanmean(bs)
       bsunc = np.mean(obsP) * (1 - np.mean(obsP))
       if(bsunc == 0):
          bss = np.nan
@@ -985,7 +985,7 @@ class BsRel(Metric):
          if(len(I) > 0):
             meanObsI = np.mean(obsP[I])
             bs[I] = (np.mean(p[I]) - meanObsI) ** 2
-      return Util.nanmean(bs)
+      return verif.util.nanmean(bs)
 
    def label(self, data):
       return "Brier score, reliability term"
@@ -1031,7 +1031,7 @@ class BsRes(Metric):
          if(len(I) > 0):
             meanObsI = np.mean(obsP[I])
             bs[I] = (meanObsI - meanObs) ** 2
-      return Util.nanmean(bs)
+      return verif.util.nanmean(bs)
 
    def label(self, data):
       return "Brier score, resolution term"
@@ -1128,7 +1128,7 @@ class Contingency(Metric):
 
    def computeObsFcst(self, obs, fcst, tRange):
       if(tRange is None):
-         Util.error("Metric " + self.getClassName() +
+         verif.util.error("Metric " + self.getClassName() +
                " requires '-r <threshold>'")
       value = np.nan
       if(len(fcst) > 0):
@@ -1165,7 +1165,6 @@ class Contingency(Metric):
       values = np.nan * np.zeros(len(fthresholds), 'float')
       if(len(fcst) > 0):
          for t in range(0, len(fthresholds)):
-         #for t in range(0, 1):
             fthreshold = fthresholds[t]
             a = np.ma.sum((fcst > fthreshold) & (obs > othreshold))
             b = np.ma.sum((fcst > fthreshold) & (obs <= othreshold))
@@ -1197,7 +1196,6 @@ class Contingency(Metric):
                   bb = np.random.binomial(n, 1.0*b/n)
                   cc = np.random.binomial(n, 1.0*c/n)
                   dd = np.random.binomial(n, 1.0*d/n)
-                  #print a,b,c,d, aa,bb,cc,dd
                   value = value + self.calc(aa, bb, cc, dd)
                value = value / N
             else:

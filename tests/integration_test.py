@@ -1,6 +1,5 @@
 import unittest
-import verif.Driver as Driver
-import verif.Util as Util
+import verif.driver
 import os
 import numpy as np
 import matplotlib
@@ -13,7 +12,7 @@ class IntegrationTest(unittest.TestCase):
    @staticmethod
    def runCommand(command):
       argv = command.split()
-      Driver.run(argv)
+      verif.driver.run(argv)
 
    @staticmethod
    def remove(file):

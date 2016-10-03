@@ -1,9 +1,9 @@
 import sys
-import verif.Driver as Driver
+import verif.driver
 
 
 def main():
-   Driver.run(sys.argv)
+   verif.driver.run(sys.argv)
 
 if __name__ == '__main__':
    main()

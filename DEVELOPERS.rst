@@ -35,7 +35,7 @@ creating new subclasses in Metric.py or Output.py.
    statistics across different leadtimes, dates, etc. Aggregation must therefore either be
    implemented again, or not be supported by the Output.
 
-   Unlike a new Metric subclass, an Output subclass must be registered in Driver.py before it will
+   Unlike a new Metric subclass, an Output subclass must be registered in driver.py before it will
    be accessible by verif's -m option.
 
 

@@ -7,7 +7,7 @@ from codecs import open
 from os import path
 
 here = path.abspath(path.dirname(__file__))
-exec(open('verif/Version.py').read())
+exec(open('verif/version.py').read())
 
 # Get the long description from the relevant file
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:

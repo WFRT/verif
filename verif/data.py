@@ -1,10 +1,10 @@
 from scipy import io
 import numpy as np
-import verif.Util as Util
+import verif.util
 import re
 import sys
 import os
-import verif.Input as Input
+import verif.input
 from matplotlib.dates import *
 import matplotlib.ticker
 
@@ -23,7 +23,7 @@ import matplotlib.ticker
 # climType: 'subtract', or 'divide' the climatology
 # training: Remove the first 'training' days of data (to allow the forecasts to
 #       train its adaptive parameters)
-class Data:
+class Data(object):
    def __init__(self, filenames, dates=None, offsets=None, locations=None,
          latlonRange=None, elevRange=None, clim=None, climType="subtract",
          training=None, legend=None, removeMissingAcrossAll=True):
@@ -34,7 +34,7 @@ class Data:
       self._removeMissingAcrossAll = removeMissingAcrossAll
 
       if(legend is not None and len(filenames) is not len(legend)):
-         Util.error("Need one legend entry for each filename")
+         verif.util.error("Need one legend entry for each filename")
       self._legend = legend
 
       # Organize files
@@ -43,31 +43,31 @@ class Data:
       self._clim = None
       for filename in filenames:
          if(not os.path.exists(filename)):
-            Util.error("File '" + filename + "' does not exist")
-         if(Input.NetcdfCf.isValid(filename)):
-            file = Input.NetcdfCf(filename)
-         elif(Input.Comps.isValid(filename)):
-            file = Input.Comps(filename)
-         elif(Input.Text.isValid(filename)):
-            file = Input.Text(filename)
+            verif.util.error("File '" + filename + "' does not exist")
+         if(verif.input.NetcdfCf.isValid(filename)):
+            file = verif.input.NetcdfCf(filename)
+         elif(verif.input.Comps.isValid(filename)):
+            file = verif.input.Comps(filename)
+         elif(verif.input.Text.isValid(filename)):
+            file = verif.input.Text(filename)
          else:
-            Util.error("File '" + filename + "' is not a valid input file")
+            verif.util.error("File '" + filename + "' is not a valid input file")
          self._files.append(file)
          self._cache.append(dict())
       if(clim is not None):
          if(not os.path.exists(clim)):
-            Util.error("File '" + clim + "' does not exist")
-         if(Input.NetcdfCf.isValid(clim)):
-            self._clim = Input.NetcdfCf(clim)
-         elif(Input.Comps.isValid(clim)):
-            self._clim = Input.Comps(clim)
-         elif(Input.Text.isValid(clim)):
-            self._clim = Input.Text(clim)
+            verif.util.error("File '" + clim + "' does not exist")
+         if(verif.input.NetcdfCf.isValid(clim)):
+            self._clim = verif.input.NetcdfCf(clim)
+         elif(verif.input.Comps.isValid(clim)):
+            self._clim = verif.input.Comps(clim)
+         elif(verif.input.Text.isValid(clim)):
+            self._clim = verif.input.Text(clim)
          else:
-            Util.error("File '" + clim + "' is not a valid climatology file")
+            verif.util.error("File '" + clim + "' is not a valid climatology file")
          self._cache.append(dict())
          if(not (climType == "subtract" or climType == "divide")):
-            Util.error("Data: climType must be 'subtract' or 'divide")
+            verif.util.error("Data: climType must be 'subtract' or 'divide")
          self._climType = climType
 
       # Climatology file
@@ -98,7 +98,7 @@ class Data:
          else:
             useLocations = latlonLocations
          if(len(useLocations) == 0):
-            Util.error("No available locations within lat/lon range")
+            verif.util.error("No available locations within lat/lon range")
       elif locations is not None:
          useLocations = locations
       else:
@@ -115,27 +115,27 @@ class Data:
             id = stations[i].id()
             if(currElev >= minElev and currElev <= maxElev):
                elevLocations.append(id)
-         useLocations = Util.intersect(useLocations, elevLocations)
+         useLocations = verif.util.intersect(useLocations, elevLocations)
          if(len(useLocations) == 0):
-            Util.error("No available locations within elevation range")
+            verif.util.error("No available locations within elevation range")
 
       # Find common indicies
-      self._datesI = Data._getUtilIndices(self._files, "Date", dates)
-      self._offsetsI = Data._getUtilIndices(self._files, "Offset", offsets)
-      self._locationsI = Data._getUtilIndices(self._files, "Location",
+      self._datesI = self._getUtilIndices(self._files, "Date", dates)
+      self._offsetsI = self._getUtilIndices(self._files, "Offset", offsets)
+      self._locationsI = self._getUtilIndices(self._files, "Location",
             useLocations)
       if(len(self._datesI[0]) == 0):
-         Util.error("No valid dates selected")
+         verif.util.error("No valid dates selected")
       if(len(self._offsetsI[0]) == 0):
-         Util.error("No valid offsets selected")
+         verif.util.error("No valid offsets selected")
       if(len(self._locationsI[0]) == 0):
-         Util.error("No valid locations selected")
+         verif.util.error("No valid locations selected")
 
       # Training
       if(training is not None):
          for f in range(0, len(self._datesI)):
             if(len(self._datesI[f]) <= training):
-               Util.error("Training period too long for " +
+               verif.util.error("Training period too long for " +
                      self.getFilenames()[f] + ". Max training period is " +
                      str(len(self._datesI[f]) - 1) + ".")
             self._datesI[f] = self._datesI[f][training:]
@@ -220,7 +220,7 @@ class Data:
          elif(self._axis == "all"):
             data[metric] = temp
          else:
-            Util.error("Data.py: unrecognized value of self._axis: " +
+            verif.util.error("Data.py: unrecognized value of self._axis: " +
                   self._axis)
 
          # Subtract climatology
@@ -360,7 +360,7 @@ class Data:
       elif(axis == "location"):
          I = self._getLocationIndices(findex)
       else:
-         Util.error("Could not get indices for axis: " + str(axis))
+         verif.util.error("Could not get indices for axis: " + str(axis))
       return I
 
    def _getDateIndices(self, findex=None):
@@ -390,11 +390,11 @@ class Data:
          if(metric not in self._cache[f]):
             file = self._files[f]
             if(metric not in file.getVariables()):
-               Util.error("Variable '" + metric + "' does not exist in " +
+               verif.util.error("Variable '" + metric + "' does not exist in " +
                      self.getFilenames()[f])
             temp = file.getScores(metric)
             dims = file.getDims(metric)
-            temp = Util.clean(temp)
+            temp = verif.util.clean(temp)
             for i in range(0, len(dims)):
                I = self._getIndices(dims[i].lower(), f)
                if(i == 0):
@@ -461,15 +461,15 @@ class Data:
       if(axis is None):
          axis = self._axis
       if(axis == "date"):
-         return Util.convertDates(self._getScore("Date").astype(int))
+         return verif.util.convertDates(self._getScore("Date").astype(int))
       elif(axis == "month"):
          dates = self._getScore("Date").astype(int)
          months = np.unique((dates / 100) * 100 + 1)
-         return Util.convertDates(months)
+         return verif.util.convertDates(months)
       elif(axis == "year"):
          dates = self._getScore("Date").astype(int)
          years = np.unique((dates / 10000) * 10000 + 101)
-         return Util.convertDates(years)
+         return verif.util.convertDates(years)
       elif(axis == "offset"):
          return self._getScore("Offset").astype(int)
       elif(axis == "none"):
@@ -486,7 +486,7 @@ class Data:
          elif(axis == "lon"):
             data = self._getScore("Lon")
          else:
-            Util.error("Data.getAxisValues has a bad axis name: " + axis)
+            verif.util.error("Data.getAxisValues has a bad axis name: " + axis)
          return data
       else:
          return [0]
@@ -681,6 +681,6 @@ class Data:
          var = "q" + minus + str(int(abs(quantile)))
 
       if(not self.hasMetric(var) and quantile == 50):
-         Util.warning("Could not find q50, using fcst instead")
+         verif.util.warning("Could not find q50, using fcst instead")
          return "fcst"
       return var

@@ -1,16 +1,15 @@
 import unittest
-import verif.Data as Data
-import verif.Util as Util
+import verif.data
 import numpy as np
 
 
 class TestData(unittest.TestCase):
    def test_doesnotexist(self):
       with self.assertRaises(SystemExit):
-         data = Data.Data(filenames=["tests/file1.txt", "doesnotexist.txt"])
+         data = verif.data.Data(filenames=["tests/file1.txt", "doesnotexist.txt"])
 
    def test_simple(self):
-      data = Data.Data(filenames=["tests/file1.txt", "tests/file2.txt"])
+      data = verif.data.Data(filenames=["tests/file1.txt", "tests/file2.txt"])
       lats = data.getLats()
       self.assertTrue(len(lats) == 1)
       self.assertTrue(lats[0] == 42)
