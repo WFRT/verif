@@ -71,8 +71,7 @@ class Metric:
 
    # Implement this
    def computeCore(self, data, tRange):
-      Util.error("Metric '" + self.getClassName() +
-            "' has not been implemented yet")
+      raise NotImplementedError()
 
    @classmethod
    def description(cls):
@@ -848,6 +847,19 @@ class Count(Metric):
       if(len(I) == 0):
          return np.nan
       return len(I)
+
+
+class Quantile(Metric):
+   _min = 0
+   _max = 1
+
+   def __init__(self, quantile):
+      self._quantile = quantile
+
+   def computeCore(self, data, tRange):
+      var = data.getQvar(self._quantile)
+      scores = data.getScores(var)
+      return Util.nanmean(scores)
 
 
 class Bs(Metric):
