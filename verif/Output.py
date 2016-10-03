@@ -878,18 +878,11 @@ class Default(Output):
       clim = [Util.nanpercentile(y.flatten(), self._mapLowerPerc),
               Util.nanpercentile(y.flatten(), self._mapUpperPerc)]
 
-      symmetricScore = False
       cmap = self._cmap
 
       # Forced limits
       if(self._clim is not None):
          clim = self._clim
-
-      if(clim[0] < 0 and clim[1] > 0):
-         symmetricScore = True
-         clim[0] = -max(-clim[0], clim[1])
-         clim[1] = -clim[0]
-         cmap = mpl.cm.RdBu
 
       std = Util.nanstd(y)
       minDiff = std / 50
