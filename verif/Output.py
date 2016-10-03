@@ -490,7 +490,7 @@ class Output:
       if(self._ylabel is not None):
          mpl.ylabel(self._ylabel)
       if(self._title is not None):
-         mpl.title(self._title)
+         mpl.title(self._title, fontsize=self._titlefs)
 
       # Ticks
       if(self._xticks is not None):
