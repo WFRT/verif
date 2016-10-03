@@ -1149,6 +1149,50 @@ class Contingency(Metric):
 
       return value
 
+   def computeObsFcstFast(self, obs, fcst, othreshold, fthresholds):
+      values = np.nan * np.zeros(len(fthresholds), 'float')
+      if(len(fcst) > 0):
+         for t in range(0, len(fthresholds)):
+         #for t in range(0, 1):
+            fthreshold = fthresholds[t]
+            a = np.ma.sum((fcst > fthreshold) & (obs > othreshold))
+            b = np.ma.sum((fcst > fthreshold) & (obs <= othreshold))
+            c = np.ma.sum((fcst <= fthreshold) & (obs > othreshold))
+            d = np.ma.sum((fcst <= fthreshold) & (obs <= othreshold))
+            value = self.calc(a, b, c, d)
+            if(np.isinf(value)):
+               value = np.nan
+            values[t] = value
+      return values
+
+   # Resamples only if N > 1
+   def computeObsFcstResample(self, obs, fcst, othreshold, fthresholds, N):
+      values = np.nan * np.zeros(len(fthresholds), 'float')
+      if(len(fcst) > 0):
+         for t in range(0, len(fthresholds)):
+            fthreshold = fthresholds[t]
+            a = np.ma.sum((fcst > fthreshold) & (obs > othreshold))
+            b = np.ma.sum((fcst > fthreshold) & (obs <= othreshold))
+            c = np.ma.sum((fcst <= fthreshold) & (obs > othreshold))
+            d = np.ma.sum((fcst <= fthreshold) & (obs <= othreshold))
+            n = a + b + c + d
+            np.random.seed(1)
+            currValues = np.nan*np.zeros(N, 'float')
+            value = 0
+            if N > 1:
+               for i in range(0, N):
+                  aa = np.random.binomial(n, 1.0*a/n)
+                  bb = np.random.binomial(n, 1.0*b/n)
+                  cc = np.random.binomial(n, 1.0*c/n)
+                  dd = np.random.binomial(n, 1.0*d/n)
+                  #print a,b,c,d, aa,bb,cc,dd
+                  value = value + self.calc(aa, bb, cc, dd)
+               value = value / N
+            else:
+               value = self.calc(a, b, c, d)
+            values[t] = value
+      return values
+
    def name(self):
       return self.description()
 
