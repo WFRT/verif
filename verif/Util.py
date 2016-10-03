@@ -7,6 +7,15 @@ import matplotlib.pyplot as mpl
 import textwrap
 import os
 
+def bin(x, y, edges, func=np.mean):
+   yy = np.nan*np.zeros(len(edges)-1, 'float')
+   xx = (edges[0:-1] + edges[1:]) / 2
+   for i in range(0, len(xx)):
+      I = np.where((x > edges[i]) & (x <= edges[i+1]))[0]
+      if len(I) > 0:
+         yy[i] = func(y[I])
+   return xx,yy
+
 
 def convertDates(dates):
    numDates = len(dates)
@@ -121,9 +130,9 @@ def getMapResolution(lats, lons):
       res = "c"
    elif(scale > 1):
       res = "i"
-   elif(scale > 0.1):
+   elif(scale > 0.001):
       res = "h"
-   elif(scale > 0.01):
+   elif(scale > 0.0001):
       res = "f"
    else:
       res = "c"
