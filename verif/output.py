@@ -907,7 +907,7 @@ class Default(Output):
             map.fillcontinents(color='coral', lake_color='aqua', zorder=-1)
             x0, y0 = map(lons, lats)
             if self._mapType != "simple":
-               if self._mapType is "sat":
+               if self._mapType == "sat":
                   service = 'ESRI_Imagery_World_2D'
                else:
                   service = self._mapType
