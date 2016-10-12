@@ -12,7 +12,7 @@ import matplotlib.dates as mpldates
 reload(sys)
 sys.setdefaultencoding('ISO-8859-1')
 
-allowedMapTypes = ["simple", "sat", "ESRI_Imagery_World_2D",
+allowedMapTypes = ["simple", "sat", "topo", "ESRI_Imagery_World_2D",
          "ESRI_StreetMap_World_2D", "I3_Imagery_Prime_World",
          "NASA_CloudCover_World", "NatGeo_World_Map", "NGS_Topo_US_2D",
          "Ocean_Basemap", "USA_Topo_Maps", "World_Imagery",
@@ -909,6 +909,8 @@ class Default(Output):
             if self._mapType != "simple":
                if self._mapType == "sat":
                   service = 'ESRI_Imagery_World_2D'
+               elif self._mapType == "topo":
+                  service = 'World_Topo_Map'
                else:
                   service = self._mapType
                map.arcgisimage(service=service, xpixels=2000, verbose=True)

@@ -521,7 +521,7 @@ def showDescription(data=None):
    print verif.util.formatArgument("-logy", "Use a logarithmic y-axis")
    print verif.util.formatArgument("-majlth length", "Length of major tick marks")
    print verif.util.formatArgument("-majtwid width", "Adjust the thickness of the major tick marks")
-   print verif.util.formatArgument("-maptype", "One of 'simple', 'sat', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image. Only relevant when '-type map' has been selected.")
+   print verif.util.formatArgument("-maptype", "One of 'simple', 'sat', 'topo', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.")
    print verif.util.formatArgument("-minlth length", "Length of minor tick marks")
    print verif.util.formatArgument("-ms size", "How big should markers be?")
    print verif.util.formatArgument("-nomargin", "Remove margins (whitespace) in the plot not x[i] <= T.")
