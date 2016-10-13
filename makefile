@@ -3,7 +3,7 @@
 # contents, where # "precise" is your linux version:
 # [DEFAULT]
 # Suite: precise
-VERSION=$(shell grep __version__ verif/Version.py | cut -d"=" -f2 | sed s"/ //g" | sed s"/'//g")
+VERSION=$(shell grep __version__ verif/version.py | cut -d"=" -f2 | sed s"/ //g" | sed s"/'//g")
 coverage:
 	#nosetests --with-coverage --cover-erase --cover-package=verif --cover-html --cover-branches
 	nosetests --with-coverage --cover-erase --cover-package=verif --cover-html
