@@ -25,7 +25,7 @@ import matplotlib.ticker
 #       train its adaptive parameters)
 class Data(object):
    def __init__(self, filenames, dates=None, offsets=None, locations=None,
-         latlonRange=None, elevRange=None, clim=None, climType="subtract",
+         latRange=None, lonRange=None, elevRange=None, clim=None, climType="subtract",
          training=None, legend=None, removeMissingAcrossAll=True):
       if(not isinstance(filenames, list)):
          filenames = [filenames]
@@ -74,15 +74,21 @@ class Data(object):
          self._files = self._files + [self._clim]
 
       # Latitude-Longitude range
-      if(latlonRange is not None):
+      if(latRange is not None or lonRange is not None):
          lat = self._files[0].getLats()
          lon = self._files[0].getLons()
          locId = self._files[0].getStationIds()
          latlonLocations = list()
-         minLon = latlonRange[0]
-         maxLon = latlonRange[1]
-         minLat = latlonRange[2]
-         maxLat = latlonRange[3]
+         minLon = -180
+         maxLon = 180
+         minLat = -90
+         maxLat = 90
+         if latRange is not None:
+            minLat = latRange[0]
+            maxLat = latRange[1]
+         if lonRange is not None:
+            minLon = lonRange[0]
+            maxLon = lonRange[1]
          for i in range(0, len(lat)):
             currLat = float(lat[i])
             currLon = float(lon[i])

@@ -19,7 +19,8 @@ def run(argv):
    ofile = None
    metric = None
    locations = None
-   latlonRange = None
+   latRange = None
+   lonRange = None
    elevRange = None
    training = 0
    thresholds = None
@@ -115,8 +116,10 @@ def run(argv):
                ofile = argv[i + 1]
             elif(arg == "-l"):
                locations = verif.util.parseNumbers(argv[i + 1])
-            elif(arg == "-llrange"):
-               latlonRange = verif.util.parseNumbers(argv[i + 1])
+            elif(arg == "-latrange"):
+               latRange = verif.util.parseNumbers(argv[i + 1])
+            elif(arg == "-lonrange"):
+               lonRange = verif.util.parseNumbers(argv[i + 1])
             elif(arg == "-elevrange"):
                elevRange = verif.util.parseNumbers(argv[i + 1])
             elif(arg == "-t"):
@@ -222,15 +225,18 @@ def run(argv):
       for i in range(0, len(leg)):
          leg[i] = leg[i].replace('_', ' ')
 
-   if(latlonRange is not None and len(latlonRange) != 4):
-      verif.util.error("-llRange <values> must have exactly 4 values")
+   if(latRange is not None and len(latRange) != 2):
+      verif.util.error("-latRange <values> must have exactly 2 values")
+
+   if(lonRange is not None and len(lonRange) != 2):
+      verif.util.error("-lonRange <values> must have exactly 2 values")
 
    if(elevRange is not None and len(elevRange) != 2):
       verif.util.error("-elevRange <values> must have exactly 2 values")
 
    if(len(ifiles) > 0):
       data = verif.data.Data(ifiles, clim=climFile, climType=climType, dates=dates,
-            offsets=offsets, locations=locations, latlonRange=latlonRange,
+            offsets=offsets, locations=locations, latRange=latRange, lonRange=lonRange,
             elevRange=elevRange, training=training, legend=leg)
    else:
       data = None
@@ -486,7 +492,8 @@ def showDescription(data=None):
    print verif.util.formatArgument("-elevrange range", "Limit the verification to locations within minelev,maxelev.")
    print verif.util.formatArgument("-d dates", "A vector of dates in YYYYMMDD format, e.g.  20130101:20130201.")
    print verif.util.formatArgument("-l locations", "Limit the verification to these location IDs.")
-   print verif.util.formatArgument("-llrange range", "Limit the verification to locations within minlon,maxlon,minlat,maxlat.")
+   print verif.util.formatArgument("-latrange range", "Limit the verification to locations within minlat,maxlat.")
+   print verif.util.formatArgument("-lonrange range", "Limit the verification to locations within minlon,maxlon.")
    print verif.util.formatArgument("-o offsets", "Limit the verification to these offsets (in hours).")
    print verif.util.formatArgument("-r thresholds", "Compute scores for these thresholds (only used by some metrics).")
    print verif.util.formatArgument("-t period", "Allow this many days of training, i.e. remove this many days from the beginning of the verification.")
