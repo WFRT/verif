@@ -191,7 +191,7 @@ class Metric(object):
          self._aggregator = np.sum
       elif(name == "meanabs"):
          self._aggregator = verif.util.meanabs
-      elif(verif.util.isnumeric(name)):
+      elif(verif.util.is_number(name)):
          quantile = float(name)
          if quantile < 0 or quantile > 1:
             verif.util.error("Number after -ct must must be between 0 and 1")

@@ -221,14 +221,6 @@ def meanabs(data, **args):
    return np.mean(abs(data))
 
 
-def isnumeric(x):
-   try:
-      float(x)
-      return True
-   except ValueError:
-      return False
-
-
 def nprange(data):
    return np.max(data) - np.min(data)
 
@@ -282,6 +274,7 @@ def get_p_var(threshold):
 
 
 def is_number(s):
+   """ Returns true if x is a scalar number """
    try:
       float(s)
       return True
