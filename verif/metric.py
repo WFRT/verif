@@ -4,18 +4,23 @@ import sys
 import inspect
 
 
-# Returns a list of all metric classes
 def get_all():
+   """
+   Returns a dictionary of all metric classes where the key is the class
+   name (string) and the value is the class object
+   """
    temp = inspect.getmembers(sys.modules[__name__], inspect.isclass)
    return temp
 
 
 def get_all_deterministic():
-   pass
+   """ Like get_all, except only return deterministic metric classes """
+   metrics = [metric for metric in get_all() if issubclass(metric[1], verif.metric.Deterministic)]
+   return metrics
 
 
-# Returns a metric object of a class with the given name
 def get_metric(name):
+   """ Returns an instance of metric object with the given class name """
    metrics = get_all()
    m = None
    for mm in metrics:
@@ -24,7 +29,6 @@ def get_metric(name):
    return m
 
 
-# Computes scores for each xaxis value
 class Metric(object):
    """
    Class to compute a score
@@ -224,6 +228,41 @@ class Metric(object):
       return (x > range[0]) & (x <= range[1])
 
 
+class Deterministic(Metric):
+   """ Computes scores based on observations and deterministic forecasts only """
+   def compute_core(self, data, tRange):
+      [obs, fcst] = data.get_scores(["obs", "fcst"])
+      assert(obs.shape[0] == fcst.shape[0])
+      return self.compute_from_obs_fcst(obs, fcst)
+
+   def compute_from_obs_fcst(self, obs, fcst):
+      """
+      Compute the score using only the observations and forecasts
+
+      obs      numpy array of observations
+      fcst     numpy array of forecasts
+
+      obs and fcst must have the same length, but may contain nan values
+      """
+      # Remove missing values
+      I = np.where((np.isnan(obs) | np.isnan(fcst)) == 0)[0]
+      obs = obs[I]
+      fcst = fcst[I]
+      if(obs.shape[0] > 0):
+         return self._compute_from_obs_fcst(obs, fcst)
+      else:
+         return np.nan
+
+   def _compute_from_obs_fcst(self, obs, fcst):
+      """
+      Subclass must implement this function. Preconditions for obs and fcst:
+          - obs and fcst are the same length
+          - length >= 1
+          - no missing values
+       """
+      verif.util.error("Metric " + self.name() + " has not implemented _compute_from_obs_fcst()")
+
+
 class Default(Metric):
    # aux: When reading the score, also pull values for 'aux' to ensure
    # only common data points are returned
@@ -279,36 +318,6 @@ class Fcst(Metric):
 
    def name(self):
       return self._aggregatorName.title() + " of forecast"
-
-
-# Deterministic metric which is dependent only on "obs" and "fcst"
-class Deterministic(Metric):
-   """ Computes scores based on observations and deterministic forecasts only """
-   def compute_core(self, data, tRange):
-      [obs, fcst] = data.get_scores(["obs", "fcst"])
-      assert(obs.shape[0] == fcst.shape[0])
-      return self.compute_from_obs_fcst(obs, fcst)
-
-   def compute_from_obs_fcst(self, obs, fcst):
-      # Remove missing values
-      I = np.where((np.isnan(obs) | np.isnan(fcst)) == 0)[0]
-      obs = obs[I]
-      fcst = fcst[I]
-      if(obs.shape[0] > 0):
-         return self._compute_from_obs_fcst(obs, fcst)
-      else:
-         return np.nan
-
-   def _compute_from_obs_fcst(self, obs, fcst):
-      """
-      Subclass must implement this function:
-      Preconditions for obs and fcst:
-          - obs and fcst are the same length
-          - length >= 1
-          - no missing values
-       """
-      verif.util.error("Metric " + self.name() +
-            " has not implemented _compute_from_obs_fcst()")
 
 
 class Mae(Deterministic):
@@ -1108,8 +1117,8 @@ class Spherical(Metric):
       return "Spherical score"
 
 
-# Metrics based on 2x2 contingency table for a given threshold
 class Contingency(Metric):
+   """ Metrics based on 2x2 contingency table for a given threshold """
    _min = 0
    _max = 1
    _default_axis = "threshold"
@@ -1127,11 +1136,13 @@ class Contingency(Metric):
 
    def compute_core(self, data, tRange):
       [obs, fcst] = data.get_scores(["obs", "fcst"])
-      return self.compute_obs_fcst(obs, fcst, tRange)
+      return self.compute_from_obs_fcst(obs, fcst, tRange)
 
-   # convert a range of quantiles to thresholds, for example converting
-   # [10%, 50%] of some precip values to [5 mm, 25 mm]
    def _quantile_to_threshold(self, values, tRange):
+      """
+      convert a range of quantiles to thresholds, for example converting
+      [10%, 50%] of some precip values to [5 mm, 25 mm]
+      """
       sorted = np.sort(values)
       qRange = [-np.inf, np.inf]
       for i in range(0, 1):
@@ -1139,7 +1150,14 @@ class Contingency(Metric):
             qRange[i] = np.percentile(sorted, tRange[i] * 100)
       return qRange
 
-   def compute_obs_fcst(self, obs, fcst, tRange):
+   def compute_from_obs_fcst(self, obs, fcst, tRange):
+      """
+      Computes the score.
+
+      obs      numpy array of observations
+      fcst     numpy array of forecasts
+      tRange   2-valued list of thresholds (lower, upper)
+      """
       if(tRange is None):
          verif.util.error("Metric " + self.get_class_name() +
                " requires '-r <threshold>'")
@@ -1168,13 +1186,22 @@ class Contingency(Metric):
                   (self.within(obs, tRange)))  # Miss
             d = np.ma.sum((self.within(fcst, tRange) == 0) &
                   (self.within(obs, tRange) == 0))  # CR
-         value = self.calc(a, b, c, d)
+         value = self.compute_from_abcd(a, b, c, d)
          if(np.isinf(value)):
             value = np.nan
 
       return value
 
-   def compute_obs_fcst_fast(self, obs, fcst, othreshold, fthresholds):
+   def compute_from_obs_fcst_fast(self, obs, fcst, othreshold, fthresholds):
+      """
+      A quicker way to compute when scores are needed for multiple forecast
+      thresholds.
+
+      obs         numpy array of observations
+      fcst        numpy array of forecasts
+      othreshold  observation threshold
+      fthresholds numpy array of forecasts thresholds
+      """
       values = np.nan * np.zeros(len(fthresholds), 'float')
       if(len(fcst) > 0):
          for t in range(0, len(fthresholds)):
@@ -1183,14 +1210,18 @@ class Contingency(Metric):
             b = np.ma.sum((fcst > fthreshold) & (obs <= othreshold))
             c = np.ma.sum((fcst <= fthreshold) & (obs > othreshold))
             d = np.ma.sum((fcst <= fthreshold) & (obs <= othreshold))
-            value = self.calc(a, b, c, d)
+            value = self.compute_from_abcd(a, b, c, d)
             if(np.isinf(value)):
                value = np.nan
             values[t] = value
       return values
 
-   # Resamples only if N > 1
-   def compute_obs_fcst_resample(self, obs, fcst, othreshold, fthresholds, N):
+   def compute_from_obs_fcst_resample(self, obs, fcst, othreshold, fthresholds, N):
+      """
+      Same as compute_from_obs_fcst_fast, except compute more robust scores by 
+      resampling (with replacement) using the computed values of a, b, c, d.
+      Resample N times (resamples only if N > 1).
+      """
       values = np.nan * np.zeros(len(fthresholds), 'float')
       if(len(fcst) > 0):
          for t in range(0, len(fthresholds)):
@@ -1209,10 +1240,10 @@ class Contingency(Metric):
                   bb = np.random.binomial(n, 1.0*b/n)
                   cc = np.random.binomial(n, 1.0*c/n)
                   dd = np.random.binomial(n, 1.0*d/n)
-                  value = value + self.calc(aa, bb, cc, dd)
+                  value = value + self.compute_from_abcd(aa, bb, cc, dd)
                value = value / N
             else:
-               value = self.calc(a, b, c, d)
+               value = self.compute_from_abcd(a, b, c, d)
             values[t] = value
       return values
 
@@ -1223,28 +1254,28 @@ class Contingency(Metric):
 class A(Contingency):
    _description = "Hit"
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       return 1.0 * a / (a + b + c + d)
 
 
 class B(Contingency):
    _description = "False alarm"
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       return 1.0 * b / (a + b + c + d)
 
 
 class C(Contingency):
    _description = "Miss"
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       return 1.0 * c / (a + b + c + d)
 
 
 class D(Contingency):
    _description = "Correct rejection"
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       return 1.0 * d / (a + b + c + d)
 
 
@@ -1252,7 +1283,7 @@ class N(Contingency):
    _description = "Total cases"
    _max = None
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       return a + b + c + d
 
 
@@ -1261,7 +1292,7 @@ class Ets(Contingency):
    _perfect_score = 1
    _orientation = 1
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       N = a + b + c + d
       ar = (a + b) / 1.0 / N * (a + c)
       if(a + b + c - ar == 0):
@@ -1280,7 +1311,7 @@ class Dscore(Contingency):
    _max = 1
    _min = 0
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       N = a + b + c + d
       num = a*d + 0.5*(a*b + c*d)
       denom = (a + c) * (b + d)
@@ -1297,7 +1328,7 @@ class Threat(Contingency):
    _perfect_score = 1
    _orientation = 1
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       if(a + b + c == 0):
          return np.nan
       return a / 1.0 / (a + b + c)
@@ -1308,7 +1339,7 @@ class Pc(Contingency):
    _perfect_score = 1
    _orientation = 1
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       return (a + d) / 1.0 / (a + b + c + d)
 
 
@@ -1319,7 +1350,7 @@ class Diff(Contingency):
    _perfect_score = 0
    _orientation = 0
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       return (b - c) / 1.0 / (b + c)
 
 
@@ -1329,7 +1360,7 @@ class Edi(Contingency):
    _orientation = 1
    _reference = "Christopher A. T. Ferro and David B. Stephenson, 2011: Extremal Dependence Indices: Improved Verification Measures for Deterministic Forecasts of Rare Binary Events. Wea. Forecasting, 26, 699-713."
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       N = a + b + c + d
       if b + d == 0 or a + c == 0:
          return np.nan
@@ -1352,7 +1383,7 @@ class Sedi(Contingency):
    _orientation = 1
    _reference = Edi.reference()
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       N = a + b + c + d
       if b + d == 0 or a + c == 0:
          return np.nan
@@ -1377,7 +1408,7 @@ class Eds(Contingency):
    _orientation = 1
    _reference = "Stephenson, D. B., B. Casati, C. A. T. Ferro, and C. A.  Wilson, 2008: The extreme dependency score: A non-vanishing measure for forecasts of rare events. Meteor. Appl., 15, 41-50."
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       N = a + b + c + d
       if a + c == 0:
          return np.nan
@@ -1400,7 +1431,7 @@ class Seds(Contingency):
    _perfect_score = 1
    _orientation = 1
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       N = a + b + c + d
       if a + c == 0:
          return np.nan
@@ -1424,7 +1455,7 @@ class BiasFreq(Contingency):
    _perfect_score = 1
    _orientation = 0
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       if(a + c == 0):
          return np.nan
       return 1.0 * (a + b) / (a + c)
@@ -1436,7 +1467,7 @@ class Hss(Contingency):
    _perfect_score = 1
    _orientation = 1
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       denom = ((a + c) * (c + d) + (a + b) * (b + d))
       if(denom == 0):
          return np.nan
@@ -1448,7 +1479,7 @@ class BaseRate(Contingency):
    _perfect_score = None
    _orientation = 0
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       if(a + b + c + d == 0):
          return np.nan
       return (a + c) / 1.0 / (a + b + c + d)
@@ -1460,7 +1491,7 @@ class Or(Contingency):
    _perfect_score = None  # Should be infinity
    _orientation = 1
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       if(b * c == 0):
          return np.nan
       return (a * d) / 1.0 / (b * c)
@@ -1472,7 +1503,7 @@ class Lor(Contingency):
    _perfect_score = None  # Should be infinity
    _orientation = 1
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       if(a * d == 0 or b * c == 0):
          return np.nan
       return np.log((a * d) / 1.0 / (b * c))
@@ -1483,7 +1514,7 @@ class YulesQ(Contingency):
    _perfect_score = 1
    _orientation = 1
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       if(a * d + b * c == 0):
          return np.nan
       return (a * d - b * c) / 1.0 / (a * d + b * c)
@@ -1495,7 +1526,7 @@ class Kss(Contingency):
    _orientation = 1
    _reference = "Hanssen , A., W. Kuipers, 1965: On the relationship between the frequency of rain and various meteorological parameters. - Meded. Verh. 81, 2-15."
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       if((a + c) * (b + d) == 0):
          return np.nan
       return (a * d - b * c) * 1.0 / ((a + c) * (b + d))
@@ -1506,7 +1537,7 @@ class Hit(Contingency):
    _perfect_score = 1
    _orientation = 1
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       if(a + c == 0):
          return np.nan
       return a / 1.0 / (a + c)
@@ -1517,7 +1548,7 @@ class Miss(Contingency):
    _perfect_score = 0
    _orientation = -1
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       if(a + c == 0):
          return np.nan
       return c / 1.0 / (a + c)
@@ -1529,7 +1560,7 @@ class Fa(Contingency):
    _perfect_score = 0
    _orientation = -1
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       if(b + d == 0):
          return np.nan
       return b / 1.0 / (b + d)
@@ -1541,7 +1572,7 @@ class Far(Contingency):
    _perfect_score = 0
    _orientation = -1
 
-   def calc(self, a, b, c, d):
+   def compute_from_abcd(self, a, b, c, d):
       if(a + b == 0):
          return np.nan
       return b / 1.0 / (a + b)
