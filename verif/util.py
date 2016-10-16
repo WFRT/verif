@@ -38,19 +38,22 @@ def convert_to_yyyymmdd(dates):
 
 
 def red(text):
+   """ Print text in red to the console """
    return "\033[31m" + text + "\033[0m"
 
 
-def remove_margin():
-   mpl.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0, hspace=0)
-
-
 def green(text):
+   """ Print text in green to the console """
    return "\033[32m" + text + "\033[0m"
 
 
 def yellow(text):
+   """ Print text in yellow to the console """
    return "\033[33m" + text + "\033[0m"
+
+
+def remove_margin():
+   mpl.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0, hspace=0)
 
 
 def experimental():
@@ -58,20 +61,27 @@ def experimental():
 
 
 def error(message):
+   """ Write error message to console and abort """
    print "\033[1;31mError: " + message + "\033[0m"
    sys.exit(1)
 
 
 def warning(message):
+   """ Write a warning message to console """
    print "\033[1;33mWarning: " + message + "\033[0m"
 
 
-# allowable formats:
-# num
-# num1,num2,num3
-# start:end
-# start:step:end
 def parse_numbers(numbers, isDate=False):
+   """
+   Parses numbers from an input string. Recognizes MATLAB syntax, such as:
+   3              single numbers
+   3,4,5          list of numbers
+   3:5            number range
+   3:2:12         number range with a step size of 2
+   3,4:6,2:5:9,6  combinations
+
+   Aborts if the number cannot be parsed.
+   """
    # Check if valid string
    if(any(char not in set('-01234567890.:,') for char in numbers)):
       error("Could not translate '" + numbers + "' into numbers")
@@ -107,8 +117,8 @@ def parse_numbers(numbers, isDate=False):
    return values
 
 
-# Sets up subplot for index i (starts at 0) out of N
 def subplot(i, N):
+   """ Sets up subplot for index i (starts at 0) out of N """
    [X, Y] = get_subplot_size(N)
    mpl.subplot(Y, X, i + 1)
 
@@ -140,9 +150,11 @@ def get_map_resolution(lats, lons):
    return res
 
 
-# Fill an area along x, between yLower and yUpper. Both yLower and yUpper most
-# correspond to points in x (i.e. be in the same order)
 def fill(x, yLower, yUpper, col, alpha=1, zorder=0, hatch=''):
+   """
+   Fill an area along x, between yLower and yUpper. Both yLower and yUpper most
+   correspond to points in x (i.e. be in the same order)
+   """
    # Populate a list of non-missing points
    X = list()
    Y = list()
@@ -169,8 +181,13 @@ def clean(data):
    return q
 
 
-# Date: YYYYMMDD diff: Add this many days
 def get_date(date, diff):
+   """
+   Date calculation: Adds 'diff' to 'date'
+
+   date     An integer of the form YYYYMMDD
+   diff     Number of days to add to date
+   """
    year = int(date / 10000)
    month = int(date / 100 % 100)
    day = int(date % 100)
@@ -216,8 +233,8 @@ def numvalid(data, **args):
    return len(I)
 
 
-# Compute the mean absolute value
 def meanabs(data, **args):
+   """ Compute the mean absolute value """
    return np.mean(abs(data))
 
 
@@ -256,15 +273,15 @@ def format_argument(arg, description, argWidth=19, totalWidth=None, indent=2):
    return output
 
 
-# How wide is the console?
 def get_screen_width():
+   """ How many character wide is the console? """
    rows, columns = os.popen('stty size', 'r').read().split()
    columns = int(columns)
    return columns
 
 
-# How wide should the text be output?
 def get_text_width():
+   """ How wide should the text be output? """
    # return max(50, min(100, get_screen_width()))
    return 80
 
@@ -282,18 +299,20 @@ def is_number(s):
       return False
 
 
-# Computes the great circle distance between two points using the
-# haversine formula. Values can be vectors.
 def distance(lat1, lon1, lat2, lon2):
-    # Convert from degrees to radians
-    pi = 3.14159265
-    lon1 = lon1 * 2 * pi / 360
-    lat1 = lat1 * 2 * pi / 360
-    lon2 = lon2 * 2 * pi / 360
-    lat2 = lat2 * 2 * pi / 360
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = np.sin(dlat / 2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2)**2
-    c = 2 * np.arcsin(np.sqrt(a))
-    distance = 6.367e6 * c
-    return distance
+   """
+   Computes the great circle distance between two points using the
+   haversine formula. Values can be vectors.
+   """
+   # Convert from degrees to radians
+   pi = 3.14159265
+   lon1 = lon1 * 2 * pi / 360
+   lat1 = lat1 * 2 * pi / 360
+   lon2 = lon2 * 2 * pi / 360
+   lat2 = lat2 * 2 * pi / 360
+   dlon = lon2 - lon1
+   dlat = lat2 - lat1
+   a = np.sin(dlat / 2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2)**2
+   c = 2 * np.arcsin(np.sqrt(a))
+   distance = 6.367e6 * c
+   return distance
