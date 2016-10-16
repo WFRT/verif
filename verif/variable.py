@@ -22,7 +22,7 @@ class Variable(object):
 
    # Get the value for the lower discrete mass
    # (e.g. 0 mm for precipitation)
-   def getX0(self):
+   def get_x0(self):
       x0 = None
       prog = re.compile("Precip.*")
       if(prog.match(self.name())):
@@ -31,7 +31,7 @@ class Variable(object):
 
    # Get the value for the upper discrete mass
    # (e.g. 100 % for RH)
-   def getX1(self):
+   def get_x1(self):
       x1 = None
       prog = re.compile("RH")
       if(prog.match(self.name())):

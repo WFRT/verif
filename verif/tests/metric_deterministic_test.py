@@ -21,9 +21,9 @@ class MyTest(unittest.TestCase):
          fcst = fcstSet[s]
          for i in range(0, len(metrics)):
             metric = metrics[i]
-            metric.setAggregator("mean")
+            metric.set_aggregator("mean")
             expected = expSet[s][i]
-            value = metric.computeObsFcst(np.array(obs), np.array(fcst))
+            value = metric.compute_from_obs_fcst(np.array(obs), np.array(fcst))
             message = metric.name() + " gives " + str(value) + " value for set " + str(s) + " (expected " + str(expected) + ")"
             self.assertAlmostEqual(value, expected, msg=message)
 

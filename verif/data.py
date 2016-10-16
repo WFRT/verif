@@ -44,11 +44,11 @@ class Data(object):
       for filename in filenames:
          if(not os.path.exists(filename)):
             verif.util.error("File '" + filename + "' does not exist")
-         if(verif.input.NetcdfCf.isValid(filename)):
+         if(verif.input.NetcdfCf.is_valid(filename)):
             file = verif.input.NetcdfCf(filename)
-         elif(verif.input.Comps.isValid(filename)):
+         elif(verif.input.Comps.is_valid(filename)):
             file = verif.input.Comps(filename)
-         elif(verif.input.Text.isValid(filename)):
+         elif(verif.input.Text.is_valid(filename)):
             file = verif.input.Text(filename)
          else:
             verif.util.error("File '" + filename + "' is not a valid input file")
@@ -57,11 +57,11 @@ class Data(object):
       if(clim is not None):
          if(not os.path.exists(clim)):
             verif.util.error("File '" + clim + "' does not exist")
-         if(verif.input.NetcdfCf.isValid(clim)):
+         if(verif.input.NetcdfCf.is_valid(clim)):
             self._clim = verif.input.NetcdfCf(clim)
-         elif(verif.input.Comps.isValid(clim)):
+         elif(verif.input.Comps.is_valid(clim)):
             self._clim = verif.input.Comps(clim)
-         elif(verif.input.Text.isValid(clim)):
+         elif(verif.input.Text.is_valid(clim)):
             self._clim = verif.input.Text(clim)
          else:
             verif.util.error("File '" + clim + "' is not a valid climatology file")
@@ -75,9 +75,9 @@ class Data(object):
 
       # Latitude-Longitude range
       if(latRange is not None or lonRange is not None):
-         lat = self._files[0].getLats()
-         lon = self._files[0].getLons()
-         locId = self._files[0].getStationIds()
+         lat = self._files[0].get_lats()
+         lon = self._files[0].get_lons()
+         locId = self._files[0].get_station_ids()
          latlonLocations = list()
          minLon = -180
          maxLon = 180
@@ -108,11 +108,11 @@ class Data(object):
       elif locations is not None:
          useLocations = locations
       else:
-         useLocations = self._files[0].getStationIds()
+         useLocations = self._files[0].get_station_ids()
 
       # Elevation range
       if(elevRange is not None):
-         stations = self._files[0].getStations()
+         stations = self._files[0].get_stations()
          minElev = elevRange[0]
          maxElev = elevRange[1]
          elevLocations = list()
@@ -126,9 +126,9 @@ class Data(object):
             verif.util.error("No available locations within elevation range")
 
       # Find common indicies
-      self._datesI = self._getUtilIndices(self._files, "Date", dates)
-      self._offsetsI = self._getUtilIndices(self._files, "Offset", offsets)
-      self._locationsI = self._getUtilIndices(self._files, "Location",
+      self._datesI = self._get_util_indices(self._files, "Date", dates)
+      self._offsetsI = self._get_util_indices(self._files, "Offset", offsets)
+      self._locationsI = self._get_util_indices(self._files, "Location",
             useLocations)
       if(len(self._datesI[0]) == 0):
          verif.util.error("No valid dates selected")
@@ -142,30 +142,30 @@ class Data(object):
          for f in range(0, len(self._datesI)):
             if(len(self._datesI[f]) <= training):
                verif.util.error("Training period too long for " +
-                     self.getFilenames()[f] + ". Max training period is " +
+                     self.get_filenames()[f] + ". Max training period is " +
                      str(len(self._datesI[f]) - 1) + ".")
             self._datesI[f] = self._datesI[f][training:]
 
       self._findex = 0
 
    # Returns flattened arrays along the set axis/index
-   def getScores(self, metrics):
+   def get_scores(self, metrics):
       if(not isinstance(metrics, list)):
          metrics = [metrics]
       data = dict()
       valid = None
-      axis = self._getAxisIndex(self._axis)
+      axis = self._get_axis_index(self._axis)
 
       # Compute climatology, if needed
       obsFcstAvailable = ("obs" in metrics or "fcst" in metrics)
       doClim = self._clim is not None and obsFcstAvailable
       if(doClim):
-         temp = self._getScore("fcst", len(self._files) - 1)
+         temp = self._get_score("fcst", len(self._files) - 1)
          if(self._axis == "date"):
             clim = temp[self._index, :, :].flatten()
          elif(self._axis == "month"):
-            dates = self.getAxisValues("date")
-            months = self.getAxisValues("month")
+            dates = self.get_axis_values("date")
+            months = self.get_axis_values("month")
             if(self._index == months.shape[0]-1):
                I = np.where(dates >= months[self._index])
             else:
@@ -173,8 +173,8 @@ class Data(object):
                             (dates < months[self._index+1]))
             clim = temp[I, :, :].flatten()
          elif(self._axis == "year"):
-            dates = self.getAxisValues("date")
-            years = self.getAxisValues("year")
+            dates = self.get_axis_values("date")
+            years = self.get_axis_values("year")
             if(self._index == years.shape[0]-1):
                I = np.where(dates >= years[self._index])
             else:
@@ -183,7 +183,7 @@ class Data(object):
             clim = temp[I, :, :].flatten()
          elif(self._axis == "offset"):
             clim = temp[:, self._index, :].flatten()
-         elif(self.isLocationAxis(self._axis)):
+         elif(self.is_location_axis(self._axis)):
             clim = temp[:, :, self._index].flatten()
          elif(self._axis == "none" or self._axis == "threshold"):
             clim = temp.flatten()
@@ -194,14 +194,14 @@ class Data(object):
 
       for i in range(0, len(metrics)):
          metric = metrics[i]
-         temp = self._getScore(metric)
+         temp = self._get_score(metric)
          # print self._axis
 
          if(self._axis == "date"):
             data[metric] = temp[self._index, :, :].flatten()
          elif(self._axis == "month"):
-            dates = self.getAxisValues("date")
-            months = self.getAxisValues("month")
+            dates = self.get_axis_values("date")
+            months = self.get_axis_values("month")
             if(self._index == months.shape[0]-1):
                I = np.where(dates >= months[self._index])
             else:
@@ -209,8 +209,8 @@ class Data(object):
                             (dates < months[self._index+1]))
             data[metric] = temp[I, :, :].flatten()
          elif(self._axis == "year"):
-            dates = self.getAxisValues("date")
-            years = self.getAxisValues("year")
+            dates = self.get_axis_values("date")
+            years = self.get_axis_values("year")
             if(self._index == years.shape[0]-1):
                I = np.where(dates >= years[self._index])
             else:
@@ -219,7 +219,7 @@ class Data(object):
             data[metric] = temp[I, :, :].flatten()
          elif(self._axis == "offset"):
             data[metric] = temp[:, self._index, :].flatten()
-         elif(self.isLocationAxis(self._axis)):
+         elif(self.is_location_axis(self._axis)):
             data[metric] = temp[:, :, self._index].flatten()
          elif(self._axis == "none" or self._axis == "threshold"):
             data[metric] = temp.flatten()
@@ -261,8 +261,8 @@ class Data(object):
 
       return q
 
-   def getStations(self):
-      stations = self._files[0].getStations()
+   def get_stations(self):
+      stations = self._files[0].get_stations()
       I = self._locationsI[0]
       useStations = list()
       for i in I:
@@ -272,16 +272,16 @@ class Data(object):
    # Find indicies of elements that are present in all files
    # Merge in values in 'aux' as well
    @staticmethod
-   def _getUtilIndices(files, name, aux=None):
+   def _get_util_indices(files, name, aux=None):
       # Find common values among all files
       values = aux
       for file in files:
          if(name == "Date"):
-            temp = file.getDates()
+            temp = file.get_dates()
          elif(name == "Offset"):
-            temp = file.getOffsets()
+            temp = file.get_offsets()
          elif(name == "Location"):
-            stations = file.getStations()
+            stations = file.get_stations()
             temp = np.zeros(len(stations))
             for i in range(0, len(stations)):
                temp[i] = stations[i].id()
@@ -296,11 +296,11 @@ class Data(object):
       indices = list()
       for file in files:
          if(name == "Date"):
-            temp = file.getDates()
+            temp = file.get_dates()
          elif(name == "Offset"):
-            temp = file.getOffsets()
+            temp = file.get_offsets()
          elif(name == "Location"):
-            stations = file.getStations()
+            stations = file.get_stations()
             temp = np.zeros(len(stations))
             for i in range(0, len(stations)):
                temp[i] = stations[i].id()
@@ -312,16 +312,16 @@ class Data(object):
          indices.append(II)
       return indices
 
-   def _getFiles(self):
+   def _get_files(self):
       if(self._clim is None):
          return self._files
       else:
          return self._files[0:-1]
 
-   def getMetrics(self):
+   def get_metrics(self):
       metrics = None
       for file in self._files:
-         currMetrics = file.getMetrics()
+         currMetrics = file.get_metrics()
          if(metrics is None):
             metrics = currMetrics
          else:
@@ -329,10 +329,10 @@ class Data(object):
 
       return metrics
 
-   def getThresholds(self):
+   def get_thresholds(self):
       thresholds = None
       for file in self._files:
-         currThresholds = file.getThresholds()
+         currThresholds = file.get_thresholds()
          if(thresholds is None):
             thresholds = currThresholds
          else:
@@ -341,10 +341,10 @@ class Data(object):
       thresholds = sorted(thresholds)
       return thresholds
 
-   def getQuantiles(self):
+   def get_quantiles(self):
       quantiles = None
       for file in self._files:
-         currQuantiles = file.getQuantiles()
+         currQuantiles = file.get_quantiles()
          if(quantiles is None):
             quantiles = currQuantiles
          else:
@@ -354,37 +354,37 @@ class Data(object):
       return quantiles
 
    # Get the names of all quantile scores
-   def getQuantileNames(self):
-      quantiles = self.getQuantiles()
-      return [self.getQvar(quantile / 100) for quantile in quantiles]
+   def get_quantile_names(self):
+      quantiles = self.get_quantiles()
+      return [self.get_q_var(quantile / 100) for quantile in quantiles]
 
-   def _getIndices(self, axis, findex=None):
+   def _get_indices(self, axis, findex=None):
       if(axis == "date"):
-         I = self._getDateIndices(findex)
+         I = self._get_date_indices(findex)
       elif(axis == "offset"):
-         I = self._getOffsetIndices(findex)
+         I = self._get_offset_indices(findex)
       elif(axis == "location"):
-         I = self._getLocationIndices(findex)
+         I = self._get_location_indices(findex)
       else:
          verif.util.error("Could not get indices for axis: " + str(axis))
       return I
 
-   def _getDateIndices(self, findex=None):
+   def _get_date_indices(self, findex=None):
       if(findex is None):
          findex = self._findex
       return self._datesI[findex]
 
-   def _getOffsetIndices(self, findex=None):
+   def _get_offset_indices(self, findex=None):
       if(findex is None):
          findex = self._findex
       return self._offsetsI[findex]
 
-   def _getLocationIndices(self, findex=None):
+   def _get_location_indices(self, findex=None):
       if(findex is None):
          findex = self._findex
       return self._locationsI[findex]
 
-   def _getScore(self, metric, findex=None):
+   def _get_score(self, metric, findex=None):
       if(findex is None):
          findex = self._findex
 
@@ -392,17 +392,17 @@ class Data(object):
          return self._cache[findex][metric]
 
       # Load all files
-      for f in range(0, self.getNumFilesWithClim()):
+      for f in range(0, self.get_num_files_with_clim()):
          if(metric not in self._cache[f]):
             file = self._files[f]
-            if(metric not in file.getVariables()):
+            if(metric not in file.get_variables()):
                verif.util.error("Variable '" + metric + "' does not exist in " +
-                     self.getFilenames()[f])
-            temp = file.getScores(metric)
-            dims = file.getDims(metric)
+                     self.get_filenames()[f])
+            temp = file.get_scores(metric)
+            dims = file.get_dims(metric)
             temp = verif.util.clean(temp)
             for i in range(0, len(dims)):
-               I = self._getIndices(dims[i].lower(), f)
+               I = self._get_indices(dims[i].lower(), f)
                if(i == 0):
                   temp = temp[I, Ellipsis]
                if(i == 1):
@@ -416,98 +416,98 @@ class Data(object):
       # but have missing values
       if self._removeMissingAcrossAll:
          isMissing = np.isnan(self._cache[0][metric])
-         for f in range(1, self.getNumFilesWithClim()):
+         for f in range(1, self.get_num_files_with_clim()):
             isMissing = isMissing | (np.isnan(self._cache[f][metric]))
-         for f in range(0, self.getNumFilesWithClim()):
+         for f in range(0, self.get_num_files_with_clim()):
             self._cache[f][metric][isMissing] = np.nan
 
       return self._cache[findex][metric]
 
    # Checks that all files have the variable
-   def hasMetric(self, metric):
-      for f in range(0, self.getNumFilesWithClim()):
-         if(metric not in self._files[f].getVariables()):
+   def has_metric(self, metric):
+      for f in range(0, self.get_num_files_with_clim()):
+         if(metric not in self._files[f].get_variables()):
             return False
       return True
 
    # Set the axis along which data is aggregated. One of offset, date, month,
    # year, location, lat, lon, elev.
-   def setAxis(self, axis):
+   def set_axis(self, axis):
       self._index = 0  # Reset index
       self._axis = axis
 
-   def setIndex(self, index):
+   def set_index(self, index):
       self._index = index
 
-   def setFileIndex(self, index):
+   def set_file_index(self, index):
       self._findex = index
 
-   def getNumFiles(self):
+   def get_num_files(self):
       return len(self._files) - (self._clim is not None)
 
-   def getNumFilesWithClim(self):
+   def get_num_files_with_clim(self):
       return len(self._files)
 
-   def getUnits(self):
+   def get_units(self):
       # TODO: Only check first file?
-      return self._files[0].getUnits()
+      return self._files[0].get_units()
 
-   def isLocationAxis(self, axis):
+   def is_location_axis(self, axis):
       if(axis is None):
          return False
       return axis in ["location", "locationId", "lat", "lon", "elev"]
 
-   def getAxisSize(self, axis=None):
+   def get_axis_size(self, axis=None):
       if(axis is None):
          axis = self._axis
-      return len(self.getAxisValues(axis))
+      return len(self.get_axis_values(axis))
 
    # What values represent this axis?
-   def getAxisValues(self, axis=None):
+   def get_axis_values(self, axis=None):
       if(axis is None):
          axis = self._axis
       if(axis == "date"):
-         return verif.util.convertDates(self._getScore("Date").astype(int))
+         return verif.util.convert_dates(self._get_score("Date").astype(int))
       elif(axis == "month"):
-         dates = self._getScore("Date").astype(int)
+         dates = self._get_score("Date").astype(int)
          months = np.unique((dates / 100) * 100 + 1)
-         return verif.util.convertDates(months)
+         return verif.util.convert_dates(months)
       elif(axis == "year"):
-         dates = self._getScore("Date").astype(int)
+         dates = self._get_score("Date").astype(int)
          years = np.unique((dates / 10000) * 10000 + 101)
-         return verif.util.convertDates(years)
+         return verif.util.convert_dates(years)
       elif(axis == "offset"):
-         return self._getScore("Offset").astype(int)
+         return self._get_score("Offset").astype(int)
       elif(axis == "none"):
          return [0]
-      elif(self.isLocationAxis(axis)):
+      elif(self.is_location_axis(axis)):
          if(axis == "location"):
-            data = range(0, len(self._getScore("Location")))
+            data = range(0, len(self._get_score("Location")))
          elif(axis == "locationId"):
-            data = self._getScore("Location").astype(int)
+            data = self._get_score("Location").astype(int)
          elif(axis == "elev"):
-            data = self._getScore("Elev")
+            data = self._get_score("Elev")
          elif(axis == "lat"):
-            data = self._getScore("Lat")
+            data = self._get_score("Lat")
          elif(axis == "lon"):
-            data = self._getScore("Lon")
+            data = self._get_score("Lon")
          else:
-            verif.util.error("Data.getAxisValues has a bad axis name: " + axis)
+            verif.util.error("Data.get_axis_values has a bad axis name: " + axis)
          return data
       else:
          return [0]
 
-   def isAxisContinuous(self, axis=None):
+   def is_axis_continuous(self, axis=None):
       if(axis is None):
          axis = self._axis
       return axis in ["date", "offset", "threshold", "month", "year"]
 
-   def isAxisDate(self, axis=None):
+   def is_axis_date(self, axis=None):
       if(axis is None):
          axis = self._axis
       return axis in ["date", "month", "year"]
 
-   def getAxisFormatter(self, axis=None):
+   def get_axis_formatter(self, axis=None):
       if(axis is None):
          axis = self._axis
       if(axis == "date"):
@@ -519,14 +519,14 @@ class Data(object):
       else:
          return matplotlib.ticker.ScalarFormatter()
 
-   def getAxisLocator(self, axis=None):
+   def get_axis_locator(self, axis=None):
       if(axis is None):
          axis = self._axis
       if(axis == "offset"):
          # Define our own locators, since in general we want multiples of 24
          # (or even fractions thereof) to make the ticks repeat each day. Aim
          # for a maximum of 12 ticks.
-         offsets = self.getAxisValues("offset")
+         offsets = self.get_axis_values("offset")
          span = max(offsets) - min(offsets)
          if(span > 300):
             return matplotlib.ticker.AutoLocator()
@@ -546,53 +546,53 @@ class Data(object):
          return matplotlib.ticker.AutoLocator()
 
    # filename including path
-   def getFullFilenames(self):
+   def get_full_filenames(self):
       names = list()
-      files = self._getFiles()
+      files = self._get_files()
       for i in range(0, len(files)):
-         names.append(files[i].getFilename())
+         names.append(files[i].get_filename())
       return names
 
-   def getFilename(self, findex=None):
+   def get_filename(self, findex=None):
       if(findex is None):
          findex = self._findex
-      return self.getFilenames()[findex]
+      return self.get_filenames()[findex]
 
    # Do not include the path
-   def getFilenames(self):
-      names = self.getFullFilenames()
+   def get_filenames(self):
+      names = self.get_full_filenames()
       for i in range(0, len(names)):
          I = names[i].rfind('/')
          names[i] = names[i][I + 1:]
       return names
 
-   def getLegend(self):
+   def get_legend(self):
       if(self._legend is None):
-         legend = self.getFilenames()
+         legend = self.get_filenames()
       else:
          legend = self._legend
       return legend
 
-   def getShortNames(self):
-      names = self.getFilenames()
+   def get_short_names(self):
+      names = self.get_filenames()
       for i in range(0, len(names)):
          I = names[i].rfind('.')
          names[i] = names[i][:I]
       return names
 
-   def getAxis(self, axis=None):
+   def get_axis(self, axis=None):
       if(axis is None):
          axis = self._axis
       return axis
 
-   def getVariable(self):
-      return self._files[0].getVariable()
+   def get_variable(self):
+      return self._files[0].get_variable()
 
-   def getVariableAndUnits(self):
-      var = self.getVariable()
+   def get_variable_and_units(self):
+      var = self.get_variable()
       return var.name() + " (" + var.units() + ")"
 
-   def getAxisLabel(self, axis=None):
+   def get_axis_label(self, axis=None):
       if(axis is None):
          axis = self._axis
       if(axis == "date"):
@@ -610,29 +610,29 @@ class Data(object):
       elif(axis == "lon"):
          return "Longitude ($^o$)"
       elif(axis == "threshold"):
-         return self.getVariableAndUnits()
+         return self.get_variable_and_units()
 
-   def getLats(self):
-      return self._getScore("Lat")
+   def get_lats(self):
+      return self._get_score("Lat")
 
-   def getLons(self):
-      return self._getScore("Lon")
+   def get_lons(self):
+      return self._get_score("Lon")
 
-   def getElevs(self):
-      return self._getScore("Elev")
+   def get_elevs(self):
+      return self._get_score("Elev")
 
-   def getLocationIds(self):
-      return self._getScore("Location")
+   def get_location_id(self):
+      return self._get_score("Location")
 
-   def getAxisDescriptions(self, axis=None, csv=False):
+   def get_axis_descriptions(self, axis=None, csv=False):
       if(axis is None):
          axis = self._axis
-      if self.isLocationAxis(axis):
+      if self.is_location_axis(axis):
          descs = list()
-         ids = self._getScore("Location")
-         lats = self._getScore("Lat")
-         lons = self._getScore("Lon")
-         elevs = self._getScore("Elev")
+         ids = self._get_score("Location")
+         lats = self._get_score("Lat")
+         lons = self._get_score("Lon")
+         elevs = self._get_score("Elev")
          if csv:
             fmt = "%d,%f,%f,%f"
          else:
@@ -641,20 +641,20 @@ class Data(object):
             string = fmt % (ids[i], lats[i], lons[i], elevs[i])
             descs.append(string)
          return descs
-      if(self.isAxisDate(axis)):
-         values = self.getAxisValues(axis)
+      if(self.is_axis_date(axis)):
+         values = self.get_axis_values(axis)
          values = num2date(values)
          dates = list()
          for i in range(0, len(values)):
             dates = dates + [values[i].strftime("%Y/%m/%d")]
          return dates
       else:
-         return self.getAxisValues(axis)
+         return self.get_axis_values(axis)
 
-   def getAxisDescriptionHeader(self, axis=None, csv=False):
+   def get_axis_description_header(self, axis=None, csv=False):
       if(axis is None):
          axis = self._axis
-      if self.isLocationAxis(axis):
+      if self.is_location_axis(axis):
          if csv:
             fmt = "%s,%s,%s,%s"
          else:
@@ -663,7 +663,7 @@ class Data(object):
       else:
          return axis
 
-   def _getAxisIndex(self, axis):
+   def _get_axis_index(self, axis):
       if(axis == "date"):
          return 0
       elif(axis == "offset"):
@@ -675,10 +675,10 @@ class Data(object):
          return None
 
    @staticmethod
-   def getPvar(threshold):
+   def get_p_var(threshold):
       return "p%g" % (threshold)
 
-   def getQvar(self, quantile):
+   def get_q_var(self, quantile):
       quantile = quantile * 100
       minus = ""
       if(abs(quantile - int(quantile)) > 0.01):
@@ -686,7 +686,7 @@ class Data(object):
       else:
          var = "q" + minus + str(int(abs(quantile)))
 
-      if(not self.hasMetric(var) and quantile == 50):
+      if(not self.has_metric(var) and quantile == 50):
          verif.util.warning("Could not find q50, using fcst instead")
          return "fcst"
       return var

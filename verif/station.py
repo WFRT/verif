@@ -32,7 +32,7 @@ class Station(object):
       else:
          self._elev = value
 
-   def getDistance(self, other):
+   def get_distance(self, other):
       lat1 = self.lat()
       lon1 = self.lon()
       lat2 = other.lat()

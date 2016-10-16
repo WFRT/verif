@@ -18,7 +18,7 @@ def bin(x, y, edges, func=np.mean):
    return xx, yy
 
 
-def convertDates(dates):
+def convert_dates(dates):
    numDates = len(dates)
    dates2 = np.zeros([numDates], 'float')
    for i in range(0, numDates):
@@ -29,7 +29,7 @@ def convertDates(dates):
    return dates2
 
 
-def convertToYYYYMMDD(dates):
+def convert_to_yyyymmdd(dates):
    numDates = len(dates)
    dates2 = np.zeros([numDates], 'int')
    for i in range(0, numDates):
@@ -41,7 +41,7 @@ def red(text):
    return "\033[31m" + text + "\033[0m"
 
 
-def removeMargin():
+def remove_margin():
    mpl.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0, hspace=0)
 
 
@@ -71,7 +71,7 @@ def warning(message):
 # num1,num2,num3
 # start:end
 # start:step:end
-def parseNumbers(numbers, isDate=False):
+def parse_numbers(numbers, isDate=False):
    # Check if valid string
    if(any(char not in set('-01234567890.:,') for char in numbers)):
       error("Could not translate '" + numbers + "' into numbers")
@@ -95,7 +95,7 @@ def parseNumbers(numbers, isDate=False):
             curr = list()
             while date <= max(start, end):
                curr.append(date)
-               date = getDate(date, step)
+               date = get_date(date, step)
             values = values + list(curr)
          else:
             values = values + list(np.arange(start, end, step))
@@ -109,11 +109,11 @@ def parseNumbers(numbers, isDate=False):
 
 # Sets up subplot for index i (starts at 0) out of N
 def subplot(i, N):
-   [X, Y] = getSubplotSize(N)
+   [X, Y] = get_subplot_size(N)
    mpl.subplot(Y, X, i + 1)
 
 
-def getSubplotSize(N):
+def get_subplot_size(N):
    Y = 1
    if(N > 4):
       Y = np.ceil(np.sqrt(N) / 1.5)
@@ -121,7 +121,7 @@ def getSubplotSize(N):
    return [int(X), int(Y)]
 
 
-def getMapResolution(lats, lons):
+def get_map_resolution(lats, lons):
    dlat = (max(lats) - min(lats))
    dlon = (max(lons) - min(lons))
    scale = max(dlat, dlon)
@@ -170,7 +170,7 @@ def clean(data):
 
 
 # Date: YYYYMMDD diff: Add this many days
-def getDate(date, diff):
+def get_date(date, diff):
    year = int(date / 10000)
    month = int(date / 100 % 100)
    day = int(date % 100)
@@ -237,9 +237,9 @@ def intersect(list1, list2):
    return list(set(list1) & set(list2))
 
 
-def formatArgument(arg, description, argWidth=19, totalWidth=None, indent=2):
+def format_argument(arg, description, argWidth=19, totalWidth=None, indent=2):
    if(totalWidth is None):
-      totalWidth = getTextWidth()
+      totalWidth = get_text_width()
    fmt = "%-" + str(indent) + "s%-" + str(argWidth - indent) + "s"
    curr = fmt % ("", arg)
    if(len(arg) > argWidth - indent - 2):
@@ -265,23 +265,23 @@ def formatArgument(arg, description, argWidth=19, totalWidth=None, indent=2):
 
 
 # How wide is the console?
-def getScreenWidth():
+def get_screen_width():
    rows, columns = os.popen('stty size', 'r').read().split()
    columns = int(columns)
    return columns
 
 
 # How wide should the text be output?
-def getTextWidth():
-   # return max(50, min(100, getScreenWidth()))
+def get_text_width():
+   # return max(50, min(100, get_screen_width()))
    return 80
 
 
-def getPvar(threshold):
+def get_p_var(threshold):
    return "p%g" % (threshold)
 
 
-def isNumber(s):
+def is_number(s):
    try:
       float(s)
       return True

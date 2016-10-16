@@ -5,32 +5,39 @@ import inspect
 
 
 # Returns a list of all metric classes
-def getAllMetrics():
+def get_all():
    temp = inspect.getmembers(sys.modules[__name__], inspect.isclass)
    return temp
 
 
+def get_all_deterministic():
+   pass
+
+
 # Returns a metric object of a class with the given name
-def getMetric(name):
-   metrics = getAllMetrics()
+def get_metric(name):
+   metrics = get_all()
    m = None
    for mm in metrics:
-      if(name == mm[0].lower() and mm[1].isValid()):
+      if(name == mm[0].lower() and mm[1].is_valid()):
          m = mm[1]()
    return m
 
 
 # Computes scores for each xaxis value
 class Metric(object):
+   """
+   Class to compute a score
+   """
    # Overload these variables
    _min = None  # Minimum value this metric can produce
    _max = None  # Maximum value this mertic can produce
-   _defaultAxis = "offset"  # If no axis is specified, use this axis as default
-   _defaultBinType = None
+   _default_axis = "offset"  # If no axis is specified, use this axis as default
+   _default_bin_type = None
    _reqThreshold = False  # Does this metric require thresholds?
    _supThreshold = False  # Does this metric support thresholds?
    _experimental = False  # Is this metric not fully tested yet?
-   _perfectScore = None
+   _perfect_score = None
    _aggregator = np.mean
    _aggregatorName = "mean"
    _supAggregator = False  # Does this metric use self._aggregator?
@@ -46,20 +53,23 @@ class Metric(object):
    _long = None
    _reference = None  # A string with an academic reference
 
-   # Compute the score
-   # data: use getScores([metric1, metric2...]) to get data
-   #       data has already been configured to only retrieve data along a
-   #       certain dimension
-   # tRange: [lowerThreshold, upperThreshold]
    def compute(self, data, tRange):
+      """
+      Compute the score
+
+      data     use get_scores([metric1, metric2...]) to get data
+               data has already been configured to only retrieve data along a
+               certain dimension
+      tRange   [lowerThreshold, upperThreshold]
+      """
       # assert(isinstance(tRange, list))
       # assert(len(tRange) == 2)
-      size = data.getAxisSize()
+      size = data.get_axis_size()
       scores = np.zeros(size, 'float')
       # Loop over x-axis
       for i in range(0, size):
-         data.setIndex(i)
-         x = self.computeCore(data, tRange)
+         data.set_index(i)
+         x = self.compute_core(data, tRange)
          scores[i] = x
       return scores
 
@@ -70,7 +80,7 @@ class Metric(object):
       return cls._orientation
 
    # Implement this
-   def computeCore(self, data, tRange):
+   def compute_core(self, data, tRange):
       raise NotImplementedError()
 
    @classmethod
@@ -83,7 +93,7 @@ class Metric(object):
 
    # Is this a valid metric that should be created be called?
    @classmethod
-   def isValid(cls):
+   def is_valid(cls):
       return cls.summary() is not ""
 
    @classmethod
@@ -97,8 +107,8 @@ class Metric(object):
             s = s + "Negative"
          else:
             s = s + "None"
-      if(cls.perfectScore is not None):
-         s = s + "\n" + verif.util.green("Perfect score: ") + str(cls._perfectScore)
+      if(cls.perfect_score is not None):
+         s = s + "\n" + verif.util.green("Perfect score: ") + str(cls._perfect_score)
       if(cls.min is not None):
          s = s + "\n" + verif.util.green("Minimum value: ") + str(cls._min)
       if(cls.max is not None):
@@ -119,32 +129,32 @@ class Metric(object):
       #    extra = " " + verif.util.experimental() + "."
       if(cls._supAggregator):
          extra = " Supports -ct."
-      if(cls._perfectScore is not None):
-         extra = extra + " " + "Perfect score " + str(cls._perfectScore) + "."
+      if(cls._perfect_score is not None):
+         extra = extra + " " + "Perfect score " + str(cls._perfect_score) + "."
       return desc + "." + extra
 
    # Does this metric require thresholds in order to be computable?
    @classmethod
-   def requiresThresholds(cls):
+   def requires_thresholds(cls):
       return cls._reqThreshold
 
    # If this metric is to be plotted, along which axis should it be plotted by
    # default?
    @classmethod
-   def defaultAxis(cls):
-      return cls._defaultAxis
+   def default_axis(cls):
+      return cls._default_axis
 
    @classmethod
-   def defaultBinType(cls):
-      return cls._defaultBinType
+   def default_bin_type(cls):
+      return cls._default_bin_type
 
    @classmethod
-   def perfectScore(cls):
-      return cls._perfectScore
+   def perfect_score(cls):
+      return cls._perfect_score
 
    # Does it make sense to use '-x threshold' with this metric?
    @classmethod
-   def supportsThreshold(cls):
+   def supports_threshold(cls):
       return cls._supThreshold
 
    # Minimum value the metric can take on
@@ -157,7 +167,7 @@ class Metric(object):
    def max(cls):
       return cls._max
 
-   def setAggregator(self, name):
+   def set_aggregator(self, name):
       self._aggregatorName = name
       if(name == "mean"):
          self._aggregator = np.mean
@@ -189,21 +199,21 @@ class Metric(object):
          verif.util.error("Invalid aggregator")
 
    @classmethod
-   def getClassName(cls):
+   def get_class_name(cls):
       name = cls.__name__
       return name
 
    # This is the y-axis label for this metric. Override this if
    # the metric does not have the same units as the forecast variable
    def label(self, data):
-      return self.name() + " (" + data.getUnits() + ")"
+      return self.name() + " (" + data.get_units() + ")"
 
    # Cannot be a classmethod, since it might use self._aggregator
    def name(self):
-      return self.getClassName()
+      return self.get_class_name()
 
    def label(self, data):
-      return self.name() + " (" + data.getUnits() + ")"
+      return self.name() + " (" + data.get_units() + ")"
 
    # Is x within the range?
    @staticmethod
@@ -221,11 +231,11 @@ class Default(Metric):
       self._name = name
       self._aux = aux
 
-   def computeCore(self, data, tRange):
+   def compute_core(self, data, tRange):
       if(self._aux is not None):
-         [values, aux] = data.getScores([self._name, self._aux])
+         [values, aux] = data.get_scores([self._name, self._aux])
       else:
-         values = data.getScores(self._name)
+         values = data.get_scores(self._name)
       return self._aggregator(values)
 
    def name(self):
@@ -236,7 +246,7 @@ class Mean(Metric):
    def __init__(self, metric):
       self._metric = metric
 
-   def computeCore(self, data, tRange):
+   def compute_core(self, data, tRange):
       return np.mean(self._metric.compute(data, tRange))
 
    def name(self):
@@ -250,8 +260,8 @@ class Obs(Metric):
    _supAggregator = True
    _orientation = 0
 
-   def computeCore(self, data, tRange):
-      obs = data.getScores("obs")[0]
+   def compute_core(self, data, tRange):
+      obs = data.get_scores("obs")[0]
       return self._aggregator(obs)
 
    def name(self):
@@ -263,8 +273,8 @@ class Fcst(Metric):
    _supAggregator = True
    _orientation = 0
 
-   def computeCore(self, data, tRange):
-      fcst = data.getScores("fcst")[0]
+   def compute_core(self, data, tRange):
+      fcst = data.get_scores("fcst")[0]
       return self._aggregator(fcst)
 
    def name(self):
@@ -273,38 +283,41 @@ class Fcst(Metric):
 
 # Deterministic metric which is dependent only on "obs" and "fcst"
 class Deterministic(Metric):
-   def computeCore(self, data, tRange):
-      [obs, fcst] = data.getScores(["obs", "fcst"])
-      return self.computeObsFcst(obs, fcst)
-
-   def computeObsFcst(self, obs, fcst):
+   """ Computes scores based on observations and deterministic forecasts only """
+   def compute_core(self, data, tRange):
+      [obs, fcst] = data.get_scores(["obs", "fcst"])
       assert(obs.shape[0] == fcst.shape[0])
+      return self.compute_from_obs_fcst(obs, fcst)
+
+   def compute_from_obs_fcst(self, obs, fcst):
       # Remove missing values
       I = np.where((np.isnan(obs) | np.isnan(fcst)) == 0)[0]
       obs = obs[I]
       fcst = fcst[I]
       if(obs.shape[0] > 0):
-         return self._computeObsFcst(obs, fcst)
+         return self._compute_from_obs_fcst(obs, fcst)
       else:
          return np.nan
 
-   # Subclass must implement this function:
-   # Preconditions for obs and fcst:
-   #     - obs and fcst are the same length
-   #     - length >= 1
-   #     - no missing values
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
+      """
+      Subclass must implement this function:
+      Preconditions for obs and fcst:
+          - obs and fcst are the same length
+          - length >= 1
+          - no missing values
+       """
       verif.util.error("Metric " + self.name() +
-            " has not implemented _computeObsFcst()")
+            " has not implemented _compute_from_obs_fcst()")
 
 
 class Mae(Deterministic):
    _min = 0
    _description = "Mean absolute error"
-   _perfectScore = 0
+   _perfect_score = 0
    _supAggregator = True
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       return self._aggregator(abs(obs - fcst))
 
    def name(self):
@@ -313,11 +326,11 @@ class Mae(Deterministic):
 
 class Bias(Deterministic):
    _description = "Bias"
-   _perfectScore = 0
+   _perfect_score = 0
    _supAggregator = True
    _orientation = 0
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       return self._aggregator(obs - fcst)
 
 
@@ -326,10 +339,10 @@ class Ef(Deterministic):
                   " > observations"
    _min = 0
    _max = 100
-   _perfectScore = 50
+   _perfect_score = 50
    _orientation = 0
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       Nfcst = np.sum(obs < fcst)
       return Nfcst / 1.0 / len(fcst) * 100
 
@@ -343,10 +356,10 @@ class Ef(Deterministic):
 class StdError(Deterministic):
    _min = 0
    _description = "Standard error (i.e. RMSE if forecast had no bias)"
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = -1
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       bias = np.mean(obs - fcst)
       return np.mean((obs - fcst - bias) ** 2) ** 0.5
 
@@ -357,10 +370,10 @@ class StdError(Deterministic):
 class Rmse(Deterministic):
    _min = 0
    _description = "Root mean squared error"
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = -1
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       return np.mean((obs - fcst) ** 2) ** 0.5
 
    def name(self):
@@ -370,10 +383,10 @@ class Rmse(Deterministic):
 class Rmsf(Deterministic):
    _min = 0
    _description = "Root mean squared factor"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 0
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       return np.exp(np.mean((np.log(fcst / obs)) ** 2) ** 0.5)
 
    def name(self):
@@ -383,10 +396,10 @@ class Rmsf(Deterministic):
 class Crmse(Deterministic):
    _min = 0
    _description = "Centered root mean squared error (RMSE without bias)"
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = -1
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       bias = np.mean(obs) - np.mean(fcst)
       return np.mean((obs - fcst - bias) ** 2) ** 0.5
 
@@ -397,10 +410,10 @@ class Crmse(Deterministic):
 class Cmae(Deterministic):
    _min = 0
    _description = "Cube-root mean absolute cubic error"
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = -1
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       return (np.mean(abs(obs ** 3 - fcst ** 3))) ** (1.0 / 3)
 
    def name(self):
@@ -410,11 +423,11 @@ class Cmae(Deterministic):
 class Nsec(Deterministic):
    _min = 0
    _description = "Nash-Sutcliffe efficiency coefficient"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
    _max = 1
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       meanobs = np.mean(obs)
       num = np.sum((fcst - obs) ** 2)
       denom = np.sum((obs - meanobs) ** 2)
@@ -433,12 +446,12 @@ class Nsec(Deterministic):
 class Alphaindex(Deterministic):
    _min = 0
    _description = "Alpha index"
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = -1
    _max = 2
    _min = 0
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       meanobs = np.mean(obs)
       meanfcst = np.mean(fcst)
       num = np.sum((fcst - obs - meanfcst + meanobs) ** 2)
@@ -458,10 +471,10 @@ class Alphaindex(Deterministic):
 class Leps(Deterministic):
    _min = 0
    _description = "Linear error in probability space"
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = -1
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       N = len(obs)
       # Compute obs quantiles
       Iobs = np.array(np.argsort(obs), 'float')
@@ -485,10 +498,10 @@ class Leps(Deterministic):
 
 class Dmb(Deterministic):
    _description = "Degree of mass balance (obs/fcst)"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 0
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       return np.mean(obs) / np.mean(fcst)
 
    def name(self):
@@ -497,10 +510,10 @@ class Dmb(Deterministic):
 
 class Mbias(Deterministic):
    _description = "Multiplicative bias (obs/fcst)"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 0
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       return (np.mean(obs) / np.mean(fcst))
 
    def name(self):
@@ -514,10 +527,10 @@ class Corr(Deterministic):
    _min = 0  # Technically -1, but values below 0 are not as interesting
    _max = 1
    _description = "Correlation between obesrvations and forecasts"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       if(len(obs) <= 1):
          return np.nan
       if(np.var(fcst) == 0):
@@ -535,10 +548,10 @@ class RankCorr(Deterministic):
    _min = 0  # Technically -1, but values below 0 are not as interesting
    _max = 1
    _description = "Rank correlation between obesrvations and forecasts"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       import scipy.stats
       if(len(obs) <= 1):
          return np.nan
@@ -555,10 +568,10 @@ class KendallCorr(Deterministic):
    _min = 0  # Technically -1, but values below 0 are not as interesting
    _max = 1
    _description = "Kendall correlation between obesrvations and forecasts"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
 
-   def _computeObsFcst(self, obs, fcst):
+   def _compute_from_obs_fcst(self, obs, fcst):
       import scipy.stats
       if(len(obs) <= 1):
          return np.nan
@@ -575,7 +588,7 @@ class KendallCorr(Deterministic):
 
 class Extreme(Metric):
    def calc(self, data, func, variable):
-      [value] = data.getScores([variable])
+      [value] = data.get_scores([variable])
       if(len(value) == 0):
          return np.nan
       return func(value)
@@ -585,7 +598,7 @@ class MaxObs(Extreme):
    _description = "Maximum observed value"
    _orientation = 0
 
-   def computeCore(self, data, tRange):
+   def compute_core(self, data, tRange):
       return self.calc(data, np.max, "obs")
 
 
@@ -593,7 +606,7 @@ class MinObs(Extreme):
    _description = "Minimum observed value"
    _orientation = 0
 
-   def computeCore(self, data, tRange):
+   def compute_core(self, data, tRange):
       return self.calc(data, np.min, "obs")
 
 
@@ -601,7 +614,7 @@ class MaxFcst(Extreme):
    _description = "Maximum forecasted value"
    _orientation = 0
 
-   def computeCore(self, data, tRange):
+   def compute_core(self, data, tRange):
       return self.calc(data, np.max, "fcst")
 
 
@@ -609,7 +622,7 @@ class MinFcst(Extreme):
    _description = "Minimum forecasted value"
    _orientation = 0
 
-   def computeCore(self, data, tRange):
+   def compute_core(self, data, tRange):
       return self.calc(data, np.min, "fcst")
 
 
@@ -626,12 +639,12 @@ class Pit(Metric):
       return "PIT"
 
    def compute(self, data, tRange):
-      x0 = data.getVariable().getX0()
-      x1 = data.getVariable().getX1()
+      x0 = data.get_variable().get_x0()
+      x1 = data.get_variable().get_x1()
       if(x0 is None and x1 is None):
-         [pit] = data.getScores([self._name])
+         [pit] = data.get_scores([self._name])
       else:
-         [obs, pit] = data.getScores(["obs", self._name])
+         [obs, pit] = data.get_scores(["obs", self._name])
          if(x0 is not None):
             I = np.where(obs == x0)[0]
             pit[I] = np.random.rand(len(I)) * pit[I]
@@ -651,7 +664,7 @@ class Pit(Metric):
 class PitDev(Metric):
    _min = 0
    # _max = 1
-   _perfectScore = 1
+   _perfect_score = 1
    _description = "Deviation of the PIT histogram"
    _orientation = -1
 
@@ -662,13 +675,13 @@ class PitDev(Metric):
    def label(self, data):
       return "PIT histogram deviation"
 
-   def computeCore(self, data, tRange):
+   def compute_core(self, data, tRange):
       pit = self._metric.compute(data, tRange)
       pit = pit[np.isnan(pit) == 0]
 
       nb = len(self._bins) - 1
       D = self.deviation(pit, nb)
-      D0 = self.expectedDeviation(pit, nb)
+      D0 = self.expected_deviation(pit, nb)
       dev = D / D0
       return dev
 
@@ -676,7 +689,7 @@ class PitDev(Metric):
       return "PIT deviation factor"
 
    @staticmethod
-   def expectedDeviation(values, numBins):
+   def expected_deviation(values, numBins):
       if(len(values) == 0 or numBins == 0):
          return np.nan
       return np.sqrt((1.0 - 1.0 / numBins) / (len(values) * numBins))
@@ -691,7 +704,7 @@ class PitDev(Metric):
       return np.sqrt(1.0 / numBins * np.sum((n - 1.0 / numBins) ** 2))
 
    @staticmethod
-   def deviationStd(values, numBins):
+   def deviation_std(values, numBins):
       if(len(values) == 0 or numBins == 0):
          return np.nan
       n = len(values)
@@ -702,7 +715,7 @@ class PitDev(Metric):
 
    # What reduction in ignorance is possible by calibrating the PIT-histogram?
    @staticmethod
-   def ignorancePotential(values, numBins):
+   def ignorance_potential(values, numBins):
       if(len(values) == 0 or numBins == 0):
          return np.nan
       x = np.linspace(0, 1, numBins + 1)
@@ -717,26 +730,26 @@ class MarginalRatio(Metric):
    _min = 0
    _description = "Ratio of marginal probability of obs to marginal" \
          " probability of fcst. Use -r."
-   _perfectScore = 1
+   _perfect_score = 1
    _reqThreshold = True
    _supThreshold = True
-   _defaultAxis = "threshold"
+   _default_axis = "threshold"
    _experimental = True
    _orientation = 0
 
-   def computeCore(self, data, tRange):
+   def compute_core(self, data, tRange):
       if(np.isinf(tRange[0])):
-         pvar = data.getPvar(tRange[1])
-         [obs, p1] = data.getScores(["obs", pvar])
+         pvar = data.get_p_var(tRange[1])
+         [obs, p1] = data.get_scores(["obs", pvar])
          p0 = 0 * p1
       elif(np.isinf(tRange[1])):
-         pvar = data.getPvar(tRange[0])
-         [obs, p0] = data.getScores(["obs", pvar])
+         pvar = data.get_p_var(tRange[0])
+         [obs, p0] = data.get_scores(["obs", pvar])
          p1 = 0 * p0 + 1
       else:
-         pvar0 = data.getPvar(tRange[0])
-         pvar1 = data.getPvar(tRange[1])
-         [obs, p0, p1] = data.getScores(["obs", pvar0, pvar1])
+         pvar0 = data.get_p_var(tRange[0])
+         pvar1 = data.get_p_var(tRange[1])
+         [obs, p0, p1] = data.get_scores(["obs", pvar0, pvar1])
       obs = Metric.within(obs, tRange)
       p = p1 - p0
       if(np.mean(p) == 0):
@@ -749,12 +762,12 @@ class MarginalRatio(Metric):
 
 class SpreadSkillDiff(Metric):
    _description = "Difference between spread and skill in %"
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = 0
 
-   def computeCore(self, data, tRange):
+   def compute_core(self, data, tRange):
       import scipy.stats
-      [obs, fcst, spread] = data.getScores(["obs", "fcst", "spread"])
+      [obs, fcst, spread] = data.get_scores(["obs", "fcst", "spread"])
       if(len(obs) <= 1):
          return np.nan
       rmse = np.sqrt(np.mean((obs - fcst) ** 2))
@@ -773,14 +786,14 @@ class Within(Metric):
    _max = 100
    _description = "The percentage of forecasts within some"\
          " error bound (use -r)"
-   _defaultBinType = "below"
+   _default_bin_type = "below"
    _reqThreshold = True
    _supThreshold = True
-   _perfectScore = 100
+   _perfect_score = 100
    _orientation = -1
 
-   def computeCore(self, data, tRange):
-      [obs, fcst] = data.getScores(["obs", "fcst"])
+   def compute_core(self, data, tRange):
+      [obs, fcst] = data.get_scores(["obs", "fcst"])
       diff = abs(obs - fcst)
       return np.mean(self.within(diff, tRange)) * 100
 
@@ -803,8 +816,8 @@ class Conditional(Metric):
       self._y = y
       self._func = func
 
-   def computeCore(self, data, tRange):
-      [obs, fcst] = data.getScores([self._x, self._y])
+   def compute_core(self, data, tRange):
+      [obs, fcst] = data.get_scores([self._x, self._y])
       I = np.where(self.within(obs, tRange))[0]
       if(len(I) == 0):
          return np.nan
@@ -823,8 +836,8 @@ class XConditional(Metric):
       self._x = x
       self._y = y
 
-   def computeCore(self, data, tRange):
-      [obs, fcst] = data.getScores([self._x, self._y])
+   def compute_core(self, data, tRange):
+      [obs, fcst] = data.get_scores([self._x, self._y])
       I = np.where(self.within(obs, tRange))[0]
       if(len(I) == 0):
          return np.nan
@@ -841,8 +854,8 @@ class Count(Metric):
    def __init__(self, x):
       self._x = x
 
-   def computeCore(self, data, tRange):
-      values = data.getScores(self._x)
+   def compute_core(self, data, tRange):
+      values = data.get_scores(self._x)
       I = np.where(self.within(values, tRange))[0]
       if(len(I) == 0):
          return np.nan
@@ -856,9 +869,9 @@ class Quantile(Metric):
    def __init__(self, quantile):
       self._quantile = quantile
 
-   def computeCore(self, data, tRange):
-      var = data.getQvar(self._quantile)
-      scores = data.getScores(var)
+   def compute_core(self, data, tRange):
+      var = data.get_q_var(self._quantile)
+      scores = data.get_scores(var)
       return verif.util.nanmean(scores)
 
 
@@ -868,27 +881,27 @@ class Bs(Metric):
    _description = "Brier score"
    _reqThreshold = True
    _supThreshold = True
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = 1
    _reference = "Glenn W. Brier, 1950: Verification of forecasts expressed in terms of probability. Mon. Wea. Rev., 78, 1-3."
 
    def __init__(self, numBins=10):
       self._edges = np.linspace(0, 1.0001, numBins)
 
-   def computeCore(self, data, tRange):
+   def compute_core(self, data, tRange):
       # Compute probabilities based on thresholds
       p0 = 0
       p1 = 1
       if(tRange[0] != -np.inf and tRange[1] != np.inf):
-         var0 = data.getPvar(tRange[0])
-         var1 = data.getPvar(tRange[1])
-         [obs, p0, p1] = data.getScores(["obs", var0, var1])
+         var0 = data.get_p_var(tRange[0])
+         var1 = data.get_p_var(tRange[1])
+         [obs, p0, p1] = data.get_scores(["obs", var0, var1])
       elif(tRange[0] != -np.inf):
-         var0 = data.getPvar(tRange[0])
-         [obs, p0] = data.getScores(["obs", var0])
+         var0 = data.get_p_var(tRange[0])
+         [obs, p0] = data.get_scores(["obs", var0])
       elif(tRange[1] != np.inf):
-         var1 = data.getPvar(tRange[1])
-         [obs, p1] = data.getScores(["obs", var1])
+         var1 = data.get_p_var(tRange[1])
+         [obs, p1] = data.get_scores(["obs", var1])
       obsP = self.within(obs, tRange)
       p = p1 - p0  # Prob of obs within range
       bs = np.nan * np.zeros(len(p), 'float')
@@ -901,30 +914,30 @@ class Bs(Metric):
       return verif.util.nanmean(bs)
 
    @staticmethod
-   def getP(data, tRange):
+   def get_p(data, tRange):
       p0 = 0
       p1 = 1
       if(tRange[0] != -np.inf and tRange[1] != np.inf):
-         var0 = data.getPvar(tRange[0])
-         var1 = data.getPvar(tRange[1])
-         [obs, p0, p1] = data.getScores(["obs", var0, var1])
+         var0 = data.get_p_var(tRange[0])
+         var1 = data.get_p_var(tRange[1])
+         [obs, p0, p1] = data.get_scores(["obs", var0, var1])
       elif(tRange[0] != -np.inf):
-         var0 = data.getPvar(tRange[0])
-         [obs, p0] = data.getScores(["obs", var0])
+         var0 = data.get_p_var(tRange[0])
+         [obs, p0] = data.get_scores(["obs", var0])
       elif(tRange[1] != np.inf):
-         var1 = data.getPvar(tRange[1])
-         [obs, p1] = data.getScores(["obs", var1])
+         var1 = data.get_p_var(tRange[1])
+         [obs, p1] = data.get_scores(["obs", var1])
 
       obsP = Metric.within(obs, tRange)
       p = p1 - p0  # Prob of obs within range
       return [obsP, p]
 
    @staticmethod
-   def getQ(data, tRange):
+   def get_q(data, tRange):
       p0 = 0
       p1 = 1
-      var = data.getQvar(tRange[0])
-      [obs, q] = data.getScores(["obs", var])
+      var = data.get_q_var(tRange[0])
+      [obs, q] = data.get_scores(["obs", var])
 
       return [obs, q]
 
@@ -938,14 +951,14 @@ class Bss(Metric):
    _description = "Brier skill score"
    _reqThreshold = True
    _supThreshold = True
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
 
    def __init__(self, numBins=10):
       self._edges = np.linspace(0, 1.0001, numBins)
 
-   def computeCore(self, data, tRange):
-      [obsP, p] = Bs.getP(data, tRange)
+   def compute_core(self, data, tRange):
+      [obsP, p] = Bs.get_p(data, tRange)
       bs = np.nan * np.zeros(len(p), 'float')
       for i in range(0, len(self._edges) - 1):
          I = np.where((p >= self._edges[i]) & (p < self._edges[i + 1]))[0]
@@ -969,14 +982,14 @@ class BsRel(Metric):
    _description = "Brier score, reliability term"
    _reqThreshold = True
    _supThreshold = True
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = 1
 
    def __init__(self, numBins=11):
       self._edges = np.linspace(0, 1.0001, numBins)
 
-   def computeCore(self, data, tRange):
-      [obsP, p] = Bs.getP(data, tRange)
+   def compute_core(self, data, tRange):
+      [obsP, p] = Bs.get_p(data, tRange)
 
       # Break p into bins, and comute reliability
       bs = np.nan * np.zeros(len(p), 'float')
@@ -997,11 +1010,11 @@ class BsUnc(Metric):
    _description = "Brier score, uncertainty term"
    _reqThreshold = True
    _supThreshold = True
-   _perfectScore = None
+   _perfect_score = None
    _orientation = 1
 
-   def computeCore(self, data, tRange):
-      [obsP, p] = Bs.getP(data, tRange)
+   def compute_core(self, data, tRange):
+      [obsP, p] = Bs.get_p(data, tRange)
       meanObs = np.mean(obsP)
       bs = meanObs * (1 - meanObs)
       return bs
@@ -1016,14 +1029,14 @@ class BsRes(Metric):
    _description = "Brier score, resolution term"
    _reqThreshold = True
    _supThreshold = True
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
 
    def __init__(self, numBins=10):
       self._edges = np.linspace(0, 1.0001, numBins)
 
-   def computeCore(self, data, tRange):
-      [obsP, p] = Bs.getP(data, tRange)
+   def compute_core(self, data, tRange):
+      [obsP, p] = Bs.get_p(data, tRange)
       bs = np.nan * np.zeros(len(p), 'float')
       meanObs = np.mean(obsP)
       for i in range(0, len(self._edges) - 1):
@@ -1043,11 +1056,11 @@ class QuantileScore(Metric):
                   "(e.g q10, q90...).  Use -x to set which quantiles to use."
    _reqThreshold = True
    _supThreshold = True
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = -1
 
-   def computeCore(self, data, tRange):
-      [obs, q] = Bs.getQ(data, tRange)
+   def compute_core(self, data, tRange):
+      [obs, q] = Bs.get_q(data, tRange)
       qs = np.nan * np.zeros(len(q), 'float')
       v = q - obs
       qs = v * (tRange[0] - (v < 0))
@@ -1060,8 +1073,8 @@ class Ign0(Metric):
    _supThreshold = True
    _orientation = -1
 
-   def computeCore(self, data, tRange):
-      [obsP, p] = Bs.getP(data, tRange)
+   def compute_core(self, data, tRange):
+      [obsP, p] = Bs.get_p(data, tRange)
 
       I0 = np.where(obsP == 0)[0]
       I1 = np.where(obsP == 1)[0]
@@ -1081,8 +1094,8 @@ class Spherical(Metric):
    _min = 0
    _orientation = -1
 
-   def computeCore(self, data, tRange):
-      [obsP, p] = Bs.getP(data, tRange)
+   def compute_core(self, data, tRange):
+      [obsP, p] = Bs.get_p(data, tRange)
 
       I0 = np.where(obsP == 0)[0]
       I1 = np.where(obsP == 1)[0]
@@ -1099,26 +1112,26 @@ class Spherical(Metric):
 class Contingency(Metric):
    _min = 0
    _max = 1
-   _defaultAxis = "threshold"
+   _default_axis = "threshold"
    _reqThreshold = True
    _supThreshold = True
    _usingQuantiles = False
 
    @staticmethod
-   def getAxisFormatter(self, data):
+   def get_axis_formatter(self, data):
       from matplotlib.ticker import ScalarFormatter
       return ScalarFormatter()
 
    def label(self, data):
       return self.name()
 
-   def computeCore(self, data, tRange):
-      [obs, fcst] = data.getScores(["obs", "fcst"])
-      return self.computeObsFcst(obs, fcst, tRange)
+   def compute_core(self, data, tRange):
+      [obs, fcst] = data.get_scores(["obs", "fcst"])
+      return self.compute_obs_fcst(obs, fcst, tRange)
 
    # convert a range of quantiles to thresholds, for example converting
    # [10%, 50%] of some precip values to [5 mm, 25 mm]
-   def _quantileToThreshold(self, values, tRange):
+   def _quantile_to_threshold(self, values, tRange):
       sorted = np.sort(values)
       qRange = [-np.inf, np.inf]
       for i in range(0, 1):
@@ -1126,9 +1139,9 @@ class Contingency(Metric):
             qRange[i] = np.percentile(sorted, tRange[i] * 100)
       return qRange
 
-   def computeObsFcst(self, obs, fcst, tRange):
+   def compute_obs_fcst(self, obs, fcst, tRange):
       if(tRange is None):
-         verif.util.error("Metric " + self.getClassName() +
+         verif.util.error("Metric " + self.get_class_name() +
                " requires '-r <threshold>'")
       value = np.nan
       if(len(fcst) > 0):
@@ -1136,8 +1149,8 @@ class Contingency(Metric):
          if(self._usingQuantiles):
             fcstSort = np.sort(fcst)
             obsSort = np.sort(obs)
-            fRange = self._quantileToThreshold(fcstSort, tRange)
-            oRange = self._quantileToThreshold(obsSort, tRange)
+            fRange = self._quantile_to_threshold(fcstSort, tRange)
+            oRange = self._quantile_to_threshold(obsSort, tRange)
             a = np.ma.sum((self.within(fcst, fRange)) &
                   (self.within(obs, oRange)))  # Hit
             b = np.ma.sum((self.within(fcst, fRange)) &
@@ -1161,7 +1174,7 @@ class Contingency(Metric):
 
       return value
 
-   def computeObsFcstFast(self, obs, fcst, othreshold, fthresholds):
+   def compute_obs_fcst_fast(self, obs, fcst, othreshold, fthresholds):
       values = np.nan * np.zeros(len(fthresholds), 'float')
       if(len(fcst) > 0):
          for t in range(0, len(fthresholds)):
@@ -1177,7 +1190,7 @@ class Contingency(Metric):
       return values
 
    # Resamples only if N > 1
-   def computeObsFcstResample(self, obs, fcst, othreshold, fthresholds, N):
+   def compute_obs_fcst_resample(self, obs, fcst, othreshold, fthresholds, N):
       values = np.nan * np.zeros(len(fthresholds), 'float')
       if(len(fcst) > 0):
          for t in range(0, len(fthresholds)):
@@ -1245,7 +1258,7 @@ class N(Contingency):
 
 class Ets(Contingency):
    _description = "Equitable threat score"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
 
    def calc(self, a, b, c, d):
@@ -1261,7 +1274,7 @@ class Ets(Contingency):
 
 class Dscore(Contingency):
    _description = "Generalized discrimination score"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
    _reference = "Simon J. Mason and Andreas P. Weigel, 2009: A Generic Forecast Verification Framework for Administrative Purposes. Mon. Wea. Rev., 137, 331-349."
    _max = 1
@@ -1281,7 +1294,7 @@ class Dscore(Contingency):
 
 class Threat(Contingency):
    _description = "Threat score"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
 
    def calc(self, a, b, c, d):
@@ -1292,7 +1305,7 @@ class Threat(Contingency):
 
 class Pc(Contingency):
    _description = "Proportion correct"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
 
    def calc(self, a, b, c, d):
@@ -1303,7 +1316,7 @@ class Diff(Contingency):
    _description = "Difference between false alarms and misses"
    _min = -1
    _max = 1
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = 0
 
    def calc(self, a, b, c, d):
@@ -1312,7 +1325,7 @@ class Diff(Contingency):
 
 class Edi(Contingency):
    _description = "Extremal dependency index"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
    _reference = "Christopher A. T. Ferro and David B. Stephenson, 2011: Extremal Dependence Indices: Improved Verification Measures for Deterministic Forecasts of Rare Binary Events. Wea. Forecasting, 26, 699-713."
 
@@ -1335,7 +1348,7 @@ class Edi(Contingency):
 
 class Sedi(Contingency):
    _description = "Symmetric extremal dependency index"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
    _reference = Edi.reference()
 
@@ -1360,7 +1373,7 @@ class Sedi(Contingency):
 class Eds(Contingency):
    _description = "Extreme dependency score"
    _min = None
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
    _reference = "Stephenson, D. B., B. Casati, C. A. T. Ferro, and C. A.  Wilson, 2008: The extreme dependency score: A non-vanishing measure for forecasts of rare events. Meteor. Appl., 15, 41-50."
 
@@ -1384,7 +1397,7 @@ class Eds(Contingency):
 class Seds(Contingency):
    _description = "Symmetric extreme dependency score"
    _min = None
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
 
    def calc(self, a, b, c, d):
@@ -1408,7 +1421,7 @@ class Seds(Contingency):
 class BiasFreq(Contingency):
    _max = None
    _description = "Bias frequency (number of fcsts / number of obs)"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 0
 
    def calc(self, a, b, c, d):
@@ -1420,7 +1433,7 @@ class BiasFreq(Contingency):
 class Hss(Contingency):
    _max = None
    _description = "Heidke skill score"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
 
    def calc(self, a, b, c, d):
@@ -1432,7 +1445,7 @@ class Hss(Contingency):
 
 class BaseRate(Contingency):
    _description = "Base rate"
-   _perfectScore = None
+   _perfect_score = None
    _orientation = 0
 
    def calc(self, a, b, c, d):
@@ -1444,7 +1457,7 @@ class BaseRate(Contingency):
 class Or(Contingency):
    _description = "Odds ratio"
    _max = None
-   _perfectScore = None  # Should be infinity
+   _perfect_score = None  # Should be infinity
    _orientation = 1
 
    def calc(self, a, b, c, d):
@@ -1456,7 +1469,7 @@ class Or(Contingency):
 class Lor(Contingency):
    _description = "Log odds ratio"
    _max = None
-   _perfectScore = None  # Should be infinity
+   _perfect_score = None  # Should be infinity
    _orientation = 1
 
    def calc(self, a, b, c, d):
@@ -1467,7 +1480,7 @@ class Lor(Contingency):
 
 class YulesQ(Contingency):
    _description = "Yule's Q (Odds ratio skill score)"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
 
    def calc(self, a, b, c, d):
@@ -1478,7 +1491,7 @@ class YulesQ(Contingency):
 
 class Kss(Contingency):
    _description = "Hanssen-Kuiper skill score"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
    _reference = "Hanssen , A., W. Kuipers, 1965: On the relationship between the frequency of rain and various meteorological parameters. - Meded. Verh. 81, 2-15."
 
@@ -1490,7 +1503,7 @@ class Kss(Contingency):
 
 class Hit(Contingency):
    _description = "Hit rate (a.k.a. probability of detection)"
-   _perfectScore = 1
+   _perfect_score = 1
    _orientation = 1
 
    def calc(self, a, b, c, d):
@@ -1501,7 +1514,7 @@ class Hit(Contingency):
 
 class Miss(Contingency):
    _description = "Miss rate"
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = -1
 
    def calc(self, a, b, c, d):
@@ -1513,7 +1526,7 @@ class Miss(Contingency):
 # Fraction of non-events that are forecasted as events
 class Fa(Contingency):
    _description = "False alarm rate"
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = -1
 
    def calc(self, a, b, c, d):
@@ -1525,7 +1538,7 @@ class Fa(Contingency):
 # Fraction of forecasted events that are false alarms
 class Far(Contingency):
    _description = "False alarm ratio"
-   _perfectScore = 0
+   _perfect_score = 0
    _orientation = -1
 
    def calc(self, a, b, c, d):

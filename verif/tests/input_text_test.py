@@ -6,24 +6,24 @@ import verif.data
 
 
 class MyTest(unittest.TestCase):
-   def test_getOffsets(self):
-      input = verif.input.Text("tests/example.txt")
-      offsets = input.getOffsets()
+   def test_get_offsets(self):
+      input = verif.input.Text("verif/tests/example.txt")
+      offsets = input.get_offsets()
       self.assertEqual(4, offsets.shape[0])
       self.assertEqual(0, offsets[0])
       self.assertEqual(1, offsets[1])
       self.assertEqual(3, offsets[2])
       self.assertEqual(22, offsets[3])
 
-   def test_getDates(self):
-      input = verif.input.Text("tests/example.txt")
-      dates = input.getDates()
+   def test_get_dates(self):
+      input = verif.input.Text("verif/tests/example.txt")
+      dates = input.get_dates()
       self.assertEqual(1, dates.shape[0])
       self.assertEqual(20120101, dates[0])
 
-   def test_getStations(self):
-      input = verif.input.Text("tests/example.txt")
-      stations = input.getStations()
+   def test_get_stations(self):
+      input = verif.input.Text("verif/tests/example.txt")
+      stations = input.get_stations()
       stations = np.sort(stations)
       self.assertEqual(4, len(stations))
       self.assertTrue(verif.station.Station(0, 1, 1, 1) in stations)
@@ -32,26 +32,26 @@ class MyTest(unittest.TestCase):
       self.assertTrue(verif.station.Station(0, 2, 2, 1) in stations)
 
    def test_conflictingStations(self):
-      data = verif.data.Data(filenames=["tests/fileConflictingInfo.txt"])
+      data = verif.data.Data(filenames=["verif/tests/fileConflictingInfo.txt"])
 
    def test_noId(self):
-      data = verif.data.Data(filenames=["tests/fileNoId.txt"])
+      data = verif.data.Data(filenames=["verif/tests/fileNoId.txt"])
 
    def test_noElev(self):
-      data = verif.data.Data(filenames=["tests/fileNoElev.txt"])
-      self.assertEqual(2, len(data.getStations()))
+      data = verif.data.Data(filenames=["verif/tests/fileNoElev.txt"])
+      self.assertEqual(2, len(data.get_stations()))
 
    def test_noLat(self):
-      data = verif.data.Data(filenames=["tests/fileNoLat.txt"])
-      self.assertEqual(2, len(data.getStations()))
+      data = verif.data.Data(filenames=["verif/tests/fileNoLat.txt"])
+      self.assertEqual(2, len(data.get_stations()))
 
-   def test_getScores(self):
-      input = verif.input.Text("tests/example.txt")
-      obs = input.getScores("obs")
-      fcst = input.getScores("fcst")
+   def test_get_scores(self):
+      input = verif.input.Text("verif/tests/example.txt")
+      obs = input.get_scores("obs")
+      fcst = input.get_scores("fcst")
       self.assertEqual((1, 4, 4), obs.shape)
       self.assertEqual((1, 4, 4), fcst.shape)
-      stations = input.getStations()
+      stations = input.get_stations()
       I0 = -1
       for i in range(0, len(stations)):
          if(stations[i] == verif.station.Station(0, 1, 1, 1)):
