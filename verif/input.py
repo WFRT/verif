@@ -1,25 +1,26 @@
+import os
+import csv
+import numpy as np
 try:
    from netCDF4 import Dataset as netcdf
 except:
    from scipy.io.netcdf import netcdf_file as netcdf
-import numpy as np
 import verif.station
 import verif.util
 import verif.variable
 
 
-# Abstract base class representing verification data
 class Input(object):
+   """
+   Abstract base class representing verification data
+   """
    _description = ""    # Overwrite this
-
-   def __init__(self, filename):
-      self._filename = filename
 
    def get_dates(self):
       pass
 
-   # Returns a list of Station objects available
    def get_stations(self):
+      # Returns a list of Station objects available
       pass
 
    def get_offsets(self):
@@ -41,9 +42,6 @@ class Input(object):
 
    def get_metrics(self):
       pass
-
-   def get_filename(self):
-      return self._filename
 
    def get_variables(self):
       pass
@@ -81,16 +79,18 @@ class Input(object):
       return cls._description
 
 
-# Original fileformat used by OutputVerif in COMPS
 class Comps(Input):
+   """
+   Original fileformat used by OutputVerif in COMPS
+   """
    _dimensionNames = ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]
    _description = verif.util.format_argument("netcdf", "Undocumented legacy " +
          "NetCDF format, to be phased out. A new NetCDF based format will " +
          "be defined.")
 
    def __init__(self, filename):
-      Input.__init__(self, filename)
-      self._file = netcdf(filename, 'r')
+      self._filename = os.path.expanduser(filename)
+      self._file = netcdf(self._filename, 'r')
 
    def get_stations(self):
       lat = verif.util.clean(self._file.variables["Lat"])
@@ -185,11 +185,13 @@ class Comps(Input):
       return True
 
 
-# New standard format, based on NetCDF/CF
 class NetcdfCf(Input):
+   """
+   New standard format, based on NetCDF/CF
+   """
    def __init__(self, filename):
-      Input.__init__(self, filename)
-      self._file = netcdf(filename, 'r')
+      self._filename = os.path.expanduser(filename)
+      self._file = netcdf(self._filename, 'r')
 
    @staticmethod
    def is_valid(filename):
@@ -290,9 +292,8 @@ class Text(Input):
    + verif.util.format_argument("", " Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (station identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0. If there is conflicting information (for example different lat/lon/elev for the same id), then the information from the first row containing id will be used.")
 
    def __init__(self, filename):
-      import csv
-      Input.__init__(self, filename)
-      file = open(filename, 'rU')
+      self._filename = os.path.expanduser(filename)
+      file = open(self._filename, 'rU')
       self._units = "Unknown units"
       self._variable = "Unknown"
       self._pit = None
@@ -333,7 +334,7 @@ class Text(Input):
             elif(curr[0] == "units:"):
                self._units = curr[1]
             else:
-               verif.util.warning("Ignoring line '" + rowstr.strip() + "' in file '" + filename + "'")
+               verif.util.warning("Ignoring line '" + rowstr.strip() + "' in file '" + self_filename + "'")
          else:
             row = rowstr.split()
             if(header is None):
@@ -362,7 +363,7 @@ class Text(Input):
                requiredColumns = ["obs", "fcst"]
                for col in requiredColumns:
                   if(col not in indices):
-                     msg = "Could not parse %s: Missing column '%s'" % (filename, col)
+                     msg = "Could not parse %s: Missing column '%s'" % (self._filename, col)
                      verif.util.error(msg)
             else:
                if(len(row) is not len(header)):
