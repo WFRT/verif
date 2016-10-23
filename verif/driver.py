@@ -388,9 +388,9 @@ def run(argv):
    if(simple is not None):
       pl.set_simple(simple)
    if(markerSize is not None):
-      pl.set_marker_size(markerSize)
+      pl.ms(markerSize)
    if(lineWidth is not None):
-      pl.set_line_width(lineWidth)
+      pl.lw(lineWidth)
    if(lineColors is not None):
       pl.set_line_colors(lineColors)
    if(labFontSize is not None):
@@ -426,15 +426,15 @@ def run(argv):
    if(showPerfect is not None):
       pl.set_show_perfect(showPerfect)
    if(xlim is not None):
-      pl.set_x_lim(xlim)
+      pl.xlim(xlim)
    if(ylim is not None):
       pl.set_y_lim(ylim)
    if(clim is not None):
-      pl.set_c_lim(clim)
+      pl.clim(clim)
    if(xticks is not None):
-      pl.set_x_ticks(xticks)
+      pl.xticks(xticks)
    if(yticks is not None):
-      pl.set_y_ticks(yticks)
+      pl.yticks(yticks)
    if(logX is not None):
       pl.set_log_x(logX)
    if(logY is not None):
@@ -450,9 +450,9 @@ def run(argv):
    pl.set_axis(xdim)
    pl.set_aggregator_name(aggregatorName)
    pl.set_show_margin(not noMargin)
-   pl.set_ylabel(ylabel)
-   pl.set_xlabel(xlabel)
-   pl.set_title(title)
+   pl.ylabel(ylabel)
+   pl.xlabel(xlabel)
+   pl.title(title)
 
    if(type == "text"):
       pl.text(data)

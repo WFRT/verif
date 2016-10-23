@@ -21,21 +21,32 @@ allowedMapTypes = ["simple", "sat", "topo", "ESRI_Imagery_World_2D",
 
 
 def get_all():
+   """
+   Returns a dictionary of all output classes where the key is the class
+   name (string) and the value is the class object
+   """
    temp = inspect.getmembers(sys.modules[__name__], inspect.isclass)
    return temp
 
 
-# Returns a metric object of a class with the given name
 def get_output(name):
+   """ Returns an instance of an object with the given class name """
    outputs = get_all()
-   m = None
-   for mm in outputs:
-      if(name == mm[0].lower() and mm[1].is_valid()):
-         m = mm[1]()
-   return m
+   o = None
+   for output in outputs:
+      if(name == output[0].lower() and output[1].is_valid()):
+         o = output[1]()
+   return o
 
 
 class Output(object):
+   """
+   Abstract class representing a plot
+
+   usage:
+   output = verif.output.Qq()
+   output.plot(data)
+   """
    _description = ""
    _default_axis = "offset"
    _default_bin_type = "above"
@@ -76,7 +87,6 @@ class Output(object):
       self._top = None
       self._left = None
       self._right = None
-      # self._pad = pad
       self._xaxis = self.default_axis()
       self._binType = self.default_bin_type()
       self._showPerfect = False
@@ -93,6 +103,187 @@ class Output(object):
       self._simple = False
       self._mapType = None
       self._cmap = mpl.cm.jet
+
+   def set_axis(self, axis):
+      """ Produce output independently for each value along this axis """
+      if(axis is not None):
+         self._xaxis = axis
+
+   def set_bin_type(self, binType):
+      if(binType is not None):
+         self._binType = binType
+
+   def set_thresholds(self, thresholds):
+      if(thresholds is None):
+         thresholds = [None]
+      thresholds = np.array(thresholds)
+      self._thresholds = thresholds
+
+   def set_fig_size(self, size):
+      self._figsize = size
+
+   def set_filename(self, filename):
+      """
+      When set, output the figure to this filename. File extension is
+      auto-detected.
+      """
+      self._filename = filename
+
+   def set_dpi(self, dpi):
+      """ Sets the number of dots per inch if output to file """
+      self._dpi = dpi
+
+   def set_leg_loc(self, legLoc):
+      self._legLoc = legLoc
+
+   def set_show_margin(self, showMargin):
+      self._showMargin = showMargin
+
+   def xlim(self, lim=None):
+      """
+      Set/get the x-axis limits for the output
+
+      lim      A two-element list, with a lower and upper value
+      """
+      if lim is None:
+         return self._xlim
+      if(len(lim) != 2):
+         verif.util.error("xlim must be a vector of length 2")
+      self._xlim = lim
+
+   def ylim(self, lim=None):
+      """
+      Set/get the x-axis limits for the output
+
+      lim      A two-element list, with a lower and upper value
+      """
+      if lim is None:
+         return self._ylim
+      if(len(lim) != 2):
+         verif.util.error("ylim must be a vector of length 2")
+      self._ylim = lim
+
+   def clim(self, lim):
+      """
+      Set/get the range of values that any colormap should use
+
+      lim      A two-element list, with a lower and upper value
+      """
+      if lim is None:
+         return self._clim
+      if(len(lim) != 2):
+         verif.util.error("clim must be a vector of length 2")
+      self._clim = lim
+
+   def xticks(self, ticks):
+      """
+      Set/get the x-axis values where ticks will be placed
+
+      ticks      A list or numpy array of ticks
+      """
+      self._xticks = ticks
+
+   def yticks(self, ticks):
+      """
+      Set/get the y-axis values where ticks will be placed
+
+      ticks      A list or numpy array of ticks
+      """
+      self._yticks = ticks
+
+   def set_simple(self, flag):
+      self._simple = flag
+
+   def ms(self, ms):
+      """ Set/get the size of any markers used """
+      self._ms = ms
+
+   def lw(self, lw):
+      """ Set/get the width of any lines used """
+      self._lw = lw
+
+   def ylabel(self, ylabel):
+      """ Set/get the y-axis label """
+      self._ylabel = ylabel
+
+   def xlabel(self, xlabel):
+      """ Set/get the x-axis label """
+      self._xlabel = xlabel
+
+   def title(self, title):
+      """ Set/get the title of the figure """
+      self._title = title
+
+   def set_line_colors(self, lc):
+      self._lc = lc
+
+   def set_line_style(self, ls):
+      self._ls = ls
+
+   def set_tick_font_size(self, fs):
+      self._tickfs = fs
+
+   def set_lab_font_size(self, fs):
+      self._labfs = fs
+
+   def set_leg_font_size(self, fs):
+      self._legfs = fs
+
+   def set_title_font_size(self, fs):
+      self._titlefs = fs
+
+   def set_x_rotation(self, xrot):
+      self._xrot = xrot
+
+   def set_minor_length(self, minlth):
+      self._minlth = minlth
+
+   def set_major_length(self, majlth):
+      self._majlth = majlth
+
+   def set_major_width(self, majwid):
+      self._majwid = majwid
+
+   def set_bottom(self, bot):
+      self._bot = bot
+
+   def set_top(self, top):
+      self._top = top
+
+   def set_left(self, left):
+      self._left = left
+
+   def set_right(self, right):
+      self._right = right
+
+   # def set_pad(self, pad):
+   #   self._pad = pad
+
+   def set_show_perfect(self, showPerfect):
+      self._showPerfect = showPerfect
+
+   def set_tight(self, tight):
+      self._tight = tight
+
+   def set_aggregator_name(self, name):
+      self._aggregatorName = name
+
+   def set_map_type(self, type):
+      if type not in allowedMapTypes:
+         verif.util.error("Map type '%s' not recognized. Must be one of %s" % (type,
+            allowedMapTypes))
+      self._mapType = type
+
+   def set_log_x(self, flag):
+      self._logX = flag
+
+   def set_log_y(self, flag):
+      self._logY = flag
+
+   def set_cmap(self, cmap):
+      if isinstance(cmap, basestring):
+         cmap = mpl.cm.get_cmap(cmap)
+      self._cmap = cmap
 
    @classmethod
    def default_axis(cls):
@@ -147,152 +338,6 @@ class Output(object):
    @classmethod
    def summary(cls):
       return cls.description()
-
-   # Produce output independently for each value along this axis
-   def set_axis(self, axis):
-      if(axis is not None):
-         self._xaxis = axis
-
-   def set_bin_type(self, binType):
-      if(binType is not None):
-         self._binType = binType
-
-   def set_thresholds(self, thresholds):
-      if(thresholds is None):
-         thresholds = [None]
-      thresholds = np.array(thresholds)
-      self._thresholds = thresholds
-
-   def set_fig_size(self, size):
-      self._figsize = size
-
-   def set_filename(self, filename):
-      self._filename = filename
-
-   def set_leg_loc(self, legLoc):
-      self._legLoc = legLoc
-
-   def set_show_margin(self, showMargin):
-      self._showMargin = showMargin
-
-   def set_dpi(self, dpi):
-      self._dpi = dpi
-
-   def set_x_lim(self, lim):
-      if(len(lim) != 2):
-         verif.util.error("xlim must be a vector of length 2")
-      self._xlim = lim
-
-   def set_y_lim(self, lim):
-      if(len(lim) != 2):
-         verif.util.error("ylim must be a vector of length 2")
-      self._ylim = lim
-
-   def set_c_lim(self, lim):
-      if(len(lim) != 2):
-         verif.util.error("clim must be a vector of length 2")
-      self._clim = lim
-
-   def set_x_ticks(self, ticks):
-      self._xticks = ticks
-
-   def set_y_ticks(self, ticks):
-      self._yticks = ticks
-
-   def set_simple(self, flag):
-      self._simple = flag
-
-   def set_marker_size(self, ms):
-      self._ms = ms
-
-   def set_line_width(self, lw):
-      self._lw = lw
-
-   def set_line_colors(self, lc):
-      self._lc = lc
-
-   def set_line_style(self, ls):
-      self._ls = ls
-
-   def set_tick_font_size(self, fs):
-      self._tickfs = fs
-
-   def set_lab_font_size(self, fs):
-      self._labfs = fs
-
-   def set_leg_font_size(self, fs):
-      self._legfs = fs
-
-   def set_title_font_size(self, fs):
-      self._titlefs = fs
-
-   def set_x_rotation(self, xrot):
-      self._xrot = xrot
-
-   def set_minor_length(self, minlth):
-      self._minlth = minlth
-
-   def set_major_length(self, majlth):
-      self._majlth = majlth
-
-   def set_major_width(self, majwid):
-      self._majwid = majwid
-
-   def set_bottom(self, bot):
-      self._bot = bot
-
-   def set_top(self, top):
-      self._top = top
-
-   def set_left(self, left):
-      self._left = left
-
-   def set_right(self, right):
-      self._right = right
-
-   # def set_pad(self, pad):
-   #   self._pad = pad
-
-   def set_show_perfect(self, showPerfect):
-      self._showPerfect = showPerfect
-
-   def set_ylabel(self, ylabel):
-      self._ylabel = ylabel
-
-   def set_xlabel(self, xlabel):
-      self._xlabel = xlabel
-
-   def set_title(self, title):
-      self._title = title
-
-   def set_xticks(self, xticks):
-      self._xticks = xticks
-
-   def set_yticks(self, yticks):
-      self._yticks = yticks
-
-   def set_tight(self, tight):
-      self._tight = tight
-
-   def set_aggregator_name(self, name):
-      self._aggregatorName = name
-
-   def set_map_typeg(self, type):
-      if type not in allowedMapTypes:
-         verif.util.error("Map type '%s' not recognized. Must be one of %s" % (type,
-            allowedMapTypes))
-      self._mapType = type
-
-   def set_log_x(self, flag):
-      self._logX = flag
-
-   def set_log_y(self, flag):
-      self._logY = flag
-
-   def set_cmap(self, cmap):
-      if isinstance(cmap, basestring):
-         cmap = mpl.cm.get_cmap(cmap)
-      self._cmap = cmap
 
    # Public
    # Call this to create a plot, saves to file
@@ -509,10 +554,17 @@ class Output(object):
          mpl.plot(x, y, "o", color="gray", ms=self._ms, label=label,
                zorder=zorder)
 
-   # maxradius: Don't let the circle go outside an envelope circle with this
-   # radius (centered on the origin)
    def _draw_circle(self, radius, xcenter=0, ycenter=0, maxradius=np.inf,
          style="--", color="k", lw=1, label="", zorder=-100):
+      """
+      Draws a circle
+      radius      Radius of circle
+      xcentre     x-axis value of centre of circle
+      ycentre     y-axis value of centre of circle
+      maxradius   Don't let the circle go outside an envelope circle with this
+                  radius (centered on the origin)
+      label       Use this text in the legend
+      """
       angles = np.linspace(-np.pi / 2, np.pi / 2, 360)
       x = np.sin(angles) * radius + xcenter
       y = np.cos(angles) * radius + ycenter
@@ -559,11 +611,16 @@ class Output(object):
 
 
 class Default(Output):
+   """
+   Plot a metric from verif.metric
+   """
    _legLoc = "upper left"
 
    def __init__(self, metric):
+      """
+      metric      an metric object from verif.metric
+      """
       Output.__init__(self)
-      # offsets, dates, location, elev, threshold
       self._metric = metric
       if(metric.default_axis() is not None):
          self._xaxis = metric.default_axis()
