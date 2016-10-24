@@ -250,19 +250,19 @@ proposal, based on the NetCDF/CF standard:
       float lat(station);
       float lon(station);
       float elev(station);
-      float obs(date, offset, station);              // Observations
-      float ens(date, offset, ensemble, station);    // Ensemble forecast
-      float fcst(date, offset, station);             // Deterministic forecast
-      float cdf(date, offset, threshold, station);   // Accumulated prob at threshold
-      float pdf(date, offset, threshold, station);   // Pdf at threshold
-      float x(date, offset, quantile, station);      // Threshold corresponding to quantile
-      float pit(date, offset, station);              // CDF for threshold=observation
+      float obs(date, offset, station);               // Observations
+      float ens(date, offset, station, member);       // Ensemble forecast
+      float fcst(date, offset, station);              // Deterministic forecast
+      float cdf(date, offset, station, threshold);    // Accumulated prob at threshold
+      float pdf(date, offset, station, threshold);    // Pdf at threshold
+      float x(date, offset, station, quantile);       // Threshold corresponding to quantile
+      float pit(date, offset, station);               // CDF for threshold=observation
 
    global attributes:
-      : name = "raw";                                // Used as configuration name
-      : long_name = "Temperature";                   // Used to label plots
+      : name = "raw";                                 // Used as configuration name
+      : long_name = "Temperature";                    // Used to label plots
       : standard_name = "air_temperature_2m";
-      : Units = "^oC";                               // Used to label axes
+      : Units = "^oC";                                // Used to label axes
       : Conventions = "verif_1.0.0";
       }
 

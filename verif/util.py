@@ -63,6 +63,7 @@ def experimental():
 def error(message):
    """ Write error message to console and abort """
    print "\033[1;31mError: " + message + "\033[0m"
+   abort
    sys.exit(1)
 
 

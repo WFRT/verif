@@ -1,5 +1,6 @@
 import sys
 import os
+import verif.axis
 import verif.data
 import verif.input
 import verif.metric
@@ -19,20 +20,19 @@ def run(argv):
    ofile = None
    metric = None
    locations = None
-   latRange = None
-   lonRange = None
-   elevRange = None
-   training = 0
-   thresholds = None
+   lat_range = None
+   lon_range = None
+   elev_range = None
+   thresholds = [None]
    dates = None
    climFile = None
-   climType = "subtract"
+   clim_type = "subtract"
    leg = None
    ylabel = None
    xlabel = None
    title = None
    offsets = None
-   xdim = None
+   axis = None
    sdim = None
    figSize = None
    dpi = 100
@@ -59,8 +59,8 @@ def run(argv):
    Right = None
    Left = None
    Pad = None
-   showPerfect = None
-   aggregatorName = "mean"
+   show_perfect = None
+   aggregator_name = "mean"
    doHist = False
    doSort = False
    doAcc = False
@@ -98,7 +98,7 @@ def run(argv):
          elif(arg == "--list-dates"):
             listDates = True
          elif(arg == "-sp"):
-            showPerfect = True
+            show_perfect = True
          elif(arg == "-hist"):
             doHist = True
          elif(arg == "-acc"):
@@ -117,15 +117,14 @@ def run(argv):
             elif(arg == "-l"):
                locations = verif.util.parse_numbers(argv[i + 1])
             elif(arg == "-latrange"):
-               latRange = verif.util.parse_numbers(argv[i + 1])
+               lat_range = verif.util.parse_numbers(argv[i + 1])
             elif(arg == "-lonrange"):
-               lonRange = verif.util.parse_numbers(argv[i + 1])
+               lon_range = verif.util.parse_numbers(argv[i + 1])
             elif(arg == "-elevrange"):
-               elevRange = verif.util.parse_numbers(argv[i + 1])
-            elif(arg == "-t"):
-               training = int(argv[i + 1])
+               elev_range = verif.util.parse_numbers(argv[i + 1])
             elif(arg == "-x"):
-               xdim = argv[i + 1]
+               axisname = argv[i + 1]
+               axis = verif.axis.get_axis(axisname)
             elif(arg == "-o"):
                offsets = verif.util.parse_numbers(argv[i + 1])
             elif(arg == "-leg"):
@@ -148,10 +147,10 @@ def run(argv):
                dates = verif.util.parse_numbers(argv[i + 1], True)
             elif(arg == "-c"):
                climFile = argv[i + 1]
-               climType = "subtract"
+               clim_type = "subtract"
             elif(arg == "-C"):
                climFile = argv[i + 1]
-               climType = "divide"
+               clim_type = "divide"
             elif(arg == "-xlim"):
                xlim = verif.util.parse_numbers(argv[i + 1])
             elif(arg == "-ylim"):
@@ -165,7 +164,7 @@ def run(argv):
             elif(arg == "-s"):
                sdim = argv[i + 1]
             elif(arg == "-ct"):
-               aggregatorName = argv[i + 1]
+               aggregator_name = argv[i + 1]
             elif(arg == "-r"):
                thresholds = verif.util.parse_numbers(argv[i + 1])
             elif(arg == "-ms"):
@@ -225,19 +224,20 @@ def run(argv):
       for i in range(0, len(leg)):
          leg[i] = leg[i].replace('_', ' ')
 
-   if(latRange is not None and len(latRange) != 2):
-      verif.util.error("-latRange <values> must have exactly 2 values")
+   if(lat_range is not None and len(lat_range) != 2):
+      verif.util.error("-lat_range <values> must have exactly 2 values")
 
-   if(lonRange is not None and len(lonRange) != 2):
-      verif.util.error("-lonRange <values> must have exactly 2 values")
+   if(lon_range is not None and len(lon_range) != 2):
+      verif.util.error("-lon_range <values> must have exactly 2 values")
 
-   if(elevRange is not None and len(elevRange) != 2):
-      verif.util.error("-elevRange <values> must have exactly 2 values")
+   if(elev_range is not None and len(elev_range) != 2):
+      verif.util.error("-elev_range <values> must have exactly 2 values")
 
    if(len(ifiles) > 0):
-      data = verif.data.Data(ifiles, clim=climFile, climType=climType, dates=dates,
-            offsets=offsets, locations=locations, latRange=latRange, lonRange=lonRange,
-            elevRange=elevRange, training=training, legend=leg)
+      inputs = [verif.input.get_input(filename) for filename in ifiles]
+      data = verif.data.Data(inputs, clim=climFile, clim_type=clim_type, dates=dates,
+            offsets=offsets, locations=locations, lat_range=lat_range, lon_range=lon_range,
+            elev_range=elev_range, legend=leg)
    else:
       data = None
 
@@ -261,8 +261,7 @@ def run(argv):
                   station.lon(), station.elev())
          print ""
       if(listDates):
-         dates = data.get_axis_values("date")
-         dates = verif.util.convert_to_yyyymmdd(dates)
+         dates = verif.util.convert_to_yyyymmdd(data.dates)
          for date in dates:
             print "%d" % date
          print ""
@@ -351,33 +350,33 @@ def run(argv):
       if(m is None):
          m = verif.metric.Default(metric)
 
-      m.set_aggregator(aggregatorName)
+      m.set_aggregator(aggregator_name)
 
       # Output type
       if(type in ["plot", "text", "csv", "map", "maprank"]):
          pl = verif.output.Default(m)
-         pl.set_show_acc(doAcc)
+         pl.show_acc = doAcc
       else:
          verif.util.error("Type not understood")
 
    # Rest dimension of '-x' is not allowed
-   if(xdim is not None and not pl.supportsX()):
+   if(axis is not None and not pl.supports_x):
       verif.util.warning(metric + " does not support -x. Ignoring it.")
-      xdim = None
+      axis = None
 
    # Reset dimension if 'threshold' is not allowed
-   if(xdim == "threshold" and
-         ((not pl.supports_threshold()) or (m is not None and not m.supports_threshold()))):
+   if(axis == verif.axis.Threshold and
+         ((not pl.supports_threshold) or (m is not None and not m.supports_threshold))):
       verif.util.warning(metric + " does not support '-x threshold'. Ignoring it.")
       thresholds = None
-      xdim = None
+      axis = None
 
    # Create thresholds if needed
-   if((thresholds is None) and (pl.requires_thresholds() or
-         (m is not None and m.requires_thresholds()))):
+   if((thresholds is None) and (pl.requires_threshold or
+         (m is not None and m.requires_threshold))):
       data.set_axis("none")
-      obs = data.get_scores("obs")[0]
-      fcst = data.get_scores("fcst")[0]
+      obs = data.get_scores(verif.field.Obs)[0]
+      fcst = data.get_scores(verif.field.Deterministic)[0]
       smin = min(min(obs), min(fcst))
       smax = max(max(obs), max(fcst))
       thresholds = np.linspace(smin, smax, 10)
@@ -386,49 +385,49 @@ def run(argv):
 
    # Set plot parameters
    if(simple is not None):
-      pl.set_simple(simple)
+      pl.simple = simple
    if(markerSize is not None):
       pl.ms(markerSize)
    if(lineWidth is not None):
       pl.lw(lineWidth)
    if(lineColors is not None):
-      pl.set_line_colors(lineColors)
+      pl.line_colors = lineColors
    if(labFontSize is not None):
-      pl.set_lab_font_size(labFontSize)
+      pl.lab_font_size = labFontSize
    if(legFontSize is not None):
-      pl.set_leg_font_size(legFontSize)
+      pl.leg_font_size = legFontSize
    if(titleFontSize is not None):
-      pl.set_title_font_size(titleFontSize)
+      pl.title_font_size = titleFontSize
    if(legLoc is not None):
-      pl.set_leg_loc(legLoc)
+      pl.leg_loc = legLoc
    if(tickFontSize is not None):
-      pl.set_tick_font_size(tickFontSize)
+      pl.tick_font_size = tickFontSize
    if(XRotation is not None):
-      pl.set_x_rotation(XRotation)
+      pl.xrot = XRotation
    if(MajorLength is not None):
-      pl.set_major_length(MajorLength)
+      pl.major_length = MajorLength
    if(MinorLength is not None):
-      pl.set_minor_length(MinorLength)
+      pl.minor_length = MinorLength
    if(MajorWidth is not None):
-      pl.set_major_width(MajorWidth)
+      pl.major_width = MajorWidth
    if(Bottom is not None):
-      pl.set_bottom(Bottom)
+      pl.bottom = Bottom
    if(Top is not None):
-      pl.set_top(Top)
+      pl.top = Top
    if(Right is not None):
-      pl.set_right(Right)
+      pl.right = Right
    if(Left is not None):
-      pl.set_left(Left)
+      pl.left = Left
    if(Pad is not None):
-      pl.set_pad(None)
+      pl.pad = None
    if(binType is not None):
-      pl.set_bin_type(binType)
-   if(showPerfect is not None):
-      pl.set_show_perfect(showPerfect)
+      pl.bin_type = binType
+   if(show_perfect is not None):
+      pl.show_perfect = show_perfect
    if(xlim is not None):
       pl.xlim(xlim)
    if(ylim is not None):
-      pl.set_y_lim(ylim)
+      pl.ylim(ylim)
    if(clim is not None):
       pl.clim(clim)
    if(xticks is not None):
@@ -436,20 +435,21 @@ def run(argv):
    if(yticks is not None):
       pl.yticks(yticks)
    if(logX is not None):
-      pl.set_log_x(logX)
+      pl.log_x = logX
    if(logY is not None):
-      pl.set_log_y(logY)
+      pl.log_y = logY
    if(cmap is not None):
-      pl.set_cmap(cmap)
+      pl.cmap = cmap
    if(mapType is not None):
-      pl.set_map_type(mapType)
-   pl.set_filename(ofile)
-   pl.set_thresholds(thresholds)
-   pl.set_fig_size(figSize)
-   pl.set_dpi(dpi)
-   pl.set_axis(xdim)
-   pl.set_aggregator_name(aggregatorName)
-   pl.set_show_margin(not noMargin)
+      pl.map_type = mapType
+   pl.filename = ofile
+   pl.thresholds = thresholds
+   pl.fig_size = figSize
+   pl.dpi = dpi
+   if axis is not None:
+      pl.axis = axis
+   pl.aggregator_name = aggregator_name
+   pl.show_margin = not noMargin
    pl.ylabel(ylabel)
    pl.xlabel(xlabel)
    pl.title(title)
@@ -461,7 +461,7 @@ def run(argv):
    elif(type == "map"):
       pl.map(data)
    elif(type == "maprank"):
-      pl.set_show_rank(True)
+      pl.show_rank = True
       pl.map(data)
    else:
       pl.plot(data)
@@ -496,7 +496,6 @@ def show_description(data=None):
    print verif.util.format_argument("-lonrange range", "Limit the verification to locations within minlon,maxlon.")
    print verif.util.format_argument("-o offsets", "Limit the verification to these offsets (in hours).")
    print verif.util.format_argument("-r thresholds", "Compute scores for these thresholds (only used by some metrics).")
-   print verif.util.format_argument("-t period", "Allow this many days of training, i.e. remove this many days from the beginning of the verification.")
    print verif.util.format_argument("-x dim", "Plot this dimension on the x-axis: date, offset, year, month, location, locationId, elev, lat, lon, threshold, or none. Not supported by all metrics. If not specified, then a default is used based on the metric. 'none' collapses all dimensions and computes one value.")
 
    # Data manipulation
@@ -561,18 +560,11 @@ def show_description(data=None):
          print verif.util.format_argument(name, desc)
          # print "   %-14s%s" % (name, textwrap.fill(desc, 80).replace('\n', '\n                 ')),
          # print ""
-   if(data is not None):
-      print ""
-      print "  Or one of the following, which plots the raw score from the file:"
-      print " ",
-      metrics = data.get_metrics()
-      for metric in metrics:
-         print metric,
    print ""
    print ""
    print verif.util.green("File formats:")
-   print verif.input.Text.description()
-   print verif.input.Comps.description()
+   print verif.input.Text.description
+   print verif.input.Comps.description
 
 if __name__ == '__main__':
        main()

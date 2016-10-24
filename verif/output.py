@@ -4,6 +4,7 @@ import re
 import datetime
 import verif.util
 import verif.metric
+import verif.axis
 import numpy as np
 import os
 import inspect
@@ -46,51 +47,60 @@ class Output(object):
    usage:
    output = verif.output.Qq()
    output.plot(data)
+
+   Attributes:
+   filename:      When set, output the figure to this filename. File extension is
+                  auto-detected.
    """
    _description = ""
-   _default_axis = "offset"
-   _default_bin_type = "above"
-   _reqThreshold = False
-   _supThreshold = True
+   _default_axis = verif.axis.Offset
+   default_bin_type = "above"
+   requires_threshold = False
+   supports_threshold = True
    _supX = True
    _experimental = False
-   _legLoc = "best"  # Where should the legend go?
+   leg_loc = "best"  # Where should the legend go?
    _logX = False
    _logY = False
    _reference = None
    _long = None
 
    def __init__(self):
-      self._filename = None
-      self._thresholds = [None]
+      self.filename = None
+      self.thresholds = [None]
       leg = None
       self.default_lines = ['-', '-', '-', '--']
       self.default_markers = ['o', '', '.', '']
       self.default_colors = ['r', 'b', 'g', [1, 0.73, 0.2], 'k']
-      self._lc = None
-      self._ls = None
+      self.lc = None
+      self.ls = None
       self.colors = None
       self.styles = None
-      self._ms = 8
-      self._lw = 2
-      self._labfs = 16
-      self._tickfs = 16
-      self._legfs = 16
-      self._titlefs = 16
-      self._figsize = [5, 8]
-      self._showMargin = True
-      self._xrot = 0
-      self._minlth = None
-      self._majlth = None
-      self._majwid = None
-      self._bot = None
-      self._top = None
-      self._left = None
-      self._right = None
-      self._xaxis = self.default_axis()
-      self._binType = self.default_bin_type()
-      self._showPerfect = False
-      self._dpi = 100
+      self.ms = 8
+      self.lw = 2
+      self.labfs = 16
+      self.tickfs = 16
+      self.legfs = 16
+      self.titlefs = 16
+      self.figsize = [5, 8]
+      self.show_margin = True
+      self.xrot = 0
+      self.minlth = None
+      self.majlth = None
+      self.majwid = None
+      self.bot = None
+      self.top = None
+      self.left = None
+      self.right = None
+      self.axis = self.default_axis()
+      self.bin_type = self.default_bin_type
+      self.show_perfect = False
+      self.dpi = 100
+      self.tight = False
+      self.simple = False
+      self.aggregator_name = None
+      # Matplotlib style properties
+      self._cmap = mpl.cm.jet
       self._xlim = None
       self._ylim = None
       self._clim = None
@@ -99,45 +109,7 @@ class Output(object):
       self._title = None
       self._xlabel = None
       self._ylabel = None
-      self._tight = False
-      self._simple = False
-      self._mapType = None
-      self._cmap = mpl.cm.jet
-
-   def set_axis(self, axis):
-      """ Produce output independently for each value along this axis """
-      if(axis is not None):
-         self._xaxis = axis
-
-   def set_bin_type(self, binType):
-      if(binType is not None):
-         self._binType = binType
-
-   def set_thresholds(self, thresholds):
-      if(thresholds is None):
-         thresholds = [None]
-      thresholds = np.array(thresholds)
-      self._thresholds = thresholds
-
-   def set_fig_size(self, size):
-      self._figsize = size
-
-   def set_filename(self, filename):
-      """
-      When set, output the figure to this filename. File extension is
-      auto-detected.
-      """
-      self._filename = filename
-
-   def set_dpi(self, dpi):
-      """ Sets the number of dots per inch if output to file """
-      self._dpi = dpi
-
-   def set_leg_loc(self, legLoc):
-      self._legLoc = legLoc
-
-   def set_show_margin(self, showMargin):
-      self._showMargin = showMargin
+      self._map_type = None
 
    def xlim(self, lim=None):
       """
@@ -191,16 +163,13 @@ class Output(object):
       """
       self._yticks = ticks
 
-   def set_simple(self, flag):
-      self._simple = flag
-
    def ms(self, ms):
       """ Set/get the size of any markers used """
-      self._ms = ms
+      self.ms = ms
 
    def lw(self, lw):
       """ Set/get the width of any lines used """
-      self._lw = lw
+      self.lw = lw
 
    def ylabel(self, ylabel):
       """ Set/get the y-axis label """
@@ -214,96 +183,34 @@ class Output(object):
       """ Set/get the title of the figure """
       self._title = title
 
-   def set_line_colors(self, lc):
-      self._lc = lc
+   @property
+   def map_type(self):
+      return self._map_type
 
-   def set_line_style(self, ls):
-      self._ls = ls
-
-   def set_tick_font_size(self, fs):
-      self._tickfs = fs
-
-   def set_lab_font_size(self, fs):
-      self._labfs = fs
-
-   def set_leg_font_size(self, fs):
-      self._legfs = fs
-
-   def set_title_font_size(self, fs):
-      self._titlefs = fs
-
-   def set_x_rotation(self, xrot):
-      self._xrot = xrot
-
-   def set_minor_length(self, minlth):
-      self._minlth = minlth
-
-   def set_major_length(self, majlth):
-      self._majlth = majlth
-
-   def set_major_width(self, majwid):
-      self._majwid = majwid
-
-   def set_bottom(self, bot):
-      self._bot = bot
-
-   def set_top(self, top):
-      self._top = top
-
-   def set_left(self, left):
-      self._left = left
-
-   def set_right(self, right):
-      self._right = right
-
-   # def set_pad(self, pad):
-   #   self._pad = pad
-
-   def set_show_perfect(self, showPerfect):
-      self._showPerfect = showPerfect
-
-   def set_tight(self, tight):
-      self._tight = tight
-
-   def set_aggregator_name(self, name):
-      self._aggregatorName = name
-
-   def set_map_type(self, type):
+   @map_type.setter
+   def map_type(self, type):
       if type not in allowedMapTypes:
          verif.util.error("Map type '%s' not recognized. Must be one of %s" % (type,
             allowedMapTypes))
-      self._mapType = type
+      self._map_type = type
 
-   def set_log_x(self, flag):
-      self._logX = flag
+   @property
+   def cmap(self):
+      return self.cmap
 
-   def set_log_y(self, flag):
-      self._logY = flag
-
-   def set_cmap(self, cmap):
+   @cmap.setter
+   def cmap(self, cmap):
       if isinstance(cmap, basestring):
          cmap = mpl.cm.get_cmap(cmap)
-      self._cmap = cmap
+      self.cmap = cmap
 
    @classmethod
    def default_axis(cls):
       return cls._default_axis
 
    @classmethod
-   def default_bin_type(cls):
-      return cls._default_bin_type
-
-   @classmethod
-   def requires_thresholds(cls):
-      return cls._reqThreshold
-
-   @classmethod
    def supports_x(cls):
       return cls._supX
-
-   @classmethod
-   def supports_threshold(cls):
-      return cls._supThreshold
 
    @classmethod
    def get_class_name(cls):
@@ -313,8 +220,6 @@ class Output(object):
    @classmethod
    def description(cls):
       extra = ""
-      # if(cls._experimental):
-      #    extra = " " + verif.util.experimental()
       return cls._description + extra
 
    # Is this a valid output that should be created be called?
@@ -364,7 +269,7 @@ class Output(object):
    def _plot_perfect_score(self, x, perfect, color="gray", zorder=-1000):
       if(perfect is None):
          return
-      if(self._showPerfect):
+      if(self.show_perfect):
          # Make 'perfect' same length as 'x'
          if(not hasattr(perfect, "__len__")):
             perfect = perfect * np.ones(len(x), 'float')
@@ -386,8 +291,8 @@ class Output(object):
 
    # Helper functions
    def _get_color(self, i, total):
-      if(self._lc is not None):
-         firstList = self._lc.split(",")
+      if(self.lc is not None):
+         firstList = self.lc.split(",")
          numList = []
          finalList = []
 
@@ -429,8 +334,8 @@ class Output(object):
          return self.colors[i % len(self.default_colors)]
 
    def _get_style(self, i, total, connectingLine=True, lineOnly=False):
-      if(self._ls is not None):
-         listStyles = self._ls.split(",")
+      if(self.ls is not None):
+         listStyles = self.ls.split(",")
          # loop through input linestyles (independent of colors)
          I = i % len(listStyles)
          return listStyles[I]
@@ -447,34 +352,34 @@ class Output(object):
 
    # Saves to file, set figure size
    def _save_plot(self, data):
-      if(self._figsize is not None):
-         mpl.gcf().set_size_inches(int(self._figsize[0]),
-                                   int(self._figsize[1]))
-      if(not self._showMargin):
+      if(self.figsize is not None):
+         mpl.gcf().set_size_inches(int(self.figsize[0]),
+                                   int(self.figsize[1]))
+      if(not self.show_margin):
          verif.util.remove_margin()
-      if(self._filename is not None):
-         mpl.savefig(self._filename, bbox_inches='tight', dpi=self._dpi)
+      if(self.filename is not None):
+         mpl.savefig(self.filename, bbox_inches='tight', dpi=self.dpi)
       else:
          fig = mpl.gcf()
-         fig.canvas.set_window_title(data.get_filenames()[0])
+         fig.canvas.set_window_title(data.get_names()[0])
          mpl.show()
 
    def _legend(self, data, names=None):
-      if(self._legfs > 0):
+      if(self.legfs > 0):
          if(names is None):
-            mpl.legend(loc=self._legLoc, prop={'size': self._legfs})
+            mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
          else:
-            mpl.legend(names, loc=self._legLoc, prop={'size': self._legfs})
+            mpl.legend(names, loc=self.leg_loc, prop={'size': self.legfs})
 
    def _get_threshold_limits(self, thresholds):
       x = thresholds
-      if(self._binType == "below"):
+      if(self.bin_type == "below"):
          lowerT = [-np.inf for i in range(0, len(thresholds))]
          upperT = thresholds
-      elif(self._binType == "above"):
+      elif(self.bin_type == "above"):
          lowerT = thresholds
          upperT = [np.inf for i in range(0, len(thresholds))]
-      elif(self._binType == "within"):
+      elif(self.bin_type == "within"):
          lowerT = thresholds[0:-1]
          upperT = thresholds[1:]
          x = [(lowerT[i] + upperT[i]) / 2 for i in range(0, len(lowerT))]
@@ -484,7 +389,7 @@ class Output(object):
 
    def _set_y_axis_limits(self, metric):
       currYlim = mpl.ylim()
-      ylim = [metric.min(), metric.max()]
+      ylim = [metric.min, metric.max]
       if(ylim[0] is None):
          ylim[0] = currYlim[0]
       if(ylim[1] is None):
@@ -494,24 +399,24 @@ class Output(object):
    def _adjust_axes(self, data):
       # Apply adjustements to all subplots
       for ax in mpl.gcf().get_axes():
-         ax.set_title(ax.get_title(), fontsize=self._titlefs)
+         ax.set_title(ax.get_title(), fontsize=self.titlefs)
          # Tick font sizes
          for tick in ax.xaxis.get_major_ticks():
-            tick.label.set_fontsize(self._tickfs)
+            tick.label.set_fontsize(self.tickfs)
          for tick in ax.yaxis.get_major_ticks():
-            tick.label.set_fontsize(self._tickfs)
-         ax.set_xlabel(ax.get_xlabel(), fontsize=self._labfs)
-         ax.set_ylabel(ax.get_ylabel(), fontsize=self._labfs)
-         # mpl.rcParams['axes.labelsize'] = self._labfs
+            tick.label.set_fontsize(self.tickfs)
+         ax.set_xlabel(ax.get_xlabel(), fontsize=self.labfs)
+         ax.set_ylabel(ax.get_ylabel(), fontsize=self.labfs)
+         # mpl.rcParams['axes.labelsize'] = self.labfs
 
          # Tick lines
-         if(self._minlth is not None):
-            mpl.tick_params('both', length=self._minlth, which='minor')
-         if(self._majlth is not None):
-            mpl.tick_params('both', length=self._majlth, width=self._majwid,
+         if(self.minlth is not None):
+            mpl.tick_params('both', length=self.minlth, which='minor')
+         if(self.majlth is not None):
+            mpl.tick_params('both', length=self.majlth, width=self.majwid,
                   which='major')
          for label in ax.get_xticklabels():
-            label.set_rotation(self._xrot)
+            label.set_rotation(self.xrot)
 
       for ax in mpl.gcf().get_axes():
          if(self._xlim is not None):
@@ -535,7 +440,7 @@ class Output(object):
       if(self._ylabel is not None):
          mpl.ylabel(self._ylabel)
       if(self._title is not None):
-         mpl.title(self._title, fontsize=self._titlefs)
+         mpl.title(self._title, fontsize=self.titlefs)
 
       # Ticks
       if(self._xticks is not None):
@@ -544,14 +449,14 @@ class Output(object):
          mpl.yticks(self._yticks)
 
       # Margins
-      mpl.gcf().subplots_adjust(bottom=self._bot, top=self._top,
-            left=self._left, right=self._right)
+      mpl.gcf().subplots_adjust(bottom=self.bot, top=self.top,
+            left=self.left, right=self.right)
 
    def _plot_obs(self, x, y, isCont=True, zorder=0, label="obs"):
       if(isCont):
          mpl.plot(x, y, ".-", color="gray", lw=5, label=label, zorder=zorder)
       else:
-         mpl.plot(x, y, "o", color="gray", ms=self._ms, label=label,
+         mpl.plot(x, y, "o", color="gray", ms=self.ms, label=label,
                zorder=zorder)
 
    def _draw_circle(self, radius, xcenter=0, ycenter=0, maxradius=np.inf,
@@ -603,9 +508,9 @@ class Output(object):
                0.25 * z ** 2 / n ** 2)
          lower = mean - 1 / (1 + 1.0 / n * z ** 2) * z * np.sqrt(variance / n +
                0.25 * z ** 2 / n ** 2)
-      mpl.plot(x, upper, style, color=color, lw=self._lw, ms=self._ms,
+      mpl.plot(x, upper, style, color=color, lw=self.lw, ms=self.ms,
             label="")
-      mpl.plot(x, lower, style, color=color, lw=self._lw, ms=self._ms,
+      mpl.plot(x, lower, style, color=color, lw=self.lw, ms=self.ms,
             label="")
       verif.util.fill(x, lower, upper, color, alpha=0.3)
 
@@ -614,92 +519,81 @@ class Default(Output):
    """
    Plot a metric from verif.metric
    """
-   _legLoc = "upper left"
+   leg_loc = "upper left"
 
    def __init__(self, metric):
       """
-      metric      an metric object from verif.metric
+      metric:     an metric object from verif.metric
       """
       Output.__init__(self)
       self._metric = metric
-      if(metric.default_axis() is not None):
-         self._xaxis = metric.default_axis()
-      if(metric.default_bin_type() is not None):
-         self._binType = metric.default_bin_type()
-      self._showRank = False
-      self._showAcc = False
-      self._set_leg_sort = False
-      self._showSmoothingLine = False  # Draw a smoothed line through the points
+      if(metric.default_axis is not None):
+         self.axis = metric.default_axis
+      if(metric.default_bin_type is not None):
+         self.bin_type = metric.default_bin_type
+      self.show_rank = False
+      self.show_acc = False
+      self.leg_sort = False
+      self.show_smoothing_line = False  # Draw a smoothed line through the points
 
       # Settings
       self._mapLowerPerc = 0    # Lower percentile (%) to show in colourmap
       self._mapUpperPerc = 100  # Upper percentile (%) to show in colourmap
-      self._mapLabelLocations = True  # Show locationIds in map?
+      self._mapLabelLocations = False  # Show locationIds in map?
       self._minLatLonRange = 0.001  # What is the smallest map size allowed (in degrees)
 
-   def set_show_rank(self, showRank):
-      self._showRank = showRank
-
-   def set_leg_sort(self, dls):
-      self._set_leg_sort = dls
-
-   def set_show_acc(self, showAcc):
-      self._showAcc = showAcc
-
-   def get_x_y(self, data):
-      thresholds = self._thresholds
-      axis = data.get_axis()
+   def get_x_y(self, data, axis):
+      thresholds = self.thresholds
 
       [lowerT, upperT, xx] = self._get_threshold_limits(thresholds)
-      if(axis != "threshold"):
-         xx = data.get_axis_values()
+      if(axis != verif.axis.Threshold):
+         xx = data.get_axis_values(axis)
 
-      filenames = data.get_filenames()
-      F = data.get_num_files()
+      names = data.get_names()
+      F = data.num_inputs
       y = None
       x = None
       for f in range(0, F):
-         data.set_file_index(f)
          yy = np.zeros(len(xx), 'float')
-         if(axis == "threshold"):
+         if(axis == verif.axis.Threshold):
             for i in range(0, len(lowerT)):
-               yy[i] = self._metric.compute(data, [lowerT[i], upperT[i]])
+               yy[i] = self._metric.compute(data, f, axis, [lowerT[i], upperT[i]])
          else:
+            # Average all thresholds
             for i in range(0, len(lowerT)):
-               yy = yy + self._metric.compute(data, [lowerT[i], upperT[i]])
+               yy = yy + self._metric.compute(data, f, axis, [lowerT[i], upperT[i]])
             yy = yy / len(thresholds)
 
          if(sum(np.isnan(yy)) == len(yy)):
-            verif.util.warning("No valid scores for " + filenames[f])
+            verif.util.warning("No valid scores for " + names[f])
          if(y is None):
             y = np.zeros([F, len(yy)], 'float')
             x = np.zeros([F, len(xx)], 'float')
          y[f, :] = yy
          x[f, :] = xx
-         if(self._showAcc):
+         if(self.show_acc):
             y[f, :] = np.nan_to_num(y[f, :])
             y[f, :] = np.cumsum(y[f, :])
       return [x, y]
 
    def _legend(self, data, names=None):
-      if(self._legfs > 0):
-         mpl.legend(loc=self._legLoc, prop={'size': self._legfs})
+      if(self.legfs > 0):
+         mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
 
    def _plot_core(self, data):
-
-      data.set_axis(self._xaxis)
 
       # We have to derive the legend list here, because we might want to
       # specify the order
       labels = np.array(data.get_legend())
 
-      F = data.get_num_files()
-      [x, y] = self.get_x_y(data)
+      F = data.num_inputs
+      print self.axis
+      [x, y] = self.get_x_y(data, self.axis)
 
       # Sort legend entries such that the appear in the same order as the
       # y-values of the lines
-      if(self._set_leg_sort):
-         if(not self._showAcc):
+      if(self.leg_sort):
+         if(not self.show_acc):
             # averaging for non-acc plots
             averages = (verif.util.nanmean(y, axis=1))
             ids = averages.argsort()[::-1]
@@ -713,21 +607,22 @@ class Default(Output):
       else:
          ids = range(0, F)
 
-      if(self._xaxis == "none"):
+      # Show a bargraph with unconditional averages when no axis is specified
+      if(self.axis == verif.axis.No):
          w = 0.8
          x = np.linspace(1 - w / 2, len(y) - w / 2, len(y))
-         mpl.bar(x, y, color='w', lw=self._lw)
+         mpl.bar(x, y, color='w', lw=self.lw)
          mpl.xticks(range(1, len(y) + 1), labels)
       else:
          for f in range(0, F):
             # colors and styles to follow labels
             color = self._get_color(ids[f], F)
-            style = self._get_style(ids[f], F, data.is_axis_continuous())
-            alpha = (1 if(data.is_axis_continuous()) else 0.55)
+            style = self._get_style(ids[f], F, data.is_axis_continuous(self.axis))
+            alpha = (1 if(data.is_axis_continuous(self.axis)) else 0.55)
             mpl.plot(x[ids[f]], y[ids[f]], style, color=color,
-                  label=labels[f], lw=self._lw, ms=self._ms,
+                  label=labels[f], lw=self.lw, ms=self.ms,
                   alpha=alpha)
-            if self._showSmoothingLine:
+            if self.show_smoothing_line:
                from scipy import ndimage
                I = np.argsort(x[ids[f]])
                xx = np.sort(x[ids[f]])
@@ -737,25 +632,25 @@ class Default(Output):
                yy = yy[I]
                N = 21
                yy = ndimage.convolve(yy, 1.0/N*np.ones(N), mode="mirror")
-               mpl.plot(xx, yy, "--", color=color, lw=self._lw, ms=self._ms)
+               mpl.plot(xx, yy, "--", color=color, lw=self.lw, ms=self.ms)
 
-         mpl.xlabel(data.get_axis_label())
+         mpl.xlabel(data.get_axis_label(self.axis))
          mpl.ylabel(self._metric.label(data))
 
-         if(data.is_axis_date()):
+         if(data.is_axis_date(self.axis)):
             mpl.gca().xaxis_date()
          else:
-            mpl.gca().xaxis.set_major_formatter(data.get_axis_formatter())
+            mpl.gca().xaxis.set_major_formatter(data.get_axis_formatter(self.axis))
             # NOTE: Don't call the locator on a date axis
-            mpl.gca().xaxis.set_major_locator(data.get_axis_locator())
-         perfect_score = self._metric.perfect_score()
+            mpl.gca().xaxis.set_major_locator(data.get_axis_locator(self.axis))
+         perfect_score = self._metric.perfect_score
          self._plot_perfect_score(x[0], perfect_score)
 
       mpl.grid()
-      if(not self._showAcc):
+      if(not self.show_acc):
          self._set_y_axis_limits(self._metric)
 
-      if(self._tight):
+      if(self.tight):
          oldTicks = mpl.gca().get_xticks()
          diff = oldTicks[1] - oldTicks[0]  # keep auto tick interval
          tickRange = np.arange(round(np.min(x)), round(np.max(x)) + diff, diff)
@@ -764,18 +659,16 @@ class Default(Output):
          mpl.autoscale(enable=True, axis=u'x', tight=True)  # make xaxis tight
 
    def _text_core(self, data):
-      thresholds = self._thresholds
-
-      data.set_axis(self._xaxis)
+      thresholds = self.thresholds
 
       # Set configuration names
       names = data.get_legend()
 
-      F = data.get_num_files()
-      [x, y] = self.get_x_y(data)
+      F = data.num_inputs
+      [x, y] = self.get_x_y(data, self.axis)
 
-      if(self._filename is not None):
-         sys.stdout = open(self._filename, 'w')
+      if(self.filename is not None):
+         sys.stdout = open(self.filename, 'w')
 
       maxlength = 0
       for name in names:
@@ -789,7 +682,7 @@ class Default(Output):
       lineDescFmt = "%-" + str(lineDescN) + "s |"
       print lineDescFmt % lineDesc,
       if(data.get_axis() == "threshold"):
-         descs = self._thresholds
+         descs = self.thresholds
       else:
          descs = data.get_axis_descriptions()
       for name in names:
@@ -821,18 +714,15 @@ class Default(Output):
          self._print_line(values, maxlength, "int")
 
    def _csv_core(self, data):
-      thresholds = self._thresholds
-
-      data.set_axis(self._xaxis)
+      thresholds = self.thresholds
 
       # Set configuration names
       names = data.get_legend()
 
-      F = data.get_num_files()
-      [x, y] = self.get_x_y(data)
+      [x, y] = self.get_x_y(data, self.axis)
 
-      if(self._filename is not None):
-         sys.stdout = open(self._filename, 'w')
+      if(self.filename is not None):
+         sys.stdout = open(self.filename, 'w')
 
       # Header line
       header = data.get_axis_description_header(csv=True)
@@ -842,7 +732,7 @@ class Default(Output):
 
       # Loop over rows
       if(data.get_axis() == "threshold"):
-         descs = self._thresholds
+         descs = self.thresholds
       else:
          descs = data.get_axis_descriptions(csv=True)
       for i in range(0, len(x[0])):
@@ -882,12 +772,11 @@ class Default(Output):
          verif.util.warning("Cannot load Basemap package")
          hasBasemap = False
 
-      data.set_axis("location")
       labels = data.get_legend()
-      F = data.get_num_files()
+      F = data.num_inputs
       lats = data.get_lats()
       lons = data.get_lons()
-      ids = data.get_location_id()
+      ids = data.get_location_ids()
       dlat = max(lats) - min(lats)
       dlon = max(lons) - min(lons)
       llcrnrlat = max(-90, min(lats) - dlat / 10)
@@ -929,7 +818,7 @@ class Default(Output):
          dy = 5
       else:
          dy = 10
-      [x, y] = self.get_x_y(data)
+      [x, y] = self.get_x_y(data, verif.axis.Location)
 
       # Colorbar limits should be the same for all subplots
       clim = [verif.util.nanpercentile(y.flatten(), self._mapLowerPerc),
@@ -946,8 +835,8 @@ class Default(Output):
 
       for f in range(0, F):
          verif.util.subplot(f, F)
-         if(self._mapType is not None and hasBasemap):
-            if self._mapType == "simple":
+         if(self.map_type is not None and hasBasemap):
+            if self.map_type == "simple":
                map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
                      urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
                      resolution=res)
@@ -963,13 +852,13 @@ class Default(Output):
             map.drawmeridians(np.arange(-180., 420., dx), labels=[0, 0, 0, 1])
             map.fillcontinents(color='coral', lake_color='aqua', zorder=-1)
             x0, y0 = map(lons, lats)
-            if self._mapType != "simple":
-               if self._mapType == "sat":
+            if self.map_type != "simple":
+               if self.map_type == "sat":
                   service = 'ESRI_Imagery_World_2D'
-               elif self._mapType == "topo":
+               elif self.map_type == "topo":
                   service = 'World_Topo_Map'
                else:
-                  service = self._mapType
+                  service = self.map_type
                map.arcgisimage(service=service, xpixels=2000, verbose=True)
          else:
             # Use matplotlibs plotting functions, if we do not use Basemap
@@ -986,8 +875,8 @@ class Default(Output):
          isMin = (y[f, :] == np.amin(y, 0)) &\
                  (y[f, :] < np.mean(y, 0) - minDiff)
          is_valid = (np.isnan(y[f, :]) == 0)
-         s = self._ms*self._ms
-         if(self._showRank):
+         s = self.ms*self.ms
+         if(self.show_rank):
             lmissing = None
             if(len(I) > 0):
                lmissing = map.scatter(x0[I], y0[I], s=s, c="k", marker="x")
@@ -1013,7 +902,7 @@ class Default(Output):
             mpl.title(names[f])
 
       # Legend
-      if(self._showRank):
+      if(self.show_rank):
          lines = [lmin, lsimilar, lmax]
          names = ["min", "similar", "max"]
          if lmissing is not None:
@@ -1024,8 +913,8 @@ class Default(Output):
 
 
 class Hist(Output):
-   _reqThreshold = True
-   _supThreshold = False
+   requires_threshold = True
+   supports_threshold = False
 
    def __init__(self, name):
       Output.__init__(self)
@@ -1035,9 +924,9 @@ class Hist(Output):
       self._showPercent = True
 
    def get_x_y(self, data):
-      F = data.get_num_files()
+      F = data.num_inputs
       allValues = [0] * F
-      edges = self._thresholds
+      edges = self.thresholds
       for f in range(0, F):
          data.set_file_index(f)
          allValues[f] = data.get_scores(self._name)
@@ -1063,15 +952,15 @@ class Hist(Output):
    def _plot_core(self, data):
       data.set_axis("none")
       labels = data.get_legend()
-      F = data.get_num_files()
+      F = data.num_inputs
       [x, y] = self.get_x_y(data)
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
          if(self._showPercent):
             y[f] = y[f] * 1.0 / sum(y[f]) * 100
-         mpl.plot(x[f], y[f], style, color=color, label=labels[f], lw=self._lw,
-               ms=self._ms)
+         mpl.plot(x[f], y[f], style, color=color, label=labels[f], lw=self.lw,
+               ms=self.ms)
       mpl.xlabel(data.get_axis_label("threshold"))
       if(self._showPercent):
          mpl.ylabel("Frequency (%)")
@@ -1083,11 +972,11 @@ class Hist(Output):
       data.set_axis("none")
       labels = data.get_legend()
 
-      F = data.get_num_files()
+      F = data.num_inputs
       [x, y] = self.get_x_y(data)
 
-      if(self._filename is not None):
-         sys.stdout = open(self._filename, 'w')
+      if(self.filename is not None):
+         sys.stdout = open(self.filename, 'w')
 
       maxlength = 0
       for label in labels:
@@ -1100,7 +989,7 @@ class Hist(Output):
       lineDescN = len(lineDesc) + 2
       lineDescFmt = "%-" + str(lineDescN) + "s |"
       print lineDescFmt % lineDesc,
-      descs = self._thresholds
+      descs = self.thresholds
       for label in labels:
          print fmt % label,
       print ""
@@ -1123,11 +1012,11 @@ class Hist(Output):
       data.set_axis("none")
       labels = data.get_legend()
 
-      F = data.get_num_files()
+      F = data.num_inputs
       [x, y] = self.get_x_y(data)
 
-      if(self._filename is not None):
-         sys.stdout = open(self._filename, 'w')
+      if(self.filename is not None):
+         sys.stdout = open(self.filename, 'w')
 
       maxlength = 0
       for label in labels:
@@ -1141,7 +1030,7 @@ class Hist(Output):
       print header
 
       # Loop over rows
-      descs = self._thresholds
+      descs = self.thresholds
       for i in range(0, len(x[0])):
          line = str(descs[i])
          for j in range(0, len(y[:, i])):
@@ -1172,8 +1061,8 @@ class Hist(Output):
 
 
 class Sort(Output):
-   _reqThreshold = False
-   _supThreshold = False
+   requires_threshold = False
+   supports_threshold = False
 
    def __init__(self, name):
       Output.__init__(self)
@@ -1182,7 +1071,7 @@ class Sort(Output):
    def _plot_core(self, data):
       data.set_axis("none")
       labels = data.get_legend()
-      F = data.get_num_files()
+      F = data.num_inputs
       for f in range(0, F):
          data.set_file_index(f)
          [x] = data.get_scores(self._name)
@@ -1190,54 +1079,52 @@ class Sort(Output):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
          y = np.linspace(0, 1, x.shape[0])
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self._lw,
-               ms=self._ms)
+         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
+               ms=self.ms)
       mpl.xlabel("Sorted " + data.get_axis_label("threshold"))
       mpl.grid()
 
 
 class ObsFcst(Output):
-   _supThreshold = False
+   supports_threshold = False
    _description = "Plot observations and forecasts"
 
    def __init__(self):
       Output.__init__(self)
 
    def _plot_core(self, data):
-      F = data.get_num_files()
-      data.set_axis(self._xaxis)
-      x = data.get_axis_values()
+      F = data.num_inputs
+      x = data.get_axis_values(self.axis)
 
-      isCont = data.is_axis_continuous()
+      isCont = data.is_axis_continuous(self.axis)
 
       # Obs line
-      mObs = verif.metric.Default("obs", aux="fcst")
-      mObs.set_aggregator(self._aggregatorName)
-      y = mObs.compute(data, None)
+      mObs = verif.metric.Default(verif.field.Obs, aux=verif.field.Deterministic)
+      mObs.set_aggregator(self.aggregator_name)
+      y = mObs.compute(data, 0, self.axis, None)
       self._plot_obs(x, y, isCont)
 
-      mFcst = verif.metric.Default("fcst", aux="obs")
-      mFcst.set_aggregator(self._aggregatorName)
+      mFcst = verif.metric.Default(verif.field.Deterministic, aux=verif.field.Obs)
+      mFcst.set_aggregator(self.aggregator_name)
       labels = data.get_legend()
       for f in range(0, F):
-         data.set_file_index(f)
          color = self._get_color(f, F)
          style = self._get_style(f, F, isCont)
 
-         y = mFcst.compute(data, None)
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self._lw,
-               ms=self._ms)
+         y = mFcst.compute(data, f, self.axis, None)
+         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
+               ms=self.ms)
       mpl.ylabel(data.get_variable_and_units())
-      mpl.xlabel(data.get_axis_label())
+      mpl.xlabel(data.get_axis_label(self.axis))
       mpl.grid()
-      if(data.is_axis_date()):
+      if(data.is_axis_date(self.axis)):
          mpl.gca().xaxis_date()
       else:
-         mpl.gca().xaxis.set_major_formatter(data.get_axis_formatter())
+         mpl.gca().xaxis.set_major_formatter(data.get_axis_formatter(self.axis))
 
 
 class QQ(Output):
-   _supThreshold = False
+   supports_threshold = False
    _supX = False
    _description = "Quantile-quantile plot of obs vs forecasts"
 
@@ -1247,28 +1134,25 @@ class QQ(Output):
    def get_x_y(self, data):
       x = list()
       y = list()
-      F = len(data.get_filenames())
+      F = len(data.get_names())
       for f in range(0, F):
-         data.set_file_index(f)
-         [xx, yy] = data.get_scores(["obs", "fcst"])
+         [xx, yy] = data.get_scores([verif.field.Obs, verif.field.Deterministic], f)
          x.append(np.sort(xx))
          y.append(np.sort(yy))
       return [x, y]
 
    def _plot_core(self, data):
-      data.set_axis("none")
-      data.set_index(0)
       labels = data.get_legend()
-      F = data.get_num_files()
+      F = data.num_inputs
       [x, y] = self.get_x_y(data)
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
 
-         mpl.plot(x[f], y[f], style, color=color, label=labels[f], lw=self._lw,
-               ms=self._ms)
-      mpl.ylabel("Sorted forecasts (" + data.get_units() + ")")
-      mpl.xlabel("Sorted observations (" + data.get_units() + ")")
+         mpl.plot(x[f], y[f], style, color=color, label=labels[f], lw=self.lw,
+               ms=self.ms)
+      mpl.ylabel("Sorted forecasts (" + data.variable.units + ")")
+      mpl.xlabel("Sorted observations (" + data.variable.units + ")")
       ylim = list(mpl.ylim())
       xlim = list(mpl.xlim())
       axismin = min(min(ylim), min(xlim))
@@ -1277,10 +1161,8 @@ class QQ(Output):
       mpl.grid()
 
    def _csv_core(self, data):
-      data.set_axis("none")
-      data.set_index(0)
       labels = data.get_legend()
-      F = data.get_num_files()
+      F = data.num_inputs
 
       # Header
       header = ""
@@ -1304,7 +1186,7 @@ class QQ(Output):
 
 class Scatter(Output):
    _description = "Scatter plot of forecasts vs obs and lines showing quantiles of obs given forecast (use -r to specify)"
-   _supThreshold = False
+   supports_threshold = False
    _supX = False
 
    def __init__(self):
@@ -1314,27 +1196,24 @@ class Scatter(Output):
       return not self._simple
 
    def _plot_core(self, data):
-      data.set_axis("none")
-      data.set_index(0)
       labels = data.get_legend()
-      F = data.get_num_files()
+      F = data.num_inputs
       for f in range(0, F):
-         data.set_file_index(f)
          color = self._get_color(f, F)
          style = self._get_style(f, F, connectingLine=False)
 
-         [x, y] = data.get_scores(["obs", "fcst"])
+         [x, y] = data.get_scores([verif.field.Obs, verif.field.Deterministic], f)
          alpha = 0.2
          if self._simple:
             alpha = 1
-         mpl.plot(x, y, ".", color=color, label=labels[f], lw=self._lw, ms=self._ms, alpha=alpha)
+         mpl.plot(x, y, ".", color=color, label=labels[f], lw=self.lw, ms=self.ms, alpha=alpha)
          if(self._show_quantiles()):
             # Determine bin edges for computing quantiles
             # Use those provided by -r
-            if(self._thresholds[0] is not None):
-               edges = self._thresholds
+            if(self.thresholds[0] is not None):
+               edges = self.thresholds
             # For precip, we want a bin at exacly 0
-            elif(re.compile("Precip.*").match(data.get_variable().name())):
+            elif(re.compile("Precip.*").match(data.variable.name)):
                # Number of bins
                N = 10
                # The second to last edge should be such that we have at least
@@ -1398,8 +1277,8 @@ class Scatter(Output):
                mpl.plot(values[q, :], bins, style, lw=lw, alpha=0.5, label=label)
             for i in range(0, len(bins)):
                mpl.plot([values[0, i], values[-1, i]], [bins[i], bins[i]], 'k-')
-      mpl.ylabel("Forecasts (" + data.get_units() + ")")
-      mpl.xlabel("Observations (" + data.get_units() + ")")
+      mpl.ylabel("Forecasts (" + data.variable.units + ")")
+      mpl.xlabel("Observations (" + data.variable.units + ")")
       ylim = mpl.ylim()
       xlim = mpl.xlim()
       axismin = min(min(ylim), min(xlim))
@@ -1411,7 +1290,7 @@ class Scatter(Output):
 
 
 class Change(Output):
-   _supThreshold = False
+   supports_threshold = False
    _supX = False
    _description = "Forecast skill (MAE) as a function of change in obs from "\
                   "previous day"
@@ -1430,7 +1309,7 @@ class Change(Output):
       maxChange = np.nanmax(abs(change.flatten()))
       edges = np.linspace(-maxChange, maxChange, 20)
       bins = (edges[1:] + edges[0:-1]) / 2
-      F = data.get_num_files()
+      F = data.num_inputs
 
       for f in range(0, F):
          color = self._get_color(f, F)
@@ -1447,11 +1326,11 @@ class Change(Output):
             I = (change > edges[i]) & (change <= edges[i + 1])
             y[i] = verif.util.nanmean(err[I])
             x[i] = verif.util.nanmean(change[I])
-         mpl.plot(x, y, style, color=color, lw=self._lw, ms=self._ms,
+         mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms,
                label=labels[f])
       self._plot_perfect_score(x, 0)
-      mpl.xlabel("Daily obs change (" + data.get_units() + ")")
-      mpl.ylabel("MAE (" + data.get_units() + ")")
+      mpl.xlabel("Daily obs change (" + data.variable.units + ")")
+      mpl.ylabel("MAE (" + data.variable.units + ")")
       mpl.grid()
 
 
@@ -1459,9 +1338,9 @@ class Cond(Output):
    _description = "Plots forecasts as a function of obs (use -r to specify "\
                   "bin-edges)"
    _default_axis = "threshold"
-   _default_bin_type = "within"
-   _reqThreshold = True
-   _supThreshold = True
+   default_bin_type = "within"
+   requires_threshold = True
+   supports_threshold = True
    _supX = False
 
    def supports_threshold(self):
@@ -1470,10 +1349,10 @@ class Cond(Output):
    def _plot_core(self, data):
       data.set_axis("none")
       data.set_index(0)
-      [lowerT, upperT, x] = self._get_threshold_limits(self._thresholds)
+      [lowerT, upperT, x] = self._get_threshold_limits(self.thresholds)
 
       labels = data.get_legend()
-      F = data.get_num_files()
+      F = data.num_inputs
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
@@ -1494,11 +1373,11 @@ class Cond(Output):
             xfo[i] = xmfo.compute(data, [lowerT[i], upperT[i]])
             xof[i] = xmof.compute(data, [lowerT[i], upperT[i]])
          mpl.plot(xof, of, style, color=color, label=labels[f] + " (F|O)",
-               lw=self._lw, ms=self._ms)
+               lw=self.lw, ms=self.ms)
          mpl.plot(fo, xfo, style, color=color, label=labels[f] + " (O|F)",
-               lw=self._lw, ms=self._ms, alpha=0.5)
-      mpl.ylabel("Forecasts (" + data.get_units() + ")")
-      mpl.xlabel("Observations (" + data.get_units() + ")")
+               lw=self.lw, ms=self.ms, alpha=0.5)
+      mpl.ylabel("Forecasts (" + data.variable.units + ")")
+      mpl.xlabel("Observations (" + data.variable.units + ")")
       ylim = mpl.ylim()
       xlim = mpl.xlim()
       axismin = min(min(ylim), min(xlim))
@@ -1509,7 +1388,7 @@ class Cond(Output):
 
 
 class SpreadSkill(Output):
-   _supThreshold = False
+   supports_threshold = False
    _supX = False
    _description = "Spread/skill plot showing RMSE of ensemble mean as a function of ensemble spread (use -r to specify spread thresholds)"
 
@@ -1520,7 +1399,7 @@ class SpreadSkill(Output):
       data.set_axis("all")
       data.set_index(0)
       labels = data.get_legend()
-      F = data.get_num_files()
+      F = data.num_inputs
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F, connectingLine=False)
@@ -1530,19 +1409,19 @@ class SpreadSkill(Output):
          [obs, fcst, spread] = data.get_scores(["obs", "fcst", "spread"])
          spread = spread.flatten()
          skill = (obs.flatten() - fcst.flatten())**2
-         x = np.nan*np.zeros(len(self._thresholds), 'float')
+         x = np.nan*np.zeros(len(self.thresholds), 'float')
          y = np.nan*np.zeros(len(x), 'float')
-         for i in range(1, len(self._thresholds)):
+         for i in range(1, len(self.thresholds)):
             I = np.where((np.isnan(spread) == 0) &
                          (np.isnan(skill) == 0) &
-                         (spread > self._thresholds[i - 1]) &
-                         (spread <= self._thresholds[i]))[0]
+                         (spread > self.thresholds[i - 1]) &
+                         (spread <= self.thresholds[i]))[0]
             if(len(I) > 0):
                x[i] = np.mean(spread[I])
                y[i] = np.sqrt(np.mean(skill[I]))
 
          style = self._get_style(f, F)
-         mpl.plot(x, y, style, color=color, lw=self._lw, ms=self._ms, label=labels[f])
+         mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=labels[f])
       ylim = list(mpl.ylim())
       xlim = list(mpl.xlim())
       ylim[0] = 0
@@ -1552,8 +1431,8 @@ class SpreadSkill(Output):
       mpl.xlim(xlim)
       mpl.ylim(ylim)
       self._plot_perfect_score([axismin, axismax], [axismin, axismax])
-      mpl.xlabel("Spread (" + data.get_units() + ")")
-      mpl.ylabel("RMSE (" + data.get_units() + ")")
+      mpl.xlabel("Spread (" + data.variable.units + ")")
+      mpl.ylabel("RMSE (" + data.variable.units + ")")
       mpl.grid()
 
 
@@ -1562,18 +1441,18 @@ class Count(Output):
          "(use -r to specify bin-edges). Use -binned to count number in "\
          "bins, nstead of number above each threshold."
    _default_axis = "threshold"
-   _default_bin_type = "within"
-   _reqThreshold = True
-   _supThreshold = True
+   default_bin_type = "within"
+   requires_threshold = True
+   supports_threshold = True
    _supX = False
 
    def _plot_core(self, data):
       data.set_axis("none")
       data.set_index(0)
-      [lowerT, upperT, x] = self._get_threshold_limits(self._thresholds)
+      [lowerT, upperT, x] = self._get_threshold_limits(self.thresholds)
 
       labels = data.get_legend()
-      F = data.get_num_files()
+      F = data.num_inputs
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
@@ -1586,8 +1465,8 @@ class Count(Output):
          for i in range(0, len(lowerT)):
             Nobs[i] = obs.compute(data, [lowerT[i], upperT[i]])
             Nfcst[i] = fcst.compute(data, [lowerT[i], upperT[i]])
-         mpl.plot(x, Nfcst, style, color=color, label=labels[f], lw=self._lw,
-               ms=self._ms)
+         mpl.plot(x, Nfcst, style, color=color, label=labels[f], lw=self.lw,
+               ms=self.ms)
       self._plot_obs(x, Nobs)
       mpl.ylabel("Number")
       mpl.xlabel(data.get_axis_label())
@@ -1598,11 +1477,11 @@ class TimeSeries(Output):
    _description = "Plot observations and forecasts as a time series "\
          "(i.e. by concatinating all offsets). '-x <dimension>' has no "\
          "effect, as it is always shown by date."
-   _supThreshold = False
+   supports_threshold = False
    _supX = False
 
    def _plot_core(self, data):
-      F = data.get_num_files()
+      F = data.num_inputs
       data.set_axis("all")
       dates = data.get_axis_values("date")
       offsets = data.get_axis_values("offset")
@@ -1648,7 +1527,7 @@ class TimeSeries(Output):
             lab = labels[f] if d == 0 else ""
             mpl.rcParams['ytick.major.pad'] = '20'
             mpl.rcParams['xtick.major.pad'] = '20'
-            mpl.plot(x, y, style, color=color, lw=self._lw, ms=self._ms,
+            mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms,
                   label=lab)
 
       mpl.xlabel(data.get_axis_label("date"))
@@ -1669,14 +1548,14 @@ class TimeSeries(Output):
 
 
 class Meteo(Output):
-   _description = "Plot a meteogram, with deterministic forecast, all quantile lines available, and observations. If multiple dates and stations are used, then the average is made."
-   _supThreshold = False
+   _description = "Plot a meteogram, with deterministic forecast, all quantile lines available, and observations. If multiple dates and locations are used, then the average is made."
+   supports_threshold = False
    _supX = False
    _obsCol = [1, 0, 0]
    _fcstCol = [0, 1, 0]
 
    def _plot_core(self, data):
-      F = data.get_num_files()
+      F = data.num_inputs
       data.set_axis("all")
       dates = data.get_axis_values("date")
       offsets = data.get_axis_values("offset")
@@ -1765,7 +1644,7 @@ class Meteo(Output):
 
 class PitHist(Output):
    _description = "Histogram of PIT values"
-   _supThreshold = False
+   supports_threshold = False
    _supX = False
 
    def __init__(self, metric):
@@ -1783,7 +1662,7 @@ class PitHist(Output):
       pass
 
    def _plot_core(self, data):
-      F = data.get_num_files()
+      F = data.num_inputs
       labels = data.get_legend()
       for f in range(0, F):
          verif.util.subplot(f, F)
@@ -1837,7 +1716,7 @@ class PitHist(Output):
 
 class Discrimination(Output):
    _description = "Discrimination diagram for a certain threshold (-r)"
-   _reqThreshold = True
+   requires_threshold = True
    _supX = False
 
    def __init__(self):
@@ -1847,15 +1726,15 @@ class Discrimination(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
 
-      F = data.get_num_files()
+      F = data.num_inputs
 
       data.set_axis("none")
       data.set_index(0)
       data.set_file_index(0)
-      mpl.bar(np.nan, np.nan, color="w", ec="k", lw=self._lw, label="Observed")
-      mpl.bar(np.nan, np.nan, color="k", ec="k", lw=self._lw, label="Not observed")
-      for t in range(0, len(self._thresholds)):
-         threshold = self._thresholds[t]
+      mpl.bar(np.nan, np.nan, color="w", ec="k", lw=self.lw, label="Observed")
+      mpl.bar(np.nan, np.nan, color="k", ec="k", lw=self.lw, label="Not observed")
+      for t in range(0, len(self.thresholds)):
+         threshold = self.thresholds[t]
          var = data.get_p_var(threshold)
          [obs, p] = data.get_scores(["obs", var])
 
@@ -1874,10 +1753,10 @@ class Discrimination(Output):
             var = data.get_p_var(threshold)
             [obs, p] = data.get_scores(["obs", var])
 
-            if(self._binType == "below"):
+            if(self.bin_type == "below"):
                p = p
                obs = obs < threshold
-            elif(self._binType == "above"):
+            elif(self.bin_type == "above"):
                p = 1 - p
                obs = obs > threshold
             else:
@@ -1905,18 +1784,18 @@ class Discrimination(Output):
             barwidth = clusterwidth / 2
             shift = barwidth
             mpl.bar(clustercenter-shift, y1[f, :], barwidth, color=color,
-                  ec=color, lw=self._lw, label=label)
+                  ec=color, lw=self.lw, label=label)
             mpl.bar(clustercenter, y0[f, :], barwidth, color="w", ec=color,
-                  lw=self._lw)
+                  lw=self.lw)
          mpl.plot([clim, clim], [0, 1], "k-")
 
       mpl.xlim([0, 1])
       mpl.xlabel("Forecasted probability")
       mpl.ylabel("Frequency")
-      units = " " + data.get_units()
-      if(self._binType == "below"):
+      units = " " + data.variable.units
+      if(self.bin_type == "below"):
          mpl.title("Discrimination diagram for obs < " + str(threshold) + units)
-      elif(self._binType == "above"):
+      elif(self.bin_type == "above"):
          mpl.title("Discrimination diagram for obs > " + str(threshold) + units)
       else:
          verif.util.error("Bin type must be one of 'below' or"
@@ -1925,9 +1804,9 @@ class Discrimination(Output):
 
 class Reliability(Output):
    _description = "Reliability diagram for a certain threshold (-r)"
-   _reqThreshold = True
+   requires_threshold = True
    _supX = False
-   _legLoc = "lower right"
+   leg_loc = "lower right"
 
    def __init__(self):
       Output.__init__(self)
@@ -1945,7 +1824,7 @@ class Reliability(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
 
-      F = data.get_num_files()
+      F = data.num_inputs
       ax = mpl.gca()
       if(self._show_count()):
          axi = mpl.axes([0.3, 0.65, 0.2, 0.2])
@@ -1954,8 +1833,8 @@ class Reliability(Output):
       data.set_axis("none")
       data.set_index(0)
       data.set_file_index(0)
-      for t in range(0, len(self._thresholds)):
-         threshold = self._thresholds[t]
+      for t in range(0, len(self.thresholds)):
+         threshold = self.thresholds[t]
          var = data.get_p_var(threshold)
          [obs, p] = data.get_scores(["obs", var])
 
@@ -1980,10 +1859,10 @@ class Reliability(Output):
             var = data.get_p_var(threshold)
             [obs, p] = data.get_scores(["obs", var])
 
-            if(self._binType == "below"):
+            if(self.bin_type == "below"):
                p = p
                obs = obs < threshold
-            elif(self._binType == "above"):
+            elif(self.bin_type == "above"):
                p = 1 - p
                obs = obs > threshold
             else:
@@ -2006,8 +1885,8 @@ class Reliability(Output):
             label = labels[f]
             if(not t == 0):
                label = ""
-            mpl.plot(x[:, f], y[f], style, color=color, lw=self._lw,
-                  ms=self._ms, label=label)
+            mpl.plot(x[:, f], y[f], style, color=color, lw=self.lw,
+                  ms=self.ms, label=label)
 
          # Draw confidence bands (do this separately so that these lines don't
          # sneak into the legend)
@@ -2021,8 +1900,8 @@ class Reliability(Output):
             if(np.max(n) > 1):
                for f in range(0, F):
                   color = self._get_color(f, F)
-                  axi.plot(x[:, f], n[f], style, color=color, lw=self._lw,
-                        ms=self._ms * 0.75)
+                  axi.plot(x[:, f], n[f], style, color=color, lw=self.lw,
+                        ms=self.ms * 0.75)
                axi.xaxis.set_major_locator(mpl.NullLocator())
                axi.set_yscale('log')
                axi.set_title("Number")
@@ -2043,10 +1922,10 @@ class Reliability(Output):
                col=[1, 1, 1], zorder=-100, hatch="\\")
       mpl.xlabel("Forecasted probability")
       mpl.ylabel("Observed frequency")
-      units = " " + data.get_units()
-      if(self._binType == "below"):
+      units = " " + data.variable.units
+      if(self.bin_type == "below"):
          mpl.title("Reliability diagram for obs < " + str(threshold) + units)
-      elif(self._binType == "above"):
+      elif(self.bin_type == "above"):
          mpl.title("Reliability diagram for obs > " + str(threshold) + units)
       else:
          verif.util.error("Bin type must be one of 'below' or"
@@ -2058,9 +1937,9 @@ class IgnContrib(Output):
    _description = "Binary Ignorance contribution diagram for a single "\
          "threshold (-r). Shows how much each probability issued contributes "\
          "to the total ignorance."
-   _reqThreshold = True
+   requires_threshold = True
    _supX = False
-   _legLoc = "upper center"
+   leg_loc = "upper center"
    _experimental = True
 
    def __init__(self):
@@ -2069,16 +1948,16 @@ class IgnContrib(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
 
-      if(len(self._thresholds) != 1):
+      if(len(self.thresholds) != 1):
          verif.util.error("IgnContrib diagram requires exactly one threshold")
-      threshold = self._thresholds[0]
+      threshold = self.thresholds[0]
 
-      F = data.get_num_files()
+      F = data.num_inputs
 
       mpl.subplot(2, 1, 1)
-      units = " " + data.get_units()
+      units = " " + data.variable.units
       titlestr = "Ignorance contribution diagram for obs > " +\
-                 str(self._thresholds[0]) + units
+                 str(self.thresholds[0]) + units
       mpl.title(titlestr)
 
       data.set_axis("none")
@@ -2106,10 +1985,10 @@ class IgnContrib(Output):
          var = data.get_p_var(threshold)
          [obs, p] = data.get_scores(["obs", var])
 
-         if(self._binType == "below"):
+         if(self.bin_type == "below"):
             p = p
             obs = obs < threshold
-         elif(self._binType == "above"):
+         elif(self.bin_type == "above"):
             p = 1 - p
             obs = obs > threshold
          else:
@@ -2133,7 +2012,7 @@ class IgnContrib(Output):
 
          label = labels[f]
          mpl.plot(x[f], y[f] / np.sum(n[f]) * len(n[f]), style, color=color,
-               lw=self._lw, ms=self._ms, label=label)
+               lw=self.lw, ms=self.ms, label=label)
       mpl.ylabel("Ignorance contribution")
 
       # Draw expected sharpness
@@ -2147,7 +2026,7 @@ class IgnContrib(Output):
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
-         mpl.plot(x[f], n[f], style, color=color, lw=self._lw, ms=self._ms)
+         mpl.plot(x[f], n[f], style, color=color, lw=self.lw, ms=self.ms)
       mpl.xlabel("Forecasted probability")
       mpl.ylabel("N")
 
@@ -2159,7 +2038,7 @@ class EconomicValue(Output):
    _description = "Economic value diagram for a single "\
          "threshold (-r). Shows what fraction of costs/loses can be reduced by"\
          " the forecast relative to using climatology."
-   _reqThreshold = True
+   requires_threshold = True
    _supX = False
    _experimental = True
 
@@ -2169,17 +2048,17 @@ class EconomicValue(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
 
-      if(len(self._thresholds) != 1):
+      if(len(self.thresholds) != 1):
          verif.util.error("Economic value diagram requires exactly one threshold")
-      threshold = self._thresholds[0]
+      threshold = self.thresholds[0]
 
-      F = data.get_num_files()
+      F = data.num_inputs
 
-      units = " " + data.get_units()
-      if(self._binType == "below"):
-         mpl.title("Economic value for obs < " + str(self._thresholds[0]) + units)
-      elif(self._binType == "above"):
-         mpl.title("Economic value for obs > " + str(self._thresholds[0]) + units)
+      units = " " + data.variable.units
+      if(self.bin_type == "below"):
+         mpl.title("Economic value for obs < " + str(self.thresholds[0]) + units)
+      elif(self.bin_type == "above"):
+         mpl.title("Economic value for obs > " + str(self.thresholds[0]) + units)
       else:
          verif.util.error("Bin type must be one of 'below' or"
                "'above' for reliability plot")
@@ -2212,10 +2091,10 @@ class EconomicValue(Output):
          var = data.get_p_var(threshold)
          [obs, p] = data.get_scores(["obs", var])
 
-         if(self._binType == "below"):
+         if(self.bin_type == "below"):
             p = p
             obs = obs < threshold
-         elif(self._binType == "above"):
+         elif(self.bin_type == "above"):
             p = 1 - p
             obs = obs > threshold
          else:
@@ -2241,7 +2120,7 @@ class EconomicValue(Output):
 
          label = labels[f]
          mpl.plot(costLossRatios, y[f], style, color=color,
-               lw=self._lw, ms=self._ms, label=label)
+               lw=self.lw, ms=self.ms, label=label)
       mpl.xlabel("Cost-loss ratio")
       mpl.ylabel("Economic value")
       mpl.xlim([0, 1])
@@ -2252,14 +2131,14 @@ class EconomicValue(Output):
 class Roc(Output):
    _description = "Plots the receiver operating characteristics curve for a single threshold (-r)"
    _supX = False
-   _reqThreshold = True
+   requires_threshold = True
 
    def __init__(self):
       Output.__init__(self)
       self._labelQuantiles = True
 
    def _plot_core(self, data):
-      threshold = self._thresholds[0]   # Observation threshold
+      threshold = self.thresholds[0]   # Observation threshold
       if(threshold is None):
          verif.util.error("Roc plot needs a threshold (use -r)")
 
@@ -2267,7 +2146,7 @@ class Roc(Output):
       if(len(quantiles) == 0):
          verif.util.error("Your files do not have any quantiles")
 
-      F = data.get_num_files()
+      F = data.num_inputs
       labels = data.get_legend()
       for f in range(0, F):
          color = self._get_color(f, F)
@@ -2302,8 +2181,8 @@ class Roc(Output):
          y[0] = 0
          x[len(x) - 1] = 1
          y[len(y) - 1] = 1
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self._lw,
-               ms=self._ms)
+         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
+               ms=self.ms)
          if(self._labelQuantiles):
             for i in range(0, len(quantiles)):
                mpl.text(x[i + 1], y[i + 1], " %g%%" % quantiles[i], verticalalignment='center')
@@ -2312,7 +2191,7 @@ class Roc(Output):
       mpl.xlabel("False alarm rate")
       mpl.ylabel("Hit rate")
       self._plot_perfect_score([0, 0, 1], [0, 1, 1])
-      units = " " + data.get_units()
+      units = " " + data.variable.units
       mpl.title("Threshold: " + str(threshold) + units)
       mpl.grid()
 
@@ -2324,7 +2203,7 @@ class DRoc(Output):
          "the deterministic forecast for a single threshold. Uses different "\
          "forecast thresholds to create points."
    _supX = False
-   _reqThreshold = True
+   requires_threshold = True
 
    def __init__(self, fthresholds=None, doNorm=False, doClassic=False):
       Output.__init__(self)
@@ -2334,7 +2213,7 @@ class DRoc(Output):
       self._showThresholds = False
 
    def _plot_core(self, data):
-      threshold = self._thresholds[0]   # Observation threshold
+      threshold = self.thresholds[0]   # Observation threshold
       if(threshold is None):
          verif.util.error("DRoc plot needs a threshold (use -r)")
 
@@ -2344,14 +2223,14 @@ class DRoc(Output):
          if(self._fthresholds is not None):
             fthresholds = self._fthresholds
          else:
-            if(data.get_variable().name() == "Precip"):
+            if(data.variable.name == "Precip"):
                fthresholds = [0, 1e-7, 1e-6, 1e-5, 1e-4, 0.001, 0.005,
                      0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 1, 2, 3, 5, 10, 20, 100]
             else:
                N = 31
                fthresholds = np.linspace(threshold - 10, threshold + 10, N)
 
-      F = data.get_num_files()
+      F = data.num_inputs
       labels = data.get_legend()
       for f in range(0, F):
          color = self._get_color(f, F)
@@ -2382,8 +2261,8 @@ class DRoc(Output):
             y[0] = 1
             x[len(x) - 1] = 0
             y[len(y) - 1] = 0
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self._lw,
-               ms=self._ms)
+         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
+               ms=self.ms)
       if(self._doNorm):
          xlim = mpl.xlim()
          ylim = mpl.ylim()
@@ -2398,7 +2277,7 @@ class DRoc(Output):
          mpl.xlabel("False alarm rate")
          mpl.ylabel("Hit rate")
          self._plot_perfect_score([0, 0, 1], [0, 1, 1])
-      units = " " + data.get_units()
+      units = " " + data.variable.units
       mpl.title("Threshold: " + str(threshold) + units)
       mpl.grid()
 
@@ -2425,13 +2304,13 @@ class Against(Output):
    "Colours indicate which configuration had the best forecast (but only if the difference is "\
    "more than 10% of the standard deviation of the observation)."
    _default_axis = "none"
-   _supThreshold = False
+   supports_threshold = False
    _supX = False
    # How big difference should colour kick in (in number of STDs)?
    _minStdDiff = 0.1
 
    def _plot_core(self, data):
-      F = data.get_num_files()
+      F = data.num_inputs
       if(F < 2):
          verif.util.error("Cannot use Against plot with less than 2 configurations")
 
@@ -2450,7 +2329,7 @@ class Against(Output):
                lower = min(min(x), min(y))
                upper = max(max(x), max(y))
 
-               mpl.plot(x, y, "x", mec="k", ms=self._ms / 2, mfc="k",
+               mpl.plot(x, y, "x", mec="k", ms=self.ms / 2, mfc="k",
                      zorder=-1000)
 
                # Show which forecast is better
@@ -2462,7 +2341,7 @@ class Against(Output):
                y = y.flatten()
                obs = obsx.flatten()
 
-               mpl.plot(x, y, "s", mec="k", ms=self._ms / 2, mfc="w",
+               mpl.plot(x, y, "s", mec="k", ms=self.ms / 2, mfc="w",
                      zorder=-500)
 
                std = np.std(obs) / 2
@@ -2473,8 +2352,8 @@ class Against(Output):
                      Ix = abs(obs - y) > abs(obs - x) + std * k / N
                      Iy = abs(obs - y) + std * k / N < abs(obs - x)
                      alpha = k / 1.0 / N
-                     mpl.plot(x[Ix], y[Ix], "r.", ms=self._ms, alpha=alpha)
-                     mpl.plot(x[Iy], y[Iy], "b.", ms=self._ms, alpha=alpha)
+                     mpl.plot(x[Ix], y[Ix], "r.", ms=self.ms, alpha=alpha)
+                     mpl.plot(x[Iy], y[Iy], "b.", ms=self.ms, alpha=alpha)
 
                # Contour of the frequency
                # q = np.histogram2d(x[1,:], x[0,:], [np.linspace(lower,upper,100), np.linspace(lower,upper,100)])
@@ -2502,15 +2381,15 @@ class Against(Output):
 
 class Taylor(Output):
    _description = "Taylor diagram showing correlation and forecast standard deviation. Use '-x none' to collapse all data showing only one point.  Otherwise, the whole graph is normalized by the standard deviation of the observations."
-   _supThreshold = True
+   supports_threshold = True
    _supX = True
-   _legLoc = "upper left"
+   leg_loc = "upper left"
 
    def _plot_core(self, data):
-      data.set_axis(self._xaxis)
+      data.set_axis(self.axis)
       data.set_index(0)
       labels = data.get_legend()
-      F = data.get_num_files()
+      F = data.num_inputs
 
       # Plot points
       maxstd = 0
@@ -2539,7 +2418,7 @@ class Taylor(Output):
             minCrmseLabel = "Min norm CRMSE"
          else:
             stdobs = verif.util.nanmean(stdobs)
-            xlabel = "Standard deviation (" + data.get_units() + ")"
+            xlabel = "Standard deviation (" + data.variable.units + ")"
             crmseLabel = "CRMSE"
             minCrmseLabel = "Min CRMSE"
 
@@ -2547,8 +2426,8 @@ class Taylor(Output):
          ang = np.arccos(corr)
          x = std * np.cos(ang)
          y = std * np.sin(ang)
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self._lw,
-               ms=self._ms)
+         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
+               ms=self.ms)
 
       # Set axis limits
       # Enforce a minimum radius beyond the obs-radius
@@ -2577,7 +2456,7 @@ class Taylor(Output):
       # Draw obs point/lines
       orange = [1, 0.8, 0.4]
       self._draw_circle(stdobs, style='-', lw=5, color=orange)
-      mpl.plot(stdobs, 0, 's-', color=orange, label="Obs", mew=2, ms=self._ms, clip_on=False)
+      mpl.plot(stdobs, 0, 's-', color=orange, label="Obs", mew=2, ms=self.ms, clip_on=False)
 
       # Draw diagonals
       corrs = [-1, -0.99, -0.95, -0.9, -0.8, -0.5, 0, 0.5, 0.8, 0.9, 0.95,
@@ -2621,22 +2500,21 @@ class Taylor(Output):
 
 class Performance(Output):
    _description = "Categorical performance diagram showing POD, FAR, bias, and Threat score. Also shows the scores the forecasts would attain by using different forecast thresholds (turn off using -simple)"
-   _supThreshold = True
-   _reqThreshold = True
+   supports_threshold = True
+   requires_threshold = True
    _supX = True
-   _legLoc = "upper left"
+   leg_loc = "upper left"
    _reference = "Roebber, P.J., 2009: Visualizing multiple measures of forecast quality. Wea. Forecasting, 24, 601-608."
 
-   # Should lines be drawn to show how the scores can vary with chosen forecast
-   # threshold?
    def _show_potential(self):
+      """ Should lines be drawn to show how the scores can vary with chosen forecast threshold? """
       return not self._simple
 
    def _plot_core(self, data):
-      data.set_axis(self._xaxis)
+      data.set_axis(self.axis)
       data.set_index(0)
       labels = data.get_legend()
-      F = data.get_num_files()
+      F = data.num_inputs
 
       # Plot points
       maxstd = 0
@@ -2646,8 +2524,8 @@ class Performance(Output):
          style = self._get_style(f, F, False)
 
          size = data.get_axis_size()
-         for t in range(0, len(self._thresholds)):
-            threshold = self._thresholds[t]
+         for t in range(0, len(self.thresholds)):
+            threshold = self.thresholds[t]
             sr = np.zeros(size, 'float')
             pod = np.zeros(size, 'float')
             Far = verif.metric.Far()
@@ -2678,12 +2556,12 @@ class Performance(Output):
                   for j in range(0, J):
                      x[j] = 1 - Far.compute_obs_fcst(obs, fcst + dx[j], [threshold, np.inf])
                      y[j] = Hit.compute_obs_fcst(obs, fcst + dx[j], [threshold, np.inf])
-                  mpl.plot(x, y, ".-", color=color, ms=3*self._lw, lw=2*self._lw, zorder=-100, alpha=0.3)
+                  mpl.plot(x, y, ".-", color=color, ms=3*self.lw, lw=2*self.lw, zorder=-100, alpha=0.3)
 
             label = ""
             if t == 0:
                label = labels[f]
-            mpl.plot(sr, pod, style, color=color, label=label, lw=self._lw, ms=self._ms)
+            mpl.plot(sr, pod, style, color=color, label=label, lw=self.lw, ms=self.ms)
 
       # Plot bias lines
       biases = [0.3, 0.5, 0.8, 1, 1.3, 1.5, 2, 3, 5, 10]
@@ -2721,19 +2599,19 @@ class Performance(Output):
 
 class Error(Output):
    _description = "Decomposition of RMSE into systematic and unsystematic components"
-   _supThreshold = False
+   supports_threshold = False
    _supX = True
    _default_axis = "none"
 
    def _plot_core(self, data):
-      data.set_axis(self._xaxis)
+      data.set_axis(self.axis)
       data.set_index(0)
       labels = data.get_legend()
-      F = data.get_num_files()
+      F = data.num_inputs
 
       mpl.gca().set_aspect(1)
-      mpl.xlabel("Unsystematic error (CRMSE, " + data.get_units() + ")")
-      mpl.ylabel("Systematic error (Bias, " + data.get_units() + ")")
+      mpl.xlabel("Unsystematic error (CRMSE, " + data.variable.units + ")")
+      mpl.ylabel("Systematic error (Bias, " + data.variable.units + ")")
 
       # Plot points
       size = data.get_axis_size()
@@ -2755,7 +2633,7 @@ class Error(Output):
                rmse[i, f] = np.sqrt(np.mean((obs - fcst) ** 2))
                uerr[i, f] = np.sqrt(rmse[i, f] ** 2 - serr[i, f] ** 2)
          mpl.plot(uerr[:, f], serr[:, f], style, color=color, label=labels[f],
-               lw=self._lw, ms=self._ms)
+               lw=self.lw, ms=self.ms)
       xlim = mpl.xlim()
       ylim = mpl.ylim()
 
@@ -2787,7 +2665,7 @@ class Error(Output):
 
 class Marginal(Output):
    _description = "Show marginal distribution for different thresholds"
-   _reqThreshold = True
+   requires_threshold = True
    _supX = False
    _experimental = True
 
@@ -2797,17 +2675,17 @@ class Marginal(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
 
-      F = data.get_num_files()
+      F = data.num_inputs
 
       data.set_axis("none")
       data.set_index(0)
       data.set_file_index(0)
-      clim = np.zeros(len(self._thresholds), 'float')
+      clim = np.zeros(len(self.thresholds), 'float')
       for f in range(0, F):
-         x = self._thresholds
-         y = np.zeros([len(self._thresholds)], 'float')
-         for t in range(0, len(self._thresholds)):
-            threshold = self._thresholds[t]
+         x = self.thresholds
+         y = np.zeros([len(self.thresholds)], 'float')
+         for t in range(0, len(self.thresholds)):
+            threshold = self.thresholds[t]
             data.set_file_index(f)
             data.set_axis("none")
             data.set_index(0)
@@ -2817,10 +2695,10 @@ class Marginal(Output):
             color = self._get_color(f, F)
             style = self._get_style(f, F)
 
-            if(self._binType == "below"):
+            if(self.bin_type == "below"):
                p = p
                obs = obs < threshold
-            elif(self._binType == "above"):
+            elif(self.bin_type == "above"):
                p = 1 - p
                obs = obs > threshold
             else:
@@ -2830,7 +2708,7 @@ class Marginal(Output):
             y[t] = np.mean(p)
 
          label = labels[f]
-         mpl.plot(x, y, style, color=color, lw=self._lw, ms=self._ms, label=label)
+         mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=label)
       self._plot_obs(x, clim)
 
       mpl.ylim([0, 1])
@@ -2841,7 +2719,7 @@ class Marginal(Output):
 
 class Freq(Output):
    _description = "Show frequency of obs and forecasts"
-   _reqThreshold = True
+   requires_threshold = True
    _supX = False
    _experimental = True
 
@@ -2851,7 +2729,7 @@ class Freq(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
 
-      F = data.get_num_files()
+      F = data.num_inputs
 
       data.set_axis("none")
       data.set_index(0)
@@ -2859,15 +2737,15 @@ class Freq(Output):
 
       for f in range(0, F):
          # Setup x and y: When -b within, we need one less value in the array
-         N = len(self._thresholds)
-         x = self._thresholds
-         if(self._binType == "within"):
-            N = len(self._thresholds) - 1
-            x = (self._thresholds[1:] + self._thresholds[:-1]) / 2
+         N = len(self.thresholds)
+         x = self.thresholds
+         if(self.bin_type == "within"):
+            N = len(self.thresholds) - 1
+            x = (self.thresholds[1:] + self.thresholds[:-1]) / 2
          y = np.zeros(N, 'float')
          clim = np.zeros(N, 'float')
          for t in range(0, N):
-            threshold = self._thresholds[t]
+            threshold = self.thresholds[t]
             data.set_file_index(f)
             data.set_axis("none")
             data.set_index(0)
@@ -2876,32 +2754,32 @@ class Freq(Output):
             color = self._get_color(f, F)
             style = self._get_style(f, F)
 
-            if(self._binType == "below"):
+            if(self.bin_type == "below"):
                fcst = fcst < threshold
                obs = obs < threshold
-            elif(self._binType == "above"):
+            elif(self.bin_type == "above"):
                fcst = fcst > threshold
                obs = obs > threshold
-            elif(self._binType == "within"):
-               fcst = (fcst >= threshold) & (fcst < self._thresholds[t + 1])
-               obs = (obs >= threshold) & (obs < self._thresholds[t + 1])
+            elif(self.bin_type == "within"):
+               fcst = (fcst >= threshold) & (fcst < self.thresholds[t + 1])
+               obs = (obs >= threshold) & (obs < self.thresholds[t + 1])
 
             clim[t] = np.mean(obs)
             y[t] = np.mean(fcst)
 
          label = labels[f]
-         mpl.plot(x, y, style, color=color, lw=self._lw, ms=self._ms, label=label)
+         mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=label)
       self._plot_obs(x, clim)
 
       mpl.ylim([0, 1])
       mpl.xlabel(data.get_axis_label("threshold"))
-      mpl.ylabel("Frequency " + self._binType)
+      mpl.ylabel("Frequency " + self.bin_type)
       mpl.grid()
 
 
 class InvReliability(Output):
    _description = "Reliability diagram for a certain quantile (-r)"
-   _reqThreshold = True
+   requires_threshold = True
    _supX = False
    _experimental = True
 
@@ -2914,9 +2792,9 @@ class InvReliability(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
 
-      F = data.get_num_files()
+      F = data.num_inputs
       ax = mpl.gca()
-      quantiles = self._thresholds
+      quantiles = self.thresholds
       if(self._show_count()):
          if(quantiles[0] < 0.5):
             axi = mpl.axes([0.66, 0.65, 0.2, 0.2])
@@ -2928,7 +2806,7 @@ class InvReliability(Output):
       data.set_index(0)
       data.set_file_index(0)
       for t in range(0, len(quantiles)):
-         quantile = self._thresholds[t]
+         quantile = self.thresholds[t]
          var = data.get_q_var(quantile)
          [obs, p] = data.get_scores(["obs", var])
 
@@ -2936,7 +2814,7 @@ class InvReliability(Output):
          N = min(25, max(11, int(len(obs) / 1000)))
          N = 21
          edges = np.linspace(0, 20, N + 1)
-         if(data.get_variable().name() == "Precip"):
+         if(data.variable.name == "Precip"):
             edges = np.linspace(0, np.sqrt(verif.util.nanmax(obs)), N + 1) ** 2
          else:
             edges = np.linspace(verif.util.nanmin(obs), verif.util.nanmax(obs), N + 1)
@@ -2972,8 +2850,8 @@ class InvReliability(Output):
             label = labels[f]
             if(not t == 0):
                label = ""
-            mpl.plot(x[:, f], y[f], style, color=color, lw=self._lw,
-                  ms=self._ms, label=label)
+            mpl.plot(x[:, f], y[f], style, color=color, lw=self.lw,
+                  ms=self.ms, label=label)
          self._plot_obs(edges, 0 * edges + quantile, label="")
 
          # Draw confidence bands (do this separately so that these lines don't
@@ -2982,7 +2860,7 @@ class InvReliability(Output):
             color = self._get_color(f, F)
             self._plot_confidence(x[:, f], y[f], v[f], n[f], color=color)
             if(self._show_count()):
-               axi.plot(x[:, f], n[f], style, color=color, lw=self._lw, ms=self._ms)
+               axi.plot(x[:, f], n[f], style, color=color, lw=self.lw, ms=self.ms)
                axi.xaxis.set_major_locator(mpl.NullLocator())
                axi.set_yscale('log')
                axi.set_title("Number")
@@ -2991,5 +2869,5 @@ class InvReliability(Output):
       color = "gray"
       mpl.xlabel(data.get_variable_and_units())
       mpl.ylabel("Observed frequency")
-      units = " " + data.get_units()
+      units = " " + data.variable.units
       mpl.title("Quantile: " + str(quantile * 100) + "%")
