@@ -1,14 +1,14 @@
 import sys
-import verif.Metric as Metric
-import verif.Output as Output
+import verif.metric
+import verif.output
 
 if len(sys.argv) < 2:
    print "Error: missing input file"
    sys.exit()
 filename = sys.argv[1]
 
-metrics = Metric.getAllMetrics()
-outputs = Output.getAllOutputs()
+metrics = verif.metric.get_all()
+outputs = verif.output.get_all()
 metricOutputs = metrics + outputs
 metricOutputs.sort(key=lambda x: x[0].lower(), reverse=False)
 
@@ -36,7 +36,7 @@ print 'if [ "$prev" = "-m" ]; then'
 print "   COMPREPLY=( $( compgen -W '",
 for m in metricOutputs:
    name = m[0].lower()
-   if(m[1].isValid()):
+   if(m[1].is_valid()):
       desc = m[1].summary()
       print name + " ",
 print "' -- $cur ) )"

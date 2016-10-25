@@ -21,7 +21,7 @@ def get_all_deterministic():
    return metrics
 
 
-def get_metric(name):
+def get(name):
    """ Returns an instance of an object with the given class name """
    metrics = get_all()
    m = None
@@ -109,8 +109,8 @@ class Metric(object):
          s = s + "\n" + verif.util.green("Maximum value: ") + str(cls.max)
       if(cls.long is not None):
          s = s + "\n" + verif.util.green("Description: ") + cls.long
-      if(cls.reference() is not None):
-         s = s + "\n" + verif.util.green("Reference: ") + cls.reference()
+      if(cls.reference is not None):
+         s = s + "\n" + verif.util.green("Reference: ") + cls.reference
       return s
 
    @classmethod
@@ -188,7 +188,7 @@ class Deterministic(Metric):
       verif.util.error("Metric " + self.name() + " has not implemented _compute_from_obs_fcst()")
 
 
-class Default(Metric):
+class Standard(Metric):
    # aux: When reading the score, also pull values for 'aux' to ensure
    # only common data points are returned
    def __init__(self, name, aux=None):
@@ -680,6 +680,8 @@ class SpreadSkillDiff(Metric):
 
 
 class Within(Metric):
+   """ Can't be a subclass of Deterministic, because it depends on threshold
+   """
    min = 0
    max = 100
    description = "The percentage of forecasts within some"\

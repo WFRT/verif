@@ -6,11 +6,10 @@ import verif.util
 
 def get_all():
    """
-   Returns a dictionary of all aggregator classes where the key is the class
-   name (string) and the value is the class object
+   Returns a list of all aggregator classes
    """
    temp = inspect.getmembers(sys.modules[__name__], inspect.isclass)
-   return temp
+   return [i[1] for i in temp if i[0] != "Aggregator"]
 
 
 def get(name):
@@ -18,8 +17,8 @@ def get(name):
    aggregators = get_all()
    a = None
    for aggregator in aggregators:
-      if name == aggregator[0].lower():
-         a = aggregator[1]()
+      if name == aggregator.name.lower():
+         a = aggregator()
    if a is None and verif.util.is_number(name):
       a = Quantile(float(name))
 

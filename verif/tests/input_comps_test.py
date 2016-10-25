@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import verif.input
-import verif.station
+import verif.location
 import verif.data
 
 
@@ -54,7 +54,7 @@ class MyTest(unittest.TestCase):
       print input.quantiles
       print input.dates
       print input.offsets
-      print input.stations
+      print input.locations
 
 if __name__ == '__main__':
    unittest.main()

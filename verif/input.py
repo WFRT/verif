@@ -66,15 +66,15 @@ class Input(object):
    @property
    def name(self):
       """ Default to setting the name to the filename without the path """
-      I = self.fullname.rfind('.')
-      name = self.fullname[:I]
+      I = self.fullname.rfind('/')
+      name = self.fullname[I + 1:]
       return name
 
    @property
    def shortname(self):
       """ Default to setting the name to the filename without the path and extension"""
-      I = self.name.rfind('/')
-      name = self.name[I + 1:]
+      I = self.name.rfind('.')
+      name = self.name[:I]
       return name
 
 
@@ -510,8 +510,8 @@ class Text(Input):
       self.deterministic = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
       if(len(pit) != 0):
          self._pit = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
-      self._cdf = np.zeros([Ndates, Noffsets, Nlocations, Nthresholds], 'float') * np.nan
-      self._x = np.zeros([Ndates, Noffsets, Nlocations, Nquantiles], 'float') * np.nan
+      self.threshold_scores = np.zeros([Ndates, Noffsets, Nlocations, Nthresholds], 'float') * np.nan
+      self.quantile_scores = np.zeros([Ndates, Noffsets, Nlocations, Nquantiles], 'float') * np.nan
       for d in range(0, Ndates):
          date = self._dates[d]
          end = time.time()
@@ -533,12 +533,12 @@ class Text(Input):
                   quantile = self._quantiles[q]
                   key = (date, offset, lat, lon, elev, quantile)
                   if(key in x):
-                     self._x[d, o, s, q] = x[key]
+                     self.quantile_scores[d, o, s, q] = x[key]
                for t in range(0, len(self._thresholds)):
                   threshold = self._thresholds[t]
                   key = (date, offset, lat, lon, elev, threshold)
                   if(key in cdf):
-                     self._cdf[d, o, s, t] = cdf[key]
+                     self.threshold_scores[d, o, s, t] = cdf[key]
       end = time.time()
       maxLocationId = np.nan
       for location in self._locations:

@@ -2,7 +2,7 @@ import datetime
 import numpy as np
 import sys
 from matplotlib.dates import *
-from copy import deepcopy
+import copy
 import matplotlib.pyplot as mpl
 import textwrap
 import os
@@ -63,7 +63,6 @@ def experimental():
 def error(message):
    """ Write error message to console and abort """
    print "\033[1;31mError: " + message + "\033[0m"
-   abort
    sys.exit(1)
 
 
@@ -174,10 +173,10 @@ def fill(x, yLower, yUpper, col, alpha=1, zorder=0, hatch=''):
 
 def clean(data):
    data = data[:].astype(float)
-   q = deepcopy(data)
+   q = copy.deepcopy(data)
    # Remove missing values. Convert to -999 and then back to nan to avoid
    # warning messages when doing <, >, and == comparisons with nan.
-   q[np.isnan(q)] = -999
+   #q[np.isnan(q)] = -999
    q[(q == -999) | (q < -1000000) | (q > 1e30)] = np.nan
    return q
 

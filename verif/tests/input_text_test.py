@@ -1,6 +1,6 @@
 import unittest
 import verif.input
-import verif.station
+import verif.location
 import numpy as np
 import verif.data
 
@@ -21,17 +21,17 @@ class MyTest(unittest.TestCase):
       self.assertEqual(1, dates.shape[0])
       self.assertEqual(20120101, dates[0])
 
-   def test_get_stations(self):
+   def test_get_locations(self):
       input = verif.input.Text("verif/tests/example.txt")
-      stations = input.stations
-      stations = np.sort(stations)
-      self.assertEqual(4, len(stations))
-      self.assertTrue(verif.station.Station(0, 1, 1, 1) in stations)
-      self.assertTrue(verif.station.Station(0, 0, 0, 1) in stations)
-      self.assertTrue(verif.station.Station(0, 0, 0, 2) in stations)
-      self.assertTrue(verif.station.Station(0, 2, 2, 1) in stations)
+      locations = input.locations
+      locations = np.sort(locations)
+      self.assertEqual(4, len(locations))
+      self.assertTrue(verif.location.Location(0, 1, 1, 1) in locations)
+      self.assertTrue(verif.location.Location(0, 0, 0, 1) in locations)
+      self.assertTrue(verif.location.Location(0, 0, 0, 2) in locations)
+      self.assertTrue(verif.location.Location(0, 2, 2, 1) in locations)
 
-   def test_conflictingStations(self):
+   def test_conflictingLocations(self):
       data = verif.data.Data(filenames=["verif/tests/fileConflictingInfo.txt"])
 
 """
@@ -40,11 +40,11 @@ class MyTest(unittest.TestCase):
 
    def test_noElev(self):
       data = verif.data.Data(filenames=["verif/tests/fileNoElev.txt"])
-      self.assertEqual(2, len(data.get_stations()))
+      self.assertEqual(2, len(data.get_locations()))
 
    def test_noLat(self):
       data = verif.data.Data(filenames=["verif/tests/fileNoLat.txt"])
-      self.assertEqual(2, len(data.get_stations()))
+      self.assertEqual(2, len(data.get_locations()))
 
    def test_get_scores(self):
       input = verif.input.Text("verif/tests/example.txt")
@@ -52,12 +52,12 @@ class MyTest(unittest.TestCase):
       fcst = input.get_scores("fcst")
       self.assertEqual((1, 4, 4), obs.shape)
       self.assertEqual((1, 4, 4), fcst.shape)
-      stations = input.get_stations()
+      locations = input.get_locations()
       I0 = -1
-      for i in range(0, len(stations)):
-         if(stations[i] == verif.station.Station(0, 1, 1, 1)):
+      for i in range(0, len(locations)):
+         if(locations[i] == verif.location.Location(0, 1, 1, 1)):
             I0 = i
-         if(stations[i] == verif.station.Station(0, 0, 0, 2)):
+         if(locations[i] == verif.location.Location(0, 0, 0, 2)):
             I1 = i
       self.assertEqual(12, obs[0, 0, I0])
       self.assertTrue(np.isnan(obs[0, 1, I0]))

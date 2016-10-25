@@ -23,7 +23,7 @@ def run(argv):
    lat_range = None
    lon_range = None
    elev_range = None
-   thresholds = [None]
+   thresholds = None
    dates = None
    climFile = None
    clim_type = "subtract"
@@ -34,7 +34,7 @@ def run(argv):
    offsets = None
    axis = None
    sdim = None
-   figSize = None
+   figsize = None
    dpi = 100
    showText = False
    showMap = False
@@ -140,7 +140,7 @@ def run(argv):
             elif(arg == "-type"):
                type = argv[i + 1]
             elif(arg == "-fs"):
-               figSize = argv[i + 1]
+               figsize = argv[i + 1]
             elif(arg == "-dpi"):
                dpi = int(argv[i + 1])
             elif(arg == "-d"):
@@ -163,10 +163,10 @@ def run(argv):
                yticks = verif.util.parse_numbers(argv[i + 1])
             elif(arg == "-s"):
                sdim = argv[i + 1]
-            elif(arg == "-ct"):
+            elif(arg == "-agg"):
                aggregator_name = argv[i + 1]
             elif(arg == "-r"):
-               thresholds = verif.util.parse_numbers(argv[i + 1])
+               thresholds = np.array(verif.util.parse_numbers(argv[i + 1]))
             elif(arg == "-ms"):
                markerSize = float(argv[i + 1])
             elif(arg == "-lw"):
@@ -246,32 +246,31 @@ def run(argv):
          verif.util.error("Files are required in order to list thresholds or quantiles")
       if(listThresholds):
          print "Thresholds:",
-         for threshold in data.get_thresholds():
+         for threshold in data.thresholds:
             print "%g" % threshold,
          print ""
       if(listQuantiles):
          print "Quantiles:",
-         for quantile in data.get_quantiles():
+         for quantile in data.quantiles:
             print "%g" % quantile,
          print ""
       if(listLocations):
          print "    id     lat     lon    elev"
-         for station in data.get_stations():
-            print "%6d %7.2f %7.2f %7.1f" % (station.id(), station.lat(),
-                  station.lon(), station.elev())
+         for location in data.locations:
+            print "%6d %7.2f %7.2f %7.1f" % (location.id, location.lat,
+                  location.lon, location.elev)
          print ""
       if(listDates):
-         dates = verif.util.convert_to_yyyymmdd(data.dates)
-         for date in dates:
+         for date in data.dates:
             print "%d" % date
          print ""
       return
    elif(len(ifiles) == 0 and metric is not None):
-      m = verif.metric.get_metric(metric)
+      m = verif.metric.get(metric)
       if(m is not None):
          print m.help()
       else:
-         m = verif.output.get_output(metric)
+         m = verif.output.get(metric)
          if(m is not None):
             print m.help()
       return
@@ -279,10 +278,10 @@ def run(argv):
       show_description(data)
       return
 
-   if(figSize is not None):
-      figSize = figSize.split(',')
-      if(len(figSize) != 2):
-         print "-fs figSize must be in the form: width,height"
+   if(figsize is not None):
+      figsize = figsize.split(',')
+      if(len(figsize) != 2):
+         print "-fs figsize must be in the form: width,height"
          sys.exit(1)
 
    m = None
@@ -307,6 +306,8 @@ def run(argv):
       pl = verif.output.Cond()
    elif(metric == "against"):
       pl = verif.output.Against()
+   elif(metric == "improvement"):
+      pl = verif.output.Improvement()
    elif(metric == "count"):
       pl = verif.output.Count()
    elif(metric == "scatter"):
@@ -346,15 +347,16 @@ def run(argv):
    else:
       # Standard plots
       # Attempt at automating
-      m = verif.metric.get_metric(metric)
+      m = verif.metric.get(metric)
       if(m is None):
-         m = verif.metric.Default(metric)
+         verif.util.error("Unknown plot: %s" % metric)
+         m = verif.metric.Standard(metric)
 
       m.aggregator = verif.aggregator.get(aggregator_name)
 
       # Output type
       if(type in ["plot", "text", "csv", "map", "maprank"]):
-         pl = verif.output.Default(m)
+         pl = verif.output.Standard(m)
          pl.show_acc = doAcc
       else:
          verif.util.error("Type not understood")
@@ -374,14 +376,12 @@ def run(argv):
    # Create thresholds if needed
    if((thresholds is None) and (pl.requires_threshold or
          (m is not None and m.requires_threshold))):
-      data.set_axis("none")
-      obs = data.get_scores(verif.field.Obs)[0]
-      fcst = data.get_scores(verif.field.Deterministic)[0]
-      smin = min(min(obs), min(fcst))
-      smax = max(max(obs), max(fcst))
+      obs = data.get_scores(verif.field.Obs, 0)[0]
+      fcst = data.get_scores(verif.field.Deterministic, 0)[0]
+      smin = min(np.nanmin(obs), np.nanmin(fcst))
+      smax = max(np.nanmax(obs), np.nanmax(fcst))
       thresholds = np.linspace(smin, smax, 10)
-      verif.util.warning("Missing '-r <thresholds>'. Automatically setting\
-            thresholds.")
+      verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
 
    # Set plot parameters
    if(simple is not None):
@@ -443,8 +443,9 @@ def run(argv):
    if(mapType is not None):
       pl.map_type = mapType
    pl.filename = ofile
-   pl.thresholds = thresholds
-   pl.fig_size = figSize
+   if thresholds is not None:
+      pl.thresholds = thresholds
+   pl.figsize = figsize
    pl.dpi = dpi
    if axis is not None:
       pl.axis = axis
@@ -467,6 +468,16 @@ def run(argv):
       pl.plot(data)
 
 
+def get_aggregation_string():
+   aggregators = verif.aggregator.get_all()
+   value = "Aggregation type: "
+   for aggregator in aggregators:
+      if aggregator.name != "quantile":
+         value = "%s'%s', " % (value, aggregator.name)
+   value = value + "or a number between 0 and 1. Some metrics computes a value for each value on the x-axis. Which function should be used to do the collapsing? Default is 'mean'. 'meanabs' is the mean absolute value. Only supported by some metrics. A number between 0 and 1 returns a specific quantile (e.g.  0.5 is the median)"
+   return value
+
+
 def show_description(data=None):
    desc = "Program to compute verification scores for weather forecasts. Can be " \
           "used to compare forecasts from different files. In that case only dates, "\
@@ -480,9 +491,10 @@ def show_description(data=None):
    print verif.util.green("Arguments:")
    print verif.util.format_argument("files", "One or more verification files in NetCDF or text format (see 'File Formats' below).")
    print verif.util.format_argument("-m metric", "Which verification metric to use? See 'Metrics' below.")
-   print verif.util.format_argument("--list-thresholds", "What thresholds are available in the files?")
-   print verif.util.format_argument("--list-quantiles", "What quantiles are available in the files?")
+   print verif.util.format_argument("--list-dates", "What dates are available in the files?")
    print verif.util.format_argument("--list-locations", "What locations are available in the files?")
+   print verif.util.format_argument("--list-quantiles", "What quantiles are available in the files?")
+   print verif.util.format_argument("--list-thresholds", "What thresholds are available in the files?")
    print verif.util.format_argument("--version", "What version of verif is this?")
    print ""
    print verif.util.green("Options:")
@@ -501,10 +513,10 @@ def show_description(data=None):
    # Data manipulation
    print verif.util.green("  Data manipulation:")
    print verif.util.format_argument("-acc", "Plot accumulated values. Only works for non-derived metrics")
+   print verif.util.format_argument("-agg type", get_aggregation_string())
    print verif.util.format_argument("-b type", "One of 'below', 'within', or 'above'. For threshold plots (ets, hit, within, etc) 'below/above' computes frequency below/above the threshold, and 'within' computes the frequency between consecutive thresholds.")
    print verif.util.format_argument("-c file", "File containing climatology data. Subtract all forecasts and obs with climatology values.")
    print verif.util.format_argument("-C file", "File containing climatology data. Divide all forecasts and obs by climatology values.")
-   print verif.util.format_argument("-ct type", "Collapsing type: 'count', 'min', 'mean', 'meanabs', 'median', 'max', 'range', 'std', 'sum', or a number between 0 and 1. Some metrics computes a value for each value on the x-axis. Which function should be used to do the collapsing? Default is 'mean'. 'meanabs' is the mean absolute value. Only supported by some metrics. A number between 0 and 1 returns a specific quantile (e.g.  0.5 is the median)")
    print verif.util.format_argument("-hist", "Plot values as histogram. Only works for non-derived metrics")
    print verif.util.format_argument("-sort", "Plot values sorted. Only works for non-derived metrics")
 
