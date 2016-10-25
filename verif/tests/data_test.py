@@ -29,7 +29,7 @@ class TestData(unittest.TestCase):
       self.assertEqual(3, dates.shape[0])
       # 20120101: Common offsets: 0 and 12, locations 41
       fields = [verif.field.Obs, verif.field.Deterministic]
-      axis = verif.data.axis.Date
+      axis = verif.axis.Date
 
       [obs, fcst] = data.get_scores(fields, 0, axis, 0)
       self.assertEqual(5, fcst[0])  # Offset 0
@@ -41,7 +41,6 @@ class TestData(unittest.TestCase):
       self.assertEqual(1, fcst.shape[0])
       self.assertEqual(6, fcst[0])
       self.assertEqual(1, obs[0])
-      
 
       # 20120101
       [obs, fcst] = data.get_scores(fields, 1, axis, 0)

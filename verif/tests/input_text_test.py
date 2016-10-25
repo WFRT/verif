@@ -1,8 +1,9 @@
 import unittest
-import verif.input
-import verif.location
 import numpy as np
+import verif
+import verif.input
 import verif.data
+import verif.location
 
 
 class MyTest(unittest.TestCase):
@@ -32,27 +33,26 @@ class MyTest(unittest.TestCase):
       self.assertTrue(verif.location.Location(0, 2, 2, 1) in locations)
 
    def test_conflictingLocations(self):
-      data = verif.data.Data(filenames=["verif/tests/fileConflictingInfo.txt"])
+      data = verif.data.Data(inputs=[verif.input.Text("verif/tests/fileConflictingInfo.txt")])
 
-"""
    def test_noId(self):
-      data = verif.data.Data(filenames=["verif/tests/fileNoId.txt"])
+      data = verif.data.Data(inputs=[verif.input.Text("verif/tests/fileNoId.txt")])
 
    def test_noElev(self):
-      data = verif.data.Data(filenames=["verif/tests/fileNoElev.txt"])
-      self.assertEqual(2, len(data.get_locations()))
+      data = verif.data.Data(inputs=[verif.input.Text("verif/tests/fileNoElev.txt")])
+      self.assertEqual(2, len(data.locations))
 
    def test_noLat(self):
-      data = verif.data.Data(filenames=["verif/tests/fileNoLat.txt"])
-      self.assertEqual(2, len(data.get_locations()))
+      data = verif.data.Data(inputs=[verif.input.Text("verif/tests/fileNoLat.txt")])
+      self.assertEqual(2, len(data.locations))
 
    def test_get_scores(self):
       input = verif.input.Text("verif/tests/example.txt")
-      obs = input.get_scores("obs")
-      fcst = input.get_scores("fcst")
+      obs = input.obs
+      fcst = input.deterministic
       self.assertEqual((1, 4, 4), obs.shape)
       self.assertEqual((1, 4, 4), fcst.shape)
-      locations = input.get_locations()
+      locations = input.locations
       I0 = -1
       for i in range(0, len(locations)):
          if(locations[i] == verif.location.Location(0, 1, 1, 1)):
@@ -73,7 +73,6 @@ class MyTest(unittest.TestCase):
       self.assertEqual(11, fcst[0, 0, I1])
       for i in range(1, obs.shape[1]):
          self.assertTrue(np.isnan(obs[0, i, I1]))
-"""
 
 if __name__ == '__main__':
    unittest.main()

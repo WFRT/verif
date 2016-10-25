@@ -38,80 +38,94 @@ class Aggregator(object):
    """
    pass
 
+
 class Mean(Aggregator):
    name = "mean"
+
    def __call__(self, array):
       return np.mean(array)
 
 
 class Median(Aggregator):
    name = "median"
+
    def __call__(self, array):
       return np.median(array)
 
 
 class Min(Aggregator):
    name = "min"
+
    def __call__(self, array):
       return np.min(array)
 
 
 class Max(Aggregator):
    name = "max"
+
    def __call__(self, array):
       return np.max(array)
 
 
 class Std(Aggregator):
    name = "std"
+
    def __call__(self, array):
       return np.std(array)
 
 
 class Variance(Aggregator):
    name = "variance"
+
    def __call__(self, array):
       return np.var(array)
 
 
 class Iqr(Aggregator):
    name = "iqr"
+
    def __call__(self, array):
       return np.percentile(array, 75) - np.percentile(array, 25)
 
 
 class Range(Aggregator):
    name = "range"
+
    def __call__(self, array):
       return verif.util.nprange(array)
 
 
 class Count(Aggregator):
    name = "count"
+
    def __call__(self, array):
       return verif.util.numvalid(array)
 
 
 class Sum(Aggregator):
    name = "sum"
+
    def __call__(self, array):
       return np.sum(array)
 
 
 class Meanabs(Aggregator):
    name = "meanabs"
+
    def __call__(self, array):
       return verif.util.meanabs(array)
 
 
 class Absmean(Aggregator):
    name = "absmean"
+
    def __call__(self, array):
       return np.abs(np.mean(array))
 
 
 class Quantile(Aggregator):
    name = "quantile"
+
    def __init__(self, quantile):
       self.quantile = quantile
       if self.quantile < 0 or self.quantile > 1:

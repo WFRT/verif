@@ -52,10 +52,10 @@ class IntegrationTest(unittest.TestCase):
    def test_README(self):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m ets")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m taylor")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m error")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m reliability -r 0")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithist")
+      # self.run_with_image("verif examples/raw.txt examples/kf.txt -m taylor")
+      # self.run_with_image("verif examples/raw.txt examples/kf.txt -m error")
+      # self.run_with_image("verif examples/raw.txt examples/kf.txt -m reliability -r 0")
+      # self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithist")
 
    def test_option_b(self):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m ets -b below")
@@ -72,15 +72,15 @@ class IntegrationTest(unittest.TestCase):
          self.run_with_image("verif -leg 1 examples/raw.txt examples/kf.txt -m ets")
 
    def test_option_ct(self):
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ct min")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ct mean")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ct median")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ct max")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ct std")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ct range")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg min")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg mean")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg median")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg max")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg std")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg range")
 
-   def test_option_hist(self):
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m obs -hist")
+   # def test_option_hist(self):
+   #    self.run_with_image("verif examples/raw.txt examples/kf.txt -m obs -hist")
 
    def test_invalidMetric(self):
       with self.assertRaises(SystemExit):

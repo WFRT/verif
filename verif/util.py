@@ -176,7 +176,7 @@ def clean(data):
    q = copy.deepcopy(data)
    # Remove missing values. Convert to -999 and then back to nan to avoid
    # warning messages when doing <, >, and == comparisons with nan.
-   #q[np.isnan(q)] = -999
+   q[np.isnan(q)] = -999
    q[(q == -999) | (q < -1000000) | (q > 1e30)] = np.nan
    return q
 

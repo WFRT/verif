@@ -407,7 +407,7 @@ class Output(object):
          if(self._xlim is not None):
             xlim = self._xlim
             # Convert date to datetime objects
-            if(verif.axis.is_date_like()):
+            if(self.axis.is_date_like):
                xlim = verif.util.convert_dates(xlim)
             mpl.xlim(xlim)
          if(self._ylim is not None):
@@ -601,8 +601,8 @@ class Standard(Output):
          for f in range(0, F):
             # colors and styles to follow labels
             color = self._get_color(ids[f], F)
-            style = self._get_style(ids[f], F, verif.axis.is_continuous(self.axis))
-            alpha = (1 if(verif.axis.is_continuous(self.axis)) else 0.55)
+            style = self._get_style(ids[f], F, self.axis.is_continuous)
+            alpha = (1 if(self.axis.is_continuous) else 0.55)
             mpl.plot(x[ids[f]], y[ids[f]], style, color=color,
                   label=labels[f], lw=self.lw, ms=self.ms,
                   alpha=alpha)
@@ -621,10 +621,10 @@ class Standard(Output):
          mpl.xlabel(data.get_axis_label(self.axis))
          mpl.ylabel(self._metric.label(data))
 
-         if(verif.axis.is_date_like(self.axis)):
+         if(self.axis.is_date_like):
             mpl.gca().xaxis_date()
          else:
-            mpl.gca().xaxis.set_major_formatter(verif.axis.get_formatter(self.axis))
+            mpl.gca().xaxis.set_major_formatter(self.axis.formatter)
             # NOTE: Don't call the locator on a date axis
             mpl.gca().xaxis.set_major_locator(data.get_axis_locator(self.axis))
          perfect_score = self._metric.perfect_score
@@ -1076,7 +1076,7 @@ class ObsFcst(Output):
       F = data.num_inputs
       x = data.get_axis_values(self.axis)
 
-      isCont = verif.axis.is_continuous(self.axis)
+      isCont = self.axis.is_continuous
 
       # Obs line
       mObs = verif.metric.Standard(verif.field.Obs, aux=verif.field.Deterministic)
@@ -1097,10 +1097,10 @@ class ObsFcst(Output):
       mpl.ylabel(data.get_variable_and_units())
       mpl.xlabel(data.get_axis_label(self.axis))
       mpl.grid()
-      if(verif.axis.is_date_like(self.axis)):
+      if(self.axis.is_date_like):
          mpl.gca().xaxis_date()
       else:
-         mpl.gca().xaxis.set_major_formatter(verif.axis.get_formatter(self.axis))
+         mpl.gca().xaxis.set_major_formatter(self.axis.formatter)
 
 
 class QQ(Output):
@@ -1516,7 +1516,7 @@ class TimeSeries(Output):
       else:
          mpl.ylabel(self._ylabel)
       mpl.grid()
-      mpl.gca().xaxis.set_major_formatter(verif.axis.get_formatter(verif.axis.Date))
+      mpl.gca().xaxis.set_major_formatter(verif.axis.Date.formatter)
 
       if(self._tight):
          oldTicks = mpl.gca().get_xticks()
@@ -2884,8 +2884,8 @@ class Improvement(Output):
       num = np.zeros([len(XX)], float)
 
       for e in range(0, len(XX)):
-         I = np.where((x > XX[e]-w) &  (x <= XX[e]+w) &
-                      (y > YY[e]-w) &  (y <= YY[e]+w))[0]
+         I = np.where((x > XX[e] - w) & (x <= XX[e] + w) &
+                      (y > YY[e] - w) & (y <= YY[e] + w))[0]
          if len(I) > 0:
             contrib[e] = np.nansum(error_x[I] - error_y[I])
             num[e] = len(I)
@@ -2898,8 +2898,8 @@ class Improvement(Output):
             color="blue", label="%s is better" % labels[1])
       if self._showNumbers:
          Snum = 400/np.max(num**2)
-         mpl.scatter(XX, YY, s=abs(num**2)*Snum, edgecolor="k",
-               color=[1,1,1,0], lw=1, zorder=100)
+         mpl.scatter(XX, YY, s=abs(num**2) * Snum, edgecolor="k",
+               color=[1, 1, 1, 0], lw=1, zorder=100)
 
       mpl.grid()
       xlim = mpl.xlim()
@@ -2912,7 +2912,7 @@ class Improvement(Output):
       mpl.ylabel("%s (%s)" % (labels[1], units), color="b")
 
       # Draw diagonal
-      mpl.plot([lower,upper], [lower,upper], "grey", lw=7, zorder=-10)
+      mpl.plot([lower, upper], [lower, upper], "grey", lw=7, zorder=-10)
       mpl.gca().set_aspect(1)
 
    def _legend(self, data, names=None):

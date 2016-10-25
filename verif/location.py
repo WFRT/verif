@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Location(object):
    def __init__(self, id, lat, lon, elev):
       self.id = id

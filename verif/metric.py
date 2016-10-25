@@ -1117,7 +1117,7 @@ class Contingency(Metric):
 
    def compute_from_obs_fcst_resample(self, obs, fcst, othreshold, fthresholds, N):
       """
-      Same as compute_from_obs_fcst_fast, except compute more robust scores by 
+      Same as compute_from_obs_fcst_fast, except compute more robust scores by
       resampling (with replacement) using the computed values of a, b, c, d.
       Resample N times (resamples only if N > 1).
       """

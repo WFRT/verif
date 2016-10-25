@@ -8,8 +8,8 @@ except:
 import verif.location
 import verif.util
 import verif.variable
-import verif.input
 import verif.field
+
 
 def get_input(filename):
    if(not os.path.exists(filename)):
@@ -29,7 +29,7 @@ class Input(object):
    """ Base class representing verification data
 
    Stores observation and forecast data
-   
+
    Class attributes:
    description (str): A description of the parser
 
@@ -50,7 +50,6 @@ class Input(object):
    ensemble:      A 4D numpy array with dims (date,offset,location,member)
    threshold_scores (cdf?): A 4D numpy array with dims (date,offset,location, threshold)
    quantile_scores: A 4D numpy array with dims (date,offset,location, quantile)
-   
    """
    description = None  # Overwrite this
 
@@ -58,9 +57,6 @@ class Input(object):
       variables = [verif.field.Obs, verif.field.Deterministic]
       thresholds = [verif.field.Threshold(threshold) for threshold in self.thresholds]
       quantiles = [verif.field.Quantiles(quantile) for quantile in self.quantiles]
-      #variables = ["obs", "fcst"]
-      #thresholds = ["p%g" % threshold for threshold in self.thresholds]
-      #quantiles = ["q%g" % quantiles for quantile in self.quantiles]
       return variables + thresholds + quantiles
 
    @property
@@ -135,7 +131,7 @@ class Comps(Input):
          if values is None:
             shape = [i for i in temp.shape] + [Nt]
             values = np.zeros(shape, float)
-         values[:,:,:,t] = temp
+         values[:, :, :, t] = temp
 
       return values
 
@@ -152,7 +148,7 @@ class Comps(Input):
          if values is None:
             shape = [i for i in temp.shape] + [Nq]
             values = np.zeros(shape, float)
-         values[:,:,:,q] = temp
+         values[:, :, :, q] = temp
 
       return values
 

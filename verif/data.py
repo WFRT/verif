@@ -9,6 +9,7 @@ import matplotlib.ticker
 import verif.field
 import verif.util
 
+
 class Data(object):
    """ Organizes data from several inputs
 
@@ -24,8 +25,8 @@ class Data(object):
    quantiles      A numpy array of available quantiles
    num_inputs     The number of inputs in the dataset
    variable       The variable
-   months      
-   years       
+   months         Available months (derived from dates)
+   years          Available years (derived from dates)
    """
    def __init__(self, inputs, dates=None, offsets=None, locations=None,
          lat_range=None, lon_range=None, elev_range=None, clim=None, clim_type="subtract",
@@ -44,7 +45,7 @@ class Data(object):
       clim_type      Operation to apply with climatology. Either 'subtract', or
                      'divide'
       """
-   
+
       if(not isinstance(inputs, list)):
          inputs = [inputs]
       self._remove_missing_across_all = remove_missing_across_all
@@ -149,7 +150,7 @@ class Data(object):
 
       Climatology is handled by subtracting clim's deterministic field from any
       obs or determinsitic fields.
-      
+
       Arguments:
       fields         A list of verif.field to retrieve
       input_index    Which input to pull from? Must be between 0 and num_inputs
@@ -194,15 +195,15 @@ class Data(object):
             clim = temp[I, :, :].flatten()
          elif(axis == verif.axis.Offset):
             clim = temp[:, axis_index, :].flatten()
-         elif(verif.axis.is_location_like(axis)):
+         elif(axis.is_location_like):
             clim = temp[:, :, axis_index].flatten()
          elif(axis == verif.axis.No or axis == verif.axis.Threshold):
             clim = temp.flatten()
-         elif(axis == verif.axis.All or axis == None):
+         elif(axis == verif.axis.All or axis is None):
             clim = temp
       else:
          clim = 0
-      
+
       # Load scores and flatten along the correct dimension
       for i in range(0, len(fields)):
          field = fields[i]
@@ -226,7 +227,7 @@ class Data(object):
             curr = temp[I, :, :].flatten()
          elif(axis == verif.axis.Offset):
             curr = temp[:, axis_index, :].flatten()
-         elif(verif.axis.is_location_like(axis)):
+         elif(axis.is_location_like):
             curr = temp[:, :, axis_index].flatten()
          elif(axis == verif.axis.No or axis == verif.axis.Threshold):
             curr = temp.flatten()
@@ -273,13 +274,13 @@ class Data(object):
          return verif.util.convert_dates(self.dates)
       elif(axis == verif.axis.Month):
          return verif.util.convert_dates(self.months)
-      elif(axis ==verif.axis.Year):
+      elif(axis == verif.axis.Year):
          return verif.util.convert_dates(self.years)
-      elif(axis ==verif.axis.Offset):
+      elif(axis == verif.axis.Offset):
          return self.offsets
       elif(axis == verif.axis.No):
          return [0]
-      elif(verif.axis.is_location_like(axis)):
+      elif(axis.is_location_like):
          if(axis == verif.axis.Location):
             data = range(0, len(self.locations))
          elif(axis == verif.axis.LocationId):
@@ -374,7 +375,7 @@ class Data(object):
       return np.array([loc.id for loc in self.locations], int)
 
    def get_axis_descriptions(self, axis, csv=False):
-      if verif.axis.is_location_like(axis):
+      if axis.is_location_like:
          descs = list()
          ids = self._get_score("Location")
          lats = self._get_score("Lat")
@@ -388,7 +389,7 @@ class Data(object):
             string = fmt % (ids[i], lats[i], lons[i], elevs[i])
             descs.append(string)
          return descs
-      if(verif.axis.is_date_like(axis)):
+      if(axis.is_date_like):
          values = self.get_axis_values(axis)
          values = num2date(values)
          dates = list()
@@ -399,7 +400,7 @@ class Data(object):
          return self.get_axis_values(axis)
 
    def get_axis_description_header(self, axis, csv=False):
-      if verif.axis.is_location_like(axis):
+      if axis.is_location_like:
          if csv:
             fmt = "%s,%s,%s,%s"
          else:
@@ -410,7 +411,7 @@ class Data(object):
 
    def _get_score(self, field, input_index):
       """ Load the field variable from input, but only include the common data
-      
+
       Scores loaded will have the same dimension, regardless what input_index
       is used.
 
@@ -435,15 +436,15 @@ class Data(object):
             elif field is verif.field.Deterministic:
                temp = input.deterministic
             elif field is verif.field.Ensemble:
-               temp = input.ensemble[:,:,:,field.member]
+               temp = input.ensemble[:, :, :, field.member]
             elif field.__class__ is verif.field.Threshold:
                I = np.where(input.thresholds == field.threshold)[0]
                assert(len(I) == 1)
-               temp = input.threshold_scores[:,:,:,I]
+               temp = input.threshold_scores[:, :, :, I]
             elif field.__class__ is verif.field.Quantile:
                I = np.where(input.quantiles == field.quantile)[0]
                assert(len(I) == 1)
-               temp = input.quantile_scores[:,:,:,I]
+               temp = input.quantile_scores[:, :, :, I]
             else:
                verif.util.error("Not implemented")
             Idates = self._get_date_indices(i)

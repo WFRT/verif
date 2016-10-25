@@ -48,13 +48,5 @@ class MyTest(unittest.TestCase):
       self.assertEqual(None, verif.input.Comps._verif_to_comps_quantile(-1))
       self.assertEqual(None, verif.input.Comps._verif_to_comps_quantile(2))
 
-   def test_thresholds(self):
-      input = verif.input.Comps("/home/thomasn/repos/mettrain/data/precip/arome1_36_201501_insample_median.nc")
-      print input.thresholds
-      print input.quantiles
-      print input.dates
-      print input.offsets
-      print input.locations
-
 if __name__ == '__main__':
    unittest.main()
