@@ -316,3 +316,16 @@ def distance(lat1, lon1, lat2, lon2):
    c = 2 * np.arcsin(np.sqrt(a))
    distance = 6.367e6 * c
    return distance
+
+
+def within(x, range):
+   """ Is x within the range?
+   
+   x        A numeric value
+   range    A tuple with lower and upper values
+   """
+   # TODO: Which is correct?
+   # The second is best for precip, when doing Brier score -r 0
+   # return (x >= range[0]) & (x < range[1])
+   return (x > range[0]) & (x <= range[1])
+

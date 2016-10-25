@@ -350,7 +350,6 @@ def run(argv):
       m = verif.metric.get(metric)
       if(m is None):
          verif.util.error("Unknown plot: %s" % metric)
-         m = verif.metric.Standard(metric)
 
       m.aggregator = verif.aggregator.get(aggregator_name)
 
