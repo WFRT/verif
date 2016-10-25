@@ -3,6 +3,11 @@ import verif.data
 import numpy as np
 
 
+def get_data_from_text(filename):
+   data = verif.data.Data(verif.input.Text(filename))
+   return data
+
+
 class TestData(unittest.TestCase):
    def test_doesnotexist(self):
       with self.assertRaises(SystemExit):
@@ -53,6 +58,18 @@ class TestData(unittest.TestCase):
       self.assertEqual(1, fcst.shape[0])
       self.assertEqual(5, fcst[0])
       self.assertEqual(1, obs[0])
+
+   def test_latrange(self):
+      inputs = [verif.input.Text("verif/tests/file1.txt"), verif.input.Text("verif/tests/file3.txt")]
+      data = verif.data.Data(inputs, lat_range=[44, 60]) # Only 1 common station within the range
+      self.assertEqual(1, len(data.locations))
+      self.assertEqual(50, data.locations[0].lat)
+      self.assertEqual(10, data.locations[0].lon)
+      data = verif.data.Data(inputs, lat_range=[40, 60])
+      self.assertEqual(2, len(data.locations))
+      with self.assertRaises(SystemExit):
+         data = verif.data.Data(inputs, lat_range=[55, 60])
+         
 
 if __name__ == '__main__':
    unittest.main()
