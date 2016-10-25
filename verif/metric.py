@@ -3,6 +3,7 @@ import verif.util
 import sys
 import inspect
 import verif.axis
+import verif.aggregator
 
 
 def get_all():
@@ -49,9 +50,8 @@ class Metric(object):
    supports_threshold = False  # Does this metric support thresholds?
    experimental = False  # Is this metric not fully tested yet?
    perfect_score = None
-   _aggregator = np.mean
-   _aggregator_name = "mean"
-   supports_aggregator = False  # Does this metric use self._aggregator?
+   aggregator = verif.aggregator.Mean
+   supports_aggregator = False  # Does this metric use self.aggregator?
    orientation = 0
    # Information about metric. The y-axis label is controlled by self.label()
    # Also, self.name() is the name of the metric
@@ -127,37 +127,6 @@ class Metric(object):
          extra = extra + " " + "Perfect score " + str(cls.perfect_score) + "."
       return desc + "." + extra
 
-   def set_aggregator(self, name):
-      self._aggregator_name = name
-      if(name == "mean"):
-         self._aggregator = np.mean
-      elif(name == "median"):
-         self._aggregator = np.median
-      elif(name == "min"):
-         self._aggregator = np.min
-      elif(name == "max"):
-         self._aggregator = np.max
-      elif(name == "std"):
-         self._aggregator = np.std
-      elif(name == "range"):
-         self._aggregator = verif.util.nprange
-      elif(name == "count"):
-         self._aggregator = verif.util.numvalid
-      elif(name == "sum"):
-         self._aggregator = np.sum
-      elif(name == "meanabs"):
-         self._aggregator = verif.util.meanabs
-      elif(verif.util.is_number(name)):
-         quantile = float(name)
-         if quantile < 0 or quantile > 1:
-            verif.util.error("Number after -ct must must be between 0 and 1")
-
-         def func(x):
-            return np.percentile(x, quantile*100)
-         self._aggregator = func
-      else:
-         verif.util.error("Invalid aggregator")
-
    @classmethod
    def get_class_name(cls):
       name = cls.__name__
@@ -232,10 +201,10 @@ class Default(Metric):
                axis, axis_index)
       else:
          values = data.get_scores(self._name, input_index, axis, axis_index)
-      return self._aggregator(values)
+      return self.aggregator(values)
 
    def name(self):
-      return self._aggregator_name.title() + " of " + self._name
+      return self.aggregator.name.title() + " of " + self._name
 
 
 class Mean(Metric):
@@ -258,10 +227,10 @@ class Obs(Metric):
 
    def compute_core(self, data, input_index, axis, axis_index, tRange):
       obs = data.get_scores(verif.field.Obs, input_index, axis, axis_index)[0]
-      return self._aggregator(obs)
+      return self.aggregator(obs)
 
    def name(self):
-      return self._aggregator_name.title() + " of observation"
+      return self.aggregator.name.title() + " of observation"
 
 
 class Fcst(Metric):
@@ -274,7 +243,7 @@ class Fcst(Metric):
       return self.aggregator(fcst)
 
    def name(self):
-      return self.aggregator_name.title() + " of forecast"
+      return self.aggregator.name.title() + " of forecast"
 
 
 class Mae(Deterministic):

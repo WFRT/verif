@@ -350,7 +350,7 @@ def run(argv):
       if(m is None):
          m = verif.metric.Default(metric)
 
-      m.set_aggregator(aggregator_name)
+      m.aggregator = verif.aggregator.get(aggregator_name)
 
       # Output type
       if(type in ["plot", "text", "csv", "map", "maprank"]):
@@ -448,7 +448,7 @@ def run(argv):
    pl.dpi = dpi
    if axis is not None:
       pl.axis = axis
-   pl.aggregator_name = aggregator_name
+   pl.aggregator = verif.aggregator.get(aggregator_name)
    pl.show_margin = not noMargin
    pl.ylabel(ylabel)
    pl.xlabel(xlabel)

@@ -98,7 +98,7 @@ class Output(object):
       self.dpi = 100
       self.tight = False
       self.simple = False
-      self.aggregator_name = None
+      self.aggregator = None
       # Matplotlib style properties
       self._cmap = mpl.cm.jet
       self._xlim = None
@@ -1100,12 +1100,12 @@ class ObsFcst(Output):
 
       # Obs line
       mObs = verif.metric.Default(verif.field.Obs, aux=verif.field.Deterministic)
-      mObs.set_aggregator(self.aggregator_name)
+      mObs.aggregator = self.aggregator
       y = mObs.compute(data, 0, self.axis, None)
       self._plot_obs(x, y, isCont)
 
       mFcst = verif.metric.Default(verif.field.Deterministic, aux=verif.field.Obs)
-      mFcst.set_aggregator(self.aggregator_name)
+      mFcst.aggregator = self.aggregator
       labels = data.get_legend()
       for f in range(0, F):
          color = self._get_color(f, F)
