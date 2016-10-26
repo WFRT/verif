@@ -1,6 +1,27 @@
+import sys
+import inspect
 import matplotlib.ticker
 import matplotlib.dates
 import verif.util
+
+
+def get_all():
+   """
+   Returns a dictionary of all axis classes where the key is the class
+   name (string) and the value is the class object
+   """
+   temp = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+   return temp
+
+
+def get(name):
+   """ Returns an instance of an object with the given class name """
+   axes = get_all()
+   a = None
+   for axis in axes:
+      if name == axis[0].lower():
+         a = axis[1]
+   return a
 
 
 class Axis(object):

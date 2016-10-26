@@ -124,7 +124,7 @@ def run(argv):
                elev_range = verif.util.parse_numbers(argv[i + 1])
             elif(arg == "-x"):
                axisname = argv[i + 1]
-               axis = verif.axis.get_axis(axisname)
+               axis = verif.axis.get(axisname)
             elif(arg == "-o"):
                offsets = verif.util.parse_numbers(argv[i + 1])
             elif(arg == "-leg"):
