@@ -244,19 +244,21 @@ class Data(object):
                curr = curr / clim
 
          # Remove missing values
-         if axis is not verif.axis.All:
-            currValid = (np.isnan(curr) == 0)\
-                      & (np.isinf(curr) == 0)
-            if(valid is None):
-               valid = currValid
-            else:
-               valid = (valid & currValid)
-
+         currValid = (np.isnan(curr) == 0) & (np.isinf(curr) == 0)
+         if(valid is None):
+            valid = currValid
+         else:
+            valid = (valid & currValid)
          scores.append(curr)
+
       if axis is not verif.axis.All:
          I = np.where(valid)
          for i in range(0, len(fields)):
             scores[i] = scores[i][I]
+      else:
+         for i in range(0, len(fields)):
+            I = np.unravel_index(np.where(valid == 0)[0], valid.shape)
+            scores[i][valid == 0] = np.nan
 
       # No valid data. Therefore return a list of nans instead of an empty list
       if(scores[0].shape[0] == 0):
