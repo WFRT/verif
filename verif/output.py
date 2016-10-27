@@ -2922,3 +2922,63 @@ class Impact(Output):
             mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
          else:
             mpl.legend(names, loc=self.leg_loc, prop={'size': self.legfs})
+
+
+class RainWindow(Output):
+   description = "Shows observed and forecasted rain windows"
+   default_axis = verif.axis.No
+   supports_threshold = False
+   requires_threshold = False
+   supports_x = False
+
+   def _plot_core(self, data):
+      F = data.num_inputs
+
+      labels = data.get_legend()
+      edges = data.offsets
+      edges = np.insert(edges, 0,0)
+      x = (edges[1:] + edges[0:-1]) / 2
+      threshold = 0.1
+
+      for f in range(0, F):
+         y = np.zeros(len(x))
+         [obs,fcst] = data.get_scores([verif.field.Obs,
+            verif.field.Deterministic], f, verif.axis.All)
+         obs_window = np.zeros([obs.shape[0], obs.shape[2]])
+         fcst_window = np.zeros([obs.shape[0], obs.shape[2]])
+         obs_y = np.zeros(len(x))
+         fcst_y = np.zeros(len(x))
+         # Compute how many dry hours
+         for d in range(0, obs.shape[0]):
+            for l in range(0, obs.shape[2]):
+               # Total number of offsets with no rain
+               # obs_window[d, l] = np.sum(obs[d, :, l] < threshold)
+               # fcst_window[d, l] = np.sum(fcst[d, :, l] < threshold)
+               # Current window
+               I_obs = np.where(np.cumsum(obs[d, :, l]) < threshold)[0]
+               I_fcst = np.where(np.cumsum(fcst[d, :, l]) < threshold)[0]
+               if len(I_obs) > 0:
+                  obs_window[d, l] = data.offsets[I_obs[-1]]
+               if len(I_fcst) > 0:
+                  fcst_window[d, l] = data.offsets[I_fcst[-1]]
+         for i in range(0, len(x)):
+            # Climatology
+            if 0:
+               obs_y[i] = np.mean((obs_window >= edges[i]) & (obs_window <= edges[i + 1]))
+               fcst_y[i] = np.mean((fcst_window >= edges[i]) & (fcst_window <= edges[i + 1]))
+            elif 1:
+               # Conditioned on obs
+               I = np.where((obs_window.flatten() >= edges[i]) &
+                     (obs_window.flatten() <= edges[i+1]))[0]
+               fcst_y[i] = np.mean(fcst_window.flatten()[I])
+               # Conditioned on fcst
+               I = np.where((fcst_window.flatten() >= edges[i]) &
+                     (fcst_window.flatten() <= edges[i+1]))[0]
+               obs_y[i] = np.mean(obs_window.flatten()[I])
+         color = self._get_color(f, F)
+         style = self._get_style(f, F)
+         mpl.plot(x, obs_y, style, color=color, label=labels[f])
+      self._plot_diagnoal()
+      mpl.xlabel("Forecasted rain window (hours)")
+      mpl.ylabel("Observed rain window (hours)")
+      mpl.grid()
