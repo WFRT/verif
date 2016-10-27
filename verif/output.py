@@ -250,20 +250,21 @@ class Output(object):
       # self._legend(data)
       self._save_plot(data)
 
-   def _plot_perfect_score(self, x, perfect, color="gray", zorder=-1000):
+   def _plot_perfect_score(self, x, perfect, label="ideal", color="gray", zorder=-1000, always_show=0):
       if(perfect is None):
          return
-      if(self.show_perfect):
+      if(self.show_perfect or always_show):
          # Make 'perfect' same length as 'x'
          if(not hasattr(perfect, "__len__")):
             perfect = perfect * np.ones(len(x), 'float')
-         mpl.plot(x, perfect, '-', lw=7, color=color, label="ideal",
+         mpl.plot(x, perfect, '-', lw=5, color=color, label=label,
                zorder=zorder)
 
-   def _plot_diagnoal(self, color="gray", zorder=-1000):
+   def _plot_diagnoal(self, label="ideal", color="gray", zorder=-1000):
       axismin = min(min(mpl.ylim()), min(mpl.xlim()))
       axismax = max(max(mpl.ylim()), max(mpl.xlim()))
-      mpl.plot([axismin,axismax],  [axismin,axismax], '-', lw=7, color=color, label="ideal", zorder=zorder)
+      self._plot_perfect_score([axismin,axismax],  [axismin,axismax],
+            label=label, color=color, zorder=zorder, always_show=1)
 
    # Implement these methods
    def _plot_core(self, data):
