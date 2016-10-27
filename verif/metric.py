@@ -190,6 +190,24 @@ class Deterministic(Metric):
        """
       raise NotImplementedError()
 
+class Standard(Metric):
+   # aux: When reading the score, also pull values for 'aux' to ensure
+   # only common data points are returned
+   def __init__(self, name, aux=None):
+      self._name = name
+      self._aux = aux
+
+   def compute_core(self, data, input_index, axis, axis_index, tRange):
+      if(self._aux is not None):
+         [values, aux] = data.get_scores([self._name, self._aux], input_index,
+               axis, axis_index)
+      else:
+         values = data.get_scores(self._name, input_index, axis, axis_index)
+      return self.aggregator(values)
+
+   def name(self):
+      return self.aggregator.name.title() + " of " + self._name
+
 
 # Note: This cannot be a subclass of Deterministic, since we don't want
 # to remove obs for which the forecasts are missing. Same for Fcst.
@@ -691,7 +709,7 @@ class Conditional(Metric):
       self._func = func
 
    def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      [obs, fcst] = data.get_scores([self._x, self._y])
+      [obs, fcst] = data.get_scores([self._x, self._y], input_index, axis, axis_index)
       I = np.where(verif.util.within(obs, threshold_range))[0]
       if(len(I) == 0):
          return np.nan

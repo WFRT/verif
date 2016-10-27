@@ -260,6 +260,11 @@ class Output(object):
          mpl.plot(x, perfect, '-', lw=7, color=color, label="ideal",
                zorder=zorder)
 
+   def _plot_diagnoal(self, color="gray", zorder=-1000):
+      axismin = min(min(mpl.ylim()), min(mpl.xlim()))
+      axismax = max(max(mpl.ylim()), max(mpl.xlim()))
+      mpl.plot([axismin,axismax],  [axismin,axismax], '-', lw=7, color=color, label="ideal", zorder=zorder)
+
    # Implement these methods
    def _plot_core(self, data):
       verif.util.error("This type does not plot")
@@ -1182,7 +1187,7 @@ class Scatter(Output):
          color = self._get_color(f, F)
          style = self._get_style(f, F, connectingLine=False)
 
-         [x, y] = data.get_scores([verif.field.Obs, verif.field.Deterministic], f)
+         [x, y] = data.get_scores([verif.field.Obs, verif.field.Deterministic], f, verif.axis.No, 0)
          alpha = 0.2
          if self.simple:
             alpha = 1
@@ -1327,8 +1332,6 @@ class Cond(Output):
       return True
 
    def _plot_core(self, data):
-      data.set_axis("none")
-      data.set_index(0)
       [lowerT, upperT, x] = self._get_threshold_limits(self.thresholds)
 
       labels = data.get_legend()
@@ -1336,22 +1339,21 @@ class Cond(Output):
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
-         data.set_file_index(f)
 
          of = np.zeros(len(x), 'float')
          fo = np.zeros(len(x), 'float')
          xof = np.zeros(len(x), 'float')
          xfo = np.zeros(len(x), 'float')
-         mof = verif.metric.Conditional("obs", "fcst", np.mean)  # F | O
-         mfo = verif.metric.Conditional("fcst", "obs", np.mean)  # O | F
-         xmof = verif.metric.XConditional("obs", "fcst")  # F | O
-         xmfo = verif.metric.XConditional("fcst", "obs")  # O | F
-         mof0 = verif.metric.Conditional("obs", "fcst", np.mean)  # F | O
+         mof = verif.metric.Conditional(verif.field.Obs,verif.field.Deterministic, np.mean)  # F | O
+         mfo = verif.metric.Conditional(verif.field.Deterministic,verif.field.Obs, np.mean)  # O | F
+         xmof = verif.metric.XConditional(verif.field.Obs,verif.field.Deterministic)  # F | O
+         xmfo = verif.metric.XConditional(verif.field.Deterministic,verif.field.Obs)  # O | F
+         mof0 = verif.metric.Conditional(verif.field.Obs,verif.field.Deterministic, np.mean)  # F | O
          for i in range(0, len(lowerT)):
-            fo[i] = mfo.compute(data, [lowerT[i], upperT[i]])
-            of[i] = mof.compute(data, [lowerT[i], upperT[i]])
-            xfo[i] = xmfo.compute(data, [lowerT[i], upperT[i]])
-            xof[i] = xmof.compute(data, [lowerT[i], upperT[i]])
+            fo[i] = mfo.compute(data, f, verif.axis.No, [lowerT[i], upperT[i]])
+            of[i] = mof.compute(data, f, verif.axis.No, [lowerT[i], upperT[i]])
+            xfo[i] = xmfo.compute(data, f, verif.axis.No, [lowerT[i], upperT[i]])
+            xof[i] = xmof.compute(data, f, verif.axis.No, [lowerT[i], upperT[i]])
          mpl.plot(xof, of, style, color=color, label=labels[f] + " (F|O)",
                lw=self.lw, ms=self.ms)
          mpl.plot(fo, xfo, style, color=color, label=labels[f] + " (O|F)",
@@ -1462,19 +1464,17 @@ class TimeSeries(Output):
 
    def _plot_core(self, data):
       F = data.num_inputs
-      data.set_axis("all")
-      dates = data.get_axis_values("date")
-      offsets = data.get_axis_values("offset")
 
       # Connect the last offset of a day with the first offset on the next day
       # This only makes sense if the obs/fcst don't span more than a day
-      connect = min(offsets) + 24 > max(offsets)
-      minOffset = min(offsets)
+      connect = min(data.offsets) + 24 > max(data.offsets)
+      minOffset = min(data.offsets)
 
-      obs = data.get_scores("obs")[0]
+      obs = data.get_scores(verif.field.Obs, 0)[0]
       for d in range(0, obs.shape[0]):
          # Obs line
-         x = dates[d] + offsets / 24.0
+         dates = data.get_axis_values(verif.axis.Date)
+         x = dates[d] + data.offsets / 24.0
          y = verif.util.nanmean(obs[d, :, :], axis=1)
          if(connect and d < obs.shape[0] - 1):
             obsmean = verif.util.nanmean(obs[d + 1, 0, :], axis=0)
@@ -1494,12 +1494,11 @@ class TimeSeries(Output):
          # Forecast lines
          labels = data.get_legend()
          for f in range(0, F):
-            data.set_file_index(f)
             color = self._get_color(f, F)
             style = self._get_style(f, F)
 
-            fcst = data.get_scores("fcst")[0]
-            x = dates[d] + offsets / 24.0
+            fcst = data.get_scores(verif.field.Deterministic, f)[0]
+            x = dates[d] + data.offsets / 24.0
             y = verif.util.nanmean(fcst[d, :, :], axis=1)
             if(connect and d < obs.shape[0] - 1):
                x = np.insert(x, x.shape[0], dates[d + 1] + minOffset / 24.0)
@@ -1516,9 +1515,10 @@ class TimeSeries(Output):
       else:
          mpl.ylabel(self._ylabel)
       mpl.grid()
-      mpl.gca().xaxis.set_major_formatter(verif.axis.Date.formatter)
+      #mpl.gca().xaxis.set_major_formatter(verif.axis.Date.formatter)
+      mpl.gca().xaxis_date()
 
-      if(self._tight):
+      if(self.tight):
          oldTicks = mpl.gca().get_xticks()
          diff = oldTicks[1] - oldTicks[0]  # keep auto tick interval
          tickRange = np.arange(round(xmin), round(xmax) + diff, diff)
@@ -2268,7 +2268,7 @@ class Against(Output):
    description = "Plots the forecasts for each pair of configurations against each other. "\
    "Colours indicate which configuration had the best forecast (but only if the difference is "\
    "more than 10% of the standard deviation of the observation)."
-   default_axis = "none"
+   default_axis = verif.axis.No
    supports_threshold = False
    supports_x = False
    # How big difference should colour kick in (in number of STDs)?
@@ -2566,7 +2566,7 @@ class Error(Output):
    description = "Decomposition of RMSE into systematic and unsystematic components"
    supports_threshold = False
    supports_x = True
-   default_axis = "none"
+   default_axis = verif.axis.No
 
    def _plot_core(self, data):
       data.set_axis(self.axis)
@@ -2838,11 +2838,11 @@ class InvReliability(Output):
       mpl.title("Quantile: " + str(quantile * 100) + "%")
 
 
-class Improvement(Output):
+class Impact(Output):
    description = ""\
    "Colours indicate which configuration had the best forecast (but only if the difference is "\
    "more than 10% of the standard deviation of the observation)."
-   default_axis = "none"
+   default_axis = verif.axis.No
    supports_threshold = False
    requires_threshold = True
    supports_x = False

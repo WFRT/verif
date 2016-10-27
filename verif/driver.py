@@ -7,7 +7,6 @@ import verif.metric
 import verif.output
 import verif.util
 import verif.version
-import matplotlib.pyplot as mpl
 import textwrap
 import numpy as np
 
@@ -306,8 +305,10 @@ def run(argv):
       pl = verif.output.Cond()
    elif(metric == "against"):
       pl = verif.output.Against()
-   elif(metric == "improvement"):
-      pl = verif.output.Improvement()
+   elif(metric == "impact"):
+      pl = verif.output.Impact()
+   elif(metric == "rainwindow"):
+      pl = verif.output.RainWindow()
    elif(metric == "count"):
       pl = verif.output.Count()
    elif(metric == "scatter"):

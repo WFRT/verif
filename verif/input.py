@@ -12,7 +12,7 @@ import verif.field
 
 
 def get_input(filename):
-   if(not os.path.exists(filename)):
+   if not os.path.isfile(filename):
       verif.util.error("File '" + filename + "' does not exist")
    if(verif.input.NetcdfCf.is_valid(filename)):
       input = verif.input.NetcdfCf(filename)
@@ -561,7 +561,7 @@ class Text(Input):
 
    @staticmethod
    def is_valid(filename):
-      return True
+      return os.path.isfile(filename)
 
    def _get_variable(self):
       return verif.variable.Variable(self._variable, self._units)

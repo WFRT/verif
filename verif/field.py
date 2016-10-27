@@ -46,3 +46,16 @@ class Threshold(Field):
 
 class Spread(Field):
    pass
+
+
+class Other(Field):
+   def __init__(self, name):
+      self._name = name
+
+   def name(self):
+      return "Other(%s)" % self._name
+
+   def __eq__(self, other):
+      if self.__class__ != other.__class__:
+         return False
+      return self._name == other._name

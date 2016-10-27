@@ -57,36 +57,36 @@ class Offset(Axis):
 
 
 class Location(Axis):
-   is_continous = False
+   is_continuous = False
    is_location_like = True
 
 
 class Lat(Axis):
-   is_continous = False
+   is_continuous = False
    is_location_like = True
 
 
 class Lon(Axis):
-   is_continous = False
+   is_continuous = False
    is_location_like = True
 
 
 class Elev(Axis):
-   is_continous = False
+   is_continuous = False
    is_location_like = True
 
 
 class LocationId(Axis):
-   is_continous = False
+   is_continuous = False
    is_location_like = True
 
 
 class All(Axis):
-   is_continous = False
+   is_continuous = False
 
 
 class No(Axis):
-   is_continous = False
+   is_continuous = False
 
 
 class Week(Axis):

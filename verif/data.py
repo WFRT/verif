@@ -377,10 +377,10 @@ class Data(object):
    def get_axis_descriptions(self, axis, csv=False):
       if axis.is_location_like:
          descs = list()
-         ids = self._get_score("Location")
-         lats = self._get_score("Lat")
-         lons = self._get_score("Lon")
-         elevs = self._get_score("Elev")
+         ids = [loc.id for loc in self.locations]
+         lats = [loc.lat for loc in self.locations]
+         lons = [loc.lon for loc in self.locations]
+         elevs = [loc.elev for loc in self.locations]
          if csv:
             fmt = "%d,%f,%f,%f"
          else:
@@ -407,7 +407,7 @@ class Data(object):
             fmt = "%6s %5s %5s %5s"
          return fmt % ("id", "lat", "lon", "elev")
       else:
-         return verif.axis.get_name(axis)
+         return axis.name()
 
    def _get_score(self, field, input_index):
       """ Load the field variable from input, but only include the common data
@@ -483,7 +483,7 @@ class Data(object):
    def _get_offsets(self):
       offsets = self._inputs[0].offsets
       I = self._offsetsI[0]
-      return np.array([offsets[i] for i in I], int)
+      return np.array([offsets[i] for i in I], float)
 
    def _get_locations(self):
       locations = self._inputs[0].locations
