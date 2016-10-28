@@ -626,6 +626,7 @@ class Standard(Output):
 
          mpl.xlabel(data.get_axis_label(self.axis))
          mpl.ylabel(self._metric.label(data))
+         #mpl.ylabel(data.obsfield.label() + data.obsfield.units(data.variable))
 
          if(self.axis.is_date_like):
             mpl.gca().xaxis_date()
@@ -1052,22 +1053,25 @@ class Sort(Output):
    requires_threshold = False
    supports_threshold = False
 
-   def __init__(self, name):
+   def __init__(self, metric):
       Output.__init__(self)
-      self._name = name
+      self._metric = metric
 
    def _plot_core(self, data):
       labels = data.get_legend()
       F = data.num_inputs
+      thresholds = self.thresholds
+
+      [lowerT, upperT, xx] = self._get_threshold_limits(thresholds)
       for f in range(0, F):
-         [x] = data.get_scores(self._name, f)
+         x = self._metric.compute(data, f, self.axis, [lowerT[0], upperT[0]])
          x = np.sort(x)
          color = self._get_color(f, F)
          style = self._get_style(f, F)
          y = np.linspace(0, 1, x.shape[0])
          mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
                ms=self.ms)
-      mpl.xlabel("Sorted " + data.get_axis_label("threshold"))
+      mpl.xlabel("Sorted " + data.get_axis_label(verif.axis.Threshold))
       mpl.grid()
 
 
@@ -2280,35 +2284,27 @@ class Against(Output):
       if(F < 2):
          verif.util.error("Cannot use Against plot with less than 2 configurations")
 
-      data.set_axis("none")
-      data.set_index(0)
       labels = data.get_legend()
       for f0 in range(0, F):
          for f1 in range(0, F):
             if(f0 != f1 and (F != 2 or f0 == 0)):
                if(F > 2):
                   mpl.subplot(F, F, f0 + f1 * F + 1)
-               data.set_file_index(f0)
-               x = data.get_scores("fcst")[0].flatten()
-               data.set_file_index(f1)
-               y = data.get_scores("fcst")[0].flatten()
+               x = data.get_scores(verif.field.Deterministic, f0)[0].flatten()
+               y = data.get_scores(verif.field.Deterministic, f1)[0].flatten()
                lower = min(min(x), min(y))
                upper = max(max(x), max(y))
 
-               mpl.plot(x, y, "x", mec="k", ms=self.ms / 2, mfc="k",
-                     zorder=-1000)
+               mpl.plot(x, y, "x", mec="k", ms=self.ms / 2, mfc="k", zorder=-10)
 
                # Show which forecast is better
-               data.set_file_index(f0)
-               [obsx, x] = data.get_scores(["obs", "fcst"])
-               data.set_file_index(f1)
-               [obsy, y] = data.get_scores(["obs", "fcst"])
+               [obsx, x] = data.get_scores([verif.field.Obs, verif.field.Deterministic], f0)
+               [obsy, y] = data.get_scores([verif.field.Obs, verif.field.Deterministic], f1)
                x = x.flatten()
                y = y.flatten()
                obs = obsx.flatten()
 
-               mpl.plot(x, y, "s", mec="k", ms=self.ms / 2, mfc="w",
-                     zorder=-500)
+               mpl.plot(x, y, "s", mec="k", ms=self.ms / 2, mfc="w", zorder=-5)
 
                std = np.std(obs) / 2
                minDiff = self._minStdDiff * std
@@ -2352,25 +2348,21 @@ class Taylor(Output):
    leg_loc = "upper left"
 
    def _plot_core(self, data):
-      data.set_axis(self.axis)
-      data.set_index(0)
       labels = data.get_legend()
       F = data.num_inputs
 
       # Plot points
       maxstd = 0
       for f in range(0, F):
-         data.set_file_index(f)
          color = self._get_color(f, F)
-         style = self._get_style(f, F)
+         style = self._get_style(f, F, False)
 
-         size = data.get_axis_size()
+         size = data.get_axis_size(self.axis)
          corr = np.zeros(size, 'float')
          std = np.zeros(size, 'float')
          stdobs = np.zeros(size, 'float')
          for i in range(0, size):
-            data.set_index(i)
-            [obs, fcst] = data.get_scores(["obs", "fcst"])
+            [obs, fcst] = data.get_scores([verif.field.Obs, verif.field.Deterministic], f, self.axis, i)
             if(len(obs) > 0 and len(fcst) > 0):
                corr[i] = np.corrcoef(obs, fcst)[1, 0]
                std[i] = np.sqrt(np.var(fcst))
@@ -2408,7 +2400,7 @@ class Taylor(Output):
       mpl.xlim([-maxstd * 1.05, maxstd * 1.05])
       mpl.ylim([0, maxstd * 1.05])
       mpl.text(np.sin(np.pi / 4) * maxstd, np.cos(np.pi / 4) * maxstd,
-            "Correlation", rotation=-45, fontsize=self._labfs,
+            "Correlation", rotation=-45, fontsize=self.labfs,
             horizontalalignment="center", verticalalignment="bottom")
       mpl.gca().yaxis.set_visible(False)
       # Remove box around plot
@@ -2432,7 +2424,7 @@ class Taylor(Output):
          x = np.cos(ang) * maxstd
          y = np.sin(ang) * maxstd
          mpl.plot([0, x], [0, y], 'k--')
-         mpl.text(x, y, str(corrs[i]), verticalalignment="bottom", fontsize=self._labfs)
+         mpl.text(x, y, str(corrs[i]), verticalalignment="bottom", fontsize=self.labfs)
 
       # Draw CRMSE rings
       xticks = mpl.xticks()[0]
@@ -2446,7 +2438,7 @@ class Taylor(Output):
             y = np.cos(np.pi / 4) * R
             if(x ** 2 + y ** 2 < maxstd ** 2):
                mpl.text(x, y, str(R), horizontalalignment="right",
-                     verticalalignment="bottom", fontsize=self._labfs,
+                     verticalalignment="bottom", fontsize=self.labfs,
                      color="gray")
 
       # Draw minimum CRMSE
@@ -2931,54 +2923,74 @@ class RainWindow(Output):
    requires_threshold = False
    supports_x = False
 
+   _only_rain_days = True
+
    def _plot_core(self, data):
       F = data.num_inputs
 
       labels = data.get_legend()
-      edges = data.offsets
+      edges = data.offsets - data.offsets[0]
       edges = np.insert(edges, 0,0)
+      #edges = np.arange(0, 2, 0.125)
       x = (edges[1:] + edges[0:-1]) / 2
       threshold = 0.1
 
       for f in range(0, F):
          y = np.zeros(len(x))
-         [obs,fcst] = data.get_scores([verif.field.Obs,
-            verif.field.Deterministic], f, verif.axis.All)
-         obs_window = np.zeros([obs.shape[0], obs.shape[2]])
-         fcst_window = np.zeros([obs.shape[0], obs.shape[2]])
+         [obs,fcst] = data.get_scores([verif.field.ObsWindow, verif.field.FcstWindow], f, verif.axis.All)
+
          obs_y = np.zeros(len(x))
          fcst_y = np.zeros(len(x))
-         # Compute how many dry hours
-         for d in range(0, obs.shape[0]):
-            for l in range(0, obs.shape[2]):
-               # Total number of offsets with no rain
-               # obs_window[d, l] = np.sum(obs[d, :, l] < threshold)
-               # fcst_window[d, l] = np.sum(fcst[d, :, l] < threshold)
-               # Current window
-               I_obs = np.where(np.cumsum(obs[d, :, l]) < threshold)[0]
-               I_fcst = np.where(np.cumsum(fcst[d, :, l]) < threshold)[0]
-               if len(I_obs) > 0:
-                  obs_window[d, l] = data.offsets[I_obs[-1]]
-               if len(I_fcst) > 0:
-                  fcst_window[d, l] = data.offsets[I_fcst[-1]]
+         y = np.zeros(len(x))
+
+         type = "percent"
+         # Cimpute the score
          for i in range(0, len(x)):
             # Climatology
-            if 0:
-               obs_y[i] = np.mean((obs_window >= edges[i]) & (obs_window <= edges[i + 1]))
-               fcst_y[i] = np.mean((fcst_window >= edges[i]) & (fcst_window <= edges[i + 1]))
-            elif 1:
+            if type == "scatter":
+               obs_y[i] = np.mean((obs >= edges[i]) & (obs <= edges[i + 1]))
+               fcst_y[i] = np.mean((fcst >= edges[i]) & (fcst <= edges[i + 1]))
+            elif type == "conditional":
                # Conditioned on obs
-               I = np.where((obs_window.flatten() >= edges[i]) &
-                     (obs_window.flatten() <= edges[i+1]))[0]
-               fcst_y[i] = np.mean(fcst_window.flatten()[I])
+               I = np.where((obs.flatten() >= edges[i]) &
+                     (obs.flatten() <= edges[i+1]))[0]
+               fcst_y[i] = np.nanmean(fcst.flatten()[I])
                # Conditioned on fcst
-               I = np.where((fcst_window.flatten() >= edges[i]) &
-                     (fcst_window.flatten() <= edges[i+1]))[0]
-               obs_y[i] = np.mean(obs_window.flatten()[I])
+               I = np.where((fcst.flatten() >= edges[i]) &
+                     (fcst.flatten() <= edges[i+1]))[0]
+               obs_y[i] = np.nanmean(obs.flatten()[I])
+            elif type == "percent":
+               threshold_range = [x[i], np.inf]
+               # print threshold_range
+               #threshold_range = [0, x[i]]
+               a = verif.metric.A().compute_from_obs_fcst(obs, fcst, threshold_range)
+               b = verif.metric.B().compute_from_obs_fcst(obs, fcst, threshold_range)
+               c = verif.metric.C().compute_from_obs_fcst(obs, fcst, threshold_range)
+               d = verif.metric.D().compute_from_obs_fcst(obs, fcst, threshold_range)
+               threat = verif.metric.Threat().compute_from_obs_fcst(obs, fcst, threshold_range)
+               ets = verif.metric.Ets().compute_from_obs_fcst(obs, fcst, threshold_range)
+               # print a,b,c,d,threat,ets
+               # print a,b,c,d
+               #y[i] = (a + d) / (a + b + c + d)
+               y[i] = threat
          color = self._get_color(f, F)
          style = self._get_style(f, F)
-         mpl.plot(x, obs_y, style, color=color, label=labels[f])
-      self._plot_diagnoal()
-      mpl.xlabel("Forecasted rain window (hours)")
-      mpl.ylabel("Observed rain window (hours)")
+
+         if type == "conditional":
+            mpl.plot(x, obs_y, style, color=color, label=labels[f])
+            mpl.plot(fcst_y, x, style, color=color, alpha=0.5, label=labels[f] + " F|O")
+         elif type == "percent":
+            mpl.plot(x, y*100, style, color=color, label=labels[f])
+         else:
+            style = self._get_style(f, F, connectingLine=False)
+            mpl.plot(obs.flatten(), fcst.flatten(), style,
+                  color=color)
+      if type == "conditional":
+         self._plot_diagnoal()
+         mpl.xlabel("Forecasted rain window (hours)")
+         mpl.ylabel("Observed rain window (hours)")
+      elif type == "percent":
+         mpl.xlabel("Rain window (hours)")
+         mpl.ylabel("% correct")
+         mpl.ylim(0,100)
       mpl.grid()

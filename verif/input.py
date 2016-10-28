@@ -54,7 +54,7 @@ class Input(object):
    description = None  # Overwrite this
 
    def get_variables(self):
-      variables = [verif.field.Obs, verif.field.Deterministic]
+      variables = [verif.field.Obs(), verif.field.Deterministic()]
       thresholds = [verif.field.Threshold(threshold) for threshold in self.thresholds]
       quantiles = [verif.field.Quantiles(quantile) for quantile in self.quantiles]
       return variables + thresholds + quantiles

@@ -8,6 +8,7 @@ from matplotlib.dates import *
 import matplotlib.ticker
 import verif.field
 import verif.util
+import verif.variable
 
 
 class Data(object):
@@ -30,7 +31,9 @@ class Data(object):
    """
    def __init__(self, inputs, dates=None, offsets=None, locations=None,
          lat_range=None, lon_range=None, elev_range=None, clim=None, clim_type="subtract",
-         legend=None, remove_missing_across_all=True):
+         legend=None, remove_missing_across_all=True,
+         obs_field=verif.field.Obs(),
+         deterministic_field=verif.field.Deterministic()):
 
       """
       Arguments:
@@ -53,6 +56,9 @@ class Data(object):
       if(legend is not None and len(inputs) is not len(legend)):
          verif.util.error("Need one legend entry for each filename")
       self._legend = legend
+
+      self._obs_field = obs_field
+      self._deterministic_field = deterministic_field
 
       # Organize inputs
       self._inputs = list()
@@ -425,28 +431,47 @@ class Data(object):
       if(field in self._cache[input_index]):
          return self._cache[input_index][field]
 
+      if field is verif.field.Obs:
+         field = self._obs_field
+      if field is verif.field.Deterministic:
+         field = self._deterministic_field
+
       # Load all inputs
       for i in range(0, self._get_num_inputs_with_clim()):
          if(field not in self._cache[i]):
             input = self._inputs[i]
             assert(verif.field.Threshold(1) == verif.field.Threshold(1))
-            if(field not in input.get_variables()):
+            all_variables = input.get_variables() + [verif.field.ObsWindow(), verif.field.FcstWindow()]
+            if(field not in all_variables):
                verif.util.error("%s does not contain '%s'" %
                      (self.get_names()[i], field.name()))
-            if field is verif.field.Obs:
+            if field == verif.field.Obs():
                temp = input.obs
-            elif field is verif.field.Deterministic:
+
+            elif field == verif.field.Deterministic():
                temp = input.deterministic
-            elif field is verif.field.Ensemble:
+
+            elif field.__class__ is verif.field.Ensemble:
                temp = input.ensemble[:, :, :, field.member]
+
             elif field.__class__ is verif.field.Threshold:
                I = np.where(input.thresholds == field.threshold)[0]
                assert(len(I) == 1)
                temp = input.threshold_scores[:, :, :, I]
+
             elif field.__class__ is verif.field.Quantile:
                I = np.where(input.quantiles == field.quantile)[0]
                assert(len(I) == 1)
                temp = input.quantile_scores[:, :, :, I]
+
+            elif field == verif.field.ObsWindow():
+               temp = input.obs[:, :, :]
+               temp = self._calculate_window(temp, input.offsets)
+
+            elif field == verif.field.FcstWindow():
+               temp = input.deterministic[:, :, :]
+               temp = self._calculate_window(temp, input.offsets)
+
             else:
                verif.util.error("Not implemented")
             Idates = self._get_date_indices(i)
@@ -468,6 +493,18 @@ class Data(object):
             self._cache[i][field][is_missing] = np.nan
 
       return self._cache[input_index][field]
+
+   def _calculate_window(self, array, offsets):
+      O = array.shape[1]
+      Inan = np.isnan(array)
+      for o in range(0, O):
+         q = np.nansum(np.cumsum(array[:,o:,:], axis=1) == 0, axis=1)
+         I = q+o
+         I[I >= O] = O-1
+         array[:,o,:] = offsets[I] - offsets[o]
+      array[Inan] = np.nan
+      #array[array > 2] = 2
+      return array
 
    def _get_dates(self):
       dates = self._inputs[0].dates
@@ -592,4 +629,11 @@ class Data(object):
 
    def _get_variable(self):
       # TODO: Only check first file?
-      return self._inputs[0].variable
+      variable = self._inputs[0].variable
+
+      # Handle obs field
+      units = self._obs_field.units(variable)
+      name = self._obs_field.label(variable)
+      variable = verif.variable.Variable(name, units)
+
+      return variable

@@ -77,6 +77,8 @@ def run(argv):
    logX = False
    logY = False
    cmap = None
+   obs_field = verif.field.Obs()
+   deterministic_field = verif.field.Deterministic()
 
    # Read command line arguments
    i = 1
@@ -204,6 +206,10 @@ def run(argv):
                cmap = argv[i + 1]
             elif(arg == "-maptype"):
                mapType = argv[i + 1]
+            elif(arg == "-obs"):
+               obs_field = verif.field.get(argv[i + 1])
+            elif(arg == "-fcst"):
+               deterministic_field = verif.field.get(argv[i + 1])
             elif(arg == "-m"):
                metric = argv[i + 1]
             else:
@@ -236,7 +242,8 @@ def run(argv):
       inputs = [verif.input.get_input(filename) for filename in ifiles]
       data = verif.data.Data(inputs, clim=climFile, clim_type=clim_type, dates=dates,
             offsets=offsets, locations=locations, lat_range=lat_range, lon_range=lon_range,
-            elev_range=elev_range, legend=leg)
+            elev_range=elev_range, legend=leg, obs_field=obs_field,
+            deterministic_field=deterministic_field)
    else:
       data = None
 
@@ -286,11 +293,7 @@ def run(argv):
    m = None
 
    # Handle special plots
-   if(doHist):
-      pl = verif.output.Hist(metric)
-   elif(doSort):
-      pl = verif.output.Sort(metric)
-   elif(metric == "pithist"):
+   if(metric == "pithist"):
       m = verif.metric.Pit("pit")
       pl = verif.output.PitHist(m)
    elif(metric == "obsfcst"):
@@ -357,6 +360,10 @@ def run(argv):
       # Output type
       if(type in ["plot", "text", "csv", "map", "maprank"]):
          pl = verif.output.Standard(m)
+         if doSort:
+            pl = verif.output.Sort(m)
+         if doHist:
+            pl = verif.output.Hist(m)
          pl.show_acc = doAcc
       else:
          verif.util.error("Type not understood")
@@ -503,10 +510,12 @@ def show_description(data=None):
    print verif.util.green("  Dimensions and subset:")
    print verif.util.format_argument("-elevrange range", "Limit the verification to locations within minelev,maxelev.")
    print verif.util.format_argument("-d dates", "A vector of dates in YYYYMMDD format, e.g.  20130101:20130201.")
+   print verif.util.format_argument("-fcst", "Which field should be used as the forecast?")
    print verif.util.format_argument("-l locations", "Limit the verification to these location IDs.")
    print verif.util.format_argument("-latrange range", "Limit the verification to locations within minlat,maxlat.")
    print verif.util.format_argument("-lonrange range", "Limit the verification to locations within minlon,maxlon.")
    print verif.util.format_argument("-o offsets", "Limit the verification to these offsets (in hours).")
+   print verif.util.format_argument("-obs", "Which field should be used as the observation?")
    print verif.util.format_argument("-r thresholds", "Compute scores for these thresholds (only used by some metrics).")
    print verif.util.format_argument("-x dim", "Plot this dimension on the x-axis: date, offset, year, month, location, locationId, elev, lat, lon, threshold, or none. Not supported by all metrics. If not specified, then a default is used based on the metric. 'none' collapses all dimensions and computes one value.")
 

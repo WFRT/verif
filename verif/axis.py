@@ -21,6 +21,8 @@ def get(name):
    for axis in axes:
       if name == axis[0].lower():
          a = axis[1]
+   if a is None:
+      verif.util.error("No axis by name '%s'" % name)
    return a
 
 

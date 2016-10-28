@@ -1138,7 +1138,7 @@ class Contingency(Metric):
       return values
 
    def name(self):
-      return self.description()
+      return self.description
 
 
 class A(Contingency):
