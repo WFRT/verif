@@ -25,6 +25,10 @@ def get(name):
 
 
 class Field(object):
+   """
+   Base class representing scalar fields of data that can be retrieved from
+   input files
+   """
    @classmethod
    def name(cls):
       name = cls.__name__

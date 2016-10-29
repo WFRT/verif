@@ -63,7 +63,7 @@ class Output(object):
    leg_loc = "best"
    _logX = False
    _logY = False
-   _reference = None
+   reference = None
    _long = None
 
    def __init__(self):
@@ -220,8 +220,8 @@ class Output(object):
       s = cls.description
       if(cls._long is not None):
          s = s + "\n" + verif.util.green("Description: ") + cls._long
-      if(cls.reference() is not None):
-         s = s + "\n" + verif.util.green("Reference: ") + cls.reference()
+      if(cls.reference is not None):
+         s = s + "\n" + verif.util.green("Reference: ") + cls.reference
       return s
 
    @classmethod
@@ -824,6 +824,8 @@ class Standard(Output):
       std = verif.util.nanstd(y)
       minDiff = std / 50
 
+      if F == 2 and self.show_rank:
+         F = 1
       for f in range(0, F):
          verif.util.subplot(f, F)
          if(self.map_type is not None and hasBasemap):
@@ -893,14 +895,22 @@ class Standard(Output):
             mpl.title(names[f])
 
       # Legend
-      if(self.show_rank):
-         lines = [lmin, lsimilar, lmax]
-         names = ["min", "similar", "max"]
-         if lmissing is not None:
-             lines.append(lmissing)
-             names.append("missing")
+      if self.show_rank:
+         if data.num_inputs > 2:
+            lines = [lmin, lsimilar, lmax]
+            names = ["min", "similar", "max"]
+            if lmissing is not None:
+                lines.append(lmissing)
+                names.append("missing")
+            mpl.figlegend(lines, names, "lower center", ncol=4)
+         elif data.num_inputs == 2:
+            lines = [lmin, lsimilar, lmax]
+            names = [labels[0], "similar", labels[1]]
+            if lmissing is not None:
+                lines.append(lmissing)
+                names.append("missing")
+            mpl.legend(lines, names, loc=self.leg_loc, prop={'size': self.legfs})
 
-         mpl.figlegend(lines, names, "lower center", ncol=4)
 
 
 class Hist(Output):
@@ -2462,7 +2472,7 @@ class Performance(Output):
    requires_threshold = True
    supports_x = True
    leg_loc = "upper left"
-   _reference = "Roebber, P.J., 2009: Visualizing multiple measures of forecast quality. Wea. Forecasting, 24, 601-608."
+   reference = "Roebber, P.J., 2009: Visualizing multiple measures of forecast quality. Wea. Forecasting, 24, 601-608."
 
    def _show_potential(self):
       """ Should lines be drawn to show how the scores can vary with chosen forecast threshold? """
