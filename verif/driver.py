@@ -78,7 +78,7 @@ def run(argv):
    logY = False
    cmap = None
    obs_field = verif.field.Obs()
-   deterministic_field = verif.field.Deterministic()
+   fcst_field = verif.field.Fcst()
 
    # Read command line arguments
    i = 1
@@ -209,7 +209,7 @@ def run(argv):
             elif(arg == "-obs"):
                obs_field = verif.field.get(argv[i + 1])
             elif(arg == "-fcst"):
-               deterministic_field = verif.field.get(argv[i + 1])
+               fcst_field = verif.field.get(argv[i + 1])
             elif(arg == "-m"):
                metric = argv[i + 1]
             else:
@@ -243,7 +243,7 @@ def run(argv):
       data = verif.data.Data(inputs, clim=climFile, clim_type=clim_type, dates=dates,
             offsets=offsets, locations=locations, lat_range=lat_range, lon_range=lon_range,
             elev_range=elev_range, legend=leg, obs_field=obs_field,
-            deterministic_field=deterministic_field)
+            fcst_field=fcst_field)
    else:
       data = None
 
@@ -383,8 +383,8 @@ def run(argv):
    # Create thresholds if needed
    if((thresholds is None) and (pl.requires_threshold or
          (m is not None and m.requires_threshold))):
-      obs = data.get_scores(verif.field.Obs, 0)[0]
-      fcst = data.get_scores(verif.field.Deterministic, 0)[0]
+      obs = data.get_scores(verif.field.Obs(), 0)[0]
+      fcst = data.get_scores(verif.field.Fcst(), 0)[0]
       smin = min(np.nanmin(obs), np.nanmin(fcst))
       smax = max(np.nanmax(obs), np.nanmax(fcst))
       thresholds = np.linspace(smin, smax, 10)

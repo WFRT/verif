@@ -197,13 +197,13 @@ class Output(object):
 
    @property
    def cmap(self):
-      return self.cmap
+      return self._cmap
 
    @cmap.setter
    def cmap(self, cmap):
       if isinstance(cmap, basestring):
          cmap = mpl.cm.get_cmap(cmap)
-      self.cmap = cmap
+      self._cmap = cmap
 
    @classmethod
    def get_class_name(cls):
@@ -510,7 +510,7 @@ class Standard(Output):
    """
    A standard plot of a metric from verif.metric
    """
-   leg_loc = "upper left"
+   leg_loc = "best"
 
    def __init__(self, metric):
       """
@@ -1089,12 +1089,12 @@ class ObsFcst(Output):
       isCont = self.axis.is_continuous
 
       # Obs line
-      mObs = verif.metric.Standard(verif.field.Obs, aux=verif.field.Deterministic)
+      mObs = verif.metric.Standard(verif.field.Obs(), aux=verif.field.Fcst())
       mObs.aggregator = self.aggregator
       y = mObs.compute(data, 0, self.axis, None)
       self._plot_obs(x, y, isCont)
 
-      mFcst = verif.metric.Standard(verif.field.Deterministic, aux=verif.field.Obs)
+      mFcst = verif.metric.Standard(verif.field.Fcst(), aux=verif.field.Obs())
       mFcst.aggregator = self.aggregator
       labels = data.get_legend()
       for f in range(0, F):
@@ -1126,9 +1126,9 @@ class QQ(Output):
       y = list()
       F = len(data.get_names())
       for f in range(0, F):
-         [xx, yy] = data.get_scores([verif.field.Obs, verif.field.Deterministic], f)
-         x.append(np.sort(xx))
-         y.append(np.sort(yy))
+         [xx, yy] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
+         x.append(np.sort(xx.flatten()))
+         y.append(np.sort(yy.flatten()))
       return [x, y]
 
    def _plot_core(self, data):
@@ -1192,7 +1192,7 @@ class Scatter(Output):
          color = self._get_color(f, F)
          style = self._get_style(f, F, connectingLine=False)
 
-         [x, y] = data.get_scores([verif.field.Obs, verif.field.Deterministic], f, verif.axis.No, 0)
+         [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No, 0)
          alpha = 0.2
          if self.simple:
             alpha = 1
@@ -1349,11 +1349,11 @@ class Cond(Output):
          fo = np.zeros(len(x), 'float')
          xof = np.zeros(len(x), 'float')
          xfo = np.zeros(len(x), 'float')
-         mof = verif.metric.Conditional(verif.field.Obs,verif.field.Deterministic, np.mean)  # F | O
-         mfo = verif.metric.Conditional(verif.field.Deterministic,verif.field.Obs, np.mean)  # O | F
-         xmof = verif.metric.XConditional(verif.field.Obs,verif.field.Deterministic)  # F | O
-         xmfo = verif.metric.XConditional(verif.field.Deterministic,verif.field.Obs)  # O | F
-         mof0 = verif.metric.Conditional(verif.field.Obs,verif.field.Deterministic, np.mean)  # F | O
+         mof = verif.metric.Conditional(verif.field.Obs(),verif.field.Fcst(), np.mean)  # F | O
+         mfo = verif.metric.Conditional(verif.field.Fcst(),verif.field.Obs(), np.mean)  # O | F
+         xmof = verif.metric.XConditional(verif.field.Obs(),verif.field.Fcst())  # F | O
+         xmfo = verif.metric.XConditional(verif.field.Fcst(),verif.field.Obs())  # O | F
+         mof0 = verif.metric.Conditional(verif.field.Obs(),verif.field.Fcst(), np.mean)  # F | O
          for i in range(0, len(lowerT)):
             fo[i] = mfo.compute(data, f, verif.axis.No, [lowerT[i], upperT[i]])
             of[i] = mof.compute(data, f, verif.axis.No, [lowerT[i], upperT[i]])
@@ -1475,7 +1475,7 @@ class TimeSeries(Output):
       connect = min(data.offsets) + 24 > max(data.offsets)
       minOffset = min(data.offsets)
 
-      obs = data.get_scores(verif.field.Obs, 0)[0]
+      obs = data.get_scores(verif.field.Obs(), 0)[0]
       for d in range(0, obs.shape[0]):
          # Obs line
          dates = data.get_axis_values(verif.axis.Date)
@@ -1502,7 +1502,7 @@ class TimeSeries(Output):
             color = self._get_color(f, F)
             style = self._get_style(f, F)
 
-            fcst = data.get_scores(verif.field.Deterministic, f)[0]
+            fcst = data.get_scores(verif.field.Fcst(), f)[0]
             x = dates[d] + data.offsets / 24.0
             y = verif.util.nanmean(fcst[d, :, :], axis=1)
             if(connect and d < obs.shape[0] - 1):
@@ -1545,14 +1545,14 @@ class Meteo(Output):
       isSingleDate = len(data.dates) == 1
 
       # Plot obs line
-      obs = data.get_scores(verif.field.Obs, 0)[0]
+      obs = data.get_scores(verif.field.Obs(), 0)[0]
       obs = verif.util.nanmean(verif.util.nanmean(obs, axis=0), axis=1)
       mpl.plot(x, obs, "o-", color=self._obsCol, lw=2, ms=8, label="Observations")
 
       # Plot deterministic forecast
-      fcst = data.get_scores(verif.field.Deterministic, 0)[0]
+      fcst = data.get_scores(verif.field.Fcst(), 0)[0]
       fcst = verif.util.nanmean(verif.util.nanmean(fcst, axis=0), axis=1)
-      mpl.plot(x, fcst, "o-", color=self._fcstCol, lw=2, ms=8, label="Deterministic")
+      mpl.plot(x, fcst, "o-", color=self._fcstCol, lw=2, ms=8, label="Fcst")
 
       # Plot quantiles
       quantiles = np.sort(data.quantiles)
@@ -1810,7 +1810,7 @@ class Reliability(Output):
       for t in range(0, len(self.thresholds)):
          threshold = self.thresholds[t]
          var = verif.field.Threshold(threshold)
-         [obs, p] = data.get_scores([verif.field.Obs, var], 0)
+         [obs, p] = data.get_scores([verif.field.Obs(), var], 0)
 
          # Determine the number of bins to use # (at least 11, at most 25)
          N = min(25, max(11, int(len(obs) / 1000)))
@@ -1827,7 +1827,7 @@ class Reliability(Output):
          for f in range(0, F):
             color = self._get_color(f, F)
             style = self._get_style(f, F)
-            [obs, p] = data.get_scores([verif.field.Obs, var], f)
+            [obs, p] = data.get_scores([verif.field.Obs(), var], f)
 
             if(self.bin_type == "below"):
                p = p
@@ -2290,16 +2290,16 @@ class Against(Output):
             if(f0 != f1 and (F != 2 or f0 == 0)):
                if(F > 2):
                   mpl.subplot(F, F, f0 + f1 * F + 1)
-               x = data.get_scores(verif.field.Deterministic, f0)[0].flatten()
-               y = data.get_scores(verif.field.Deterministic, f1)[0].flatten()
+               x = data.get_scores(verif.field.Fcst(), f0)[0].flatten()
+               y = data.get_scores(verif.field.Fcst(), f1)[0].flatten()
                lower = min(min(x), min(y))
                upper = max(max(x), max(y))
 
                mpl.plot(x, y, "x", mec="k", ms=self.ms / 2, mfc="k", zorder=-10)
 
                # Show which forecast is better
-               [obsx, x] = data.get_scores([verif.field.Obs, verif.field.Deterministic], f0)
-               [obsy, y] = data.get_scores([verif.field.Obs, verif.field.Deterministic], f1)
+               [obsx, x] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f0)
+               [obsy, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f1)
                x = x.flatten()
                y = y.flatten()
                obs = obsx.flatten()
@@ -2362,7 +2362,7 @@ class Taylor(Output):
          std = np.zeros(size, 'float')
          stdobs = np.zeros(size, 'float')
          for i in range(0, size):
-            [obs, fcst] = data.get_scores([verif.field.Obs, verif.field.Deterministic], f, self.axis, i)
+            [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis, i)
             if(len(obs) > 0 and len(fcst) > 0):
                corr[i] = np.corrcoef(obs, fcst)[1, 0]
                std[i] = np.sqrt(np.var(fcst))
@@ -2469,19 +2469,16 @@ class Performance(Output):
       return not self.simple
 
    def _plot_core(self, data):
-      data.set_axis(self.axis)
-      data.set_index(0)
       labels = data.get_legend()
       F = data.num_inputs
 
       # Plot points
       maxstd = 0
       for f in range(0, F):
-         data.set_file_index(f)
          color = self._get_color(f, F)
          style = self._get_style(f, F, False)
 
-         size = data.get_axis_size()
+         size = data.get_axis_size(self.axis)
          for t in range(0, len(self.thresholds)):
             threshold = self.thresholds[t]
             sr = np.zeros(size, 'float')
@@ -2489,10 +2486,10 @@ class Performance(Output):
             Far = verif.metric.Far()
             Hit = verif.metric.Hit()
             for i in range(0, size):
-               data.set_index(i)
-               [obs, fcst] = data.get_scores(["obs", "fcst"])
-               fa = Far.compute_obs_fcst(obs, fcst, [threshold, np.inf])
-               hit = Hit.compute_obs_fcst(obs, fcst, [threshold, np.inf])
+               [obs, fcst] = data.get_scores([verif.field.Obs(),
+                  verif.field.Fcst()], f, self.axis, i)
+               fa = Far.compute_from_obs_fcst(obs, fcst, [threshold, np.inf])
+               hit = Hit.compute_from_obs_fcst(obs, fcst, [threshold, np.inf])
                sr[i] = 1 - fa
                pod[i] = hit
 
@@ -2512,8 +2509,8 @@ class Performance(Output):
                   x = np.zeros(J, 'float')
                   y = np.zeros(J, 'float')
                   for j in range(0, J):
-                     x[j] = 1 - Far.compute_obs_fcst(obs, fcst + dx[j], [threshold, np.inf])
-                     y[j] = Hit.compute_obs_fcst(obs, fcst + dx[j], [threshold, np.inf])
+                     x[j] = 1 - Far.compute_from_obs_fcst(obs, fcst + dx[j], [threshold, np.inf])
+                     y[j] = Hit.compute_from_obs_fcst(obs, fcst + dx[j], [threshold, np.inf])
                   mpl.plot(x, y, ".-", color=color, ms=3*self.lw, lw=2*self.lw, zorder=-100, alpha=0.3)
 
             label = ""
@@ -2635,20 +2632,14 @@ class Marginal(Output):
 
       F = data.num_inputs
 
-      data.set_axis("none")
-      data.set_index(0)
-      data.set_file_index(0)
       clim = np.zeros(len(self.thresholds), 'float')
       for f in range(0, F):
          x = self.thresholds
          y = np.zeros([len(self.thresholds)], 'float')
          for t in range(0, len(self.thresholds)):
             threshold = self.thresholds[t]
-            data.set_file_index(f)
-            data.set_axis("none")
-            data.set_index(0)
-            var = data.get_p_var(threshold)
-            [obs, p] = data.get_scores(["obs", var])
+            var = verif.field.Threshold(threshold)
+            [obs, p] = data.get_scores([verif.field.Obs(), var], f)
 
             color = self._get_color(f, F)
             style = self._get_style(f, F)
@@ -2689,10 +2680,6 @@ class Freq(Output):
 
       F = data.num_inputs
 
-      data.set_axis("none")
-      data.set_index(0)
-      data.set_file_index(0)
-
       for f in range(0, F):
          # Setup x and y: When -b within, we need one less value in the array
          N = len(self.thresholds)
@@ -2704,10 +2691,7 @@ class Freq(Output):
          clim = np.zeros(N, 'float')
          for t in range(0, N):
             threshold = self.thresholds[t]
-            data.set_file_index(f)
-            data.set_axis("none")
-            data.set_index(0)
-            [obs, fcst] = data.get_scores(["obs", "fcst"])
+            [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No)
 
             color = self._get_color(f, F)
             style = self._get_style(f, F)
@@ -2722,8 +2706,8 @@ class Freq(Output):
                fcst = (fcst >= threshold) & (fcst < self.thresholds[t + 1])
                obs = (obs >= threshold) & (obs < self.thresholds[t + 1])
 
-            clim[t] = np.mean(obs)
-            y[t] = np.mean(fcst)
+            clim[t] = np.nanmean(obs)
+            y[t] = np.nanmean(fcst)
 
          label = labels[f]
          mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=label)
@@ -2854,12 +2838,12 @@ class Impact(Output):
       edges = self.thresholds
 
       # Show which forecast is better
-      fcstField = verif.field.Deterministic
+      fcstField = verif.field.Fcst()
       p = 0.5
       if self._prob:
          fcstField = verif.field.Quantile(p)
-      [obsx, x] = data.get_scores([verif.field.Obs, fcstField], 0)
-      [obsy, y] = data.get_scores([verif.field.Obs, fcstField], 1)
+      [obsx, x] = data.get_scores([verif.field.Obs(), fcstField], 0)
+      [obsy, y] = data.get_scores([verif.field.Obs(), fcstField], 1)
       x = x.flatten()
       y = y.flatten()
       obs = obsx.flatten()
@@ -2937,7 +2921,7 @@ class RainWindow(Output):
 
       for f in range(0, F):
          y = np.zeros(len(x))
-         [obs,fcst] = data.get_scores([verif.field.ObsWindow, verif.field.FcstWindow], f, verif.axis.All)
+         [obs,fcst] = data.get_scores([verif.field.ObsWindow(), verif.field.FcstWindow()], f, verif.axis.All)
 
          obs_y = np.zeros(len(x))
          fcst_y = np.zeros(len(x))

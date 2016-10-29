@@ -158,7 +158,7 @@ class Deterministic(Metric):
    """ Class for scores that are based on observations and deterministic forecasts only """
 
    def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      [obs, fcst] = data.get_scores([verif.field.Obs, verif.field.Deterministic], input_index, axis, axis_index)
+      [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], input_index, axis, axis_index)
       assert(obs.shape[0] == fcst.shape[0])
       return self.compute_from_obs_fcst(obs, fcst)
 
@@ -217,7 +217,7 @@ class Obs(Metric):
    orientation = 0
 
    def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      obs = data.get_scores(verif.field.Obs, input_index, axis, axis_index)[0]
+      obs = data.get_scores(verif.field.Obs(), input_index, axis, axis_index)[0]
       return self.aggregator(obs)
 
    def name(self):
@@ -230,7 +230,7 @@ class Fcst(Metric):
    orientation = 0
 
    def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      fcst = data.get_scores(verif.field.Deterministic, input_index, axis, axis_index)[0]
+      fcst = data.get_scores(verif.field.Fcst(), input_index, axis, axis_index)[0]
       return self.aggregator(fcst)
 
    def name(self):
@@ -625,17 +625,17 @@ class MarginalRatio(Metric):
    def compute_core(self, data, input_index, axis, axis_index, threshold_range):
       if(np.isinf(threshold_range[0])):
          pvar = data.get_p_var(threshold_range[1])
-         [obs, p1] = data.get_scores([verif.fields.Obs, pvar], input_index, axis, axis_index)
+         [obs, p1] = data.get_scores([verif.fields.Obs(), pvar], input_index, axis, axis_index)
          p0 = 0 * p1
       elif(np.isinf(threshold_range[1])):
          pvar = data.get_p_var(threshold_range[0])
-         [obs, p0] = data.get_scores([verif.fields.Obs, pvar], input_index,
+         [obs, p0] = data.get_scores([verif.fields.Obs(), pvar], input_index,
                axis, axis_index)
          p1 = 0 * p0 + 1
       else:
          pvar0 = data.get_p_var(threshold_range[0])
          pvar1 = data.get_p_var(threshold_range[1])
-         [obs, p0, p1] = data.get_scores([verif.fields.Obs, pvar0, pvar1],
+         [obs, p0, p1] = data.get_scores([verif.fields.Obs(), pvar0, pvar1],
                input_index, axis, axis_index)
       obs = verif.util.within(obs, threshold_range)
       p = p1 - p0
@@ -654,8 +654,8 @@ class SpreadSkillDiff(Metric):
 
    def compute_core(self, data, input_index, axis, axis_index, threshold_range):
       import scipy.stats
-      [obs, fcst, spread] = data.get_scores([verif.fields.Obs,
-         verif.fields.Deterministic, verif.fields.Spread], input_index, axis,
+      [obs, fcst, spread] = data.get_scores([verif.fields.Obs(),
+         verif.fields.Fcst(), verif.fields.Spread()], input_index, axis,
          axis_index)
       if(len(obs) <= 1):
          return np.nan
@@ -684,8 +684,8 @@ class Within(Metric):
    orientation = -1
 
    def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      [obs, fcst] = data.get_scores([verif.field.Obs,
-         verif.field.Deterministic], input_index, axis, axis_index)
+      [obs, fcst] = data.get_scores([verif.field.Obs(),
+         verif.field.Fcst()], input_index, axis, axis_index)
       diff = abs(obs - fcst)
       return np.mean(verif.util.within(diff, threshold_range)) * 100
 
@@ -703,7 +703,7 @@ class Conditional(Metric):
    requires_threshold = True
    supports_threshold = True
 
-   def __init__(self, x=verif.field.Obs, y=verif.field.Deterministic, func=np.mean):
+   def __init__(self, x=verif.field.Obs(), y=verif.field.Fcst(), func=np.mean):
       self._x = x
       self._y = y
       self._func = func
@@ -724,7 +724,7 @@ class XConditional(Metric):
    requires_threshold = True
    supports_threshold = True
 
-   def __init__(self, x=verif.field.Obs, y=verif.field.Deterministic):
+   def __init__(self, x=verif.field.Obs(), y=verif.field.Fcst()):
       self._x = x
       self._y = y
 
@@ -788,15 +788,15 @@ class Bs(Metric):
       if(threshold_range[0] != -np.inf and threshold_range[1] != np.inf):
          var0 = data.get_p_var(threshold_range[0])
          var1 = data.get_p_var(threshold_range[1])
-         [obs, p0, p1] = data.get_scores([verif.field.Obs, var0, var1], input_index,
+         [obs, p0, p1] = data.get_scores([verif.field.Obs(), var0, var1], input_index,
                axis, axis_index)
       elif(threshold_range[0] != -np.inf):
          var0 = data.get_p_var(threshold_range[0])
-         [obs, p0] = data.get_scores([verif.field.Obs, var0], input_index, axis,
+         [obs, p0] = data.get_scores([verif.field.Obs(), var0], input_index, axis,
                axis_index)
       elif(threshold_range[1] != np.inf):
          var1 = data.get_p_var(threshold_range[1])
-         [obs, p1] = data.get_scores([verif.field.Obs, var1], input_index, axis,
+         [obs, p1] = data.get_scores([verif.field.Obs(), var1], input_index, axis,
                axis_index)
       obsP = verif.util.within(obs, threshold_range)
       p = p1 - p0  # Prob of obs within range
@@ -816,15 +816,15 @@ class Bs(Metric):
       if(threshold_range[0] != -np.inf and threshold_range[1] != np.inf):
          var0 = data.get_p_var(threshold_range[0])
          var1 = data.get_p_var(threshold_range[1])
-         [obs, p0, p1] = data.get_scores([verif.field.Obs, var0, var1],
+         [obs, p0, p1] = data.get_scores([verif.field.Obs(), var0, var1],
                input_index, axis, axis_index)
       elif(threshold_range[0] != -np.inf):
          var0 = data.get_p_var(threshold_range[0])
-         [obs, p0] = data.get_scores([verif.field.Obs, var0], input_index,
+         [obs, p0] = data.get_scores([verif.field.Obs(), var0], input_index,
                axis, axis_index)
       elif(threshold_range[1] != np.inf):
          var1 = data.get_p_var(threshold_range[1])
-         [obs, p1] = data.get_scores([verif.field.Obs, var1], input_index,
+         [obs, p1] = data.get_scores([verif.field.Obs(), var1], input_index,
                axis, axis_index)
 
       obsP = verif.util.within(obs, threshold_range)
@@ -1025,7 +1025,7 @@ class Contingency(Metric):
       return self.name()
 
    def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      [obs, fcst] = data.get_scores([verif.field.Obs, verif.field.Deterministic], input_index, axis, axis_index)
+      [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], input_index, axis, axis_index)
       return self.compute_from_obs_fcst(obs, fcst, threshold_range)
 
    def _quantile_to_threshold(self, values, threshold_range):

@@ -41,12 +41,12 @@ class Input(object):
 
    dates:         A numpy array of avilable dates
    offsets:       A numpy array of available leadtimes
-   locations:      A list of available locations
+   locations:     A list of available locations
    thresholds:    A numpy array of available thresholds
    quantiles:     A numpy array of available quantiles
 
    obs:           A 3D numpy array with dims (date,offset,location)
-   deterministic: A 3D numpy array with dims (date,offset,location)
+   fcst:          A 3D numpy array with dims (date,offset,location)
    ensemble:      A 4D numpy array with dims (date,offset,location,member)
    threshold_scores (cdf?): A 4D numpy array with dims (date,offset,location, threshold)
    quantile_scores: A 4D numpy array with dims (date,offset,location, quantile)
@@ -54,7 +54,7 @@ class Input(object):
    description = None  # Overwrite this
 
    def get_variables(self):
-      variables = [verif.field.Obs(), verif.field.Deterministic()]
+      variables = [verif.field.Obs(), verif.field.Fcst()]
       thresholds = [verif.field.Threshold(threshold) for threshold in self.thresholds]
       quantiles = [verif.field.Quantiles(quantile) for quantile in self.quantiles]
       return variables + thresholds + quantiles
@@ -115,7 +115,7 @@ class Comps(Input):
       return verif.util.clean(self._file.variables["obs"])
 
    @property
-   def deterministic(self):
+   def fcst(self):
       return verif.util.clean(self._file.variables["fcst"])
 
    @property
@@ -283,7 +283,7 @@ class NetcdfCf(Input):
       return verif.util.clean(self._file.variables["obs"])
 
    @property
-   def deterministic(self):
+   def fcst(self):
       return verif.util.clean(self._file.variables["fcst"])
 
    @property
@@ -503,7 +503,7 @@ class Text(Input):
 
       # Put the dictionary data into a regular 3D array
       self.obs = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
-      self.deterministic = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
+      self.fcst = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
       if(len(pit) != 0):
          self._pit = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
       self.threshold_scores = np.zeros([Ndates, Noffsets, Nlocations, Nthresholds], 'float') * np.nan
@@ -522,7 +522,7 @@ class Text(Input):
                if(key in obs):
                   self.obs[d][o][s] = obs[key]
                if(key in fcst):
-                  self.deterministic[d][o][s] = fcst[key]
+                  self.fcst[d][o][s] = fcst[key]
                if(key in pit):
                   self._pit[d][o][s] = pit[key]
                for q in range(0, len(self._quantiles)):

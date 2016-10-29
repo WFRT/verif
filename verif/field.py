@@ -42,7 +42,7 @@ class Obs(Field):
       return variable.name
 
 
-class Deterministic(Field):
+class Fcst(Field):
    def label(self, variable):
       return variable.name
 

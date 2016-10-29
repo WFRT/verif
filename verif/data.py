@@ -33,7 +33,7 @@ class Data(object):
          lat_range=None, lon_range=None, elev_range=None, clim=None, clim_type="subtract",
          legend=None, remove_missing_across_all=True,
          obs_field=verif.field.Obs(),
-         deterministic_field=verif.field.Deterministic()):
+         fcst_field=verif.field.Fcst()):
 
       """
       Arguments:
@@ -58,7 +58,7 @@ class Data(object):
       self._legend = legend
 
       self._obs_field = obs_field
-      self._deterministic_field = deterministic_field
+      self._fcst_field = fcst_field
 
       # Organize inputs
       self._inputs = list()
@@ -154,7 +154,7 @@ class Data(object):
    def get_scores(self, fields, input_index, axis=verif.axis.All, axis_index=None):
       """ Retrieves scores from all files
 
-      Climatology is handled by subtracting clim's deterministic field from any
+      Climatology is handled by subtracting clim's fcst field from any
       obs or determinsitic fields.
 
       Arguments:
@@ -179,10 +179,10 @@ class Data(object):
          fields = [fields]
 
       # Compute climatology, if needed
-      obsFcstAvailable = (verif.field.Obs in fields or verif.field.Deterministic in fields)
+      obsFcstAvailable = (verif.field.Obs() in fields or verif.field.Fcst() in fields)
       doClim = self._clim is not None and obsFcstAvailable
       if(doClim):
-         temp = self._get_score(verif.field.Deterministic, len(self._inputs) - 1)
+         temp = self._get_score(verif.field.Fcst(), len(self._inputs) - 1)
          if(axis == verif.axis.Date):
             clim = temp[axis_index, :, :].flatten()
          elif(axis == verif.axis.Month):
@@ -243,7 +243,7 @@ class Data(object):
             verif.util.error("Data.py: unrecognized axis: " + axis)
 
          # Subtract climatology
-         if(doClim and (field == verif.field.Deterministic or field == verif.field.Obs)):
+         if(doClim and (field == verif.field.Fcst() or field == verif.field.Obs())):
             if(self._clim_type == "subtract"):
                curr = curr - clim
             else:
@@ -431,10 +431,10 @@ class Data(object):
       if(field in self._cache[input_index]):
          return self._cache[input_index][field]
 
-      if field is verif.field.Obs:
+      if field == verif.field.Obs():
          field = self._obs_field
-      if field is verif.field.Deterministic:
-         field = self._deterministic_field
+      if field == verif.field.Fcst():
+         field = self._fcst_field
 
       # Load all inputs
       for i in range(0, self._get_num_inputs_with_clim()):
@@ -448,8 +448,8 @@ class Data(object):
             if field == verif.field.Obs():
                temp = input.obs
 
-            elif field == verif.field.Deterministic():
-               temp = input.deterministic
+            elif field == verif.field.Fcst():
+               temp = input.fcst
 
             elif field.__class__ is verif.field.Ensemble:
                temp = input.ensemble[:, :, :, field.member]
@@ -469,7 +469,7 @@ class Data(object):
                temp = self._calculate_window(temp, input.offsets)
 
             elif field == verif.field.FcstWindow():
-               temp = input.deterministic[:, :, :]
+               temp = input.fcst[:, :, :]
                temp = self._calculate_window(temp, input.offsets)
 
             else:
@@ -498,12 +498,13 @@ class Data(object):
       O = array.shape[1]
       Inan = np.isnan(array)
       for o in range(0, O):
-         q = np.nansum(np.cumsum(array[:,o:,:], axis=1) == 0, axis=1)
+         threshold = 0.5
+         q = np.nansum(np.cumsum(array[:,o:,:], axis=1) <= threshold, axis=1)
          I = q+o
          I[I >= O] = O-1
          array[:,o,:] = offsets[I] - offsets[o]
       array[Inan] = np.nan
-      #array[array > 2] = 2
+      # array[array > 2] = 2
       return array
 
    def _get_dates(self):

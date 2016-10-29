@@ -84,10 +84,12 @@ class LocationId(Axis):
 
 
 class All(Axis):
+   """ No aggregation done """
    is_continuous = False
 
 
 class No(Axis):
+   """ Entire 3D array is serialized """
    is_continuous = False
 
 
