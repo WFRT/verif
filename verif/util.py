@@ -1,4 +1,5 @@
 import datetime
+import calendar
 import numpy as np
 import sys
 from matplotlib.dates import *
@@ -29,12 +30,26 @@ def convert_dates(dates):
    return dates2
 
 
+def convert_times(times):
+   num_times = len(times)
+   times2 = np.zeros([num_times], 'float')
+   for i in range(0, num_times):
+      dt = datetime.datetime.utcfromtimestamp(times[i])
+      times2[i] = date2num(dt)
+   return times2
+
+
 def convert_to_yyyymmdd(dates):
-   numDates = len(dates)
-   dates2 = np.zeros([numDates], 'int')
-   for i in range(0, numDates):
+   num_dates = len(dates)
+   dates2 = np.zeros([num_dates], 'int')
+   for i in range(0, num_dates):
       dates2[i] = int(num2date(dates[i]).strftime("%Y%m%d"))
    return dates2
+
+
+def date_to_unixtime(date):
+   ut = calendar.timegm(datetime.datetime.strptime(str(date), "%Y%m%d").timetuple())
+   return ut
 
 
 def red(text):

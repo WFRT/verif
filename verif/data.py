@@ -3,6 +3,8 @@ import numpy as np
 import re
 import sys
 import os
+import datetime
+import calendar
 import verif.input
 from matplotlib.dates import *
 import matplotlib.ticker
@@ -16,20 +18,20 @@ class Data(object):
 
    Access verification data from a list of verif.input. Only returns data that
    is available for all files, for fair comparisons i.e if some
-   dates/offsets/locations are missing.
+   times/offsets/locations are missing.
 
    Instance attribute:
-   dates          A numpy array of available dates
+   times          A numpy array of available initialization times
    offsets        A numpy array of available leadtimes
    locations      A list of available locations
    thresholds     A numpy array of available thresholds
    quantiles      A numpy array of available quantiles
    num_inputs     The number of inputs in the dataset
    variable       The variable
-   months         Available months (derived from dates)
-   years          Available years (derived from dates)
+   months         Available months (derived from times)
+   years          Available years (derived from times)
    """
-   def __init__(self, inputs, dates=None, offsets=None, locations=None,
+   def __init__(self, inputs, times=None, offsets=None, locations=None,
          lat_range=None, lon_range=None, elev_range=None, clim=None, clim_type="subtract",
          legend=None, remove_missing_across_all=True,
          obs_field=verif.field.Obs(),
@@ -38,7 +40,7 @@ class Data(object):
       """
       Arguments:
       inputs         A list of verif.input
-      dates          A numpy array of dates. Discard data for all other dates
+      times          A numpy array of times. Discard data for all other times
       offsets        A numpy array of offsets. Discard data for all other offsets
       locations      A list of verif.location. Discard data for all other locations
       clim           Use this NetCDF file to compute anomaly. Should therefore
@@ -130,18 +132,18 @@ class Data(object):
             verif.util.error("No available locations within elevation range")
 
       # Find common indicies
-      self._datesI = self._get_common_indices(self._inputs, "Date", dates)
+      self._timesI = self._get_common_indices(self._inputs, "Time", times)
       self._offsetsI = self._get_common_indices(self._inputs, "Offset", offsets)
       self._locationsI = self._get_common_indices(self._inputs, "Location", use_locationss)
-      if(len(self._datesI[0]) == 0):
-         verif.util.error("No valid dates selected")
+      if(len(self._timesI[0]) == 0):
+         verif.util.error("No valid times selected")
       if(len(self._offsetsI[0]) == 0):
          verif.util.error("No valid offsets selected")
       if(len(self._locationsI[0]) == 0):
          verif.util.error("No valid locations selected")
 
       # Load dimension information
-      self.dates = self._get_dates()
+      self.times = self._get_times()
       self.offsets = self._get_offsets()
       self.locations = self._get_locations()
       self.thresholds = self._get_thresholds()
@@ -183,21 +185,22 @@ class Data(object):
       doClim = self._clim is not None and obsFcstAvailable
       if(doClim):
          temp = self._get_score(verif.field.Fcst(), len(self._inputs) - 1)
-         if(axis == verif.axis.Date):
+         if(axis == verif.axis.Time):
             clim = temp[axis_index, :, :].flatten()
          elif(axis == verif.axis.Month):
             if(axis_index == self.months.shape[0]-1):
-               I = np.where(self.dates >= self.months[axis_index])
+               # TODO
+               I = np.where(self.times >= self.months[axis_index])
             else:
-               I = np.where((self.dates >= self.months[axis_index]) &
-                            (self.dates < self.months[axis_index + 1]))
+               I = np.where((self.times >= self.months[axis_index]) &
+                            (self.times < self.months[axis_index + 1]))
             clim = temp[I, :, :].flatten()
          elif(axis == verif.axis.Year):
             if(axis_index == self.years.shape[0]-1):
-               I = np.where(self.dates >= self.years[axis_index])
+               I = np.where(self.times >= self.years[axis_index])
             else:
-               I = np.where((self.dates >= self.years[axis_index]) &
-                            (self.dates < self.years[axis_index + 1]))
+               I = np.where((self.times >= self.years[axis_index]) &
+                            (self.times < self.years[axis_index + 1]))
             clim = temp[I, :, :].flatten()
          elif(axis == verif.axis.Offset):
             clim = temp[:, axis_index, :].flatten()
@@ -215,21 +218,21 @@ class Data(object):
          field = fields[i]
          temp = self._get_score(field, input_index)
 
-         if(axis == verif.axis.Date):
+         if(axis == verif.axis.Time):
             curr = temp[axis_index, :, :].flatten()
          elif(axis == verif.axis.Month):
             if(axis_index == self.months.shape[0] - 1):
-               I = np.where(self.dates >= self.months[axis_index])
+               I = np.where(self.times >= self.months[axis_index])
             else:
-               I = np.where((self.dates >= self.months[axis_index]) &
-                            (self.dates < self.months[axis_index + 1]))
+               I = np.where((self.times >= self.months[axis_index]) &
+                            (self.times < self.months[axis_index + 1]))
             curr = temp[I, :, :].flatten()
          elif(axis == verif.axis.Year):
             if(axis_index == self.years.shape[0] - 1):
-               I = np.where(self.dates >= self.years[axis_index])
+               I = np.where(self.times >= self.years[axis_index])
             else:
-               I = np.where((self.dates >= self.years[axis_index]) &
-                            (self.dates < self.years[axis_index + 1]))
+               I = np.where((self.times >= self.years[axis_index]) &
+                            (self.times < self.years[axis_index + 1]))
             curr = temp[I, :, :].flatten()
          elif(axis == verif.axis.Offset):
             curr = temp[:, axis_index, :].flatten()
@@ -277,13 +280,13 @@ class Data(object):
 
    # What values represent this axis?
    def get_axis_values(self, axis):
-      if(axis == verif.axis.Date):
-         # TODO: Does it make sense to convert here, but not with data.dates?
-         return verif.util.convert_dates(self.dates)
+      if(axis == verif.axis.Time):
+         # TODO: Does it make sense to convert here, but not with data.times?
+         return verif.util.convert_times(self.times)
       elif(axis == verif.axis.Month):
-         return verif.util.convert_dates(self.months)
+         return verif.util.convert_times(self.months)
       elif(axis == verif.axis.Year):
-         return verif.util.convert_dates(self.years)
+         return verif.util.convert_times(self.years)
       elif(axis == verif.axis.Offset):
          return self.offsets
       elif(axis == verif.axis.No):
@@ -353,7 +356,7 @@ class Data(object):
       return var.name + " (" + var.units + ")"
 
    def get_axis_label(self, axis):
-      if(axis == verif.axis.Date):
+      if(axis == verif.axis.Time):
          return "Date"
       elif(axis == verif.axis.Offset):
          return "Lead time (h)"
@@ -397,13 +400,14 @@ class Data(object):
             string = fmt % (ids[i], lats[i], lons[i], elevs[i])
             descs.append(string)
          return descs
-      if(axis.is_date_like):
+      if(axis.is_time_like):
          values = self.get_axis_values(axis)
          values = num2date(values)
-         dates = list()
+         times = list()
          for i in range(0, len(values)):
-            dates = dates + [values[i].strftime("%Y/%m/%d")]
-         return dates
+            # TODO
+            times = times + [values[i].strftime("%Y/%m/%d")]
+         return times
       else:
          return self.get_axis_values(axis)
 
@@ -474,17 +478,17 @@ class Data(object):
 
             else:
                verif.util.error("Not implemented")
-            Idates = self._get_date_indices(i)
+            Itimes = self._get_time_indices(i)
             Ioffsets = self._get_offset_indices(i)
             Ilocations = self._get_location_indices(i)
-            temp = temp[Idates, :, :]
+            temp = temp[Itimes, :, :]
             temp = temp[:, Ioffsets, :]
             temp = temp[:, :, Ilocations]
             self._cache[i][field] = temp
 
       # Remove missing. If one configuration has a missing value, set all
-      # configurations to missing This can happen when the dates are available,
-      # but have missing values
+      # configurations to missing. This can happen when the times are
+      # available, but have missing values.
       if self._remove_missing_across_all:
          is_missing = np.isnan(self._cache[0][field])
          for i in range(1, self._get_num_inputs_with_clim()):
@@ -507,17 +511,23 @@ class Data(object):
       # array[array > 2] = 2
       return array
 
-   def _get_dates(self):
-      dates = self._inputs[0].dates
-      I = self._datesI[0]
-      return np.array([dates[i] for i in I], int)
+   def _get_times(self):
+      times = self._inputs[0].times
+      I = self._timesI[0]
+      return np.array([times[i] for i in I], int)
 
    def _get_months(self):
-      months = np.unique((self.dates / 100) * 100 + 1)
+      dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
+      for i in range(0, len(dts)):
+         dts[i] = dts[i].replace(day=1)
+      months = np.unique(np.array([calendar.timegm(dt.timetuple()) for dt in dts]))
       return months
 
    def _get_years(self):
-      years = np.unique((self.dates / 10000) * 10000 + 101)
+      dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
+      for i in range(0, len(dts)):
+         dts[i] = dts[i].replace(day=1, month=1)
+      years = np.unique(np.array([calendar.timegm(dt.timetuple()) for dt in dts]))
       return years
 
    def _get_offsets(self):
@@ -544,8 +554,8 @@ class Data(object):
       # Find common values among all files
       values = aux
       for file in files:
-         if(name == "Date"):
-            temp = file.dates
+         if(name == "Time"):
+            temp = file.times
          elif(name == "Offset"):
             temp = file.offsets
          elif(name == "Location"):
@@ -555,14 +565,14 @@ class Data(object):
             values = temp
          else:
             values = np.intersect1d(values, temp)
-      # Sort values, since for example, dates may not be in an ascending order
+      # Sort values, since for example, times may not be in an ascending order
       values = np.sort(values)
 
       # Determine which index each value is at
       indices = list()
       for file in files:
-         if(name == "Date"):
-            temp = file.dates
+         if(name == "Time"):
+            temp = file.times
          elif(name == "Offset"):
             temp = file.offsets
          elif(name == "Location"):
@@ -603,8 +613,8 @@ class Data(object):
       return quantiles
 
    def _get_indices(self, axis, findex=None):
-      if(axis == "date"):
-         I = self._get_date_indices(findex)
+      if(axis == "time"):
+         I = self._get_time_indices(findex)
       elif(axis == "offset"):
          I = self._get_offset_indices(findex)
       elif(axis == "location"):
@@ -613,8 +623,8 @@ class Data(object):
          verif.util.error("Could not get indices for axis: " + str(axis))
       return I
 
-   def _get_date_indices(self, input_index):
-      return self._datesI[input_index]
+   def _get_time_indices(self, input_index):
+      return self._timesI[input_index]
 
    def _get_offset_indices(self, input_index):
       return self._offsetsI[input_index]

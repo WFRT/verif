@@ -1,6 +1,8 @@
 import os
 import csv
 import numpy as np
+import time
+import datetime
 try:
    from netCDF4 import Dataset as netcdf
 except:
@@ -39,17 +41,17 @@ class Input(object):
    shortname:     A string name identifying the dataset (such as a filename)
    variable:      A verif.Variable representing the stored in the input
 
-   dates:         A numpy array of avilable dates
+   times:         A numpy array of available initialization times (unix time)
    offsets:       A numpy array of available leadtimes
    locations:     A list of available locations
    thresholds:    A numpy array of available thresholds
    quantiles:     A numpy array of available quantiles
 
-   obs:           A 3D numpy array with dims (date,offset,location)
-   fcst:          A 3D numpy array with dims (date,offset,location)
-   ensemble:      A 4D numpy array with dims (date,offset,location,member)
-   threshold_scores (cdf?): A 4D numpy array with dims (date,offset,location, threshold)
-   quantile_scores: A 4D numpy array with dims (date,offset,location, quantile)
+   obs:           A 3D numpy array with dims (time,offset,location)
+   fcst:          A 3D numpy array with dims (time,offset,location)
+   ensemble:      A 4D numpy array with dims (time,offset,location,member)
+   threshold_scores (cdf?): A 4D numpy array with dims (time,offset,location, threshold)
+   quantile_scores: A 4D numpy array with dims (time,offset,location, quantile)
    """
    description = None  # Overwrite this
 
@@ -355,7 +357,7 @@ class Text(Input):
       self._variable = "Unknown"
       self._pit = None
 
-      self._dates = set()
+      self._times = set()
       self._offsets = set()
       self._locations = set()
       self._quantiles = set()
@@ -371,7 +373,7 @@ class Text(Input):
 
       # Default values if columns not available
       offset = 0
-      date = 0
+      time = 0
       lat = 0
       lon = 0
       elev = 0
@@ -381,7 +383,7 @@ class Text(Input):
 
       import time
       start = time.time()
-      # Read the data into dictionary with (date,offset,lat,lon,elev) as key and obs/fcst as values
+      # Read the data into dictionary with (time,offset,lat,lon,elev) as key and obs/fcst as values
       for rowstr in file:
          if(rowstr[0] == "#"):
             curr = rowstr[1:]
@@ -401,6 +403,8 @@ class Text(Input):
                   att = header[i]
                   if(att == "date"):
                      indices["date"] = i
+                  if(att == "unixtime"):
+                     indices["unixtime"] = i
                   elif(att == "offset"):
                      indices["offset"] = i
                   elif(att == "lat"):
@@ -427,8 +431,15 @@ class Text(Input):
                   verif.util.error("Incorrect number of columns (expecting %d) in row '%s'"
                         % (len(header), rowstr.strip()))
                if("date" in indices):
-                  date = self._clean(row[indices["date"]])
-               self._dates.add(date)
+                  date = int(self._clean(row[indices["date"]]))
+                  time = verif.util.date_to_unixtime(date)
+                  add = 0
+                  if("time" in indices):
+                     add = (self._clean(row[indices["time"]]))*3600
+                  time = time + add
+               elif("unixtime" in indicies):
+                  time = self._clean(row[indiies["unixtime"]])
+               self._times.add(time)
                if("offset" in indices):
                   offset = self._clean(row[indices["offset"]])
                self._offsets.add(offset)
@@ -470,7 +481,7 @@ class Text(Input):
                lat = locationInfo[id].lat
                lon = locationInfo[id].lon
                elev = locationInfo[id].elev
-               key = (date, offset, lat, lon, elev)
+               key = (time, offset, lat, lon, elev)
                obs[key] = self._clean(row[indices["obs"]])
                fcst[key] = self._clean(row[indices["fcst"]])
                quantileFields = self._get_quantile_fields(header)
@@ -480,37 +491,35 @@ class Text(Input):
                for field in quantileFields:
                   quantile = float(field[1:])
                   self._quantiles.add(quantile)
-                  key = (date, offset, lat, lon, elev, quantile)
+                  key = (time, offset, lat, lon, elev, quantile)
                   x[key] = self._clean(row[indices[field]])
                for field in thresholdFields:
                   threshold = float(field[1:])
                   self._thresholds.add(threshold)
-                  key = (date, offset, lat, lon, elev, threshold)
+                  key = (time, offset, lat, lon, elev, threshold)
                   cdf[key] = self._clean(row[indices[field]])
 
-      end = time.time()
       file.close()
-      self._dates = list(self._dates)
+      self._times = list(self._times)
       self._offsets = list(self._offsets)
       self._locations = list(self._locations)
       self._quantiles = list(self._quantiles)
       self._thresholds = list(self._thresholds)
-      Ndates = len(self._dates)
+      Ntimes = len(self._times)
       Noffsets = len(self._offsets)
       Nlocations = len(self._locations)
       Nquantiles = len(self._quantiles)
       Nthresholds = len(self._thresholds)
 
       # Put the dictionary data into a regular 3D array
-      self.obs = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
-      self.fcst = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
+      self.obs = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
+      self.fcst = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
       if(len(pit) != 0):
-         self._pit = np.zeros([Ndates, Noffsets, Nlocations], 'float') * np.nan
-      self.threshold_scores = np.zeros([Ndates, Noffsets, Nlocations, Nthresholds], 'float') * np.nan
-      self.quantile_scores = np.zeros([Ndates, Noffsets, Nlocations, Nquantiles], 'float') * np.nan
-      for d in range(0, Ndates):
-         date = self._dates[d]
-         end = time.time()
+         self._pit = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
+      self.threshold_scores = np.zeros([Ntimes, Noffsets, Nlocations, Nthresholds], 'float') * np.nan
+      self.quantile_scores = np.zeros([Ntimes, Noffsets, Nlocations, Nquantiles], 'float') * np.nan
+      for d in range(0, Ntimes):
+         time = self._times[d]
          for o in range(0, len(self._offsets)):
             offset = self._offsets[o]
             for s in range(0, len(self._locations)):
@@ -518,7 +527,7 @@ class Text(Input):
                lat = location.lat
                lon = location.lon
                elev = location.elev
-               key = (date, offset, lat, lon, elev)
+               key = (time, offset, lat, lon, elev)
                if(key in obs):
                   self.obs[d][o][s] = obs[key]
                if(key in fcst):
@@ -527,15 +536,14 @@ class Text(Input):
                   self._pit[d][o][s] = pit[key]
                for q in range(0, len(self._quantiles)):
                   quantile = self._quantiles[q]
-                  key = (date, offset, lat, lon, elev, quantile)
+                  key = (time, offset, lat, lon, elev, quantile)
                   if(key in x):
                      self.quantile_scores[d, o, s, q] = x[key]
                for t in range(0, len(self._thresholds)):
                   threshold = self._thresholds[t]
-                  key = (date, offset, lat, lon, elev, threshold)
+                  key = (time, offset, lat, lon, elev, threshold)
                   if(key in cdf):
                      self.threshold_scores[d, o, s, t] = cdf[key]
-      end = time.time()
       maxLocationId = np.nan
       for location in self._locations:
          if(np.isnan(maxLocationId)):
@@ -552,7 +560,7 @@ class Text(Input):
             location.id = counter
             counter = counter + 1
 
-      self.dates = np.array(self._dates)
+      self.times = np.array(self._times)
       self.offsets = np.array(self._offsets)
       self.thresholds = np.array(self._thresholds)
       self.quantiles = np.array(self._quantiles)

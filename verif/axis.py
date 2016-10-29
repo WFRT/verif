@@ -33,14 +33,14 @@ class Axis(object):
                      sense to connect dots with a line on a graph? For example, Location is
                      not a continuous axis.
    is_location_like  Does this axis related to the notion of location?
-   is_date_like      Does this axis have anything to do with the notion of date?
+   is_time_like      Does this axis have anything to do with the notion of time?
    formatter         What format should this axis have? Returns an mpl Formatter
                      Note the date formatters are never retrieved from here, since
                      mpl.gca().xaxis_date() is used instead
    """
    is_continuous = True
    is_location_like = False
-   is_date_like = False
+   is_time_like = False
    formatter = matplotlib.ticker.ScalarFormatter()
 
    @classmethod
@@ -49,12 +49,14 @@ class Axis(object):
       return name
 
 
-class Date(Axis):
-   is_date_like = True
+class Time(Axis):
+   """ Forecast initialization time """
+   is_time_like = True
    formatter = matplotlib.dates.DateFormatter('\n%Y-%m-%d')
 
 
 class Offset(Axis):
+   """ Forecast lead-time """
    pass
 
 
@@ -94,29 +96,29 @@ class No(Axis):
 
 
 class Week(Axis):
-   is_date_like = True
+   is_time_like = True
 
 
 class Month(Axis):
-   is_date_like = True
+   is_time_like = True
    formatter = matplotlib.dates.DateFormatter('\n%Y-%m')
 
 
 class Year(Axis):
-   is_date_like = True
+   is_time_like = True
    formatter = matplotlib.dates.DateFormatter('\n%Y')
 
 
 class DayOfMonth(Axis):
-   is_date_like = True
+   is_time_like = True
 
 
 class DayOfYear(Axis):
-   is_date_like = True
+   is_time_like = True
 
 
 class MonthOfYear(Axis):
-   is_date_like = True
+   is_time_like = True
 
 
 class Threshold(Axis):

@@ -46,6 +46,14 @@ class TestParseNumbers(unittest.TestCase):
       self.assertEqual([20141230, 20141231, 20150101, 20150102, 20150103], verif.util.parse_numbers("20141230:20150103", True))
       self.assertEqual([20141230, 20150101, 20150103], verif.util.parse_numbers("20141230:2:20150104", True))
 
+   def test_convert_times(self):
+      times = np.array([1331856000, -2180131200])
+      times2 = verif.util.convert_times(times)
+      from matplotlib.dates import *
+      import datetime
+      self.assertEqual(date2num(datetime.datetime(2012, 3, 16, 0, 0)), times2[0])
+      self.assertEqual(date2num(datetime.datetime(1900, 12, 1, 0, 0)), times2[1])
+
 
 class TestGetDate(unittest.TestCase):
    def test_simple(self):

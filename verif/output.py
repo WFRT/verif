@@ -413,7 +413,7 @@ class Output(object):
          if(self._xlim is not None):
             xlim = self._xlim
             # Convert date to datetime objects
-            if(self.axis.is_date_like):
+            if(self.axis.is_time_like):
                xlim = verif.util.convert_dates(xlim)
             mpl.xlim(xlim)
          if(self._ylim is not None):
@@ -628,7 +628,7 @@ class Standard(Output):
          mpl.ylabel(self._metric.label(data))
          #mpl.ylabel(data.obsfield.label() + data.obsfield.units(data.variable))
 
-         if(self.axis.is_date_like):
+         if(self.axis.is_time_like):
             mpl.gca().xaxis_date()
          else:
             mpl.gca().xaxis.set_major_formatter(self.axis.formatter)
@@ -1117,7 +1117,7 @@ class ObsFcst(Output):
       mpl.ylabel(data.get_variable_and_units())
       mpl.xlabel(data.get_axis_label(self.axis))
       mpl.grid()
-      if(self.axis.is_date_like):
+      if(self.axis.is_time_like):
          mpl.gca().xaxis_date()
       else:
          mpl.gca().xaxis.set_major_formatter(self.axis.formatter)
@@ -1488,7 +1488,7 @@ class TimeSeries(Output):
       obs = data.get_scores(verif.field.Obs(), 0)[0]
       for d in range(0, obs.shape[0]):
          # Obs line
-         dates = data.get_axis_values(verif.axis.Date)
+         dates = data.get_axis_values(verif.axis.Time)
          x = dates[d] + data.offsets / 24.0
          y = verif.util.nanmean(obs[d, :, :], axis=1)
          if(connect and d < obs.shape[0] - 1):
@@ -1530,7 +1530,7 @@ class TimeSeries(Output):
       else:
          mpl.ylabel(self._ylabel)
       mpl.grid()
-      #mpl.gca().xaxis.set_major_formatter(verif.axis.Date.formatter)
+      #mpl.gca().xaxis.set_major_formatter(verif.axis.Time.formatter)
       mpl.gca().xaxis_date()
 
       if(self.tight):

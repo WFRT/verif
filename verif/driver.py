@@ -23,13 +23,13 @@ def run(argv):
    lon_range = None
    elev_range = None
    thresholds = None
-   dates = None
    climFile = None
    clim_type = "subtract"
    leg = None
    ylabel = None
    xlabel = None
    title = None
+   times = None
    offsets = None
    axis = None
    sdim = None
@@ -69,10 +69,10 @@ def run(argv):
    xticks = None
    yticks = None
    version = None
-   listThresholds = False
-   listQuantiles = False
-   listLocations = False
-   listDates = False
+   list_thresholds = False
+   list_quantiles = False
+   list_locations = False
+   list_times = False
    mapType = None
    logX = False
    logY = False
@@ -91,13 +91,13 @@ def run(argv):
          elif(arg == "--version"):
             version = True
          elif(arg == "--list-thresholds"):
-            listThresholds = True
+            list_thresholds = True
          elif(arg == "--list-quantiles"):
-            listQuantiles = True
+            list_quantiles = True
          elif(arg == "--list-locations"):
-            listLocations = True
-         elif(arg == "--list-dates"):
-            listDates = True
+            list_locations = True
+         elif(arg == "--list-times"):
+            list_times = True
          elif(arg == "-sp"):
             show_perfect = True
          elif(arg == "-hist"):
@@ -146,6 +146,7 @@ def run(argv):
                dpi = int(argv[i + 1])
             elif(arg == "-d"):
                dates = verif.util.parse_numbers(argv[i + 1], True)
+               times = [verif.util.date_to_unixtime(date) for date in dates]
             elif(arg == "-c"):
                climFile = argv[i + 1]
                clim_type = "subtract"
@@ -240,35 +241,35 @@ def run(argv):
 
    if(len(ifiles) > 0):
       inputs = [verif.input.get_input(filename) for filename in ifiles]
-      data = verif.data.Data(inputs, clim=climFile, clim_type=clim_type, dates=dates,
-            offsets=offsets, locations=locations, lat_range=lat_range, lon_range=lon_range,
-            elev_range=elev_range, legend=leg, obs_field=obs_field,
-            fcst_field=fcst_field)
+      data = verif.data.Data(inputs, clim=climFile, clim_type=clim_type,
+            times=times, offsets=offsets, locations=locations,
+            lat_range=lat_range, lon_range=lon_range, elev_range=elev_range,
+            legend=leg, obs_field=obs_field, fcst_field=fcst_field)
    else:
       data = None
 
-   if(listThresholds or listQuantiles or listLocations or listDates):
+   if(list_thresholds or list_quantiles or list_locations or list_times):
       if(len(ifiles) == 0):
          verif.util.error("Files are required in order to list thresholds or quantiles")
-      if(listThresholds):
+      if(list_thresholds):
          print "Thresholds:",
          for threshold in data.thresholds:
             print "%g" % threshold,
          print ""
-      if(listQuantiles):
+      if(list_quantiles):
          print "Quantiles:",
          for quantile in data.quantiles:
             print "%g" % quantile,
          print ""
-      if(listLocations):
+      if(list_locations):
          print "    id     lat     lon    elev"
          for location in data.locations:
             print "%6d %7.2f %7.2f %7.1f" % (location.id, location.lat,
                   location.lon, location.elev)
          print ""
-      if(listDates):
-         for date in data.dates:
-            print "%d" % date
+      if(list_times):
+         for time in data.times:
+            print "%d" % time
          print ""
       return
    elif(len(ifiles) == 0 and metric is not None):
@@ -487,7 +488,7 @@ def get_aggregation_string():
 
 def show_description(data=None):
    desc = "Program to compute verification scores for weather forecasts. Can be " \
-          "used to compare forecasts from different files. In that case only dates, "\
+          "used to compare forecasts from different files. In that case only times, "\
           "offsets, and locations that are common to all forecast files are used."
    print textwrap.fill(desc, verif.util.get_text_width())
    print ""
@@ -498,7 +499,7 @@ def show_description(data=None):
    print verif.util.green("Arguments:")
    print verif.util.format_argument("files", "One or more verification files in NetCDF or text format (see 'File Formats' below).")
    print verif.util.format_argument("-m metric", "Which verification metric to use? See 'Metrics' below.")
-   print verif.util.format_argument("--list-dates", "What dates are available in the files?")
+   print verif.util.format_argument("--list-times", "What times are available in the files?")
    print verif.util.format_argument("--list-locations", "What locations are available in the files?")
    print verif.util.format_argument("--list-quantiles", "What quantiles are available in the files?")
    print verif.util.format_argument("--list-thresholds", "What thresholds are available in the files?")
@@ -510,6 +511,7 @@ def show_description(data=None):
    print verif.util.green("  Dimensions and subset:")
    print verif.util.format_argument("-elevrange range", "Limit the verification to locations within minelev,maxelev.")
    print verif.util.format_argument("-d dates", "A vector of dates in YYYYMMDD format, e.g.  20130101:20130201.")
+   print verif.util.format_argument("-t times", "A vector of unix timestamps.")
    print verif.util.format_argument("-fcst", "Which field should be used as the forecast?")
    print verif.util.format_argument("-l locations", "Limit the verification to these location IDs.")
    print verif.util.format_argument("-latrange range", "Limit the verification to locations within minlat,maxlat.")
