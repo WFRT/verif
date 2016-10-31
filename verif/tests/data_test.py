@@ -30,11 +30,11 @@ class TestData(unittest.TestCase):
       self.assertEqual(0, offsets[0])
       self.assertEqual(12, offsets[1])
 
-      dates = data.dates
-      self.assertEqual(3, dates.shape[0])
+      times = data.times
+      self.assertEqual(3, times.shape[0])
       # 20120101: Common offsets: 0 and 12, locations 41
-      fields = [verif.field.Obs, verif.field.Deterministic]
-      axis = verif.axis.Date
+      fields = [verif.field.Obs(), verif.field.Fcst()]
+      axis = verif.axis.Time
 
       [obs, fcst] = data.get_scores(fields, 0, axis, 0)
       self.assertEqual(5, fcst[0])  # Offset 0

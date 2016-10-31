@@ -16,11 +16,11 @@ class MyTest(unittest.TestCase):
       self.assertEqual(3, offsets[2])
       self.assertEqual(22, offsets[3])
 
-   def test_get_dates(self):
+   def test_get_times(self):
       input = verif.input.Text("verif/tests/example.txt")
-      dates = input.dates
-      self.assertEqual(1, dates.shape[0])
-      self.assertEqual(20120101, dates[0])
+      times = input.times
+      self.assertEqual(1, times.shape[0])
+      self.assertEqual(1325376000, times[0])
 
    def test_get_locations(self):
       input = verif.input.Text("verif/tests/example.txt")
@@ -49,7 +49,7 @@ class MyTest(unittest.TestCase):
    def test_get_scores(self):
       input = verif.input.Text("verif/tests/example.txt")
       obs = input.obs
-      fcst = input.deterministic
+      fcst = input.fcst
       self.assertEqual((1, 4, 4), obs.shape)
       self.assertEqual((1, 4, 4), fcst.shape)
       locations = input.locations
