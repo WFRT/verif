@@ -36,33 +36,37 @@ class Metric(object):
    Class to compute a score
 
    Class attributes:
-   requires_threshold:  Does this metric require thresholds in order to be computable?
-   supports_threshold:  Does it make sense to use '-x threshold' with this metric?
-   orientation:         1 for a positively oriented score (higher values are better),
+   description          A short one-liner describing the metric. This will show
+                        up in the main verif documentation.
+   long                 A longer description. This will show up in the
+                        documentation when a specific metric is chosen.
+   min                  Minimum possible value the metric can take on
+   max                  Maximum possible value the metric can take on
+   requires_threshold   Does this metric require thresholds in order to be computable?
+   supports_threshold   Does it make sense to use '-x threshold' with this metric?
+   orientation          1 for a positively oriented score (higher values are better),
                         -1 for negative, and 0 for all others
+   reference            A string with an academic reference
+   experimental         Is this metric not fully testet yet?
+   suports_aggregator   Does this metric use self.aggregator?
    """
-   # Overload these variables
-   min = None  # Minimum value this metric can produce
-   max = None  # Maximum value this mertic can produce
+   # These must be overloaded
+   description = ""
+
+   # Default values
+   min = None
+   max = None
    default_axis = verif.axis.Offset()  # If no axis is specified, use this axis as default
    default_bin_type = None
-   requires_threshold = False  # Does this metric require thresholds?
-   supports_threshold = False  # Does this metric support thresholds?
-   experimental = False  # Is this metric not fully tested yet?
+   requires_threshold = False
+   supports_threshold = False
+   experimental = False
    perfect_score = None
-   aggregator = verif.aggregator.Mean
-   supports_aggregator = False  # Does this metric use self.aggregator?
+   aggregator = verif.aggregator.Mean()
+   supports_aggregator = False  
    orientation = 0
-   # Information about metric. The y-axis label is controlled by self.label()
-   # Also, self.name() is the name of the metric
-
-   # A short one-liner describing the metric. This will show up in the
-   # main verif documentation.
-   description = ""
-   # A longer description. This will show up in the documentation when a
-   # specific metric is chosen.
    long = None
-   reference = None  # A string with an academic reference
+   reference = None
 
    def compute(self, data, input_index, axis, threshold_range):
       """
@@ -96,6 +100,15 @@ class Metric(object):
       Returns a scalar value representing the score for the slice
       """
       raise NotImplementedError()
+
+   def label(self, variable):
+      """ What is an appropriate y-axis label for this metric? Override this if
+      the metric does not have the same units as the forecast variable """
+      return self.name() + " (" + variable.units + ")"
+
+   def name(self):
+      """ Cannot be a classmethod, since it might use self.aggregator """
+      return self.get_class_name()
 
    @classmethod
    def is_valid(cls):
@@ -143,15 +156,6 @@ class Metric(object):
    def get_class_name(cls):
       name = cls.__name__
       return name
-
-   def label(self, variable):
-      """ What is an appropriate y-axis label for this metric? Override this if
-      the metric does not have the same units as the forecast variable """
-      return self.name() + " (" + variable.units + ")"
-
-   def name(self):
-      """ Cannot be a classmethod, since it might use self.aggregator """
-      return self.get_class_name()
 
 
 class Deterministic(Metric):

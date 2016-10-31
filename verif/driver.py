@@ -362,7 +362,8 @@ def run(argv):
       if(m is None):
          verif.util.error("Unknown plot: %s" % metric)
 
-      m.aggregator = verif.aggregator.get(aggregator_name)
+      if aggregator_name is not None:
+         m.aggregator = verif.aggregator.get(aggregator_name)
 
       # Output type
       if(type in ["plot", "text", "csv", "map", "maprank"]):
