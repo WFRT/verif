@@ -147,6 +147,8 @@ def run(argv):
             elif(arg == "-d"):
                dates = verif.util.parse_numbers(argv[i + 1], True)
                times = [verif.util.date_to_unixtime(date) for date in dates]
+            elif(arg == "-t"):
+               times = verif.util.parse_numbers(argv[i + 1], True)
             elif(arg == "-c"):
                climFile = argv[i + 1]
                clim_type = "subtract"

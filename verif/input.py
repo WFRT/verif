@@ -261,7 +261,7 @@ class NetcdfCf(Input):
       self.fullname = filename
       self._filename = os.path.expanduser(filename)
       self._file = netcdf(self._filename, 'r')
-      self.dates = self._get_dates()
+      self.times = self._get_times()
       self.offsets = self._get_offsets()
       self.locations = self._get_locations()
       self.thresholds = self._get_thresholds()
@@ -300,14 +300,14 @@ class NetcdfCf(Input):
    def quantile_scores(self):
       return verif.util.clean(self._file.variables["x"])
 
-   def _get_dates(self):
-      return verif.util.clean(self._file.variables["date"])
+   def _get_times(self):
+      return verif.util.clean(self._file.variables["time"])
 
    def _get_locations(self):
       lat = verif.util.clean(self._file.variables["lat"])
       lon = verif.util.clean(self._file.variables["lon"])
       id = verif.util.clean(self._file.variables["id"])
-      elev = verif.util.clean(self._file.variables["elev"])
+      elev = verif.util.clean(self._file.variables["altitude"])
       locations = list()
       for i in range(0, lat.shape[0]):
          location = verif.location.Location(id[i], lat[i], lon[i], elev[i])
@@ -315,13 +315,19 @@ class NetcdfCf(Input):
       return locations
 
    def _get_offsets(self):
-      return verif.util.clean(self._file.variables["offset"])
+      return verif.util.clean(self._file.variables["lead_time"])
 
    def _get_thresholds(self):
-      return verif.util.clean(self._file.variables["thresholds"])
+      if "threshold" in self._file.variables:
+         return verif.util.clean(self._file.variables["threshold"])
+      else:
+         return np.array([])
 
    def _get_quantiles(self):
-      return verif.util.clean(self._file.variables["quantiles"])
+      if "quantile" in self._file.variables:
+         return verif.util.clean(self._file.variables["quantile"])
+      else:
+         return np.array([])
 
    def _get_variable(self):
       name = self._file.standard_name
