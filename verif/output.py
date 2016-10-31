@@ -106,6 +106,7 @@ class Output(object):
       self._ylim = None
       self._clim = None
       self._xticks = None
+      self._xticklabels = None
       self._yticks = None
       self._title = None
       self._xlabel = None
@@ -156,6 +157,14 @@ class Output(object):
       """
       self._xticks = ticks
 
+   def xticklabels(self, labels):
+      """
+      Set/get the x-axis labels
+
+      labels      A list of labels
+      """
+      self._xticklabels = labels
+
    def yticks(self, ticks):
       """
       Set/get the y-axis values where ticks will be placed
@@ -163,6 +172,14 @@ class Output(object):
       ticks      A list or numpy array of ticks
       """
       self._yticks = ticks
+
+   def yticklabels(self, labels):
+      """
+      Set/get the y-axis labels
+
+      labels      A list of labels
+      """
+      self._yticklabels = labels
 
    def ms(self, ms):
       """ Set/get the size of any markers used """
@@ -435,9 +452,15 @@ class Output(object):
 
       # Ticks
       if(self._xticks is not None):
-         mpl.xticks(self._xticks)
+         if self._xticklabels is not None:
+            mpl.xticks(self._xticks, self._xticklabels)
+         else:
+            mpl.xticks(self._xticks)
       if(self._yticks is not None):
-         mpl.yticks(self._yticks)
+         if self._yticklabels is not None:
+            mpl.yticks(self._yticks, self._yticklabels)
+         else:
+            mpl.yticks(self._yticks)
 
       # Margins
       mpl.gcf().subplots_adjust(bottom=self.bot, top=self.top,

@@ -67,7 +67,9 @@ def run(argv):
    ylim = None
    clim = None
    xticks = None
+   xticklabels = None
    yticks = None
+   yticklabels = None
    version = None
    list_thresholds = False
    list_quantiles = False
@@ -163,8 +165,12 @@ def run(argv):
                clim = verif.util.parse_numbers(argv[i + 1])
             elif(arg == "-xticks"):
                xticks = verif.util.parse_numbers(argv[i + 1])
+            elif(arg == "-xticklabels"):
+               xticklabels = (argv[i + 1]).split(',')
             elif(arg == "-yticks"):
                yticks = verif.util.parse_numbers(argv[i + 1])
+            elif(arg == "-yticklabels"):
+               yticklabels = (argv[i + 1]).split(',')
             elif(arg == "-s"):
                sdim = argv[i + 1]
             elif(arg == "-agg"):
@@ -442,8 +448,12 @@ def run(argv):
       pl.clim(clim)
    if(xticks is not None):
       pl.xticks(xticks)
+   if(xticklabels is not None):
+      pl.xticklabels(xticklabels)
    if(yticks is not None):
       pl.yticks(yticks)
+   if(yticklabels is not None):
+      pl.yticklabels(yticklabels)
    if(logX is not None):
       pl.log_x = logX
    if(logY is not None):
@@ -567,10 +577,12 @@ def show_description(data=None):
    print verif.util.format_argument("-xlabel text", "Custom x-axis label")
    print verif.util.format_argument("-xlim limits", "Force x-axis limits to the two values lower,upper")
    print verif.util.format_argument("-xticks ticks", "A vector of values to put ticks on the x-axis")
+   print verif.util.format_argument("-xticklabels labels", "A comma-separated list of labels for the x-axis ticks")
    print verif.util.format_argument("-xrot value", "Rotation angle for x-axis labels")
    print verif.util.format_argument("-ylabel text", "Custom y-axis label")
    print verif.util.format_argument("-ylim limits", "Force y-axis limits to the two values lower,upper")
    print verif.util.format_argument("-yticks ticks", "A vector of values to put ticks on the y-axis")
+   print verif.util.format_argument("-xticklabels labels", "A comma-separated list of labels for the y-axis ticks")
    print ""
    metrics = verif.metric.get_all()
    outputs = verif.output.get_all()
