@@ -3,6 +3,7 @@ import csv
 import numpy as np
 import time
 import datetime
+import re
 try:
    from netCDF4 import Dataset as netcdf
 except:
@@ -11,6 +12,27 @@ import verif.location
 import verif.util
 import verif.variable
 import verif.field
+
+def guess_x0(name):
+   """
+   Attempt to automatically detect the value of the lower discrete mass
+   (e.g. 0 mm for precipitation)
+   """
+   prog = re.compile("Precip.*")
+   if(prog.match(name)):
+      return 0
+   return None
+
+
+def guess_x1(name):
+   """
+   Attempt to automatically detect the value of the upper discrete mass
+   (e.g. 100 % for RH)
+   """
+   prog = re.compile("RH")
+   if(prog.match(name)):
+      return  100
+   return None
 
 
 def get_input(filename):
@@ -193,7 +215,9 @@ class Comps(Input):
             units = "%"
          else:
             units = "$" + self._file.Units + "$"
-      return verif.variable.Variable(name, units)
+      x0 = guess_x0(name)
+      x1 = guess_x1(name)
+      return verif.variable.Variable(name, units, x0=x0, x1=x1)
 
    def _get_score(self, metric):
       temp = verif.util.clean(self._file.variables[metric])
@@ -339,7 +363,9 @@ class NetcdfCf(Input):
             units = "%"
          else:
             units = "$" + self._file.Units + "$"
-      return verif.variable.Variable(name, units)
+      x0 = guess_x0(name)
+      x1 = guess_x1(name)
+      return verif.variable.Variable(name, units, x0=x0, x1=x1)
 
 
 # Flat text file format
@@ -359,8 +385,8 @@ class Text(Input):
       self.fullname = filename
       self._filename = os.path.expanduser(filename)
       file = open(self._filename, 'rU')
-      self._units = "Unknown units"
-      self._variable = "Unknown"
+      self._variable_units = "Unknown units"
+      self._variable_name = "Unknown"
       self._pit = None
 
       self._times = set()
@@ -395,9 +421,9 @@ class Text(Input):
             curr = rowstr[1:]
             curr = curr.split()
             if(curr[0] == "variable:"):
-               self._variable = ' '.join(curr[1:])
+               self._variable_name = ' '.join(curr[1:])
             elif(curr[0] == "units:"):
-               self._units = curr[1]
+               self._variable_units = curr[1]
             else:
                verif.util.warning("Ignoring line '" + rowstr.strip() + "' in file '" + self._filename + "'")
          else:
@@ -578,7 +604,9 @@ class Text(Input):
       return os.path.isfile(filename)
 
    def _get_variable(self):
-      return verif.variable.Variable(self._variable, self._units)
+      x0 = guess_x0(self._variable_name)
+      x1 = guess_x1(self._variable_name)
+      return verif.variable.Variable(self._variable_name, self._variable_units, x0=x0, x1=x1)
 
    # Parse string into float, changing -999 into np.nan
    def _clean(self, value):

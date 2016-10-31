@@ -524,8 +524,8 @@ class Pit(Metric):
       return "PIT"
 
    def compute(self, data, threshold_range):
-      x0 = data.get_variable().get_x0()
-      x1 = data.get_variable().get_x1()
+      x0 = data.variable.x0
+      x1 = data.variable.x1
       if(x0 is None and x1 is None):
          [pit] = data.get_scores([self._name])
       else:
