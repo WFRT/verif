@@ -47,9 +47,22 @@ def convert_to_yyyymmdd(dates):
    return dates2
 
 
-def date_to_unixtime(date):
+def date_to_unixtime_slow(date):
    ut = calendar.timegm(datetime.datetime.strptime(str(date), "%Y%m%d").timetuple())
    return ut
+
+
+def date_to_unixtime(date):
+   year = date / 10000
+   month = date / 100 % 100
+   day = date % 100
+   ut = calendar.timegm(datetime.datetime(year, month, day).timetuple())
+   return ut
+
+def unixtime_to_date(unixtime):
+   dt = datetime.datetime.utcfromtimestamp(int(unixtime))
+   date = dt.year * 10000 + dt.month * 100 + dt.day
+   return date
 
 
 def red(text):

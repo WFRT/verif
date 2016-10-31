@@ -54,6 +54,20 @@ class TestParseNumbers(unittest.TestCase):
       self.assertEqual(date2num(datetime.datetime(2012, 3, 16, 0, 0)), times2[0])
       self.assertEqual(date2num(datetime.datetime(1900, 12, 1, 0, 0)), times2[1])
 
+   def test_date_to_unixtime(self):
+      import time
+      s = time.time()
+      self.assertEqual(1475280000, verif.util.date_to_unixtime_slow(20161001))
+      e = time.time()
+      print (e - s)
+      s = time.time()
+      self.assertEqual(1475280000, verif.util.date_to_unixtime(20161001))
+      e = time.time()
+      print (e - s)
+
+   def test_unixtime_to_date(self):
+      self.assertEqual(20161001, verif.util.unixtime_to_date(1475280000))
+
 
 class TestGetDate(unittest.TestCase):
    def test_simple(self):
