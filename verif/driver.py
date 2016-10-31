@@ -23,7 +23,7 @@ def run(argv):
    lon_range = None
    elev_range = None
    thresholds = None
-   climFile = None
+   clim_file = None
    clim_type = "subtract"
    leg = None
    ylabel = None
@@ -35,34 +35,32 @@ def run(argv):
    sdim = None
    figsize = None
    dpi = 100
-   showText = False
-   showMap = False
-   noMargin = False
-   binType = None
+   no_margin = False
+   bin_type = None
    simple = None
-   markerSize = None
-   lineWidth = None
-   lineColors = None
-   tickFontSize = None
-   labFontSize = None
-   legFontSize = None
-   titleFontSize = None
-   legLoc = None
+   marker_size = None
+   line_width = None
+   line_colors = None
+   tick_font_size = None
+   lab_font_size = None
+   leg_font_size = None
+   title_font_size = None
+   leg_loc = None
    type = "plot"
-   XRotation = None
-   MajorLength = None
-   MinorLength = None
-   MajorWidth = None
-   Bottom = None
-   Top = None
-   Right = None
-   Left = None
+   xrot = None
+   major_length = None
+   minor_length = None
+   major_width = None
+   bottom_padding = None
+   top_padding = None
+   right_padding = None
+   lef_padding = None
    Pad = None
    show_perfect = None
    aggregator_name = "mean"
-   doHist = False
-   doSort = False
-   doAcc = False
+   do_hist = False
+   do_sort = False
+   do_acc = False
    xlim = None
    ylim = None
    clim = None
@@ -75,9 +73,9 @@ def run(argv):
    list_quantiles = False
    list_locations = False
    list_times = False
-   mapType = None
-   logX = False
-   logY = False
+   map_type = None
+   log_x = False
+   log_y = False
    cmap = None
    obs_field = verif.field.Obs()
    fcst_field = verif.field.Fcst()
@@ -89,7 +87,7 @@ def run(argv):
       if(arg[0] == '-'):
          # Process option
          if(arg == "-nomargin"):
-            noMargin = True
+            no_margin = True
          elif(arg == "--version"):
             version = True
          elif(arg == "--list-thresholds"):
@@ -103,17 +101,17 @@ def run(argv):
          elif(arg == "-sp"):
             show_perfect = True
          elif(arg == "-hist"):
-            doHist = True
+            do_hist = True
          elif(arg == "-acc"):
-            doAcc = True
+            do_acc = True
          elif(arg == "-sort"):
-            doSort = True
+            do_sort = True
          elif(arg == "-simple"):
             simple = True
          elif(arg == "-logx"):
-            logX = True
+            log_x = True
          elif(arg == "-logy"):
-            logY = True
+            log_y = True
          else:
             if(arg == "-f"):
                ofile = argv[i + 1]
@@ -139,7 +137,7 @@ def run(argv):
             elif(arg == "-title"):
                title = unicode(argv[i + 1], 'utf8')
             elif(arg == "-b"):
-               binType = argv[i + 1]
+               bin_type = argv[i + 1]
             elif(arg == "-type"):
                type = argv[i + 1]
             elif(arg == "-fs"):
@@ -152,10 +150,10 @@ def run(argv):
             elif(arg == "-t"):
                times = verif.util.parse_numbers(argv[i + 1], True)
             elif(arg == "-c"):
-               climFile = argv[i + 1]
+               clim_file = argv[i + 1]
                clim_type = "subtract"
             elif(arg == "-C"):
-               climFile = argv[i + 1]
+               clim_file = argv[i + 1]
                clim_type = "divide"
             elif(arg == "-xlim"):
                xlim = verif.util.parse_numbers(argv[i + 1])
@@ -178,43 +176,43 @@ def run(argv):
             elif(arg == "-r"):
                thresholds = np.array(verif.util.parse_numbers(argv[i + 1]))
             elif(arg == "-ms"):
-               markerSize = float(argv[i + 1])
+               marker_size = float(argv[i + 1])
             elif(arg == "-lw"):
-               lineWidth = float(argv[i + 1])
+               line_width = float(argv[i + 1])
             elif(arg == "-lc"):
-               lineColors = argv[i + 1]
+               line_colors = argv[i + 1]
             elif(arg == "-tickfs"):
-               tickFontSize = float(argv[i + 1])
+               tick_font_size = float(argv[i + 1])
             elif(arg == "-labfs"):
-               labFontSize = float(argv[i + 1])
+               lab_font_size = float(argv[i + 1])
             elif(arg == "-legfs"):
-               legFontSize = float(argv[i + 1])
+               leg_font_size = float(argv[i + 1])
             elif(arg == "-legloc"):
-               legLoc = argv[i + 1].replace('_', ' ')
+               leg_loc = argv[i + 1].replace('_', ' ')
             elif(arg == "-xrot"):
-               XRotation = float(argv[i + 1])
+               xrot = float(argv[i + 1])
             elif(arg == "-majlth"):
-               MajorLength = float(argv[i + 1])
+               major_length = float(argv[i + 1])
             elif(arg == "-minlth"):
-               MinorLength = float(argv[i + 1])
+               minor_length = float(argv[i + 1])
             elif(arg == "-majwid"):
-               MajorWidth = float(argv[i + 1])
+               major_width = float(argv[i + 1])
             elif(arg == "-bot"):
-               Bottom = float(argv[i + 1])
+               bottom_padding = float(argv[i + 1])
             elif(arg == "-top"):
-               Top = float(argv[i + 1])
+               top_padding = float(argv[i + 1])
             elif(arg == "-right"):
-               Right = float(argv[i + 1])
+               right_padding = float(argv[i + 1])
             elif(arg == "-left"):
-               Left = float(argv[i + 1])
+               lef_padding = float(argv[i + 1])
             elif(arg == "-pad"):
                Pad = argv[i + 1]
             elif(arg == "-titlefs"):
-               titleFontSize = float(argv[i + 1])
+               title_font_size = float(argv[i + 1])
             elif(arg == "-cmap"):
                cmap = argv[i + 1]
             elif(arg == "-maptype"):
-               mapType = argv[i + 1]
+               map_type = argv[i + 1]
             elif(arg == "-obs"):
                obs_field = verif.field.get(argv[i + 1])
             elif(arg == "-fcst"):
@@ -249,7 +247,7 @@ def run(argv):
 
    if(len(ifiles) > 0):
       inputs = [verif.input.get_input(filename) for filename in ifiles]
-      data = verif.data.Data(inputs, clim=climFile, clim_type=clim_type,
+      data = verif.data.Data(inputs, clim=clim_file, clim_type=clim_type,
             times=times, offsets=offsets, locations=locations,
             lat_range=lat_range, lon_range=lon_range, elev_range=elev_range,
             legend=leg, obs_field=obs_field, fcst_field=fcst_field)
@@ -369,11 +367,11 @@ def run(argv):
       # Output type
       if(type in ["plot", "text", "csv", "map", "maprank"]):
          pl = verif.output.Standard(m)
-         if doSort:
+         if do_sort:
             pl = verif.output.Sort(m)
-         if doHist:
+         if do_hist:
             pl = verif.output.Hist(m)
-         pl.show_acc = doAcc
+         pl.show_acc = do_acc
       else:
          verif.util.error("Type not understood")
 
@@ -402,42 +400,42 @@ def run(argv):
    # Set plot parameters
    if(simple is not None):
       pl.simple = simple
-   if(markerSize is not None):
-      pl.ms(markerSize)
-   if(lineWidth is not None):
-      pl.lw(lineWidth)
-   if(lineColors is not None):
-      pl.line_colors = lineColors
-   if(labFontSize is not None):
-      pl.lab_font_size = labFontSize
-   if(legFontSize is not None):
-      pl.leg_font_size = legFontSize
-   if(titleFontSize is not None):
-      pl.title_font_size = titleFontSize
-   if(legLoc is not None):
-      pl.leg_loc = legLoc
-   if(tickFontSize is not None):
-      pl.tick_font_size = tickFontSize
-   if(XRotation is not None):
-      pl.xrot = XRotation
-   if(MajorLength is not None):
-      pl.major_length = MajorLength
-   if(MinorLength is not None):
-      pl.minor_length = MinorLength
-   if(MajorWidth is not None):
-      pl.major_width = MajorWidth
-   if(Bottom is not None):
-      pl.bottom = Bottom
-   if(Top is not None):
-      pl.top = Top
-   if(Right is not None):
-      pl.right = Right
-   if(Left is not None):
-      pl.left = Left
+   if(marker_size is not None):
+      pl.ms(marker_size)
+   if(line_width is not None):
+      pl.lw(line_width)
+   if(line_colors is not None):
+      pl.line_colors = line_colors
+   if(lab_font_size is not None):
+      pl.lab_font_size = lab_font_size
+   if(leg_font_size is not None):
+      pl.leg_font_size = leg_font_size
+   if(title_font_size is not None):
+      pl.title_font_size = title_font_size
+   if(leg_loc is not None):
+      pl.leg_loc = leg_loc
+   if(tick_font_size is not None):
+      pl.tick_font_size = tick_font_size
+   if(xrot is not None):
+      pl.xrot = xrot
+   if(major_length is not None):
+      pl.major_length = major_length
+   if(minor_length is not None):
+      pl.minor_length = minor_length
+   if(major_width is not None):
+      pl.major_width = major_width
+   if(bottom_padding is not None):
+      pl.bottom = bottom_padding
+   if(top_padding is not None):
+      pl.top = top_padding
+   if(right_padding is not None):
+      pl.right = right_padding
+   if(lef_padding is not None):
+      pl.left = lef_padding
    if(Pad is not None):
       pl.pad = None
-   if(binType is not None):
-      pl.bin_type = binType
+   if(bin_type is not None):
+      pl.bin_type = bin_type
    if(show_perfect is not None):
       pl.show_perfect = show_perfect
    if(xlim is not None):
@@ -454,14 +452,14 @@ def run(argv):
       pl.yticks(yticks)
    if(yticklabels is not None):
       pl.yticklabels(yticklabels)
-   if(logX is not None):
-      pl.log_x = logX
-   if(logY is not None):
-      pl.log_y = logY
+   if(log_x is not None):
+      pl.log_x = log_x
+   if(log_y is not None):
+      pl.log_y = log_y
    if(cmap is not None):
       pl.cmap = cmap
-   if(mapType is not None):
-      pl.map_type = mapType
+   if(map_type is not None):
+      pl.map_type = map_type
    pl.filename = ofile
    if thresholds is not None:
       pl.thresholds = thresholds
@@ -470,7 +468,7 @@ def run(argv):
    if axis is not None:
       pl.axis = axis
    pl.aggregator = verif.aggregator.get(aggregator_name)
-   pl.show_margin = not noMargin
+   pl.show_margin = not no_margin
    pl.ylabel(ylabel)
    pl.xlabel(xlabel)
    pl.title(title)
@@ -588,9 +586,9 @@ def show_description(data=None):
    outputs = verif.output.get_all()
    print verif.util.green("Metrics (-m):")
    print "  (For a full description, run verif -m <metric>)"
-   metricOutputs = metrics + outputs
-   metricOutputs.sort(key=lambda x: x[0].lower(), reverse=False)
-   for m in metricOutputs:
+   metric_outputs = metrics + outputs
+   metric_outputs.sort(key=lambda x: x[0].lower(), reverse=False)
+   for m in metric_outputs:
       name = m[0].lower()
       if(m[1].is_valid()):
          desc = m[1].summary()
