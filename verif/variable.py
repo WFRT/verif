@@ -1,4 +1,5 @@
 import re
+import matplotlib.ticker
 
 
 class Variable(object):
@@ -8,9 +9,10 @@ class Variable(object):
    name:       Name of the variable
    units:      Units of the variable
    """
-   def __init__(self, name, units):
+   def __init__(self, name, units, formatter=matplotlib.ticker.ScalarFormatter()):
       self.name = name
       self.units = units
+      self.formatter = formatter
 
    def get_x0(self):
       """ Get the value for the lower discrete mass (e.g. 0 mm for precipitation) """

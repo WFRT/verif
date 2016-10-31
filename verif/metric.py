@@ -44,7 +44,7 @@ class Metric(object):
    # Overload these variables
    min = None  # Minimum value this metric can produce
    max = None  # Maximum value this mertic can produce
-   default_axis = verif.axis.Offset  # If no axis is specified, use this axis as default
+   default_axis = verif.axis.Offset()  # If no axis is specified, use this axis as default
    default_bin_type = None
    requires_threshold = False  # Does this metric require thresholds?
    supports_threshold = False  # Does this metric support thresholds?
@@ -618,7 +618,7 @@ class MarginalRatio(Metric):
    perfect_score = 1
    requires_threshold = True
    supports_threshold = True
-   default_axis = verif.axis.Threshold
+   default_axis = verif.axis.Threshold()
    experimental = True
    orientation = 0
 
@@ -1011,7 +1011,7 @@ class Contingency(Metric):
    """ Metrics based on 2x2 contingency table for a given threshold """
    min = 0
    max = 1
-   default_axis = verif.axis.Threshold
+   default_axis = verif.axis.Threshold()
    requires_threshold = True
    supports_threshold = True
    _usingQuantiles = False

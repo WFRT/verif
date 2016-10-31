@@ -153,7 +153,7 @@ class Data(object):
       self.years = self._get_years()
       self.num_inputs = self._get_num_inputs()
 
-   def get_scores(self, fields, input_index, axis=verif.axis.All, axis_index=None):
+   def get_scores(self, fields, input_index, axis=verif.axis.All(), axis_index=None):
       """ Retrieves scores from all files
 
       Climatology is handled by subtracting clim's fcst field from any
@@ -162,7 +162,7 @@ class Data(object):
       Arguments:
       fields         A list of verif.field to retrieve
       input_index    Which input to pull from? Must be between 0 and num_inputs
-      axis           Which axis to aggregate against. If verif.axis.All is
+      axis           Which axis to aggregate against. If verif.axis.All() is
                      used, then no aggregation takes place and the 3D numpy
                      array is returned.
       axis_index     Which slice along the axis to retrieve
@@ -185,9 +185,9 @@ class Data(object):
       doClim = self._clim is not None and obsFcstAvailable
       if(doClim):
          temp = self._get_score(verif.field.Fcst(), len(self._inputs) - 1)
-         if(axis == verif.axis.Time):
+         if(axis == verif.axis.Time()):
             clim = temp[axis_index, :, :].flatten()
-         elif(axis == verif.axis.Month):
+         elif(axis == verif.axis.Month()):
             if(axis_index == self.months.shape[0]-1):
                # TODO
                I = np.where(self.times >= self.months[axis_index])
@@ -195,20 +195,20 @@ class Data(object):
                I = np.where((self.times >= self.months[axis_index]) &
                             (self.times < self.months[axis_index + 1]))
             clim = temp[I, :, :].flatten()
-         elif(axis == verif.axis.Year):
+         elif(axis == verif.axis.Year()):
             if(axis_index == self.years.shape[0]-1):
                I = np.where(self.times >= self.years[axis_index])
             else:
                I = np.where((self.times >= self.years[axis_index]) &
                             (self.times < self.years[axis_index + 1]))
             clim = temp[I, :, :].flatten()
-         elif(axis == verif.axis.Offset):
+         elif(axis == verif.axis.Offset()):
             clim = temp[:, axis_index, :].flatten()
          elif(axis.is_location_like):
             clim = temp[:, :, axis_index].flatten()
-         elif(axis == verif.axis.No or axis == verif.axis.Threshold):
+         elif(axis == verif.axis.No() or axis == verif.axis.Threshold()):
             clim = temp.flatten()
-         elif(axis == verif.axis.All or axis is None):
+         elif(axis == verif.axis.All() or axis is None):
             clim = temp
       else:
          clim = 0
@@ -218,29 +218,29 @@ class Data(object):
          field = fields[i]
          temp = self._get_score(field, input_index)
 
-         if(axis == verif.axis.Time):
+         if(axis == verif.axis.Time()):
             curr = temp[axis_index, :, :].flatten()
-         elif(axis == verif.axis.Month):
+         elif(axis == verif.axis.Month()):
             if(axis_index == self.months.shape[0] - 1):
                I = np.where(self.times >= self.months[axis_index])
             else:
                I = np.where((self.times >= self.months[axis_index]) &
                             (self.times < self.months[axis_index + 1]))
             curr = temp[I, :, :].flatten()
-         elif(axis == verif.axis.Year):
+         elif(axis == verif.axis.Year()):
             if(axis_index == self.years.shape[0] - 1):
                I = np.where(self.times >= self.years[axis_index])
             else:
                I = np.where((self.times >= self.years[axis_index]) &
                             (self.times < self.years[axis_index + 1]))
             curr = temp[I, :, :].flatten()
-         elif(axis == verif.axis.Offset):
+         elif(axis == verif.axis.Offset()):
             curr = temp[:, axis_index, :].flatten()
          elif(axis.is_location_like):
             curr = temp[:, :, axis_index].flatten()
-         elif(axis == verif.axis.No or axis == verif.axis.Threshold):
+         elif(axis == verif.axis.No() or axis == verif.axis.Threshold()):
             curr = temp.flatten()
-         elif(axis == verif.axis.All or axis is None):
+         elif(axis == verif.axis.All() or axis is None):
             curr = temp
          else:
             verif.util.error("Data.py: unrecognized axis: " + axis)
@@ -260,7 +260,7 @@ class Data(object):
             valid = (valid & currValid)
          scores.append(curr)
 
-      if axis is not verif.axis.All:
+      if axis is not verif.axis.All():
          I = np.where(valid)
          for i in range(0, len(fields)):
             scores[i] = scores[i][I]
@@ -280,27 +280,27 @@ class Data(object):
 
    # What values represent this axis?
    def get_axis_values(self, axis):
-      if(axis == verif.axis.Time):
+      if(axis == verif.axis.Time()):
          # TODO: Does it make sense to convert here, but not with data.times?
          return verif.util.convert_times(self.times)
-      elif(axis == verif.axis.Month):
+      elif(axis == verif.axis.Month()):
          return verif.util.convert_times(self.months)
-      elif(axis == verif.axis.Year):
+      elif(axis == verif.axis.Year()):
          return verif.util.convert_times(self.years)
-      elif(axis == verif.axis.Offset):
+      elif(axis == verif.axis.Offset()):
          return self.offsets
-      elif(axis == verif.axis.No):
+      elif(axis == verif.axis.No()):
          return [0]
       elif(axis.is_location_like):
-         if(axis == verif.axis.Location):
+         if(axis == verif.axis.Location()):
             data = range(0, len(self.locations))
-         elif(axis == verif.axis.LocationId):
+         elif(axis == verif.axis.LocationId()):
             data = self.get_location_ids()
-         elif(axis == verif.axis.Elev):
+         elif(axis == verif.axis.Elev()):
             data = self.get_elevs()
-         elif(axis == verif.axis.Lat):
+         elif(axis == verif.axis.Lat()):
             data = self.get_lats()
-         elif(axis == verif.axis.Lon):
+         elif(axis == verif.axis.Lon()):
             data = self.get_lons()
          else:
             verif.util.error("Data.get_axis_values has a bad axis name: " + axis)
@@ -310,11 +310,11 @@ class Data(object):
 
    def get_axis_locator(self, axis):
       """ Where should ticks be located for this axis? Returns an mpl Locator """
-      if(axis == verif.axis.Offset):
+      if(axis == verif.axis.Offset()):
          # Define our own locators, since in general we want multiples of 24
          # (or even fractions thereof) to make the ticks repeat each day. Aim
          # for a maximum of 12 ticks.
-         offsets = self.get_axis_values(verif.axis.Offset)
+         offsets = self.get_axis_values(verif.axis.Offset())
          span = max(offsets) - min(offsets)
          if(span > 300):
             return matplotlib.ticker.AutoLocator()
@@ -356,21 +356,21 @@ class Data(object):
       return var.name + " (" + var.units + ")"
 
    def get_axis_label(self, axis):
-      if(axis == verif.axis.Time):
+      if(axis == verif.axis.Time()):
          return "Date"
-      elif(axis == verif.axis.Offset):
+      elif(axis == verif.axis.Offset()):
          return "Lead time (h)"
-      elif(axis == verif.axis.Month):
+      elif(axis == verif.axis.Month()):
          return "Month"
-      elif(axis == verif.axis.Year):
+      elif(axis == verif.axis.Year()):
          return "Year"
-      elif(axis == verif.axis.Elev):
+      elif(axis == verif.axis.Elev()):
          return "Elevation (m)"
-      elif(axis == verif.axis.Lat):
+      elif(axis == verif.axis.Lat()):
          return "Latitude ($^o$)"
-      elif(axis == verif.axis.Lon):
+      elif(axis == verif.axis.Lon()):
          return "Longitude ($^o$)"
-      elif(axis == verif.axis.Threshold):
+      elif(axis == verif.axis.Threshold()):
          return self.get_variable_and_units()
 
    def get_lats(self):
@@ -645,6 +645,7 @@ class Data(object):
       # Handle obs field
       units = self._obs_field.units(variable)
       name = self._obs_field.label(variable)
-      variable = verif.variable.Variable(name, units)
+      formatter = self._obs_field.formatter(variable)
+      variable = verif.variable.Variable(name, units, formatter)
 
       return variable

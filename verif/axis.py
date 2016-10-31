@@ -20,7 +20,7 @@ def get(name):
    a = None
    for axis in axes:
       if name == axis[0].lower():
-         a = axis[1]
+         a = axis[1]()
    if a is None:
       verif.util.error("No axis by name '%s'" % name)
    return a
@@ -41,18 +41,25 @@ class Axis(object):
    is_continuous = True
    is_location_like = False
    is_time_like = False
-   formatter = matplotlib.ticker.ScalarFormatter()
 
    @classmethod
    def name(cls):
       name = cls.__name__
       return name
 
+   def __eq__(self, other):
+      return self.__class__ == other.__class__
+
+   def formatter(self, variable):
+      """ How should ticks be generated for this axis? """
+      return matplotlib.ticker.ScalarFormatter()
+
 
 class Time(Axis):
    """ Forecast initialization time """
    is_time_like = True
-   formatter = matplotlib.dates.DateFormatter('\n%Y-%m-%d')
+   def formatter(self, variable):
+      return matplotlib.dates.DateFormatter('\n%Y-%m-%d')
 
 
 class Offset(Axis):
@@ -122,4 +129,5 @@ class MonthOfYear(Axis):
 
 
 class Threshold(Axis):
-   pass
+   def formatter(self, variable):
+      return variable.formatter

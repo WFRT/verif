@@ -54,7 +54,7 @@ class Output(object):
    leg_loc:       Where should the legend be placed?
    """
    description = ""
-   default_axis = verif.axis.Offset
+   default_axis = verif.axis.Offset()
    default_bin_type = "above"
    requires_threshold = False
    supports_threshold = True
@@ -560,7 +560,7 @@ class Standard(Output):
       thresholds = self.thresholds
 
       [lowerT, upperT, xx] = self._get_threshold_limits(thresholds)
-      if(axis != verif.axis.Threshold):
+      if(not axis == verif.axis.Threshold()):
          xx = data.get_axis_values(axis)
 
       names = data.get_names()
@@ -569,7 +569,7 @@ class Standard(Output):
       x = None
       for f in range(0, F):
          yy = np.zeros(len(xx), 'float')
-         if(axis == verif.axis.Threshold):
+         if(axis == verif.axis.Threshold()):
             for i in range(0, len(lowerT)):
                yy[i] = self._metric.compute(data, f, axis, [lowerT[i], upperT[i]])
          else:
@@ -621,7 +621,7 @@ class Standard(Output):
          ids = range(0, F)
 
       # Show a bargraph with unconditional averages when no axis is specified
-      if(self.axis == verif.axis.No):
+      if(self.axis == verif.axis.No()):
          w = 0.8
          x = np.linspace(1 - w / 2, len(y) - w / 2, len(y))
          mpl.bar(x, y, color='w', lw=self.lw)
@@ -654,7 +654,7 @@ class Standard(Output):
          if(self.axis.is_time_like):
             mpl.gca().xaxis_date()
          else:
-            mpl.gca().xaxis.set_major_formatter(self.axis.formatter)
+            #mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
             # NOTE: Don't call the locator on a date axis
             mpl.gca().xaxis.set_major_locator(data.get_axis_locator(self.axis))
          perfect_score = self._metric.perfect_score
@@ -695,7 +695,7 @@ class Standard(Output):
       lineDescN = len(lineDesc) + 2
       lineDescFmt = "%-" + str(lineDescN) + "s |"
       print lineDescFmt % lineDesc,
-      if(self.axis == verif.axis.Threshold):
+      if(self.axis == verif.axis.Threshold()):
          descs = self.thresholds
       else:
          descs = data.get_axis_descriptions(self.axis)
@@ -745,7 +745,7 @@ class Standard(Output):
       print header
 
       # Loop over rows
-      if(self.axis == verif.axis.Threshold):
+      if(self.axis == verif.axis.Threshold()):
          descs = self.thresholds
       else:
          descs = data.get_axis_descriptions(self.axis, csv=True)
@@ -759,7 +759,7 @@ class Standard(Output):
       if(type == "int"):
          fmt = "%-" + colWidth + "i"
       else:
-         fmt = "%-" + colWidth + ".2f"
+         fmt = "%-" + colWidth + ".4f"
       missfmt = "%-" + colWidth + "s"
       minI = np.argmin(values)
       maxI = np.argmax(values)
@@ -832,7 +832,7 @@ class Standard(Output):
          dy = 5
       else:
          dy = 10
-      [x, y] = self.get_x_y(data, verif.axis.Location)
+      [x, y] = self.get_x_y(data, verif.axis.Location())
 
       # Colorbar limits should be the same for all subplots
       clim = [verif.util.nanpercentile(y.flatten(), self._mapLowerPerc),
@@ -1104,7 +1104,7 @@ class Sort(Output):
          y = np.linspace(0, 1, x.shape[0])
          mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
                ms=self.ms)
-      mpl.xlabel("Sorted " + data.get_axis_label(verif.axis.Threshold))
+      mpl.xlabel("Sorted " + data.get_axis_label(verif.axis.Threshold()))
       mpl.grid()
 
 
@@ -1225,7 +1225,8 @@ class Scatter(Output):
          color = self._get_color(f, F)
          style = self._get_style(f, F, connectingLine=False)
 
-         [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No, 0)
+         [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f,
+               verif.axis.No(), 0)
          alpha = 0.2
          if self.simple:
             alpha = 1
@@ -1388,10 +1389,10 @@ class Cond(Output):
          xmfo = verif.metric.XConditional(verif.field.Fcst(),verif.field.Obs())  # O | F
          mof0 = verif.metric.Conditional(verif.field.Obs(),verif.field.Fcst(), np.mean)  # F | O
          for i in range(0, len(lowerT)):
-            fo[i] = mfo.compute(data, f, verif.axis.No, [lowerT[i], upperT[i]])
-            of[i] = mof.compute(data, f, verif.axis.No, [lowerT[i], upperT[i]])
-            xfo[i] = xmfo.compute(data, f, verif.axis.No, [lowerT[i], upperT[i]])
-            xof[i] = xmof.compute(data, f, verif.axis.No, [lowerT[i], upperT[i]])
+            fo[i] = mfo.compute(data, f, verif.axis.No(), [lowerT[i], upperT[i]])
+            of[i] = mof.compute(data, f, verif.axis.No(), [lowerT[i], upperT[i]])
+            xfo[i] = xmfo.compute(data, f, verif.axis.No(), [lowerT[i], upperT[i]])
+            xof[i] = xmof.compute(data, f, verif.axis.No(), [lowerT[i], upperT[i]])
          mpl.plot(xof, of, style, color=color, label=labels[f] + " (F|O)",
                lw=self.lw, ms=self.ms)
          mpl.plot(fo, xfo, style, color=color, label=labels[f] + " (O|F)",
@@ -1511,7 +1512,7 @@ class TimeSeries(Output):
       obs = data.get_scores(verif.field.Obs(), 0)[0]
       for d in range(0, obs.shape[0]):
          # Obs line
-         dates = data.get_axis_values(verif.axis.Time)
+         dates = data.get_axis_values(verif.axis.Time())
          x = dates[d] + data.offsets / 24.0
          y = verif.util.nanmean(obs[d, :, :], axis=1)
          if(connect and d < obs.shape[0] - 1):
@@ -1553,7 +1554,7 @@ class TimeSeries(Output):
       else:
          mpl.ylabel(self._ylabel)
       mpl.grid()
-      #mpl.gca().xaxis.set_major_formatter(verif.axis.Time.formatter)
+      #mpl.gca().xaxis.set_major_formatter(verif.axis.Time().formatter(data.variable))
       mpl.gca().xaxis_date()
 
       if(self.tight):
@@ -2306,7 +2307,7 @@ class Against(Output):
    description = "Plots the forecasts for each pair of configurations against each other. "\
    "Colours indicate which configuration had the best forecast (but only if the difference is "\
    "more than 10% of the standard deviation of the observation)."
-   default_axis = verif.axis.No
+   default_axis = verif.axis.No()
    supports_threshold = False
    supports_x = False
    # How big difference should colour kick in (in number of STDs)?
@@ -2589,7 +2590,7 @@ class Error(Output):
    description = "Decomposition of RMSE into systematic and unsystematic components"
    supports_threshold = False
    supports_x = True
-   default_axis = verif.axis.No
+   default_axis = verif.axis.No()
 
    def _plot_core(self, data):
       data.set_axis(self.axis)
@@ -2724,7 +2725,8 @@ class Freq(Output):
          clim = np.zeros(N, 'float')
          for t in range(0, N):
             threshold = self.thresholds[t]
-            [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No)
+            [obs, fcst] = data.get_scores([verif.field.Obs(),
+               verif.field.Fcst()], f, verif.axis.No())
 
             color = self._get_color(f, F)
             style = self._get_style(f, F)
@@ -2852,7 +2854,7 @@ class Impact(Output):
    description = ""\
    "Colours indicate which configuration had the best forecast (but only if the difference is "\
    "more than 10% of the standard deviation of the observation)."
-   default_axis = verif.axis.No
+   default_axis = verif.axis.No()
    supports_threshold = False
    requires_threshold = True
    supports_x = False
@@ -2935,7 +2937,7 @@ class Impact(Output):
 
 class RainWindow(Output):
    description = "Shows observed and forecasted rain windows"
-   default_axis = verif.axis.No
+   default_axis = verif.axis.No()
    supports_threshold = False
    requires_threshold = False
    supports_x = False
@@ -2954,7 +2956,8 @@ class RainWindow(Output):
 
       for f in range(0, F):
          y = np.zeros(len(x))
-         [obs,fcst] = data.get_scores([verif.field.ObsWindow(), verif.field.FcstWindow()], f, verif.axis.All)
+         [obs,fcst] = data.get_scores([verif.field.ObsWindow(),
+            verif.field.FcstWindow()], f, verif.axis.All())
 
          obs_y = np.zeros(len(x))
          fcst_y = np.zeros(len(x))

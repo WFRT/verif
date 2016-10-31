@@ -383,7 +383,7 @@ def run(argv):
       axis = None
 
    # Reset dimension if 'threshold' is not allowed
-   if(axis == verif.axis.Threshold and
+   if(axis == verif.axis.Threshold() and
          ((not pl.supports_threshold) or (m is not None and not m.supports_threshold))):
       verif.util.warning(metric + " does not support '-x threshold'. Ignoring it.")
       thresholds = None

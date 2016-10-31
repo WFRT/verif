@@ -1,5 +1,6 @@
 import sys
 import inspect
+import matplotlib.ticker
 import verif.util
 
 
@@ -39,6 +40,9 @@ class Field(object):
 
    def units(self, variable):
       return variable.units
+
+   def formatter(self, variable):
+      return variable.formatter
 
 
 class Obs(Field):
