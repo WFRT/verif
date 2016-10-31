@@ -648,7 +648,7 @@ class Standard(Output):
                mpl.plot(xx, yy, "--", color=color, lw=self.lw, ms=self.ms)
 
          mpl.xlabel(data.get_axis_label(self.axis))
-         mpl.ylabel(self._metric.label(data))
+         mpl.ylabel(self._metric.label(data.variable))
          #mpl.ylabel(data.obsfield.label() + data.obsfield.units(data.variable))
 
          if(self.axis.is_time_like):
@@ -902,7 +902,7 @@ class Standard(Output):
          else:
             map.scatter(x0, y0, c=y[f, :], s=s, cmap=cmap)
             cb = map.colorbar()
-            cb.set_label(self._metric.label(data))
+            cb.set_label(self._metric.label(data.variable))
             cb.set_clim(clim)
             mpl.clim(clim)
          if(self._mapLabelLocations):

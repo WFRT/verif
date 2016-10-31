@@ -144,10 +144,10 @@ class Metric(object):
       name = cls.__name__
       return name
 
-   def label(self, data):
-      """ What is an appropriate y-axis label for this metric? Override this if the metric does not
-      have the same units as the forecast variable """
-      return self.name() + " (" + data.variable.units + ")"
+   def label(self, variable):
+      """ What is an appropriate y-axis label for this metric? Override this if
+      the metric does not have the same units as the forecast variable """
+      return self.name() + " (" + variable.units + ")"
 
    def name(self):
       """ Cannot be a classmethod, since it might use self.aggregator """
@@ -275,7 +275,7 @@ class Ef(Deterministic):
    def name(self):
       return "Exceedance fraction"
 
-   def label(self, data):
+   def label(self, variable):
       return "% times fcst > obs"
 
 
@@ -365,7 +365,7 @@ class Nsec(Deterministic):
    def name(self):
       return "NSEC"
 
-   def label(self, data):
+   def label(self, variable):
       return self.name()
 
 
@@ -389,7 +389,7 @@ class Alphaindex(Deterministic):
    def name(self):
       return "Alpha index"
 
-   def label(self, data):
+   def label(self, variable):
       return self.name()
 
 
@@ -444,7 +444,7 @@ class Mbias(Deterministic):
    def name(self):
       return self.description
 
-   def label(self, data):
+   def label(self, variable):
       return self.description
 
 
@@ -465,7 +465,7 @@ class Corr(Deterministic):
    def name(self):
       return "Correlation"
 
-   def label(self, data):
+   def label(self, variable):
       return "Correlation"
 
 
@@ -485,7 +485,7 @@ class RankCorr(Deterministic):
    def name(self):
       return "Rank correlation"
 
-   def label(self, data):
+   def label(self, variable):
       return "Rank correlation"
 
 
@@ -507,7 +507,7 @@ class KendallCorr(Deterministic):
    def name(self):
       return "Kendall correlation"
 
-   def label(self, data):
+   def label(self, variable):
       return "Kendall correlation"
 
 
@@ -520,7 +520,7 @@ class Pit(Metric):
    def __init__(self, name="pit"):
       self._name = name
 
-   def label(self, data):
+   def label(self, variable):
       return "PIT"
 
    def compute(self, data, threshold_range):
@@ -557,7 +557,7 @@ class PitDev(Metric):
       self._metric = Pit()
       self._bins = np.linspace(0, 1, numBins)
 
-   def label(self, data):
+   def label(self, variable):
       return "PIT histogram deviation"
 
    def compute_core(self, data, input_index, axis, axis_index, threshold_range):
@@ -643,7 +643,7 @@ class MarginalRatio(Metric):
          return np.nan
       return np.mean(obs) / np.mean(p)
 
-   def label(self, data):
+   def label(self, variable):
       return "Ratio of marginal probs: Pobs/Pfcst"
 
 
@@ -666,7 +666,7 @@ class SpreadSkillDiff(Metric):
    def name(self):
       return "Spread-skill difference"
 
-   def label(self, data):
+   def label(self, variable):
       return "Spread-skill difference (%)"
 
 
@@ -675,8 +675,7 @@ class Within(Metric):
    """
    min = 0
    max = 100
-   description = "The percentage of forecasts within some"\
-         " error bound (use -r)"
+   description = "The percentage of forecasts within some error bound (use -r)"
    default_bin_type = "below"
    requires_threshold = True
    supports_threshold = True
@@ -692,7 +691,7 @@ class Within(Metric):
    def name(self):
       return "Within"
 
-   def label(self, data):
+   def label(self, variable):
       return "% of forecasts"
 
 
@@ -840,7 +839,7 @@ class Bs(Metric):
 
       return [obs, q]
 
-   def label(self, data):
+   def label(self, variable):
       return "Brier score"
 
 
@@ -871,7 +870,7 @@ class Bss(Metric):
          bss = (bsunc - bs) / bsunc
       return bss
 
-   def label(self, data):
+   def label(self, variable):
       return "Brier skill score"
 
 
@@ -899,7 +898,7 @@ class BsRel(Metric):
             bs[I] = (np.mean(p[I]) - meanObsI) ** 2
       return verif.util.nanmean(bs)
 
-   def label(self, data):
+   def label(self, variable):
       return "Brier score, reliability term"
 
 
@@ -918,7 +917,7 @@ class BsUnc(Metric):
       bs = meanObs * (1 - meanObs)
       return bs
 
-   def label(self, data):
+   def label(self, variable):
       return "Brier score, uncertainty term"
 
 
@@ -945,7 +944,7 @@ class BsRes(Metric):
             bs[I] = (meanObsI - meanObs) ** 2
       return verif.util.nanmean(bs)
 
-   def label(self, data):
+   def label(self, variable):
       return "Brier score, resolution term"
 
 
@@ -981,7 +980,7 @@ class Ign0(Metric):
       ign[I0] = -np.log2(1 - p[I0])
       return np.mean(ign)
 
-   def label(self, data):
+   def label(self, variable):
       return "Binary Ignorance"
 
 
@@ -1003,7 +1002,7 @@ class Spherical(Metric):
 
       return np.mean(sp)
 
-   def label(self, data):
+   def label(self, variable):
       return "Spherical score"
 
 
@@ -1021,7 +1020,7 @@ class Contingency(Metric):
       from matplotlib.ticker import ScalarFormatter
       return ScalarFormatter()
 
-   def label(self, data):
+   def label(self, variable):
       return self.name()
 
    def compute_core(self, data, input_index, axis, axis_index, threshold_range):
