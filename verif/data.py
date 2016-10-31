@@ -444,9 +444,8 @@ class Data(object):
       for i in range(0, self._get_num_inputs_with_clim()):
          if(field not in self._cache[i]):
             input = self._inputs[i]
-            assert(verif.field.Threshold(1) == verif.field.Threshold(1))
-            all_variables = input.get_variables() + [verif.field.ObsWindow(), verif.field.FcstWindow()]
-            if(field not in all_variables):
+            all_fields = input.get_fields() + [verif.field.ObsWindow(), verif.field.FcstWindow()]
+            if(field not in all_fields):
                verif.util.error("%s does not contain '%s'" %
                      (self.get_names()[i], field.name()))
             if field == verif.field.Obs():

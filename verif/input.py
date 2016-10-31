@@ -77,11 +77,12 @@ class Input(object):
    """
    description = None  # Overwrite this
 
-   def get_variables(self):
-      variables = [verif.field.Obs(), verif.field.Fcst()]
+   def get_fields(self):
+      """ Returns a list of all available fields """
+      fields = [verif.field.Obs(), verif.field.Fcst()]
       thresholds = [verif.field.Threshold(threshold) for threshold in self.thresholds]
       quantiles = [verif.field.Quantiles(quantile) for quantile in self.quantiles]
-      return variables + thresholds + quantiles
+      return fields + thresholds + quantiles
 
    @property
    def name(self):
