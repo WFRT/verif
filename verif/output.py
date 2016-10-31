@@ -73,7 +73,7 @@ class Output(object):
       self.default_lines = ['-', '-', '-', '--']
       self.default_markers = ['o', '', '.', '']
       self.default_colors = ['r', 'b', 'g', [1, 0.73, 0.2], 'k']
-      self.lc = None
+      self.line_colors = None
       self.ls = None
       self.colors = None
       self.styles = None
@@ -281,8 +281,8 @@ class Output(object):
 
    # Helper functions
    def _get_color(self, i, total):
-      if(self.lc is not None):
-         firstList = self.lc.split(",")
+      if(self.line_colors is not None):
+         firstList = self.line_colors.split(",")
          numList = []
          finalList = []
 
