@@ -210,7 +210,7 @@ class Standard(Metric):
       return self.aggregator(values)
 
    def name(self):
-      return self.aggregator.name.title() + " of " + self._name
+      return self.aggregator.name().title() + " of " + self._name
 
 
 # Note: This cannot be a subclass of Deterministic, since we don't want
@@ -225,7 +225,7 @@ class Obs(Metric):
       return self.aggregator(obs)
 
    def name(self):
-      return self.aggregator.name.title() + " of observation"
+      return self.aggregator.name().title() + " of observation"
 
 
 class Fcst(Metric):
@@ -238,7 +238,7 @@ class Fcst(Metric):
       return self.aggregator(fcst)
 
    def name(self):
-      return self.aggregator.name.title() + " of forecast"
+      return self.aggregator.name().title() + " of forecast"
 
 
 class Mae(Deterministic):

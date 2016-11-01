@@ -5,19 +5,22 @@ import verif.util
 
 
 def get_all():
-   """
-   Returns a list of all aggregator classes
-   """
+   """ Returns a list of all aggregator classes """
    temp = inspect.getmembers(sys.modules[__name__], inspect.isclass)
    return [i[1] for i in temp if i[0] != "Aggregator"]
 
 
 def get(name):
-   """ Returns an instance of an object with the given class name """
+   """
+   Returns an instance of an object with the given class name
+   
+   name     The name of the class. Use a number between 0 and 1 to get the
+            corresponding quantile aggregator. 
+   """
    aggregators = get_all()
    a = None
    for aggregator in aggregators:
-      if name == aggregator.name.lower():
+      if name == aggregator.name():
          a = aggregator()
    if a is None and verif.util.is_number(name):
       a = Quantile(float(name))
@@ -27,11 +30,11 @@ def get(name):
 
 class Aggregator(object):
    """
-   Base class for aggregating an array
+   Base class for aggregating an array (i.e. computing a single value from an
+   array)
 
    Usage:
    mean = verif.aggregator.Mean()
-   print mean.name
    mean(np.array([1,2,3]))
 
    name:    A string representing the name of the aggregator
@@ -40,94 +43,74 @@ class Aggregator(object):
       # TODO
       return 1
 
+   def __eq__(self, other):
+      return self.__class__ == other.__class__
+
+   @classmethod
+   def name(cls):
+      return cls.__name__.lower()
 
 class Mean(Aggregator):
-   name = "mean"
-
    def __call__(self, array):
       return np.mean(array)
 
 
 class Median(Aggregator):
-   name = "median"
-
    def __call__(self, array):
       return np.median(array)
 
 
 class Min(Aggregator):
-   name = "min"
-
    def __call__(self, array):
       return np.min(array)
 
 
 class Max(Aggregator):
-   name = "max"
-
    def __call__(self, array):
       return np.max(array)
 
 
 class Std(Aggregator):
-   name = "std"
-
    def __call__(self, array):
       return np.std(array)
 
 
 class Variance(Aggregator):
-   name = "variance"
-
    def __call__(self, array):
       return np.var(array)
 
 
 class Iqr(Aggregator):
-   name = "iqr"
-
    def __call__(self, array):
       return np.percentile(array, 75) - np.percentile(array, 25)
 
 
 class Range(Aggregator):
-   name = "range"
-
    def __call__(self, array):
       return verif.util.nprange(array)
 
 
 class Count(Aggregator):
-   name = "count"
-
    def __call__(self, array):
       return verif.util.numvalid(array)
 
 
 class Sum(Aggregator):
-   name = "sum"
-
    def __call__(self, array):
       return np.sum(array)
 
 
 class Meanabs(Aggregator):
-   name = "meanabs"
-
    def __call__(self, array):
       return verif.util.meanabs(array)
 
 
 class Absmean(Aggregator):
-   name = "absmean"
-
    def __call__(self, array):
       return np.abs(np.mean(array))
 
 
 class Quantile(Aggregator):
-   name = "quantile"
-
    def __init__(self, quantile):
       self.quantile = quantile
       if self.quantile < 0 or self.quantile > 1:
@@ -135,3 +118,6 @@ class Quantile(Aggregator):
 
    def __call__(self, array):
       return np.percentile(array, self.quantile*100)
+
+   def __eq__(self, other):
+      return (self.__class__ == other.__class__) and (self.quantile == other.quantile)
