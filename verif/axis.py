@@ -47,12 +47,16 @@ class Axis(object):
       name = cls.__name__
       return name
 
-   def __eq__(self, other):
-      return self.__class__ == other.__class__
-
    def formatter(self, variable):
       """ How should ticks be generated for this axis? """
       return matplotlib.ticker.ScalarFormatter()
+
+   def __eq__(self, other):
+      return self.__class__ == other.__class__
+
+   def __hash__(self):
+      # TODO
+      return 1
 
 
 class Time(Axis):

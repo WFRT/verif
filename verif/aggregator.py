@@ -36,7 +36,9 @@ class Aggregator(object):
 
    name:    A string representing the name of the aggregator
    """
-   pass
+   def __hash__(self):
+      # TODO
+      return 1
 
 
 class Mean(Aggregator):
