@@ -317,8 +317,6 @@ def run(argv):
       pl = verif.output.Against()
    elif(metric == "impact"):
       pl = verif.output.Impact()
-   elif(metric == "rainwindow"):
-      pl = verif.output.RainWindow()
    elif(metric == "count"):
       pl = verif.output.Count()
    elif(metric == "scatter"):
