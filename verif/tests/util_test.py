@@ -68,6 +68,12 @@ class TestParseNumbers(unittest.TestCase):
    def test_unixtime_to_date(self):
       self.assertEqual(20161001, verif.util.unixtime_to_date(1475280000))
 
+   def test_apply_threshold(self):
+      ar = np.array([1,3,2])
+      np.testing.assert_array_equal(np.array([0,1,0]), verif.util.apply_threshold(ar, "above", 2))
+      np.testing.assert_array_equal(np.array([0,1,1]), verif.util.apply_threshold(ar, "above=", 2))
+      np.testing.assert_array_equal(np.array([1,0,0]), verif.util.apply_threshold(ar, "below", 2))
+      np.testing.assert_array_equal(np.array([1,0,1]), verif.util.apply_threshold(ar, "below=", 2))
 
 class TestGetDate(unittest.TestCase):
    def test_simple(self):

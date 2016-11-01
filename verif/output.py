@@ -381,10 +381,10 @@ class Output(object):
 
    def _get_threshold_limits(self, thresholds):
       x = thresholds
-      if(self.bin_type == "below"):
+      if(self.bin_type in ["below", "below="]):
          lowerT = [-np.inf for i in range(0, len(thresholds))]
          upperT = thresholds
-      elif(self.bin_type == "above"):
+      elif(self.bin_type in ["above", "above="]):
          lowerT = thresholds
          upperT = [np.inf for i in range(0, len(thresholds))]
       elif(self.bin_type == "within"):
@@ -1746,7 +1746,7 @@ class Discrimination(Output):
       mpl.bar(np.nan, np.nan, color="k", ec="k", lw=self.lw, label="Not observed")
       for t in range(0, len(self.thresholds)):
          threshold = self.thresholds[t]
-         var = data.get_p_var(threshold)
+         var = verif.field.Threshold(threshold)
          [obs, p] = data.get_scores(["obs", var])
 
          # Determine the number of bins to use # (at least 11, at most 25)
@@ -1761,18 +1761,10 @@ class Discrimination(Output):
             data.set_file_index(f)
             data.set_axis("none")
             data.set_index(0)
-            var = data.get_p_var(threshold)
             [obs, p] = data.get_scores(["obs", var])
 
-            if(self.bin_type == "below"):
-               p = p
-               obs = obs < threshold
-            elif(self.bin_type == "above"):
-               p = 1 - p
-               obs = obs > threshold
-            else:
-               verif.util.error("Bin type must be one of 'below' or"
-                     "'above' for discrimination diagram")
+            obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
+            p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
 
             clim = np.mean(obs)
             I1 = np.where(obs == 1)[0]
@@ -1804,13 +1796,8 @@ class Discrimination(Output):
       mpl.xlabel("Forecasted probability")
       mpl.ylabel("Frequency")
       units = " " + data.variable.units
-      if(self.bin_type == "below"):
-         mpl.title("Discrimination diagram for obs < " + str(threshold) + units)
-      elif(self.bin_type == "above"):
-         mpl.title("Discrimination diagram for obs > " + str(threshold) + units)
-      else:
-         verif.util.error("Bin type must be one of 'below' or"
-               "'above' for discrimination diagram")
+      middle = verif.util.get_threshold_string(self.bin_type)
+      mpl.title("Discrimination diagram for obs " + middle + " " + str(threshold) + units)
 
 
 class Reliability(Output):
@@ -1863,15 +1850,8 @@ class Reliability(Output):
             style = self._get_style(f, F)
             [obs, p] = data.get_scores([verif.field.Obs(), var], f)
 
-            if(self.bin_type == "below"):
-               p = p
-               obs = obs < threshold
-            elif(self.bin_type == "above"):
-               p = 1 - p
-               obs = obs > threshold
-            else:
-               verif.util.error("Bin type must be one of 'below' or"
-                     "'above' for reliability plot")
+            obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
+            p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
 
             clim = np.mean(obs)
             # Compute frequencies
@@ -1927,13 +1907,8 @@ class Reliability(Output):
       mpl.xlabel("Forecasted probability")
       mpl.ylabel("Observed frequency")
       units = " " + data.variable.units
-      if(self.bin_type == "below"):
-         mpl.title("Reliability diagram for obs < " + str(threshold) + units)
-      elif(self.bin_type == "above"):
-         mpl.title("Reliability diagram for obs > " + str(threshold) + units)
-      else:
-         verif.util.error("Bin type must be one of 'below' or"
-               "'above' for reliability plot")
+      middle = verif.util.get_threshold_string(self.bin_type)
+      mpl.title("Reliability diagram for obs " + middle + " " + str(threshold) + units)
       mpl.gca().set_aspect(1)
 
 
@@ -1968,8 +1943,8 @@ class IgnContrib(Output):
       data.set_index(0)
       data.set_file_index(0)
       mpl.subplot(2, 1, 1)
-      var = data.get_p_var(threshold)
-      [obs, p] = data.get_scores(["obs", var])
+      var = verif.field.Threshold(threshold)
+      [obs, p] = data.get_scores([verif.field.Obs(), var], 0)
 
       # Determine the number of bins to use # (at least 11, at most 25)
       N = min(25, max(11, int(len(obs) / 1000)))
@@ -1983,21 +1958,10 @@ class IgnContrib(Output):
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
-         data.set_file_index(f)
-         data.set_axis("none")
-         data.set_index(0)
-         var = data.get_p_var(threshold)
-         [obs, p] = data.get_scores(["obs", var])
+         [obs, p] = data.get_scores([verif.field.Obs(), var], f)
 
-         if(self.bin_type == "below"):
-            p = p
-            obs = obs < threshold
-         elif(self.bin_type == "above"):
-            p = 1 - p
-            obs = obs > threshold
-         else:
-            verif.util.error("Bin type must be one of 'below' or 'above' "
-                         "for igncontrib plot")
+         obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
+         p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
 
          clim = np.mean(obs)
          # Compute frequencies
@@ -2059,19 +2023,11 @@ class EconomicValue(Output):
       F = data.num_inputs
 
       units = " " + data.variable.units
-      if(self.bin_type == "below"):
-         mpl.title("Economic value for obs < " + str(self.thresholds[0]) + units)
-      elif(self.bin_type == "above"):
-         mpl.title("Economic value for obs > " + str(self.thresholds[0]) + units)
-      else:
-         verif.util.error("Bin type must be one of 'below' or"
-               "'above' for reliability plot")
+      middle = verif.util.get_threshold_string(self.bin_type)
+      mpl.title("Economic value for obs " + middle + " " + str(self.thresholds[0]) + units)
 
-      data.set_axis("none")
-      data.set_index(0)
-      data.set_file_index(0)
-      var = data.get_p_var(threshold)
-      [obs, p] = data.get_scores(["obs", var])
+      var = verif.field.Threshold(threshold)
+      [obs, p] = data.get_scores([verif.field.Obs(), var], 0)
 
       # Determine the number of bins to use # (at least 11, at most 25)
       N = min(25, max(11, int(len(obs) / 1000)))
@@ -2089,20 +2045,10 @@ class EconomicValue(Output):
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
-         data.set_file_index(f)
-         data.set_axis("none")
-         data.set_index(0)
-         var = data.get_p_var(threshold)
-         [obs, p] = data.get_scores(["obs", var])
+         [obs, p] = data.get_scores([verif.field.Obs(), var], f)
 
-         if(self.bin_type == "below"):
-            p = p
-            obs = obs < threshold
-         elif(self.bin_type == "above"):
-            p = 1 - p
-            obs = obs > threshold
-         else:
-            verif.util.error("Bin type must be one of 'below' or 'above' " "for economicvalue plot")
+         obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
+         p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
 
          clim = np.mean(obs)
          # Compute frequencies
@@ -2239,10 +2185,7 @@ class DRoc(Output):
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
-         data.set_axis("none")
-         data.set_index(0)
-         data.set_file_index(f)
-         [obs, fcst] = data.get_scores(["obs", "fcst"])
+         [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
 
          y = np.nan * np.zeros([len(fthresholds), 1], 'float')
          x = np.nan * np.zeros([len(fthresholds), 1], 'float')
@@ -2678,14 +2621,8 @@ class Marginal(Output):
             color = self._get_color(f, F)
             style = self._get_style(f, F)
 
-            if(self.bin_type == "below"):
-               p = p
-               obs = obs < threshold
-            elif(self.bin_type == "above"):
-               p = 1 - p
-               obs = obs > threshold
-            else:
-               verif.util.error("Bin type must be one of 'below' or 'above' for reliability plot")
+            obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
+            p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
 
             clim[t] = np.mean(obs)
             y[t] = np.mean(p)
@@ -2718,7 +2655,7 @@ class Freq(Output):
          # Setup x and y: When -b within, we need one less value in the array
          N = len(self.thresholds)
          x = self.thresholds
-         if(self.bin_type == "within"):
+         if re.compile("within").match(self.bin_type):
             N = len(self.thresholds) - 1
             x = (self.thresholds[1:] + self.thresholds[:-1]) / 2
          y = np.zeros(N, 'float')
@@ -2731,15 +2668,11 @@ class Freq(Output):
             color = self._get_color(f, F)
             style = self._get_style(f, F)
 
-            if(self.bin_type == "below"):
-               fcst = fcst < threshold
-               obs = obs < threshold
-            elif(self.bin_type == "above"):
-               fcst = fcst > threshold
-               obs = obs > threshold
-            elif(self.bin_type == "within"):
-               fcst = (fcst >= threshold) & (fcst < self.thresholds[t + 1])
-               obs = (obs >= threshold) & (obs < self.thresholds[t + 1])
+            other_threshold = None
+            if re.compile("within").match(self.bin_type):
+               other_threshold = self.thresholds[t+1]
+            obs = verif.util.apply_threshold(obs, self.bin_type, threshold, other_threshold)
+            fcst = verif.util.apply_threshold(fcst, self.bin_type, threshold, other_threshold)
 
             clim[t] = np.nanmean(obs)
             y[t] = np.nanmean(fcst)
@@ -2784,7 +2717,7 @@ class InvReliability(Output):
       data.set_file_index(0)
       for t in range(0, len(quantiles)):
          quantile = self.thresholds[t]
-         var = data.get_q_var(quantile)
+         var = verif.field.Quantile(quantile)
          [obs, p] = data.get_scores(["obs", var])
 
          # Determine the number of bins to use # (at least 11, at most 25)
@@ -2807,7 +2740,6 @@ class InvReliability(Output):
             data.set_file_index(f)
             data.set_axis("none")
             data.set_index(0)
-            var = data.get_q_var(quantile)
             [obs, p] = data.get_scores(["obs", var])
 
             obs = obs <= p

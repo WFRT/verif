@@ -460,12 +460,12 @@ class Data(object):
             elif field.__class__ is verif.field.Threshold:
                I = np.where(input.thresholds == field.threshold)[0]
                assert(len(I) == 1)
-               temp = input.threshold_scores[:, :, :, I]
+               temp = input.threshold_scores[:, :, :, I[0]]
 
             elif field.__class__ is verif.field.Quantile:
                I = np.where(input.quantiles == field.quantile)[0]
                assert(len(I) == 1)
-               temp = input.quantile_scores[:, :, :, I]
+               temp = input.quantile_scores[:, :, :, I[0]]
 
             elif field == verif.field.ObsWindow():
                temp = input.obs[:, :, :]

@@ -534,7 +534,7 @@ def show_description(data=None):
    print verif.util.green("  Data manipulation:")
    print verif.util.format_argument("-acc", "Plot accumulated values. Only works for non-derived metrics")
    print verif.util.format_argument("-agg type", get_aggregation_string())
-   print verif.util.format_argument("-b type", "One of 'below', 'within', or 'above'. For threshold plots (ets, hit, within, etc) 'below/above' computes frequency below/above the threshold, and 'within' computes the frequency between consecutive thresholds.")
+   print verif.util.format_argument("-b type", "One of 'below' (< x), 'below=' (<= x), '=within' (<= x < ), 'within' (< x <), 'within=' (< x <=), '=within=' (<= x <=), 'above' (> x), or 'above=' (>= x). For threshold plots (ets, hit, within, etc) 'below/above' computes frequency below/above the threshold, and 'within' computes the frequency between consecutive thresholds.")
    print verif.util.format_argument("-c file", "File containing climatology data. Subtract all forecasts and obs with climatology values.")
    print verif.util.format_argument("-C file", "File containing climatology data. Divide all forecasts and obs by climatology values.")
    print verif.util.format_argument("-hist", "Plot values as histogram. Only works for non-derived metrics")

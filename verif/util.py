@@ -348,7 +348,7 @@ def distance(lat1, lon1, lat2, lon2):
 
 def within(x, range):
    """ Is x within the range?
-   
+
    x        A numeric value
    range    A tuple with lower and upper values
    """
@@ -357,3 +357,71 @@ def within(x, range):
    # return (x >= range[0]) & (x < range[1])
    return (x > range[0]) & (x <= range[1])
 
+
+def apply_threshold(array, bin_type, threshold, upper_threshold=None):
+   """ 
+   Use bin_type to turn array into binary values
+
+   array
+   bin_type
+   threshold
+   upper_threshold   Upper threshold (only needed with bin_type = *within*)
+   """
+   if bin_type == "below":
+      array = array < threshold
+   elif bin_type == "below=":
+      array = array <= threshold
+   elif bin_type == "above":
+      array = array > threshold
+   elif bin_type == "above=":
+      array = array >= threshold
+   elif other_threshold is None:
+      error("Cannot apply thresholding with bin_type '%s'" % bin_type)
+   elif bin_type == "within":
+      array = (array > threshold ) & (array < other_threshold)
+   elif bin_type == "within=":
+      array = (array > threshold ) & (array <= other_threshold)
+   elif bin_type == "=within":
+      array = (array >= threshold ) & (array < other_threshold)
+   elif bin_type == "=within=":
+      array = (array >= threshold ) & (array <= other_threshold)
+   return array
+
+
+def apply_threshold_prob(array, bin_type, other_array=None):
+   """
+   Compute the probability of x given bin_type
+
+   array          The CDF at the threshold
+   bin_type
+   other_array    The CDF of the upper threshold (only needed with
+                  bin_type = *within*)
+   """
+   if bin_type == "below":
+      array = array
+   elif bin_type == "below=":
+      array = array
+   elif bin_type == "above":
+      array = 1 - array
+   elif bin_type == "above=":
+      array = 1 - array
+   elif other_array is None:
+      error("Cannoot apply thresholding with bin_type '%s'" % bin_type)
+   elif re.compile("within").match(bin_type):
+      array = other_array - array
+   return array
+
+
+def get_threshold_string(bin_type):
+   s = ""
+   if bin_type == "below":
+      s = "<"
+   elif bin_type == "below=":
+      s = "<="
+   elif bin_type == "above":
+      s = ">"
+   elif bin_type == "above=":
+      s = ">="
+   elif other_threshold is None:
+      error("Cannot get threshold string for bin_type '%s'" % bin_type)
+   return s

@@ -81,7 +81,7 @@ class Input(object):
       """ Returns a list of all available fields """
       fields = [verif.field.Obs(), verif.field.Fcst()]
       thresholds = [verif.field.Threshold(threshold) for threshold in self.thresholds]
-      quantiles = [verif.field.Quantiles(quantile) for quantile in self.quantiles]
+      quantiles = [verif.field.Quantile(quantile) for quantile in self.quantiles]
       return fields + thresholds + quantiles
 
    @property
@@ -114,7 +114,8 @@ class Comps(Input):
       self._file = netcdf(self._filename, 'r')
 
       # Pre-load these variables, to save time when queried repeatedly
-      self.dates = verif.util.clean(self._file.variables["Date"])
+      dates = verif.util.clean(self._file.variables["Date"])
+      self.times = np.array([verif.util.date_to_unixtime(int(date)) for date in dates], int)
       self.offsets = verif.util.clean(self._file.variables["Offset"])
       self.thresholds = self._get_thresholds()
       self.quantiles = self._get_quantiles()
