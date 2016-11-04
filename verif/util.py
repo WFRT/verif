@@ -375,16 +375,16 @@ def apply_threshold(array, bin_type, threshold, upper_threshold=None):
       array = array > threshold
    elif bin_type == "above=":
       array = array >= threshold
-   elif other_threshold is None:
+   elif upper_threshold is None:
       error("Cannot apply thresholding with bin_type '%s'" % bin_type)
    elif bin_type == "within":
-      array = (array > threshold ) & (array < other_threshold)
+      array = (array > threshold ) & (array < upper_threshold)
    elif bin_type == "within=":
-      array = (array > threshold ) & (array <= other_threshold)
+      array = (array > threshold ) & (array <= upper_threshold)
    elif bin_type == "=within":
-      array = (array >= threshold ) & (array < other_threshold)
+      array = (array >= threshold ) & (array < upper_threshold)
    elif bin_type == "=within=":
-      array = (array >= threshold ) & (array <= other_threshold)
+      array = (array >= threshold ) & (array <= upper_threshold)
    return array
 
 
