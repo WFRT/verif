@@ -515,6 +515,21 @@ class KendallCorr(Deterministic):
       return "Kendall correlation"
 
 
+class DistributionError(Deterministic):
+   description = "Distribution error"
+   min = 0
+   perfect_score = 0
+   supports_aggregator = False
+
+   def _compute_from_obs_fcst(self, obs, fcst):
+      sortedobs = np.sort(obs)
+      sortedfcst = np.sort(fcst)
+      return np.mean(np.abs(sortedobs - sortedfcst))
+
+   def name(self):
+      return "Distribution Error"
+
+
 # Returns all PIT values
 class Pit(Metric):
    min = 0
