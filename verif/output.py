@@ -1143,7 +1143,7 @@ class ObsFcst(Output):
       if(self.axis.is_time_like):
          mpl.gca().xaxis_date()
       else:
-         mpl.gca().xaxis.set_major_formatter(self.axis.formatter)
+         mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
 
 
 class QQ(Output):

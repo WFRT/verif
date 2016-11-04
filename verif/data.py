@@ -4,6 +4,7 @@ import re
 import sys
 import os
 import datetime
+import time
 import calendar
 import verif.input
 from matplotlib.dates import *
@@ -422,6 +423,7 @@ class Data(object):
          return axis.name()
 
    def _get_score(self, field, input_index):
+      time_start = time.time()
       """ Load the field variable from input, but only include the common data
 
       Scores loaded will have the same dimension, regardless what input_index
@@ -495,6 +497,8 @@ class Data(object):
          for i in range(0, self._get_num_inputs_with_clim()):
             self._cache[i][field][is_missing] = np.nan
 
+      time_end = time.time()
+      print time_end - time_start
       return self._cache[input_index][field]
 
    def _calculate_window(self, array, offsets):

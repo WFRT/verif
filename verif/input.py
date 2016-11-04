@@ -308,7 +308,15 @@ class NetcdfCf(Input):
 
    @property
    def obs(self):
-      return verif.util.clean(self._file.variables["obs"])
+      s = time.time()
+      temp = self._file.variables["obs"]
+      e = time.time()
+      print e - s
+      #values = verif.util.clean(self._file.variables["obs"])
+      values = verif.util.clean(temp)
+      e = time.time()
+      print e - s
+      return values
 
    @property
    def fcst(self):
