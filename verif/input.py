@@ -13,28 +13,6 @@ import verif.util
 import verif.variable
 import verif.field
 
-def guess_x0(name):
-   """
-   Attempt to automatically detect the value of the lower discrete mass
-   (e.g. 0 mm for precipitation)
-   """
-   prog = re.compile("Precip.*")
-   if(prog.match(name)):
-      return 0
-   return None
-
-
-def guess_x1(name):
-   """
-   Attempt to automatically detect the value of the upper discrete mass
-   (e.g. 100 % for RH)
-   """
-   prog = re.compile("RH")
-   if(prog.match(name)):
-      return  100
-   return None
-
-
 def get_input(filename):
    if not os.path.isfile(filename):
       verif.util.error("File '" + filename + "' does not exist")
@@ -215,8 +193,8 @@ class Comps(Input):
             units = "%"
          else:
             units = "$" + self._file.Units + "$"
-      x0 = guess_x0(name)
-      x1 = guess_x1(name)
+      x0 = verif.variable.guess_x0(name)
+      x1 = verif.variable.guess_x1(name)
       return verif.variable.Variable(name, units, x0=x0, x1=x1)
 
    def _get_score(self, metric):
@@ -371,8 +349,8 @@ class NetcdfCf(Input):
             units = "%"
          else:
             units = "$" + self._file.Units + "$"
-      x0 = guess_x0(name)
-      x1 = guess_x1(name)
+      x0 = verif.variable.guess_x0(name)
+      x1 = verif.variable.guess_x1(name)
       return verif.variable.Variable(name, units, x0=x0, x1=x1)
 
 
@@ -612,8 +590,8 @@ class Text(Input):
       return os.path.isfile(filename)
 
    def _get_variable(self):
-      x0 = guess_x0(self._variable_name)
-      x1 = guess_x1(self._variable_name)
+      x0 = verif.variable.guess_x0(self._variable_name)
+      x1 = verif.variable.guess_x1(self._variable_name)
       return verif.variable.Variable(self._variable_name, self._variable_units, x0=x0, x1=x1)
 
    # Parse string into float, changing -999 into np.nan
