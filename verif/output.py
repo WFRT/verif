@@ -917,8 +917,10 @@ class Standard(Output):
          names = data.get_legend()
          if(self._title is not None):
             mpl.title(self._title)
-         else:
+         elif F > 1:
             mpl.title(names[f])
+         elif F == 1 and self.show_rank:
+            mpl.title(self._metric.name())
 
       # Legend
       if self.show_rank:
@@ -931,12 +933,11 @@ class Standard(Output):
             mpl.figlegend(lines, names, "lower center", ncol=4)
          elif data.num_inputs == 2:
             lines = [lmin, lsimilar, lmax]
-            names = [labels[0], "similar", labels[1]]
+            names = [labels[0] + " is lower", "similar", labels[1] + " is lower"]
             if lmissing is not None:
                 lines.append(lmissing)
                 names.append("missing")
             mpl.legend(lines, names, loc=self.leg_loc, prop={'size': self.legfs})
-
 
 
 class Hist(Output):
