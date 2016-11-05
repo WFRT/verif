@@ -597,8 +597,8 @@ def show_description(data=None):
    print ""
    print ""
    print verif.util.green("File formats:")
-   print verif.input.Text.description
-   print verif.input.Comps.description
+   print verif.util.format_argument("text", verif.input.Text.description)
+   print verif.util.format_argument("netcdf", verif.input.Comps.description)
 
 if __name__ == '__main__':
        main()

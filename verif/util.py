@@ -274,30 +274,44 @@ def intersect(list1, list2):
    return list(set(list1) & set(list2))
 
 
-def format_argument(arg, description, argWidth=19, totalWidth=None, indent=2):
-   if(totalWidth is None):
-      totalWidth = get_text_width()
-   fmt = "%-" + str(indent) + "s%-" + str(argWidth - indent) + "s"
+def format_argument(arg, description, arg_width=19, total_width=None, indent=2):
+   """
+   Prints formated description to screen, but adds a column for a short descriptor, like this:
+             arg  description more description   
+                  here more more more more more  
+   | indent |
+   | arg_width   |
+   | total_width                                 |
+   """
+   if(total_width is None):
+      total_width = get_text_width()
+   fmt = "%-" + str(indent) + "s%-" + str(arg_width - indent) + "s"
    curr = fmt % ("", arg)
-   if(len(arg) > argWidth - indent - 2):
+   if(len(arg) > arg_width - indent - 2):
       output = curr + '\n'
       curr = ""
-      for i in range(0, argWidth):
+      for i in range(0, arg_width):
          curr = curr + " "
    else:
       output = ""
-   words = description.split()
-   for i in range(0, len(words)):
-      word = words[i]
-      if len(curr) + len(word) >= totalWidth:
-         output = output + curr + "\n"
-         curr = ""
-         for i in range(0, argWidth):
+   lines = description.split('\n')
+   for line_num in range(0, len(lines)):
+      line = lines[line_num]
+      words = line.split()
+      for i in range(0, len(words)):
+         word = words[i]
+         if len(curr) + len(word) >= total_width:
+            output = output + curr + "\n"
+            curr = ""
+            for i in range(0, arg_width):
+               curr = curr + " "
+         elif(i != 0):
             curr = curr + " "
-      elif(i != 0):
-         curr = curr + " "
-      curr = curr + word
-   output = output + curr
+         curr = curr + word
+      output = output + curr
+      if line_num < len(lines)-1:
+         output = output + "\n"
+      curr = " " * arg_width
    return output
 
 

@@ -104,9 +104,7 @@ class Comps(Input):
    Original fileformat used by OutputVerif in COMPS
    """
    _dimensionNames = ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]
-   description = verif.util.format_argument("netcdf", "Undocumented legacy " +
-         "NetCDF format, to be phased out. A new NetCDF based format will " +
-         "be defined.")
+   description = "Undocumented legacy NetCDF format, to be phased out. A new NetCDF based format will be defined."
 
    def __init__(self, filename):
       self.fullname = filename
@@ -380,16 +378,16 @@ class NetcdfCf(Input):
 
 # Flat text file format
 class Text(Input):
-   description = verif.util.format_argument("text", "Data organized in rows and columns with space as a delimiter. Each row represents one forecast/obs pair, and each column represents one attribute of the data. Here is an example:") + "\n"\
-   + verif.util.format_argument("", "") + "\n"\
-   + verif.util.format_argument("", "# variable: Temperature") + "\n"\
-   + verif.util.format_argument("", "# units: $^oC$") + "\n"\
-   + verif.util.format_argument("", "date     offset id      lat     lon      elev obs fcst      p10") + "\n"\
-   + verif.util.format_argument("", "20150101 0      214     49.2    -122.1   92 3.4 2.1     0.91") + "\n"\
-   + verif.util.format_argument("", "20150101 1      214     49.2    -122.1   92 4.7 4.2      0.85") + "\n"\
-   + verif.util.format_argument("", "20150101 0      180     50.3    -120.3   150 0.2 -1.2 0.99") + "\n"\
-   + verif.util.format_argument("", "") + "\n"\
-   + verif.util.format_argument("", " Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (location identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0. If there is conflicting information (for example different lat/lon/elev for the same id), then the information from the first row containing id will be used.")
+   description = "Data organized in rows and columns with space as a delimiter. Each row represents one forecast/obs pair, and each column represents one attribute of the data. Here is an example:"\
+   "\n"\
+   "# variable: Temperature\n"\
+   "# units: $^oC$\n"\
+   "date     offset id      lat     lon      elev obs fcst      p10\n"\
+   "20150101 0      214     49.2    -122.1   92 3.4 2.1     0.91\n"\
+   "20150101 1      214     49.2    -122.1   92 4.7 4.2      0.85\n"\
+   "20150101 0      180     50.3    -120.3   150 0.2 -1.2 0.99\n"\
+   "\n"\
+   "Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (location identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0. If there is conflicting information (for example different lat/lon/elev for the same id), then the information from the first row containing id will be used."
 
    def __init__(self, filename):
       self.fullname = filename
