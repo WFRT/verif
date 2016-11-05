@@ -769,10 +769,13 @@ class Standard(Output):
             txt = missfmt % "--"
          else:
             txt = fmt % value
-         if(minI == f):
-            print verif.util.green(txt),
-         elif(maxI == f):
-            print verif.util.red(txt),
+         if not np.isnan(np.nanmean(values)):
+            if(minI == f):
+               print verif.util.green(txt),
+            elif(maxI == f):
+               print verif.util.red(txt),
+            else:
+               print txt,
          else:
             print txt,
       print ""
