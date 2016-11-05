@@ -65,14 +65,15 @@ class Data(object):
 
       # Organize inputs
       self._inputs = list()
-      self._cache = list()
+      self._get_score_cache = list()  # Caches data from input
+      self._get_scores_cache = dict()  # Caches the output from get_scores
       self._clim = None
       for input in inputs:
          self._inputs.append(input)
-         self._cache.append(dict())
+         self._get_score_cache.append(dict())
       if(clim is not None):
          self._clim = verif.input.get_input(clim)
-         self._cache.append(dict())
+         self._get_score_cache.append(dict())
          if(not (clim_type == "subtract" or clim_type == "divide")):
             verif.util.error("Data: clim_type must be 'subtract' or 'divide")
          self._clim_type = clim_type
@@ -155,6 +156,11 @@ class Data(object):
       self.num_inputs = self._get_num_inputs()
 
    def get_scores(self, fields, input_index, axis=verif.axis.All(), axis_index=None):
+      q = (input_index,axis_index, fields)
+      key = (tuple(fields), input_index, axis, axis_index)
+      if key in self._get_scores_cache.keys():
+         return self._get_scores_cache[key]
+
       """ Retrieves scores from all files
 
       Climatology is handled by subtracting clim's fcst field from any
@@ -274,6 +280,7 @@ class Data(object):
       if(scores[0].shape[0] == 0):
          scores = [np.nan * np.zeros(1, float) for i in range(0, len(fields))]
 
+      self._get_scores_cache[key] = scores
       return scores
 
    def get_axis_size(self, axis):
@@ -423,7 +430,6 @@ class Data(object):
          return axis.name()
 
    def _get_score(self, field, input_index):
-      time_start = time.time()
       """ Load the field variable from input, but only include the common data
 
       Scores loaded will have the same dimension, regardless what input_index
@@ -434,8 +440,8 @@ class Data(object):
       """
 
       # Check if data is cached
-      if(field in self._cache[input_index]):
-         return self._cache[input_index][field]
+      if(field in self._get_score_cache[input_index]):
+         return self._get_score_cache[input_index][field]
 
       if field == verif.field.Obs():
          field = self._obs_field
@@ -444,7 +450,7 @@ class Data(object):
 
       # Load all inputs
       for i in range(0, self._get_num_inputs_with_clim()):
-         if(field not in self._cache[i]):
+         if(field not in self._get_score_cache[i]):
             input = self._inputs[i]
             all_fields = input.get_fields() + [verif.field.ObsWindow(), verif.field.FcstWindow()]
             if(field not in all_fields):
@@ -485,21 +491,19 @@ class Data(object):
             temp = temp[Itimes, :, :]
             temp = temp[:, Ioffsets, :]
             temp = temp[:, :, Ilocations]
-            self._cache[i][field] = temp
+            self._get_score_cache[i][field] = temp
 
       # Remove missing. If one configuration has a missing value, set all
       # configurations to missing. This can happen when the times are
       # available, but have missing values.
       if self._remove_missing_across_all:
-         is_missing = np.isnan(self._cache[0][field])
+         is_missing = np.isnan(self._get_score_cache[0][field])
          for i in range(1, self._get_num_inputs_with_clim()):
-            is_missing = is_missing | (np.isnan(self._cache[i][field]))
+            is_missing = is_missing | (np.isnan(self._get_score_cache[i][field]))
          for i in range(0, self._get_num_inputs_with_clim()):
-            self._cache[i][field][is_missing] = np.nan
+            self._get_score_cache[i][field][is_missing] = np.nan
 
-      time_end = time.time()
-      print time_end - time_start
-      return self._cache[input_index][field]
+      return self._get_score_cache[input_index][field]
 
    def _calculate_window(self, array, offsets):
       O = array.shape[1]
