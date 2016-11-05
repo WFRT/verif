@@ -172,6 +172,7 @@ on what variables are available in the input files.
 ``-m biasfreq``         Numer of forecasts / number of observations
 ``-m count``            Number of forecasts wabove a threshold
 ``-m diff``             Difference between false alarms and misses
+``-m derror``           Error in distribution of deterministic values
 ``-m dscore``           Generalized discrimination score
 ``-m edi``              Extremal dependency index
 ``-m eds``              Extreme dependency score

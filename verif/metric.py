@@ -515,7 +515,7 @@ class KendallCorr(Deterministic):
       return "Kendall correlation"
 
 
-class DistributionError(Deterministic):
+class DError(Deterministic):
    description = "Distribution error"
    min = 0
    perfect_score = 0
