@@ -156,11 +156,6 @@ class Data(object):
       self.num_inputs = self._get_num_inputs()
 
    def get_scores(self, fields, input_index, axis=verif.axis.All(), axis_index=None):
-      q = (input_index,axis_index, fields)
-      key = (tuple(fields), input_index, axis, axis_index)
-      if key in self._get_scores_cache.keys():
-         return self._get_scores_cache[key]
-
       """ Retrieves scores from all files
 
       Climatology is handled by subtracting clim's fcst field from any
@@ -178,14 +173,18 @@ class Data(object):
       scores         A list of numpy arrays
       """
 
+      if(not isinstance(fields, list)):
+         fields = [fields]
+
+      key = (tuple(fields), input_index, axis, axis_index)
+      if key in self._get_scores_cache.keys():
+         return self._get_scores_cache[key]
+
       if input_index < 0 or input_index >= self.num_inputs:
          verif.util.error("input_index must be between 0 and %d" % self.num_inputs)
 
       scores = list()
       valid = None
-
-      if(not isinstance(fields, list)):
-         fields = [fields]
 
       # Compute climatology, if needed
       obsFcstAvailable = (verif.field.Obs() in fields or verif.field.Fcst() in fields)
