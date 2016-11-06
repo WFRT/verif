@@ -439,3 +439,8 @@ def get_threshold_string(bin_type):
    else:
       error("Cannot get threshold string for bin_type '%s'" % bin_type)
    return s
+
+
+def deg2rad(deg):
+   """ Convert degrees to radians """
+   return deg * np.pi / 180.0
