@@ -249,7 +249,7 @@ class Data(object):
          elif(axis == verif.axis.All() or axis is None):
             curr = temp
          else:
-            verif.util.error("Data.py: unrecognized axis: " + axis)
+            verif.util.error("Data.py: unrecognized axis: " + axis.name())
 
          # Subtract climatology
          if(doClim and (field == verif.field.Fcst() or field == verif.field.Obs())):
