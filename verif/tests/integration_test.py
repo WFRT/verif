@@ -52,9 +52,9 @@ class IntegrationTest(unittest.TestCase):
    def test_README(self):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m ets")
-      # self.run_with_image("verif examples/raw.txt examples/kf.txt -m taylor")
-      # self.run_with_image("verif examples/raw.txt examples/kf.txt -m error")
-      # self.run_with_image("verif examples/raw.txt examples/kf.txt -m reliability -r 0")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m taylor")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m error")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m reliability -r 0")
       # self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithist")
 
    def test_option_b(self):

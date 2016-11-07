@@ -174,6 +174,7 @@ class Output(object):
    # Public
    # Call this to create a plot, saves to file
    def plot(self, data):
+      mpl.clf()
       self._plot_core(data)
       self._adjust_axes(data)
       self._legend(data)
@@ -2467,8 +2468,6 @@ class Error(Output):
    default_axis = verif.axis.No()
 
    def _plot_core(self, data):
-      data.set_axis(self.axis)
-      data.set_index(0)
       labels = data.get_legend()
       F = data.num_inputs
 
@@ -2477,18 +2476,16 @@ class Error(Output):
       mpl.ylabel("Systematic error (Bias, " + data.variable.units + ")")
 
       # Plot points
-      size = data.get_axis_size()
+      size = data.get_axis_size(self.axis)
       serr = np.nan * np.zeros([size, F], 'float')
       uerr = np.nan * np.zeros([size, F], 'float')
       rmse = np.nan * np.zeros([size, F], 'float')
       for f in range(0, F):
-         data.set_file_index(f)
          color = self._get_color(f, F)
          style = self._get_style(f, F, connectingLine=False)
 
          for i in range(0, size):
-            data.set_index(i)
-            [obs, fcst] = data.get_scores(["obs", "fcst"])
+            [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis, i)
             mfcst = np.mean(fcst)
             mobs = np.mean(obs)
             if len(obs) > 0 and len(fcst) > 0:
