@@ -58,7 +58,13 @@ class Input(object):
 
    def get_fields(self):
       """ Returns a list of all available fields """
-      fields = [verif.field.Obs(), verif.field.Fcst(), verif.field.Pit()]
+      fields = list()
+      if self.obs is not None:
+         fields.append(verif.field.Obs())
+      if self.fcst is not None:
+         fields.append(verif.field.Fcst())
+      if self.pit is not None:
+         fields.append(verif.field.Pit())
       thresholds = [verif.field.Threshold(threshold) for threshold in self.thresholds]
       quantiles = [verif.field.Quantile(quantile) for quantile in self.quantiles]
       return fields + thresholds + quantiles
@@ -115,11 +121,17 @@ class Comps(Input):
 
    @property
    def obs(self):
-      return verif.util.clean(self._file.variables["obs"])
+      if "obs" in self._file.variables:
+         return verif.util.clean(self._file.variables["obs"])
+      else:
+         return None
 
    @property
    def fcst(self):
-      return verif.util.clean(self._file.variables["fcst"])
+      if "obs" in self._file.variables:
+         return verif.util.clean(self._file.variables["fcst"])
+      else:
+         return None
 
    @property
    def pit(self):
@@ -289,31 +301,45 @@ class NetcdfCf(Input):
 
    @property
    def obs(self):
-      s = time.time()
-      temp = self._file.variables["obs"]
-      e = time.time()
-      print e - s
-      #values = verif.util.clean(self._file.variables["obs"])
-      values = verif.util.clean(temp)
-      e = time.time()
-      print e - s
-      return values
+      if "obs" in self._file.variables:
+         return verif.util.clean(self._file.variables["obs"])
+      else:
+         return None
+
+   @property
+   def pit(self):
+      if "pit" in self._file.variables:
+         return verif.util.clean(self._file.variables["pit"])
+      else:
+         return None
 
    @property
    def fcst(self):
-      return verif.util.clean(self._file.variables["fcst"])
+      if "fcst" in self._file.variables:
+         return verif.util.clean(self._file.variables["fcst"])
+      else:
+         return None
 
    @property
    def ensemble(self):
-      return verif.util.clean(self._file.variables["ens"])
+      if "ensemble" in self._file.variables:
+         return verif.util.clean(self._file.variables["ens"])
+      else:
+         return None
 
    @property
    def threshold_scores(self):
-      return verif.util.clean(self._file.variables["cdf"])
+      if "cdf" in self._file.variables:
+         return verif.util.clean(self._file.variables["cdf"])
+      else:
+         return None
 
    @property
    def quantile_scores(self):
-      return verif.util.clean(self._file.variables["x"])
+      if "x" in self._file.variables:
+         return verif.util.clean(self._file.variables["x"])
+      else:
+         return None
 
    def _get_times(self):
       return verif.util.clean(self._file.variables["time"])
@@ -441,13 +467,6 @@ class Text(Input):
                      indices["fcst"] = i
                   else:
                      indices[att] = i
-
-               # Ensure we have required columns
-               requiredColumns = ["obs", "fcst"]
-               for col in requiredColumns:
-                  if(col not in indices):
-                     msg = "Could not parse %s: Missing column '%s'" % (self._filename, col)
-                     verif.util.error(msg)
             else:
                if(len(row) is not len(header)):
                   verif.util.error("Incorrect number of columns (expecting %d) in row '%s'"
@@ -504,8 +523,10 @@ class Text(Input):
                lon = locationInfo[id].lon
                elev = locationInfo[id].elev
                key = (time, offset, lat, lon, elev)
-               obs[key] = self._clean(row[indices["obs"]])
-               fcst[key] = self._clean(row[indices["fcst"]])
+               if "obs" in indices:
+                  obs[key] = self._clean(row[indices["obs"]])
+               if "fcst" in indices:
+                  fcst[key] = self._clean(row[indices["fcst"]])
                quantileFields = self._get_quantile_fields(header)
                thresholdFields = self._get_threshold_fields(header)
                if "pit" in indices:
