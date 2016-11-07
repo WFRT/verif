@@ -113,112 +113,115 @@ def run(argv):
          elif(arg == "-logy"):
             log_y = True
          else:
+            if len(argv) <= i + 1:
+               verif.util.error("Missing argument after %s" % argv[i])
+            arg_next = argv[i + 1]
             if(arg == "-f"):
-               ofile = argv[i + 1]
+               ofile = arg_next
             elif(arg == "-l"):
-               locations = verif.util.parse_numbers(argv[i + 1])
+               locations = verif.util.parse_numbers(arg_next)
             elif(arg == "-latrange"):
-               lat_range = verif.util.parse_numbers(argv[i + 1])
+               lat_range = verif.util.parse_numbers(arg_next)
             elif(arg == "-lonrange"):
-               lon_range = verif.util.parse_numbers(argv[i + 1])
+               lon_range = verif.util.parse_numbers(arg_next)
             elif(arg == "-elevrange"):
-               elev_range = verif.util.parse_numbers(argv[i + 1])
+               elev_range = verif.util.parse_numbers(arg_next)
             elif(arg == "-x"):
-               axisname = argv[i + 1]
+               axisname = arg_next
                axis = verif.axis.get(axisname)
             elif(arg == "-o"):
-               offsets = verif.util.parse_numbers(argv[i + 1])
+               offsets = verif.util.parse_numbers(arg_next)
             elif(arg == "-leg"):
-               leg = unicode(argv[i + 1], 'utf8')
+               leg = unicode(arg_next, 'utf8')
             elif(arg == "-ylabel"):
-               ylabel = unicode(argv[i + 1], 'utf8')
+               ylabel = unicode(arg_next, 'utf8')
             elif(arg == "-xlabel"):
-               xlabel = unicode(argv[i + 1], 'utf8')
+               xlabel = unicode(arg_next, 'utf8')
             elif(arg == "-title"):
-               title = unicode(argv[i + 1], 'utf8')
+               title = unicode(arg_next, 'utf8')
             elif(arg == "-b"):
-               bin_type = argv[i + 1]
+               bin_type = arg_next
             elif(arg == "-type"):
-               type = argv[i + 1]
+               type = arg_next
             elif(arg == "-fs"):
-               figsize = argv[i + 1]
+               figsize = arg_next
             elif(arg == "-dpi"):
-               dpi = int(argv[i + 1])
+               dpi = int(arg_next)
             elif(arg == "-d"):
-               dates = verif.util.parse_numbers(argv[i + 1], True)
+               dates = verif.util.parse_numbers(arg_next, True)
                times = [verif.util.date_to_unixtime(date) for date in dates]
             elif(arg == "-t"):
-               times = verif.util.parse_numbers(argv[i + 1], True)
+               times = verif.util.parse_numbers(arg_next, True)
             elif(arg == "-c"):
-               clim_file = argv[i + 1]
+               clim_file = arg_next
                clim_type = "subtract"
             elif(arg == "-C"):
-               clim_file = argv[i + 1]
+               clim_file = arg_next
                clim_type = "divide"
             elif(arg == "-xlim"):
-               xlim = verif.util.parse_numbers(argv[i + 1])
+               xlim = verif.util.parse_numbers(arg_next)
             elif(arg == "-ylim"):
-               ylim = verif.util.parse_numbers(argv[i + 1])
+               ylim = verif.util.parse_numbers(arg_next)
             elif(arg == "-clim"):
-               clim = verif.util.parse_numbers(argv[i + 1])
+               clim = verif.util.parse_numbers(arg_next)
             elif(arg == "-xticks"):
-               xticks = verif.util.parse_numbers(argv[i + 1])
+               xticks = verif.util.parse_numbers(arg_next)
             elif(arg == "-xticklabels"):
-               xticklabels = (argv[i + 1]).split(',')
+               xticklabels = (arg_next).split(',')
             elif(arg == "-yticks"):
-               yticks = verif.util.parse_numbers(argv[i + 1])
+               yticks = verif.util.parse_numbers(arg_next)
             elif(arg == "-yticklabels"):
-               yticklabels = (argv[i + 1]).split(',')
+               yticklabels = (arg_next).split(',')
             elif(arg == "-s"):
-               sdim = argv[i + 1]
+               sdim = arg_next
             elif(arg == "-agg"):
-               aggregator_name = argv[i + 1]
+               aggregator_name = arg_next
             elif(arg == "-r"):
-               thresholds = np.array(verif.util.parse_numbers(argv[i + 1]))
+               thresholds = np.array(verif.util.parse_numbers(arg_next))
             elif(arg == "-ms"):
-               marker_size = float(argv[i + 1])
+               marker_size = float(arg_next)
             elif(arg == "-lw"):
-               line_width = float(argv[i + 1])
+               line_width = float(arg_next)
             elif(arg == "-lc"):
-               line_colors = argv[i + 1]
+               line_colors = arg_next
             elif(arg == "-tickfs"):
-               tick_font_size = float(argv[i + 1])
+               tick_font_size = float(arg_next)
             elif(arg == "-labfs"):
-               lab_font_size = float(argv[i + 1])
+               lab_font_size = float(arg_next)
             elif(arg == "-legfs"):
-               leg_font_size = float(argv[i + 1])
+               leg_font_size = float(arg_next)
             elif(arg == "-legloc"):
-               leg_loc = argv[i + 1].replace('_', ' ')
+               leg_loc = arg_next.replace('_', ' ')
             elif(arg == "-xrot"):
-               xrot = float(argv[i + 1])
+               xrot = float(arg_next)
             elif(arg == "-majlth"):
-               major_length = float(argv[i + 1])
+               major_length = float(arg_next)
             elif(arg == "-minlth"):
-               minor_length = float(argv[i + 1])
+               minor_length = float(arg_next)
             elif(arg == "-majwid"):
-               major_width = float(argv[i + 1])
+               major_width = float(arg_next)
             elif(arg == "-bot"):
-               bottom_padding = float(argv[i + 1])
+               bottom_padding = float(arg_next)
             elif(arg == "-top"):
-               top_padding = float(argv[i + 1])
+               top_padding = float(arg_next)
             elif(arg == "-right"):
-               right_padding = float(argv[i + 1])
+               right_padding = float(arg_next)
             elif(arg == "-left"):
-               left_padding = float(argv[i + 1])
+               left_padding = float(arg_next)
             elif(arg == "-pad"):
-               Pad = argv[i + 1]
+               Pad = arg_next
             elif(arg == "-titlefs"):
-               title_font_size = float(argv[i + 1])
+               title_font_size = float(arg_next)
             elif(arg == "-cmap"):
-               cmap = argv[i + 1]
+               cmap = arg_next
             elif(arg == "-maptype"):
-               map_type = argv[i + 1]
+               map_type = arg_next
             elif(arg == "-obs"):
-               obs_field = verif.field.get(argv[i + 1])
+               obs_field = verif.field.get(arg_next)
             elif(arg == "-fcst"):
-               fcst_field = verif.field.get(argv[i + 1])
+               fcst_field = verif.field.get(arg_next)
             elif(arg == "-m"):
-               metric = argv[i + 1]
+               metric = arg_next
             else:
                verif.util.error("Flag '" + argv[i] + "' not recognized")
             i = i + 1
