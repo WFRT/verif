@@ -444,3 +444,9 @@ def get_threshold_string(bin_type):
 def deg2rad(deg):
    """ Convert degrees to radians """
    return deg * np.pi / 180.0
+
+
+def get_square_axis_limits(xlim, ylim):
+   axismin = min(min(ylim), min(xlim))
+   axismax = max(max(ylim), max(xlim))
+   return [axismin, axismax]

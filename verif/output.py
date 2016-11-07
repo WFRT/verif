@@ -1109,11 +1109,8 @@ class QQ(Output):
                ms=self.ms)
       mpl.ylabel("Sorted forecasts (" + data.variable.units + ")")
       mpl.xlabel("Sorted observations (" + data.variable.units + ")")
-      ylim = list(mpl.ylim())
-      xlim = list(mpl.xlim())
-      axismin = min(min(ylim), min(xlim))
-      axismax = max(max(ylim), max(xlim))
-      self._plot_perfect_score([axismin, axismax], [axismin, axismax])
+      lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
+      self._plot_perfect_score(lims, lims)
       mpl.grid()
 
    def _csv_core(self, data):
@@ -1147,6 +1144,7 @@ class Scatter(Output):
 
    def __init__(self):
       Output.__init__(self)
+      self._max_points = 1e6
 
    def _show_quantiles(self):
       return not self.simple
@@ -1155,14 +1153,11 @@ class Scatter(Output):
       labels = data.get_legend()
       F = data.num_inputs
       for f in range(0, F):
+         [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No(), 0)
+
          color = self._get_color(f, F)
          style = self._get_style(f, F, connectingLine=False)
-
-         [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f,
-               verif.axis.No(), 0)
-         alpha = 0.2
-         if self.simple:
-            alpha = 1
+         alpha = 0.2 if self.simple else 1
          mpl.plot(x, y, ".", color=color, label=labels[f], lw=self.lw, ms=self.ms, alpha=alpha)
          if self._show_quantiles():
             # Determine bin edges for computing quantiles
@@ -1176,12 +1171,8 @@ class Scatter(Output):
                # The second to last edge should be such that we have at least
                # Nmin data points above
                Nmin = 50.0
-               pUpper = 100.0 - Nmin / y.shape[0] * 100.0
                # But no lower than 90th percentile, incase we don't have very many values
-               if pUpper < 90:
-                  pUpper = 90
-               edges = np.linspace(0, 50, 21)
-               edges = np.array([0, 0.001, 1, 2, 3, 5, 7, 10, 13, 16, 20, 25, 30, 35, 40, 45, 50])
+               pUpper = max(90, 100.0 - Nmin / y.shape[0] * 100.0)
                edges = np.append(np.array([0]), np.linspace(0.001, np.percentile(y, pUpper), N - 1))
                edges = np.append(edges, np.array([np.max(y)]))
             # Regular variables
@@ -1192,10 +1183,8 @@ class Scatter(Output):
                # We want the lower bin to cointain at least 50 points, so find
                # which percentile will give us 50 points
                Nmin = 50.0
-               pLower = Nmin / y.shape[0] * 100.0
                # If we don't have very much data, then use an upper bound of 10%tile
-               if pLower > 10:
-                  pLower = 10
+               pLower = min(10, Nmin / y.shape[0] * 100.0)
                pUpper = 100.0 - pLower
                # Create evenly spaced values from the point where we have at 50
                # below to 50 above
@@ -1236,12 +1225,9 @@ class Scatter(Output):
                mpl.plot([values[0, i], values[-1, i]], [bins[i], bins[i]], 'k-')
       mpl.ylabel("Forecasts (" + data.variable.units + ")")
       mpl.xlabel("Observations (" + data.variable.units + ")")
-      ylim = mpl.ylim()
-      xlim = mpl.xlim()
-      axismin = min(min(ylim), min(xlim))
-      axismax = max(max(ylim), max(xlim))
-      mpl.plot([axismin, axismax], [axismin, axismax], "--",
-            color=[0.3, 0.3, 0.3], lw=3, zorder=-100)
+      lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
+      self._plot_perfect_score(lims, lims)
+      mpl.plot(lims, lims, "--", color=[0.3, 0.3, 0.3], lw=3, zorder=-100)
       mpl.grid()
       mpl.gca().set_aspect(1)
 
@@ -1332,11 +1318,8 @@ class Cond(Output):
                lw=self.lw, ms=self.ms, alpha=0.5)
       mpl.ylabel("Forecasts (" + data.variable.units + ")")
       mpl.xlabel("Observations (" + data.variable.units + ")")
-      ylim = mpl.ylim()
-      xlim = mpl.xlim()
-      axismin = min(min(ylim), min(xlim))
-      axismax = max(max(ylim), max(xlim))
-      self._plot_perfect_score([axismin, axismax], [axismin, axismax])
+      lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
+      self._plot_perfect_score(lims, lims)
       mpl.grid()
       mpl.gca().set_aspect(1)
 
@@ -1376,14 +1359,11 @@ class SpreadSkill(Output):
 
          style = self._get_style(f, F)
          mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=labels[f])
-      ylim = list(mpl.ylim())
-      xlim = list(mpl.xlim())
-      ylim[0] = 0
-      xlim[0] = 0
-      axismin = min(min(ylim), min(xlim))
-      axismax = max(max(ylim), max(xlim))
-      mpl.xlim(xlim)
-      mpl.ylim(ylim)
+      xlim[0] = [0, mpl.xlim()[1]]
+      ylim[0] = [0, mpl.ylim()[1]]
+      lims = verif.util.get_square_axis_limits(xlim, ylim)
+      mpl.xlim(lims)
+      mpl.ylim(lims)
       self._plot_perfect_score([axismin, axismax], [axismin, axismax])
       mpl.xlabel("Spread (" + data.variable.units + ")")
       mpl.ylabel("RMSE (" + data.variable.units + ")")
@@ -2229,13 +2209,10 @@ class Against(Output):
                mpl.xlabel(labels[f0], color="r")
                mpl.ylabel(labels[f1], color="b")
                mpl.grid()
-               xlim = mpl.xlim()
-               ylim = mpl.ylim()
-               lower = min(xlim[0], ylim[0])
-               upper = max(xlim[1], ylim[1])
-               mpl.xlim([lower, upper])
-               mpl.ylim([lower, upper])
-               mpl.plot([lower, upper], [lower, upper], '--',
+               lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
+               mpl.xlim(lims)
+               mpl.ylim(lims)
+               mpl.plot(lims, lims, '--',
                         color=[0.3, 0.3, 0.3], lw=3, zorder=100)
                if F == 2:
                   break
