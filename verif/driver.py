@@ -4,6 +4,7 @@ import verif.axis
 import verif.data
 import verif.input
 import verif.metric
+import verif.metric_type
 import verif.output
 import verif.util
 import verif.version
@@ -633,17 +634,24 @@ def show_description(data=None):
    print format_argument("-yticks ticks", "A vector of values to put ticks on the y-axis")
    print format_argument("-xticklabels labels", "A comma-separated list of labels for the y-axis ticks")
    print ""
-   metrics = verif.metric.get_all()
-   outputs = verif.output.get_all()
    print verif.util.green("Metrics (-m):")
    print "  (For a full description, run verif -m <metric>)"
-   metric_outputs = metrics + outputs
-   metric_outputs.sort(key=lambda x: x[0].lower(), reverse=False)
-   for m in metric_outputs:
-      name = m[0].lower()
-      if(m[1].is_valid()):
-         desc = m[1].summary()
-         print format_argument(name, desc)
+   metric_types = [verif.metric_type.Deterministic(),
+         verif.metric_type.Threshold(),
+         verif.metric_type.Probabilistic(),
+         verif.metric_type.Diagram()]
+   for metric_type in metric_types:
+      metrics = verif.metric.get_all_by_type(metric_type)
+      outputs = verif.output.get_all_by_type(metric_type)
+      metric_outputs = metrics + outputs
+      metric_outputs.sort(key=lambda x: x[0].lower(), reverse=False)
+      if len(metric_outputs) > 0:
+         print verif.util.green("  %s:" % metric_type.description)
+         for m in metric_outputs:
+            name = m[0].lower()
+            if(m[1].is_valid()):
+               desc = m[1].summary() + m[1].type.name()
+               print format_argument(name, desc)
    print ""
    print ""
    print verif.util.green("File formats:")

@@ -4,6 +4,7 @@ import sys
 import inspect
 import verif.axis
 import verif.aggregator
+import metric_type
 
 
 def get_all():
@@ -15,9 +16,18 @@ def get_all():
    return temp
 
 
-def get_all_deterministic():
-   """ Like get_all, except only return deterministic metric classes """
-   metrics = [metric for metric in get_all() if issubclass(metric[1], verif.metric.Deterministic)]
+def get_all_by_type(type):
+   """
+   Like get_all, except only return metrics that are of a cerrtain
+   verif.metric_type
+   """
+   temp = [m for m in get_all() if m[1].type == type]
+   return temp
+
+
+def get_all_obs_fcst_based():
+   """ Like get_all, except only return obs-fcst-based metric classes """
+   metrics = [metric for metric in get_all() if issubclass(metric[1], verif.metric.ObsFcstBased)]
    return metrics
 
 
@@ -49,6 +59,7 @@ class Metric(object):
    reference            A string with an academic reference
    experimental         Is this metric not fully testet yet?
    suports_aggregator   Does this metric use self.aggregator?
+   type                 Of type verif.metric_type
    """
    # These must be overloaded
    description = ""
@@ -67,6 +78,7 @@ class Metric(object):
    orientation = 0
    long = None
    reference = None
+   type = verif.metric_type.Deterministic()
 
    def compute(self, data, input_index, axis, threshold_range):
       """
@@ -158,7 +170,8 @@ class Metric(object):
       return name
 
 
-class Deterministic(Metric):
+class ObsFcstBased(Metric):
+   type = verif.metric_type.Deterministic()
    """ Class for scores that are based on observations and deterministic forecasts only """
 
    def compute_core(self, data, input_index, axis, axis_index, threshold_range):
@@ -213,9 +226,10 @@ class Standard(Metric):
       return self.aggregator.name().title() + " of " + self._name
 
 
-# Note: This cannot be a subclass of Deterministic, since we don't want
+# Note: This cannot be a subclass of ObsFcstBased, since we don't want
 # to remove obs for which the forecasts are missing. Same for Fcst.
 class Obs(Metric):
+   type = verif.metric_type.Deterministic()
    description = "Observed value"
    supports_aggregator = True
    orientation = 0
@@ -229,6 +243,7 @@ class Obs(Metric):
 
 
 class Fcst(Metric):
+   type = verif.metric_type.Deterministic()
    description = "Forecasted value"
    supports_aggregator = True
    orientation = 0
@@ -241,7 +256,7 @@ class Fcst(Metric):
       return self.aggregator.name().title() + " of forecast"
 
 
-class Mae(Deterministic):
+class Mae(ObsFcstBased):
    description = "Mean absolute error"
    min = 0
    perfect_score = 0
@@ -254,7 +269,7 @@ class Mae(Deterministic):
       return "MAE"
 
 
-class Bias(Deterministic):
+class Bias(ObsFcstBased):
    description = "Bias"
    perfect_score = 0
    supports_aggregator = True
@@ -264,7 +279,7 @@ class Bias(Deterministic):
       return self.aggregator(obs - fcst)
 
 
-class Ef(Deterministic):
+class Ef(ObsFcstBased):
    description = "Exeedance fraction: percentage of times that forecasts"\
                   " > observations"
    min = 0
@@ -283,7 +298,7 @@ class Ef(Deterministic):
       return "% times fcst > obs"
 
 
-class StdError(Deterministic):
+class StdError(ObsFcstBased):
    min = 0
    description = "Standard error (i.e. RMSE if forecast had no bias)"
    perfect_score = 0
@@ -297,7 +312,7 @@ class StdError(Deterministic):
       return "Standard error"
 
 
-class Rmse(Deterministic):
+class Rmse(ObsFcstBased):
    min = 0
    description = "Root mean squared error"
    perfect_score = 0
@@ -310,7 +325,7 @@ class Rmse(Deterministic):
       return "RMSE"
 
 
-class Rmsf(Deterministic):
+class Rmsf(ObsFcstBased):
    min = 0
    description = "Root mean squared factor"
    perfect_score = 1
@@ -323,7 +338,7 @@ class Rmsf(Deterministic):
       return "RMSF"
 
 
-class Crmse(Deterministic):
+class Crmse(ObsFcstBased):
    min = 0
    description = "Centered root mean squared error (RMSE without bias)"
    perfect_score = 0
@@ -337,7 +352,7 @@ class Crmse(Deterministic):
       return "CRMSE"
 
 
-class Cmae(Deterministic):
+class Cmae(ObsFcstBased):
    min = 0
    description = "Cube-root mean absolute cubic error"
    perfect_score = 0
@@ -350,7 +365,7 @@ class Cmae(Deterministic):
       return "CMAE"
 
 
-class Nsec(Deterministic):
+class Nsec(ObsFcstBased):
    min = 0
    description = "Nash-Sutcliffe efficiency coefficient"
    perfect_score = 1
@@ -373,7 +388,7 @@ class Nsec(Deterministic):
       return self.name()
 
 
-class Alphaindex(Deterministic):
+class Alphaindex(ObsFcstBased):
    description = "Alpha index"
    perfect_score = 0
    orientation = -1
@@ -397,7 +412,7 @@ class Alphaindex(Deterministic):
       return self.name()
 
 
-class Leps(Deterministic):
+class Leps(ObsFcstBased):
    min = 0
    description = "Linear error in probability space"
    perfect_score = 0
@@ -425,7 +440,7 @@ class Leps(Deterministic):
       return "LEPS"
 
 
-class Dmb(Deterministic):
+class Dmb(ObsFcstBased):
    description = "Degree of mass balance (obs/fcst)"
    perfect_score = 1
    orientation = 0
@@ -437,7 +452,7 @@ class Dmb(Deterministic):
       return "Degree of mass balance (obs/fcst)"
 
 
-class Mbias(Deterministic):
+class Mbias(ObsFcstBased):
    description = "Multiplicative bias (obs/fcst)"
    perfect_score = 1
    orientation = 0
@@ -452,7 +467,7 @@ class Mbias(Deterministic):
       return self.description
 
 
-class Corr(Deterministic):
+class Corr(ObsFcstBased):
    min = 0  # Technically -1, but values below 0 are not as interesting
    max = 1
    description = "Correlation between obesrvations and forecasts"
@@ -473,7 +488,7 @@ class Corr(Deterministic):
       return "Correlation"
 
 
-class RankCorr(Deterministic):
+class RankCorr(ObsFcstBased):
    min = 0  # Technically -1, but values below 0 are not as interesting
    max = 1
    description = "Rank correlation between obesrvations and forecasts"
@@ -493,7 +508,7 @@ class RankCorr(Deterministic):
       return "Rank correlation"
 
 
-class KendallCorr(Deterministic):
+class KendallCorr(ObsFcstBased):
    min = 0  # Technically -1, but values below 0 are not as interesting
    max = 1
    description = "Kendall correlation between obesrvations and forecasts"
@@ -515,7 +530,7 @@ class KendallCorr(Deterministic):
       return "Kendall correlation"
 
 
-class DError(Deterministic):
+class DError(ObsFcstBased):
    description = "Distribution error"
    min = 0
    perfect_score = 0
@@ -532,6 +547,7 @@ class DError(Deterministic):
 
 # Returns all PIT values
 class Pit(Metric):
+   type = verif.metric_type.Probabilistic()
    min = 0
    max = 1
    orientation = 0
@@ -567,6 +583,7 @@ class Pit(Metric):
 
 # Returns all PIT values
 class PitDev(Metric):
+   type = verif.metric_type.Probabilistic()
    min = 0
    # max = 1
    perfect_score = 1
@@ -632,6 +649,7 @@ class PitDev(Metric):
 
 
 class MarginalRatio(Metric):
+   type = verif.metric_type.Probabilistic()
    min = 0
    description = "Ratio of marginal probability of obs to marginal" \
          " probability of fcst. Use -r."
@@ -668,6 +686,7 @@ class MarginalRatio(Metric):
 
 
 class SpreadSkillDiff(Metric):
+   type = verif.metric_type.Probabilistic()
    description = "Difference between spread and skill in %"
    perfect_score = 0
    orientation = 0
@@ -691,7 +710,8 @@ class SpreadSkillDiff(Metric):
 
 
 class Within(Metric):
-   """ Can't be a subclass of Deterministic, because it depends on threshold
+   type = verif.metric_type.Deterministic()
+   """ Can't be a subclass of ObsFcstBased, because it depends on threshold
    """
    min = 0
    max = 100
@@ -718,6 +738,7 @@ class Within(Metric):
 # Mean y conditioned on x
 # For a given range of x-values, what is the average y-value?
 class Conditional(Metric):
+   type = verif.metric_type.Deterministic()
    orientation = 0
    requires_threshold = True
    supports_threshold = True
@@ -739,6 +760,7 @@ class Conditional(Metric):
 # The reason the y-variable is added is to ensure that the same data is used
 # for this metric as for the Conditional metric.
 class XConditional(Metric):
+   type = verif.metric_type.Deterministic()
    orientation = 0
    requires_threshold = True
    supports_threshold = True
@@ -759,6 +781,7 @@ class XConditional(Metric):
 # Counts how many values of a specific variable is within the threshold range
 # Not a real metric.
 class Count(Metric):
+   type = verif.metric_type.Deterministic()
    orientation = 0
    requires_threshold = True
    supports_threshold = True
@@ -775,6 +798,7 @@ class Count(Metric):
 
 
 class Quantile(Metric):
+   type = verif.metric_type.Probabilistic()
    min = 0
    max = 1
 
@@ -788,6 +812,7 @@ class Quantile(Metric):
 
 
 class Bs(Metric):
+   type = verif.metric_type.Probabilistic()
    min = 0
    max = 1
    description = "Brier score"
@@ -864,6 +889,7 @@ class Bs(Metric):
 
 
 class Bss(Metric):
+   type = verif.metric_type.Probabilistic()
    min = 0
    max = 1
    description = "Brier skill score"
@@ -895,6 +921,7 @@ class Bss(Metric):
 
 
 class BsRel(Metric):
+   type = verif.metric_type.Probabilistic()
    min = 0
    max = 1
    description = "Brier score, reliability term"
@@ -923,6 +950,7 @@ class BsRel(Metric):
 
 
 class BsUnc(Metric):
+   type = verif.metric_type.Probabilistic()
    min = 0
    max = 1
    description = "Brier score, uncertainty term"
@@ -942,6 +970,7 @@ class BsUnc(Metric):
 
 
 class BsRes(Metric):
+   type = verif.metric_type.Probabilistic()
    min = 0
    max = 1
    description = "Brier score, resolution term"
@@ -969,6 +998,7 @@ class BsRes(Metric):
 
 
 class QuantileScore(Metric):
+   type = verif.metric_type.Probabilistic()
    min = 0
    description = "Quantile score. Requires quantiles to be stored"\
                   "(e.g q10, q90...).  Use -x to set which quantiles to use."
@@ -986,6 +1016,7 @@ class QuantileScore(Metric):
 
 
 class Ign0(Metric):
+   type = verif.metric_type.Probabilistic()
    description = "Ignorance of the binary probability based on threshold"
    requires_threshold = True
    supports_threshold = True
@@ -1005,6 +1036,7 @@ class Ign0(Metric):
 
 
 class Spherical(Metric):
+   type = verif.metric_type.Probabilistic()
    description = "Spherical probabilistic scoring rule for binary events"
    requires_threshold = True
    supports_threshold = True
@@ -1027,6 +1059,7 @@ class Spherical(Metric):
 
 
 class Contingency(Metric):
+   type = verif.metric_type.Threshold()
    """ Metrics based on 2x2 contingency table for a given threshold """
    min = 0
    max = 1

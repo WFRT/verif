@@ -4,6 +4,7 @@ import re
 import datetime
 import verif.util
 import verif.metric
+import verif.metric_type
 import verif.axis
 import numpy as np
 import os
@@ -27,6 +28,15 @@ def get_all():
    name (string) and the value is the class object
    """
    temp = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+   return temp
+
+
+def get_all_by_type(type):
+   """
+   Like get_all, except only return metrics that are of a cerrtain
+   verif.metric_type
+   """
+   temp = [output for output in get_all() if output[1].type == type]
    return temp
 
 
@@ -88,6 +98,8 @@ class Output(object):
    ylim
    yticklabels
    yticks
+
+   type
    """
    description = ""
    default_axis = verif.axis.Offset()
@@ -101,6 +113,7 @@ class Output(object):
    log_y = False
    reference = None
    _long = None
+   type = verif.metric_type.Diagram()
 
    def __init__(self):
       self.filename = None
