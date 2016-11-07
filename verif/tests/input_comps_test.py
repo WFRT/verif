@@ -48,5 +48,12 @@ class MyTest(unittest.TestCase):
       self.assertEqual(None, verif.input.Comps._verif_to_comps_quantile(-1))
       self.assertEqual(None, verif.input.Comps._verif_to_comps_quantile(2))
 
+   def test_valid(self):
+      self.assertTrue(verif.input.Comps.is_valid("verif/tests/files/comps_valid1.nc"))
+      self.assertTrue(verif.input.Comps.is_valid("verif/tests/files/comps_valid2.nc"))
+
+   def test_invalid(self):
+      self.assertFalse(verif.input.Comps.is_valid("verif/tests/files/comps_invalid1.nc"))
+
 if __name__ == '__main__':
    unittest.main()

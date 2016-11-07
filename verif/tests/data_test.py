@@ -60,7 +60,7 @@ class TestData(unittest.TestCase):
       self.assertEqual(1, obs[0])
 
    def test_latrange(self):
-      inputs = [verif.input.Text("verif/tests/file1.txt"), verif.input.Text("verif/tests/file3.txt")]
+      inputs = [verif.input.Text("verif/tests/files/file1.txt"), verif.input.Text("verif/tests/files/file3.txt")]
       data = verif.data.Data(inputs, lat_range=[44, 60]) # Only 1 common station within the range
       self.assertEqual(1, len(data.locations))
       self.assertEqual(50, data.locations[0].lat)
