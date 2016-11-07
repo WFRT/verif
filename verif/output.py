@@ -35,7 +35,7 @@ def get(name):
    outputs = get_all()
    o = None
    for output in outputs:
-      if(name == output[0].lower() and output[1].is_valid()):
+      if name == output[0].lower() and output[1].is_valid():
          o = output[1]()
    return o
 
@@ -49,9 +49,45 @@ class Output(object):
    output.plot(data)
 
    Attributes:
-   filename:      When set, output the figure to this filename. File extension is
-                  auto-detected.
-   leg_loc:       Where should the legend be placed?
+   aggregator
+   axis
+   bin_type
+   bottom
+   clim
+   cmap
+   dpi
+   filename          When set, output the figure to this filename. File extension is
+                     auto-detected.
+   lab_font_size
+   left
+   leg_font_size
+   leg_loc           Where should the legend be placed?
+   log_x
+   log_y
+   lw                Line width
+   major_length
+   major_width
+   map_type
+   minor_length
+   minor_width
+   ms                Marker size
+   pad
+   right
+   show_margin
+   show_perfect
+   thresholds
+   tick_font_size
+   title
+   top
+   xlabel
+   xlim
+   xrot
+   xticklabels
+   xticks
+   ylabel
+   ylim
+   yticklabels
+   yticks
    """
    description = ""
    default_axis = verif.axis.Offset()
@@ -61,8 +97,8 @@ class Output(object):
    supports_x = True
    experimental = False
    leg_loc = "best"
-   _logX = False
-   _logY = False
+   log_x = False
+   log_y = False
    reference = None
    _long = None
 
@@ -81,7 +117,7 @@ class Output(object):
       self.lw = 2
       self.labfs = 16
       self.tickfs = 16
-      self.legfs = 16
+      self.leg_font_size = 16
       self.titlefs = 16
       self.figsize = [5, 8]
       self.show_margin = True
@@ -100,127 +136,17 @@ class Output(object):
       self.tight = False
       self.simple = False
       self.aggregator = None
-      # Matplotlib style properties
-      self._cmap = mpl.cm.jet
-      self._xlim = None
-      self._ylim = None
-      self._clim = None
-      self._xticks = None
-      self._xticklabels = None
-      self._yticks = None
-      self._title = None
-      self._xlabel = None
-      self._ylabel = None
-      self._map_type = None
-
-   def xlim(self, lim=None):
-      """
-      Set/get the x-axis limits for the output
-
-      lim      A two-element list, with a lower and upper value
-      """
-      if lim is None:
-         return self._xlim
-      if(len(lim) != 2):
-         verif.util.error("xlim must be a vector of length 2")
-      self._xlim = lim
-
-   def ylim(self, lim=None):
-      """
-      Set/get the x-axis limits for the output
-
-      lim      A two-element list, with a lower and upper value
-      """
-      if lim is None:
-         return self._ylim
-      if(len(lim) != 2):
-         verif.util.error("ylim must be a vector of length 2")
-      self._ylim = lim
-
-   def clim(self, lim):
-      """
-      Set/get the range of values that any colormap should use
-
-      lim      A two-element list, with a lower and upper value
-      """
-      if lim is None:
-         return self._clim
-      if(len(lim) != 2):
-         verif.util.error("clim must be a vector of length 2")
-      self._clim = lim
-
-   def xticks(self, ticks):
-      """
-      Set/get the x-axis values where ticks will be placed
-
-      ticks      A list or numpy array of ticks
-      """
-      self._xticks = ticks
-
-   def xticklabels(self, labels):
-      """
-      Set/get the x-axis labels
-
-      labels      A list of labels
-      """
-      self._xticklabels = labels
-
-   def yticks(self, ticks):
-      """
-      Set/get the y-axis values where ticks will be placed
-
-      ticks      A list or numpy array of ticks
-      """
-      self._yticks = ticks
-
-   def yticklabels(self, labels):
-      """
-      Set/get the y-axis labels
-
-      labels      A list of labels
-      """
-      self._yticklabels = labels
-
-   def ms(self, ms):
-      """ Set/get the size of any markers used """
-      self.ms = ms
-
-   def lw(self, lw):
-      """ Set/get the width of any lines used """
-      self.lw = lw
-
-   def ylabel(self, ylabel):
-      """ Set/get the y-axis label """
-      self._ylabel = ylabel
-
-   def xlabel(self, xlabel):
-      """ Set/get the x-axis label """
-      self._xlabel = xlabel
-
-   def title(self, title):
-      """ Set/get the title of the figure """
-      self._title = title
-
-   @property
-   def map_type(self):
-      return self._map_type
-
-   @map_type.setter
-   def map_type(self, type):
-      if type not in allowedMapTypes:
-         verif.util.error("Map type '%s' not recognized. Must be one of %s" % (type,
-            allowedMapTypes))
-      self._map_type = type
-
-   @property
-   def cmap(self):
-      return self._cmap
-
-   @cmap.setter
-   def cmap(self, cmap):
-      if isinstance(cmap, basestring):
-         cmap = mpl.cm.get_cmap(cmap)
-      self._cmap = cmap
+      self.cmap = mpl.cm.jet
+      self.xlim = None
+      self.ylim = None
+      self.clim = None
+      self.xticks = None
+      self.xticklabels = None
+      self.yticks = None
+      self.title = None
+      self.xlabel = None
+      self.ylabel = None
+      self.map_type = None
 
    @classmethod
    def get_class_name(cls):
@@ -235,9 +161,9 @@ class Output(object):
    @classmethod
    def help(cls):
       s = cls.description
-      if(cls._long is not None):
+      if cls._long is not None:
          s = s + "\n" + verif.util.green("Description: ") + cls._long
-      if(cls.reference is not None):
+      if cls.reference is not None:
          s = s + "\n" + verif.util.green("Reference: ") + cls.reference
       return s
 
@@ -268,11 +194,11 @@ class Output(object):
       self._save_plot(data)
 
    def _plot_perfect_score(self, x, perfect, label="ideal", color="gray", zorder=-1000, always_show=0):
-      if(perfect is None):
+      if perfect is None:
          return
-      if(self.show_perfect or always_show):
+      if self.show_perfect or always_show:
          # Make 'perfect' same length as 'x'
-         if(not hasattr(perfect, "__len__")):
+         if not hasattr(perfect, "__len__"):
             perfect = perfect * np.ones(len(x), 'float')
          mpl.plot(x, perfect, '-', lw=5, color=color, label=label,
                zorder=zorder)
@@ -298,21 +224,21 @@ class Output(object):
 
    # Helper functions
    def _get_color(self, i, total):
-      if(self.line_colors is not None):
+      if self.line_colors is not None:
          firstList = self.line_colors.split(",")
          numList = []
          finalList = []
 
          for string in firstList:
-            if("[" in string):   # for rgba args
-               if(not numList):
+            if "[" in string:   # for rgba args
+               if not numList:
                   string = string.replace("[", "")
                   numList.append(float(string))
                else:
                   verif.util.error("Invalid rgba arg \"{}\"".format(string))
 
-            elif("]" in string):
-               if(numList):
+            elif "]" in string:
+               if numList:
                   string = string.replace("]", "")
                   numList.append(float(string))
                   finalList.append(numList)
@@ -321,14 +247,14 @@ class Output(object):
                   verif.util.error("Invalid rgba arg \"{}\"".format(string))
 
             # append to rgba lists if present, otherwise grayscale intensity
-            elif(verif.util.is_number(string)):
-               if(numList):
+            elif verif.util.is_number(string):
+               if numList:
                   numList.append(float(string))
                else:
                   finalList.append(string)
 
             else:
-               if(not numList):  # string args and hexcodes
+               if not numList:  # string args and hexcodes
                   finalList.append(string)
                else:
                   verif.util.error("Cannot read color args.")
@@ -341,7 +267,7 @@ class Output(object):
          return self.colors[i % len(self.default_colors)]
 
    def _get_style(self, i, total, connectingLine=True, lineOnly=False):
-      if(self.ls is not None):
+      if self.ls is not None:
          listStyles = self.ls.split(",")
          # loop through input linestyles (independent of colors)
          I = i % len(listStyles)
@@ -351,21 +277,21 @@ class Output(object):
          I = (i / len(self.colors)) % len(self.default_lines)
          line = self.default_lines[I]
          marker = self.default_markers[I]
-         if(lineOnly):
+         if lineOnly:
             return line
-         if(connectingLine):
+         if connectingLine:
             return line + marker
          return marker
 
    # Saves to file, set figure size
    def _save_plot(self, data):
-      if(self.figsize is not None):
+      if self.figsize is not None:
          mpl.gcf().set_size_inches(int(self.figsize[0]),
                                    int(self.figsize[1]), forward=True)
-      if(not self.show_margin):
+      if not self.show_margin:
          verif.util.remove_margin()
 
-      if(self.filename is not None):
+      if self.filename is not None:
          mpl.savefig(self.filename, bbox_inches='tight', dpi=self.dpi)
       else:
          fig = mpl.gcf()
@@ -373,21 +299,22 @@ class Output(object):
          mpl.show()
 
    def _legend(self, data, names=None):
-      if(self.legfs > 0):
-         if(names is None):
-            mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
+      if self.leg_font_size > 0:
+         if names is None:
+            mpl.legend(loc=self.leg_loc, prop={'size': self.leg_font_size})
          else:
-            mpl.legend(names, loc=self.leg_loc, prop={'size': self.legfs})
+            mpl.legend(names, loc=self.leg_loc, prop={'size':
+               self.leg_font_size})
 
    def _get_threshold_limits(self, thresholds):
       x = thresholds
-      if(self.bin_type in ["below", "below="]):
+      if self.bin_type in ["below", "below="]:
          lowerT = [-np.inf for i in range(0, len(thresholds))]
          upperT = thresholds
-      elif(self.bin_type in ["above", "above="]):
+      elif self.bin_type in ["above", "above="]:
          lowerT = thresholds
          upperT = [np.inf for i in range(0, len(thresholds))]
-      elif(self.bin_type == "within"):
+      elif self.bin_type == "within":
          lowerT = thresholds[0:-1]
          upperT = thresholds[1:]
          x = [(lowerT[i] + upperT[i]) / 2 for i in range(0, len(lowerT))]
@@ -398,9 +325,9 @@ class Output(object):
    def _set_y_axis_limits(self, metric):
       currYlim = mpl.ylim()
       ylim = [metric.min, metric.max]
-      if(ylim[0] is None):
+      if ylim[0] is None:
          ylim[0] = currYlim[0]
-      if(ylim[1] is None):
+      if ylim[1] is None:
          ylim[1] = currYlim[1]
       mpl.ylim(ylim)
 
@@ -418,56 +345,56 @@ class Output(object):
          # mpl.rcParams['axes.labelsize'] = self.labfs
 
          # Tick lines
-         if(self.minlth is not None):
+         if self.minlth is not None:
             mpl.tick_params('both', length=self.minlth, which='minor')
-         if(self.majlth is not None):
+         if self.majlth is not None:
             mpl.tick_params('both', length=self.majlth, width=self.majwid,
                   which='major')
          for label in ax.get_xticklabels():
             label.set_rotation(self.xrot)
 
       for ax in mpl.gcf().get_axes():
-         if(self._xlim is not None):
-            xlim = self._xlim
+         if self.xlim is not None:
+            xlim = self.xlim
             # Convert date to datetime objects
-            if(self.axis.is_time_like):
+            if self.axis.is_time_like:
                xlim = verif.util.convert_dates(xlim)
             mpl.xlim(xlim)
-         if(self._ylim is not None):
-            mpl.ylim(self._ylim)
-         if(self._clim is not None):
-            mpl.clim(self._clim)
-         if self._logX:
+         if self.ylim is not None:
+            mpl.ylim(self.ylim)
+         if self.clim is not None:
+            mpl.clim(self.clim)
+         if self.log_x:
             ax.set_xscale('log')
-         if self._logY:
+         if self.log_y:
             ax.set_yscale('log')
 
       # Labels
-      if(self._xlabel is not None):
-         mpl.xlabel(self._xlabel)
-      if(self._ylabel is not None):
-         mpl.ylabel(self._ylabel)
-      if(self._title is not None):
-         mpl.title(self._title, fontsize=self.titlefs)
+      if self.xlabel is not None:
+         mpl.xlabel(self.xlabel)
+      if self.ylabel is not None:
+         mpl.ylabel(self.ylabel)
+      if self.title is not None:
+         mpl.title(self.title, fontsize=self.titlefs)
 
       # Ticks
-      if(self._xticks is not None):
-         if self._xticklabels is not None:
-            mpl.xticks(self._xticks, self._xticklabels)
+      if self.xticks is not None:
+         if self.xticklabels is not None:
+            mpl.xticks(self.xticks, self.xticklabels)
          else:
-            mpl.xticks(self._xticks)
-      if(self._yticks is not None):
-         if self._yticklabels is not None:
-            mpl.yticks(self._yticks, self._yticklabels)
+            mpl.xticks(self.xticks)
+      if self.yticks is not None:
+         if self.yticklabels is not None:
+            mpl.yticks(self.yticks, self.yticklabels)
          else:
-            mpl.yticks(self._yticks)
+            mpl.yticks(self.yticks)
 
       # Margins
       mpl.gcf().subplots_adjust(bottom=self.bot, top=self.top,
             left=self.left, right=self.right)
 
    def _plot_obs(self, x, y, isCont=True, zorder=0, label="obs"):
-      if(isCont):
+      if isCont:
          mpl.plot(x, y, ".-", color="gray", lw=5, label=label, zorder=zorder)
       else:
          mpl.plot(x, y, "o", color="gray", ms=self.ms, label=label,
@@ -490,7 +417,7 @@ class Output(object):
 
       # Only keep points within the circle
       I = np.where(x ** 2 + y ** 2 < maxradius ** 2)[0]
-      if(len(I) == 0):
+      if len(I) == 0:
          return
       x = x[I]
       y = y[I]
@@ -502,7 +429,7 @@ class Output(object):
 
       # Remove missing points
       I = np.where(n != 0)[0]
-      if(len(I) == 0):
+      if len(I) == 0:
          return
       x = x[I]
       y = y[I]
@@ -541,9 +468,9 @@ class Standard(Output):
       """
       Output.__init__(self)
       self._metric = metric
-      if(metric.default_axis is not None):
+      if metric.default_axis is not None:
          self.axis = metric.default_axis
-      if(metric.default_bin_type is not None):
+      if metric.default_bin_type is not None:
          self.bin_type = metric.default_bin_type
       self.show_rank = False
       self.show_acc = False
@@ -560,7 +487,7 @@ class Standard(Output):
       thresholds = self.thresholds
 
       [lowerT, upperT, xx] = self._get_threshold_limits(thresholds)
-      if(not axis == verif.axis.Threshold()):
+      if not axis == verif.axis.Threshold():
          xx = data.get_axis_values(axis)
 
       names = data.get_names()
@@ -569,7 +496,7 @@ class Standard(Output):
       x = None
       for f in range(0, F):
          yy = np.zeros(len(xx), 'float')
-         if(axis == verif.axis.Threshold()):
+         if axis == verif.axis.Threshold():
             for i in range(0, len(lowerT)):
                yy[i] = self._metric.compute(data, f, axis, [lowerT[i], upperT[i]])
          else:
@@ -578,21 +505,21 @@ class Standard(Output):
                yy = yy + self._metric.compute(data, f, axis, [lowerT[i], upperT[i]])
             yy = yy / len(thresholds)
 
-         if(sum(np.isnan(yy)) == len(yy)):
+         if sum(np.isnan(yy)) == len(yy):
             verif.util.warning("No valid scores for " + names[f])
-         if(y is None):
+         if y is None:
             y = np.zeros([F, len(yy)], 'float')
             x = np.zeros([F, len(xx)], 'float')
          y[f, :] = yy
          x[f, :] = xx
-         if(self.show_acc):
+         if self.show_acc:
             y[f, :] = np.nan_to_num(y[f, :])
             y[f, :] = np.cumsum(y[f, :])
       return [x, y]
 
    def _legend(self, data, names=None):
-      if(self.legfs > 0):
-         mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
+      if self.leg_font_size > 0:
+         mpl.legend(loc=self.leg_loc, prop={'size': self.leg_font_size})
 
    def _plot_core(self, data):
 
@@ -605,8 +532,8 @@ class Standard(Output):
 
       # Sort legend entries such that the appear in the same order as the
       # y-values of the lines
-      if(self.leg_sort):
-         if(not self.show_acc):
+      if self.leg_sort:
+         if not self.show_acc:
             # averaging for non-acc plots
             averages = (verif.util.nanmean(y, axis=1))
             ids = averages.argsort()[::-1]
@@ -621,7 +548,7 @@ class Standard(Output):
          ids = range(0, F)
 
       # Show a bargraph with unconditional averages when no axis is specified
-      if(self.axis == verif.axis.No()):
+      if self.axis == verif.axis.No():
          w = 0.8
          x = np.linspace(1 - w / 2, len(y) - w / 2, len(y))
          mpl.bar(x, y, color='w', lw=self.lw)
@@ -631,7 +558,7 @@ class Standard(Output):
             # colors and styles to follow labels
             color = self._get_color(ids[f], F)
             style = self._get_style(ids[f], F, self.axis.is_continuous)
-            alpha = (1 if(self.axis.is_continuous) else 0.55)
+            alpha = (1 if self.axis.is_continuous else 0.55)
             mpl.plot(x[ids[f]], y[ids[f]], style, color=color,
                   label=labels[f], lw=self.lw, ms=self.ms,
                   alpha=alpha)
@@ -651,7 +578,7 @@ class Standard(Output):
          mpl.ylabel(self._metric.label(data.variable))
          #mpl.ylabel(data.obsfield.label() + data.obsfield.units(data.variable))
 
-         if(self.axis.is_time_like):
+         if self.axis.is_time_like:
             mpl.gca().xaxis_date()
          else:
             #mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
@@ -661,10 +588,10 @@ class Standard(Output):
          self._plot_perfect_score(x[0], perfect_score)
 
       mpl.grid()
-      if(not self.show_acc):
+      if not self.show_acc:
          self._set_y_axis_limits(self._metric)
 
-      if(self.tight):
+      if self.tight:
          oldTicks = mpl.gca().get_xticks()
          diff = oldTicks[1] - oldTicks[0]  # keep auto tick interval
          tickRange = np.arange(round(np.min(x)), round(np.max(x)) + diff, diff)
@@ -681,7 +608,7 @@ class Standard(Output):
       F = data.num_inputs
       [x, y] = self.get_x_y(data, self.axis)
 
-      if(self.filename is not None):
+      if self.filename is not None:
          sys.stdout = open(self.filename, 'w')
 
       maxlength = 0
@@ -695,7 +622,7 @@ class Standard(Output):
       lineDescN = len(lineDesc) + 2
       lineDescFmt = "%-" + str(lineDescN) + "s |"
       print lineDescFmt % lineDesc,
-      if(self.axis == verif.axis.Threshold()):
+      if self.axis == verif.axis.Threshold():
          descs = self.thresholds
       else:
          descs = data.get_axis_descriptions(self.axis)
@@ -735,7 +662,7 @@ class Standard(Output):
 
       [x, y] = self.get_x_y(data, self.axis)
 
-      if(self.filename is not None):
+      if self.filename is not None:
          sys.stdout = open(self.filename, 'w')
 
       # Header line
@@ -745,7 +672,7 @@ class Standard(Output):
       print header
 
       # Loop over rows
-      if(self.axis == verif.axis.Threshold()):
+      if self.axis == verif.axis.Threshold():
          descs = self.thresholds
       else:
          descs = data.get_axis_descriptions(self.axis, csv=True)
@@ -756,7 +683,7 @@ class Standard(Output):
          print line
 
    def _print_line(self, values, colWidth, type="float"):
-      if(type == "int"):
+      if type == "int":
          fmt = "%-" + colWidth + "i"
       else:
          fmt = "%-" + colWidth + ".4f"
@@ -765,14 +692,14 @@ class Standard(Output):
       maxI = np.argmax(values)
       for f in range(0, len(values)):
          value = values[f]
-         if(np.isnan(value)):
+         if np.isnan(value):
             txt = missfmt % "--"
          else:
             txt = fmt % value
          if not np.isnan(np.nanmean(values)):
-            if(minI == f):
+            if minI == f:
                print verif.util.green(txt),
-            elif(maxI == f):
+            elif maxI == f:
                print verif.util.red(txt),
             else:
                print txt,
@@ -808,30 +735,30 @@ class Standard(Output):
          urcrnrlon = urcrnrlon + self._minLatLonRange/2.0
 
       # Check if we are wrapped across the dateline
-      if(max(lons) - min(lons) > 180):
+      if max(lons) - min(lons) > 180:
          minEastLon = min(lons[lons > 0])
          maxWestLon = max(lons[lons < 0])
-         if(minEastLon - maxWestLon > 180):
+         if minEastLon - maxWestLon > 180:
             llcrnrlon = minEastLon - dlon / 10
             urcrnrlon = maxWestLon + dlon / 10 + 360
-      if(self._xlim is not None):
-         llcrnrlon = self._xlim[0]
-         urcrnrlon = self._xlim[1]
-      if(self._ylim is not None):
-         llcrnrlat = self._ylim[0]
-         urcrnrlat = self._ylim[1]
+      if self.xlim is not None:
+         llcrnrlon = self.xlim[0]
+         urcrnrlon = self.xlim[1]
+      if self.ylim is not None:
+         llcrnrlat = self.ylim[0]
+         urcrnrlat = self.ylim[1]
 
       res = verif.util.get_map_resolution(lats, lons)
-      if(dlon < 5):
+      if dlon < 5:
          dx = 1
-      elif(dlon < 90):
+      elif dlon < 90:
          dx = 5
       else:
          dx = 10
 
-      if(dlat < 5):
+      if dlat < 5:
          dy = 1
-      elif(dlat < 90):
+      elif dlat < 90:
          dy = 5
       else:
          dy = 10
@@ -841,11 +768,11 @@ class Standard(Output):
       clim = [verif.util.nanpercentile(y.flatten(), self._mapLowerPerc),
               verif.util.nanpercentile(y.flatten(), self._mapUpperPerc)]
 
-      cmap = self._cmap
+      cmap = self.cmap
 
       # Forced limits
-      if(self._clim is not None):
-         clim = self._clim
+      if self.clim is not None:
+         clim = self.clim
 
       std = verif.util.nanstd(y)
       minDiff = std / 50
@@ -854,7 +781,7 @@ class Standard(Output):
          F = 1
       for f in range(0, F):
          verif.util.subplot(f, F)
-         if(self.map_type is not None and hasBasemap):
+         if self.map_type is not None and hasBasemap:
             if self.map_type == "simple":
                map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
                      urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
@@ -895,9 +822,9 @@ class Standard(Output):
                  (y[f, :] < np.mean(y, 0) - minDiff)
          is_valid = (np.isnan(y[f, :]) == 0)
          s = self.ms*self.ms
-         if(self.show_rank):
+         if self.show_rank:
             lmissing = None
-            if(len(I) > 0):
+            if len(I) > 0:
                lmissing = map.scatter(x0[I], y0[I], s=s, c="k", marker="x")
             lsimilar = map.scatter(x0[is_valid], y0[is_valid], s=s, c="w")
             lmax = map.scatter(x0[isMax], y0[isMax], s=s, c="r")
@@ -908,15 +835,15 @@ class Standard(Output):
             cb.set_label(self._metric.label(data.variable))
             cb.set_clim(clim)
             mpl.clim(clim)
-         if(self._mapLabelLocations):
+         if self._mapLabelLocations:
             for i in range(0, len(x0)):
                value = y[f, i]
 
-               if(not np.isnan(value)):
+               if not np.isnan(value):
                   mpl.text(x0[i], y0[i], "%d %3.2f" % (ids[i], value))
          names = data.get_legend()
-         if(self._title is not None):
-            mpl.title(self._title)
+         if self.title is not None:
+            mpl.title(self.title)
          elif F > 1:
             mpl.title(names[f])
          elif F == 1 and self.show_rank:
@@ -937,7 +864,8 @@ class Standard(Output):
             if lmissing is not None:
                 lines.append(lmissing)
                 names.append("missing")
-            mpl.legend(lines, names, loc=self.leg_loc, prop={'size': self.legfs})
+            mpl.legend(lines, names, loc=self.leg_loc, prop={'size':
+               self.leg_font_size})
 
 
 class Hist(Output):
@@ -966,7 +894,7 @@ class Hist(Output):
          N = len(allValues[f][0])
 
          for i in range(0, len(xx)):
-            if(i == len(xx) - 1):
+            if i == len(xx) - 1:
                I = np.where((allValues[f][0] >= edges[i]) &
                             (allValues[f][0] <= edges[i + 1]))[0]
             else:
@@ -983,12 +911,12 @@ class Hist(Output):
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
-         if(self._show_percent):
+         if self._show_percent:
             y[f] = y[f] * 1.0 / sum(y[f]) * 100
          mpl.plot(x[f], y[f], style, color=color, label=labels[f], lw=self.lw,
                ms=self.ms)
       mpl.xlabel(data.get_axis_label("threshold"))
-      if(self._show_percent):
+      if self._show_percent:
          mpl.ylabel("Frequency (%)")
       else:
          mpl.ylabel("Frequency")
@@ -1001,7 +929,7 @@ class Hist(Output):
       F = data.num_inputs
       [x, y] = self.get_x_y(data)
 
-      if(self.filename is not None):
+      if self.filename is not None:
          sys.stdout = open(self.filename, 'w')
 
       maxlength = 0
@@ -1041,7 +969,7 @@ class Hist(Output):
       F = data.num_inputs
       [x, y] = self.get_x_y(data)
 
-      if(self.filename is not None):
+      if self.filename is not None:
          sys.stdout = open(self.filename, 'w')
 
       maxlength = 0
@@ -1064,7 +992,7 @@ class Hist(Output):
          print line
 
    def _print_line(self, values, colWidth, type="float"):
-      if(type == "int"):
+      if type == "int":
          fmt = "%-" + colWidth + "i"
       else:
          fmt = "%-" + colWidth + ".2f"
@@ -1073,13 +1001,13 @@ class Hist(Output):
       maxI = np.argmax(values)
       for f in range(0, len(values)):
          value = values[f]
-         if(np.isnan(value)):
+         if np.isnan(value):
             txt = missfmt % "--"
          else:
             txt = fmt % value
-         if(minI == f):
+         if minI == f:
             print verif.util.green(txt),
-         elif(maxI == f):
+         elif maxI == f:
             print verif.util.red(txt),
          else:
             print txt,
@@ -1144,7 +1072,7 @@ class ObsFcst(Output):
       mpl.ylabel(data.get_variable_and_units())
       mpl.xlabel(data.get_axis_label(self.axis))
       mpl.grid()
-      if(self.axis.is_time_like):
+      if self.axis.is_time_like:
          mpl.gca().xaxis_date()
       else:
          mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
@@ -1204,7 +1132,7 @@ class QQ(Output):
       for i in range(0, maxPairs):
          line = ""
          for f in range(0, F):
-            if(len(x[f]) < i):
+            if len(x[f]) < i:
                line = line + ","
             else:
                line = line + "%f,%f" % (x[f][i], y[f][i])
@@ -1235,13 +1163,13 @@ class Scatter(Output):
          if self.simple:
             alpha = 1
          mpl.plot(x, y, ".", color=color, label=labels[f], lw=self.lw, ms=self.ms, alpha=alpha)
-         if(self._show_quantiles()):
+         if self._show_quantiles():
             # Determine bin edges for computing quantiles
             # Use those provided by -r
-            if(self.thresholds[0] is not None):
+            if self.thresholds[0] is not None:
                edges = self.thresholds
             # For precip, we want a bin at exacly 0
-            elif(re.compile("Precip.*").match(data.variable.name)):
+            elif re.compile("Precip.*").match(data.variable.name):
                # Number of bins
                N = 10
                # The second to last edge should be such that we have at least
@@ -1249,7 +1177,7 @@ class Scatter(Output):
                Nmin = 50.0
                pUpper = 100.0 - Nmin / y.shape[0] * 100.0
                # But no lower than 90th percentile, incase we don't have very many values
-               if(pUpper < 90):
+               if pUpper < 90:
                   pUpper = 90
                edges = np.linspace(0, 50, 21)
                edges = np.array([0, 0.001, 1, 2, 3, 5, 7, 10, 13, 16, 20, 25, 30, 35, 40, 45, 50])
@@ -1265,7 +1193,7 @@ class Scatter(Output):
                Nmin = 50.0
                pLower = Nmin / y.shape[0] * 100.0
                # If we don't have very much data, then use an upper bound of 10%tile
-               if(pLower > 10):
+               if pLower > 10:
                   pLower = 10
                pUpper = 100.0 - pLower
                # Create evenly spaced values from the point where we have at 50
@@ -1283,24 +1211,24 @@ class Scatter(Output):
             for q in range(0, len(quantiles)):
                for i in range(0, len(bins)):
                   I = np.where((y >= edges[i]) & (y < edges[i+1]))[0]
-                  if(len(I) > 0):
+                  if len(I) > 0:
                      values[q, i] = np.percentile(x[I], quantiles[q]*100)
                style = 'k-'
                lw = 2
-               if(q == 0 or q == len(quantiles)-1):
+               if q == 0 or q == len(quantiles)-1:
                   style = 'ko--'
-               elif(q == (len(quantiles)-1)/2):
+               elif q == (len(quantiles)-1)/2:
                   style = 'ko-'
                   lw = 4
                # Write labels for the quantile lines, but only do it for one file
                label = ""
-               if(f == 0):
-                  if(q == 0 or q == len(quantiles) - 1):
+               if f == 0:
+                  if q == 0 or q == len(quantiles) - 1:
                      label = "%d%%" % (quantiles[q] * 100)
                   # Instead of writing all labels, only summarize the middle ones
-                  elif(q == 1 and len(quantiles) > 3):
+                  elif q == 1 and len(quantiles) > 3:
                      label = "%d%%-%d%%" % (quantiles[1] * 100, (quantiles[len(quantiles) - 2] * 100))
-                  elif(q == 1 and len(quantiles) == 3):
+                  elif q == 1 and len(quantiles) == 3:
                      label = "%d%%" % (quantiles[1] * 100)
                mpl.plot(values[q, :], bins, style, lw=lw, alpha=0.5, label=label)
             for i in range(0, len(bins)):
@@ -1441,7 +1369,7 @@ class SpreadSkill(Output):
                          (np.isnan(skill) == 0) &
                          (spread > self.thresholds[i - 1]) &
                          (spread <= self.thresholds[i]))[0]
-            if(len(I) > 0):
+            if len(I) > 0:
                x[i] = np.mean(spread[I])
                y[i] = np.sqrt(np.mean(skill[I]))
 
@@ -1519,14 +1447,14 @@ class TimeSeries(Output):
          dates = data.get_axis_values(verif.axis.Time())
          x = dates[d] + data.offsets / 24.0
          y = verif.util.nanmean(obs[d, :, :], axis=1)
-         if(connect and d < obs.shape[0] - 1):
+         if connect and d < obs.shape[0] - 1:
             obsmean = verif.util.nanmean(obs[d + 1, 0, :], axis=0)
             x = np.insert(x, x.shape[0], dates[d + 1] + minOffset / 24.0)
             y = np.insert(y, y.shape[0], obsmean)
 
-         if(d == 0):
+         if d == 0:
             xmin = np.min(x)
-         elif(d == obs.shape[0] - 1):
+         elif d == obs.shape[0] - 1:
             xmax = np.max(x)
 
          lab = "obs" if d == 0 else ""
@@ -1543,7 +1471,7 @@ class TimeSeries(Output):
             fcst = data.get_scores(verif.field.Fcst(), f)[0]
             x = dates[d] + data.offsets / 24.0
             y = verif.util.nanmean(fcst[d, :, :], axis=1)
-            if(connect and d < obs.shape[0] - 1):
+            if connect and d < obs.shape[0] - 1:
                x = np.insert(x, x.shape[0], dates[d + 1] + minOffset / 24.0)
                y = np.insert(y, y.shape[0], verif.util.nanmean(fcst[d + 1, 0, :]))
             lab = labels[f] if d == 0 else ""
@@ -1553,15 +1481,15 @@ class TimeSeries(Output):
                   label=lab)
 
       mpl.xlabel(data.get_axis_label("date"))
-      if(self._ylabel is None):
+      if self.ylabel is None:
          mpl.ylabel(data.get_variable_and_units())
       else:
-         mpl.ylabel(self._ylabel)
+         mpl.ylabel(self.ylabel)
       mpl.grid()
       #mpl.gca().xaxis.set_major_formatter(verif.axis.Time().formatter(data.variable))
       mpl.gca().xaxis_date()
 
-      if(self.tight):
+      if self.tight:
          oldTicks = mpl.gca().get_xticks()
          diff = oldTicks[1] - oldTicks[0]  # keep auto tick interval
          tickRange = np.arange(round(xmin), round(xmax) + diff, diff)
@@ -1600,7 +1528,7 @@ class Meteo(Output):
          y[:, i] = verif.util.nanmean(verif.util.nanmean(score, axis=0), axis=1)
       for i in range(0, len(quantiles)):
          style = "k-"
-         if(i == 0 or i == len(quantiles) - 1):
+         if i == 0 or i == len(quantiles) - 1:
             style = "k--"
          label = "%d%%" % (quantiles[i])
          mpl.plot(x, y[:, i], style, label=label, zorder=-1)
@@ -1613,14 +1541,14 @@ class Meteo(Output):
                zorder=-2)
 
       # Labels and ticks
-      if(self._ylabel is None):
+      if self.ylabel is None:
          mpl.ylabel(data.get_variable_and_units())
       else:
-         mpl.ylabel(self._ylabel)
+         mpl.ylabel(self.ylabel)
       mpl.grid()
       mpl.gca().xaxis_date()
 
-      if(np.min(x) == np.max(x)):
+      if np.min(x) == np.max(x):
          mpl.xlim(x[0], x[0] + 1)
       else:
          mpl.xlim(np.min(x), np.max(x))
@@ -1632,16 +1560,16 @@ class Meteo(Output):
       # Hour labels
       minlabels = [tick.label1 for tick in mpl.gca().xaxis.get_minor_ticks()]
       for i in minlabels:
-         i.set_fontsize(self._tickfs)
+         i.set_fontsize(self.tickfs)
 
       # Date labels
       majlabels = [tick.label1 for tick in mpl.gca().xaxis.get_major_ticks()]
       for i in range(0, len(majlabels)):
          label = majlabels[i]
-         if(isSingleDate and i < len(majlabels)-1):
+         if isSingleDate and i < len(majlabels)-1:
             label.set_horizontalalignment('left')
             label.set_verticalalignment('top')
-            label.set_fontsize(self._tickfs)
+            label.set_fontsize(self.tickfs)
             # Moves major labels to the top of the graph. The x-coordinate
             # seems to be irrelevant. When y-coord is 1, the label is near the
             # top. For 1.1 it is above the graph
@@ -1649,7 +1577,7 @@ class Meteo(Output):
          else:
             # Turn off the last date label, since it is outside the graph
             label.set_visible(0)
-      if(not isSingleDate):
+      if not isSingleDate:
          mpl.xlabel("Time of day (h)")
 
       mpl.gca().xaxis.grid(True, which='major', color='k', zorder=-10, linestyle='-', linewidth=2)
@@ -1699,12 +1627,12 @@ class PitHist(Output):
          mpl.title(labels[f])
          ytop = 200.0 / self._numBins
          mpl.gca().set_ylim([0, ytop])
-         if(f == 0):
+         if f == 0:
             mpl.ylabel("Frequency (%)")
          else:
             mpl.gca().set_yticks([])
 
-         if(self._show_expected_line()):
+         if self._show_expected_line():
             # Multiply by 100 to get to percent
             std = verif.metric.PitDev.deviation_std(pit, self._numBins) * 100
 
@@ -1719,7 +1647,7 @@ class PitHist(Output):
             verif.util.fill([0, 1], lower, upper, "r", zorder=100, alpha=0.5)
 
          # Compute calibration deviation
-         if(self._show_stats()):
+         if self._show_stats():
             D = verif.metric.PitDev.deviation(pit, self._numBins)
             D0 = verif.metric.PitDev.expected_deviation(pit, self._numBins)
             ign = verif.metric.PitDev.ignorance_potential(pit, self._numBins)
@@ -1778,7 +1706,7 @@ class Discrimination(Output):
                y0[f, i] = np.mean((p[I0] >= edges[i]) & (p[I0] < edges[i + 1]))
                y1[f, i] = np.mean((p[I1] >= edges[i]) & (p[I1] < edges[i + 1]))
             label = labels[f]
-            if(not t == 0):
+            if not t == 0:
                label = ""
             # Figure out where to put the bars. Each file will have pairs of
             # bars, so try to space them nicely.
@@ -1828,7 +1756,7 @@ class Reliability(Output):
 
       F = data.num_inputs
       ax = mpl.gca()
-      if(self._show_count()):
+      if self._show_count():
          axi = mpl.axes([0.3, 0.65, 0.2, 0.2])
       mpl.sca(ax)
 
@@ -1862,16 +1790,16 @@ class Reliability(Output):
             for i in range(0, len(edges) - 1):
                q = (p >= edges[i]) & (p < edges[i + 1])
                I = np.where(q)[0]
-               if(len(I) > 0):
+               if len(I) > 0:
                   n[f, i] = len(obs[I])
                   # Need at least 10 data points to be valid
-                  if(n[f, i] >= self._minCount):
+                  if n[f, i] >= self._minCount:
                      y[f, i] = np.mean(obs[I])
                      v[f, i] = np.var(obs[I])
                   x[i, f] = np.mean(p[I])
 
             label = labels[f]
-            if(not t == 0):
+            if not t == 0:
                label = ""
             mpl.plot(x[:, f], y[f], style, color=color, lw=self.lw,
                   ms=self.ms, label=label)
@@ -1880,12 +1808,12 @@ class Reliability(Output):
          # sneak into the legend)
          for f in range(0, F):
             color = self._get_color(f, F)
-            if(self._shade_confidence()):
+            if self._shade_confidence():
                self._plot_confidence(x[:, f], y[f], v[f], n[f], color=color)
 
          # Draw lines in inset diagram
-         if(self._show_count()):
-            if(np.max(n) > 1):
+         if self._show_count():
+            if np.max(n) > 1:
                for f in range(0, F):
                   color = self._get_color(f, F)
                   axi.plot(x[:, f], n[f], style, color=color, lw=self.lw,
@@ -1903,7 +1831,7 @@ class Reliability(Output):
       mpl.plot([clim, clim], [0, 1], "--", color=color)
       # No-skill line
       mpl.plot([0, 1], [clim / 2, 1 - (1 - clim) / 2], "--", color=color)
-      if(self._shade_no_skill()):
+      if self._shade_no_skill():
          verif.util.fill([clim, 1], [0, 0], [clim, 1 - (1 - clim) / 2],
                col=[1, 1, 1], zorder=-100, hatch="\\")
          verif.util.fill([0, clim], [clim / 2, clim, 0], [1, 1],
@@ -1931,7 +1859,7 @@ class IgnContrib(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
 
-      if(len(self.thresholds) != 1):
+      if len(self.thresholds) != 1:
          verif.util.error("IgnContrib diagram requires exactly one threshold")
       threshold = self.thresholds[0]
 
@@ -1972,11 +1900,11 @@ class IgnContrib(Output):
          for i in range(0, len(edges) - 1):
             q = (p >= edges[i]) & (p < edges[i + 1])
             I = np.where(q)[0]
-            if(len(I) > 0):
+            if len(I) > 0:
                n[f, i] = len(obs[I])
                x[f, i] = np.mean(p[I])
                # Need at least 10 data points to be valid
-               if(n[f, i] >= 1):
+               if n[f, i] >= 1:
                   I0 = np.where(obs[I] == 0)
                   I1 = np.where(obs[I] == 1)
                   y[f, i] = -np.sum(np.log2(p[I[I1]])) -\
@@ -2020,7 +1948,7 @@ class EconomicValue(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
 
-      if(len(self.thresholds) != 1):
+      if len(self.thresholds) != 1:
          verif.util.error("Economic value diagram requires exactly one threshold")
       threshold = self.thresholds[0]
 
@@ -2068,7 +1996,7 @@ class EconomicValue(Output):
             climCost = min(clim * loss, cost)
             perfectCost = clim * cost
             economicValue = 0
-            if(climCost != perfectCost):
+            if climCost != perfectCost:
                economicValue = (climCost-totalCost) / (climCost - perfectCost)
             y[f, i] = economicValue
 
@@ -2093,11 +2021,11 @@ class Roc(Output):
 
    def _plot_core(self, data):
       threshold = self.thresholds[0]   # Observation threshold
-      if(threshold is None):
+      if threshold is None:
          verif.util.error("Roc plot needs a threshold (use -r)")
 
       quantiles = list(data.get_quantiles())
-      if(len(quantiles) == 0):
+      if len(quantiles) == 0:
          verif.util.error("Your files do not have any quantiles")
 
       F = data.num_inputs
@@ -2121,7 +2049,7 @@ class Roc(Output):
             b = np.ma.sum((fcst >= threshold) & (obs < threshold))   # FA
             c = np.ma.sum((fcst < threshold) & (obs >= threshold))   # Miss
             d = np.ma.sum((fcst < threshold) & (obs < threshold))    # CR
-            if(a + c > 0 and b + d > 0):
+            if a + c > 0 and b + d > 0:
                y[i] = a / 1.0 / (a + c)
                x[i] = b / 1.0 / (b + d)
          # Add end points at 0,0 and 1,1:
@@ -2137,7 +2065,7 @@ class Roc(Output):
          y[len(y) - 1] = 1
          mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
                ms=self.ms)
-         if(self._labelQuantiles):
+         if self._labelQuantiles:
             for i in range(0, len(quantiles)):
                mpl.text(x[i + 1], y[i + 1], " %g%%" % quantiles[i], verticalalignment='center')
       mpl.plot([0, 1], [0, 1], color="k")
@@ -2168,16 +2096,16 @@ class DRoc(Output):
 
    def _plot_core(self, data):
       threshold = self.thresholds[0]   # Observation threshold
-      if(threshold is None):
+      if threshold is None:
          verif.util.error("DRoc plot needs a threshold (use -r)")
 
-      if(self._doClassic):
+      if self._doClassic:
          fthresholds = [threshold]
       else:
-         if(self._fthresholds is not None):
+         if self._fthresholds is not None:
             fthresholds = self._fthresholds
          else:
-            if(data.variable.name == "Precip"):
+            if data.variable.name == "Precip":
                fthresholds = [0, 1e-7, 1e-6, 1e-5, 1e-4, 0.001, 0.005,
                      0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 1, 2, 3, 5, 10, 20, 100]
             else:
@@ -2197,10 +2125,9 @@ class DRoc(Output):
             fthreshold = fthresholds[i]
             x[i] = verif.metric.Fa().compute_obs_fcst(obs, fcst + threshold - fthresholds[i], [threshold, np.inf])
             y[i] = verif.metric.Hit().compute_obs_fcst(obs, fcst + threshold - fthresholds[i], [threshold, np.inf])
-            if(self._showThresholds and (not np.isnan(x[i]) and
-                  not np.isnan(y[i]) and f == 0)):
+            if self._showThresholds and (not np.isnan(x[i]) and not np.isnan(y[i]) and f == 0):
                mpl.text(x[i], y[i], "%2.1f" % fthreshold, color=color)
-         if(not self._doNorm):
+         if not self._doNorm:
             # Add end points at 0,0 and 1,1:
             xx = x
             yy = y
@@ -2214,7 +2141,7 @@ class DRoc(Output):
             y[len(y) - 1] = 0
          mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
                ms=self.ms)
-      if(self._doNorm):
+      if self._doNorm:
          xlim = mpl.xlim()
          ylim = mpl.ylim()
          q0 = max(abs(xlim[0]), abs(ylim[0]))
@@ -2262,14 +2189,14 @@ class Against(Output):
 
    def _plot_core(self, data):
       F = data.num_inputs
-      if(F < 2):
+      if F < 2:
          verif.util.error("Cannot use Against plot with less than 2 configurations")
 
       labels = data.get_legend()
       for f0 in range(0, F):
          for f1 in range(0, F):
-            if(f0 != f1 and (F != 2 or f0 == 0)):
-               if(F > 2):
+            if f0 != f1 and (F != 2 or f0 == 0):
+               if F > 2:
                   mpl.subplot(F, F, f0 + f1 * F + 1)
                x = data.get_scores(verif.field.Fcst(), f0)[0].flatten()
                y = data.get_scores(verif.field.Fcst(), f1)[0].flatten()
@@ -2289,7 +2216,7 @@ class Against(Output):
 
                std = np.std(obs) / 2
                minDiff = self._minStdDiff * std
-               if(len(x) == len(y)):
+               if len(x) == len(y):
                   N = 5
                   for k in range(0, N):
                      Ix = abs(obs - y) > abs(obs - x) + std * k / N
@@ -2314,7 +2241,7 @@ class Against(Output):
                mpl.ylim([lower, upper])
                mpl.plot([lower, upper], [lower, upper], '--',
                         color=[0.3, 0.3, 0.3], lw=3, zorder=100)
-               if(F == 2):
+               if F == 2:
                   break
       mpl.gca().set_aspect(1)
 
@@ -2344,7 +2271,7 @@ class Taylor(Output):
          stdobs = np.zeros(size, 'float')
          for i in range(0, size):
             [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis, i)
-            if(len(obs) > 0 and len(fcst) > 0):
+            if len(obs) > 0 and len(fcst) > 0:
                corr[i] = np.corrcoef(obs, fcst)[1, 0]
                std[i] = np.sqrt(np.var(fcst))
                stdobs[i] = np.sqrt(np.var(obs))
@@ -2370,7 +2297,7 @@ class Taylor(Output):
 
       # Set axis limits
       # Enforce a minimum radius beyond the obs-radius
-      if(maxstd < 1.25 * stdobs):
+      if maxstd < 1.25 * stdobs:
          maxstd = 1.25 * stdobs
       maxstd = int(np.ceil(maxstd))
       # Allow for some padding outside the outer ring
@@ -2413,11 +2340,11 @@ class Taylor(Output):
       Rs = np.linspace(0, 2 * max(xticks), 4 * max(xticks) / (xticks[1] -
          xticks[0]) + 1)
       for R in Rs:
-         if(R > 0):
+         if R > 0:
             self._draw_circle(R, xcenter=stdobs, ycenter=0, maxradius=maxstd, style="-", color="gray", lw=3)
             x = np.sin(-np.pi / 4) * R + stdobs
             y = np.cos(np.pi / 4) * R
-            if(x ** 2 + y ** 2 < maxstd ** 2):
+            if x ** 2 + y ** 2 < maxstd ** 2:
                mpl.text(x, y, str(R), horizontalalignment="right",
                      verticalalignment="bottom", fontsize=self.labfs,
                      color="gray")
@@ -2428,7 +2355,7 @@ class Taylor(Output):
 
       # Draw std rings
       for X in mpl.xticks()[0]:
-         if(X <= maxstd):
+         if X <= maxstd:
             self._draw_circle(X, style=":")
       self._draw_circle(maxstd, style="-", lw=3)
 
@@ -2507,7 +2434,7 @@ class Performance(Output):
          if i == 0:
             label = "Bias frequency"
          mpl.plot([0, 1], [0, bias], 'k-', label=label)
-         if(bias <= 1):
+         if bias <= 1:
             mpl.text(1, bias, "%2.1f" % (bias))
          else:
             mpl.text(1.0/bias, 1, "%2.1f" % (bias))
@@ -2564,7 +2491,7 @@ class Error(Output):
             [obs, fcst] = data.get_scores(["obs", "fcst"])
             mfcst = np.mean(fcst)
             mobs = np.mean(obs)
-            if(len(obs) > 0 and len(fcst) > 0):
+            if len(obs) > 0 and len(fcst) > 0:
                serr[i, f] = np.mean(obs - fcst)
                rmse[i, f] = np.sqrt(np.mean((obs - fcst) ** 2))
                uerr[i, f] = np.sqrt(rmse[i, f] ** 2 - serr[i, f] ** 2)
@@ -2584,9 +2511,9 @@ class Error(Output):
       maxy = ylim[1]
       miny = min(0, ylim[0])
       # Try to enforce the x-axis and y-axis to be roughly the same size
-      if(maxy - miny < maxx / 2):
+      if maxy - miny < maxx / 2:
          maxy = maxx
-      elif(maxy - miny > maxx * 2):
+      elif maxy - miny > maxx * 2:
          maxx = maxy - miny
       mpl.xlim([0, maxx])  # Not possible to have negative CRMSE
       mpl.ylim([miny, maxy])
@@ -2709,8 +2636,8 @@ class InvReliability(Output):
       F = data.num_inputs
       ax = mpl.gca()
       quantiles = self.thresholds
-      if(self._show_count()):
-         if(quantiles[0] < 0.5):
+      if self._show_count():
+         if quantiles[0] < 0.5:
             axi = mpl.axes([0.66, 0.65, 0.2, 0.2])
          else:
             axi = mpl.axes([0.66, 0.15, 0.2, 0.2])
@@ -2728,7 +2655,7 @@ class InvReliability(Output):
          N = min(25, max(11, int(len(obs) / 1000)))
          N = 21
          edges = np.linspace(0, 20, N + 1)
-         if(data.variable.name == "Precip"):
+         if data.variable.name == "Precip":
             edges = np.linspace(0, np.sqrt(verif.util.nanmax(obs)), N + 1) ** 2
          else:
             edges = np.linspace(verif.util.nanmin(obs), verif.util.nanmax(obs), N + 1)
@@ -2752,16 +2679,16 @@ class InvReliability(Output):
             for i in range(0, len(edges) - 1):
                q = (p >= edges[i]) & (p < edges[i + 1])
                I = np.where(q)[0]
-               if(len(I) > 0):
+               if len(I) > 0:
                   n[f, i] = len(obs[I])
                   # Need at least 10 data points to be valid
-                  if(n[f, i] >= 2):
+                  if n[f, i] >= 2:
                      y[f, i] = np.mean(obs[I])
                      v[f, i] = np.var(obs[I])
                   x[i, f] = np.mean(p[I])
 
             label = labels[f]
-            if(not t == 0):
+            if not t == 0:
                label = ""
             mpl.plot(x[:, f], y[f], style, color=color, lw=self.lw,
                   ms=self.ms, label=label)
@@ -2772,7 +2699,7 @@ class InvReliability(Output):
          for f in range(0, F):
             color = self._get_color(f, F)
             self._plot_confidence(x[:, f], y[f], v[f], n[f], color=color)
-            if(self._show_count()):
+            if self._show_count():
                axi.plot(x[:, f], n[f], style, color=color, lw=self.lw, ms=self.ms)
                axi.xaxis.set_major_locator(mpl.NullLocator())
                axi.set_yscale('log')
@@ -2802,7 +2729,7 @@ class Impact(Output):
    def _plot_core(self, data):
       F = data.num_inputs
       units = data.variable.units
-      if(F != 2):
+      if F != 2:
          verif.util.error("Improvement plot requires exactly 2 files")
 
       labels = data.get_legend()
@@ -2864,8 +2791,9 @@ class Impact(Output):
       mpl.gca().set_aspect(1)
 
    def _legend(self, data, names=None):
-      if(self.legfs > 0):
-         if(names is None):
-            mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
+      if self.leg_font_size > 0:
+         if names is None:
+            mpl.legend(loc=self.leg_loc, prop={'size': self.leg_font_size})
          else:
-            mpl.legend(names, loc=self.leg_loc, prop={'size': self.legfs})
+            mpl.legend(names, loc=self.leg_loc, prop={'size':
+               self.leg_font_size})

@@ -54,7 +54,7 @@ def run(argv):
    bottom_padding = None
    top_padding = None
    right_padding = None
-   lef_padding = None
+   left_padding = None
    Pad = None
    show_perfect = None
    aggregator_name = "mean"
@@ -204,7 +204,7 @@ def run(argv):
             elif(arg == "-right"):
                right_padding = float(argv[i + 1])
             elif(arg == "-left"):
-               lef_padding = float(argv[i + 1])
+               left_padding = float(argv[i + 1])
             elif(arg == "-pad"):
                Pad = argv[i + 1]
             elif(arg == "-titlefs"):
@@ -400,9 +400,9 @@ def run(argv):
    if(simple is not None):
       pl.simple = simple
    if(marker_size is not None):
-      pl.ms(marker_size)
+      pl.ms = marker_size
    if(line_width is not None):
-      pl.lw(line_width)
+      pl.lw = line_width
    if(line_colors is not None):
       pl.line_colors = line_colors
    if(lab_font_size is not None):
@@ -429,8 +429,8 @@ def run(argv):
       pl.top = top_padding
    if(right_padding is not None):
       pl.right = right_padding
-   if(lef_padding is not None):
-      pl.left = lef_padding
+   if(left_padding is not None):
+      pl.left = left_padding
    if(Pad is not None):
       pl.pad = None
    if(bin_type is not None):
@@ -438,19 +438,19 @@ def run(argv):
    if(show_perfect is not None):
       pl.show_perfect = show_perfect
    if(xlim is not None):
-      pl.xlim(xlim)
+      pl.xlim = xlim
    if(ylim is not None):
-      pl.ylim(ylim)
+      pl.ylim = ylim
    if(clim is not None):
-      pl.clim(clim)
+      pl.clim = clim
    if(xticks is not None):
-      pl.xticks(xticks)
+      pl.xticks = xticks
    if(xticklabels is not None):
-      pl.xticklabels(xticklabels)
+      pl.xticklabels = xticklabels
    if(yticks is not None):
-      pl.yticks(yticks)
+      pl.yticks = yticks
    if(yticklabels is not None):
-      pl.yticklabels(yticklabels)
+      pl.yticklabels = yticklabels
    if(log_x is not None):
       pl.log_x = log_x
    if(log_y is not None):
@@ -468,9 +468,12 @@ def run(argv):
       pl.axis = axis
    pl.aggregator = verif.aggregator.get(aggregator_name)
    pl.show_margin = not no_margin
-   pl.ylabel(ylabel)
-   pl.xlabel(xlabel)
-   pl.title(title)
+   if ylabel is not None:
+      pl.ylabel = ylabel
+   if xlabel is not None:
+      pl.xlabel = xlabel
+   if title is not None:
+      pl.title = title
 
    if(type == "text"):
       pl.text(data)
