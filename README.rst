@@ -156,6 +156,7 @@ on what variables are available in the input files.
 ``-m fcst``             Average forecast value
 ``-m kendallcorr``      Kendall correlation
 ``-m mae``              Mean of forecasts
+``-m mbias``            Multiplicative bias
 ``-m nsec``             Nash-Sutcliffe efficiency coefficient
 ``-m num``              Number of valid forecasts
 ``-m obs``              Mean of observations
@@ -168,9 +169,13 @@ on what variables are available in the input files.
 ----------------------  ---------------------------------------------------------------
 **Threshold**           **Description**
 ----------------------  ---------------------------------------------------------------
+``-m a``                Fraction of events that are hits
+``-m b``                Fraction of events that are false alarms
 ``-m baserate``         Climatological frequency
 ``-m biasfreq``         Numer of forecasts / number of observations
+``-m c``                Fraction of events that are misses
 ``-m count``            Number of forecasts wabove a threshold
+``-m d``                Fraction of events that are correct rejections
 ``-m diff``             Difference between false alarms and misses
 ``-m derror``           Error in distribution of deterministic values
 ``-m dscore``           Generalized discrimination score
@@ -184,6 +189,7 @@ on what variables are available in the input files.
 ``-m kss``              Hanssen-Kuiper skill score
 ``-m lor``              Log odds ratio
 ``-m miss``             Miss rate
+``-m n``                Total cases (a + b + c + d)
 ``-m or``               Odds ratio
 ``-m pc``               Proportions correct
 ``-m performance``      Diagram showing POD, FAR, bias, and threat score
