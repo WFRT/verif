@@ -140,3 +140,11 @@ class Other(Field):
       if self.__class__ != other.__class__:
          return False
       return self._name == other._name
+
+
+class Pit(Field):
+   def label(self, variable):
+      return "Verifying PIT"
+
+   def units(self, variable):
+      return "%"

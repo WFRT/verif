@@ -170,11 +170,14 @@ class Data(object):
       axis_index     Which slice along the axis to retrieve
 
       Returns:
-      scores         A list of numpy arrays
+      scores         A list of numpy arrays. If only a single field is
+                     supplied, then a numpy array is returned.
       """
 
+      fields_is_single = False
       if(not isinstance(fields, list)):
          fields = [fields]
+         fields_is_single = True
 
       key = (tuple(fields), input_index, axis, axis_index)
       if key in self._get_scores_cache.keys():
@@ -280,6 +283,11 @@ class Data(object):
          scores = [np.nan * np.zeros(1, float) for i in range(0, len(fields))]
 
       self._get_scores_cache[key] = scores
+
+      # Turn into a single numpy array if we were not supplied with a list of
+      # fields
+      if fields_is_single:
+         scores = scores[0]
       return scores
 
    def get_axis_size(self, axis):
@@ -460,6 +468,9 @@ class Data(object):
 
             elif field == verif.field.Fcst():
                temp = input.fcst
+
+            elif field == verif.field.Pit():
+               temp = input.pit
 
             elif field.__class__ is verif.field.Ensemble:
                temp = input.ensemble[:, :, :, field.member]

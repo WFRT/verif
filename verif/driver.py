@@ -301,8 +301,7 @@ def run(argv):
 
    # Handle special plots
    if(metric == "pithist"):
-      m = verif.metric.Pit("pit")
-      pl = verif.output.PitHist(m)
+      pl = verif.output.PitHist()
    elif(metric == "obsfcst"):
       pl = verif.output.ObsFcst()
    elif(metric == "timeseries"):

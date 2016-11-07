@@ -1442,7 +1442,7 @@ class TimeSeries(Output):
       connect = min(data.offsets) + 24 > max(data.offsets)
       minOffset = min(data.offsets)
 
-      obs = data.get_scores(verif.field.Obs(), 0)[0]
+      obs = data.get_scores(verif.field.Obs(), 0)
       for d in range(0, obs.shape[0]):
          # Obs line
          dates = data.get_axis_values(verif.axis.Time())
@@ -1469,7 +1469,7 @@ class TimeSeries(Output):
             color = self._get_color(f, F)
             style = self._get_style(f, F)
 
-            fcst = data.get_scores(verif.field.Fcst(), f)[0]
+            fcst = data.get_scores(verif.field.Fcst(), f)
             x = dates[d] + data.offsets / 24.0
             y = verif.util.nanmean(fcst[d, :, :], axis=1)
             if connect and d < obs.shape[0] - 1:
@@ -1512,12 +1512,12 @@ class Meteo(Output):
       isSingleDate = len(data.dates) == 1
 
       # Plot obs line
-      obs = data.get_scores(verif.field.Obs(), 0)[0]
+      obs = data.get_scores(verif.field.Obs(), 0)
       obs = verif.util.nanmean(verif.util.nanmean(obs, axis=0), axis=1)
       mpl.plot(x, obs, "o-", color=self._obsCol, lw=2, ms=8, label="Observations")
 
       # Plot deterministic forecast
-      fcst = data.get_scores(verif.field.Fcst(), 0)[0]
+      fcst = data.get_scores(verif.field.Fcst(), 0)
       fcst = verif.util.nanmean(verif.util.nanmean(fcst, axis=0), axis=1)
       mpl.plot(x, fcst, "o-", color=self._fcstCol, lw=2, ms=8, label="Fcst")
 
@@ -1525,7 +1525,7 @@ class Meteo(Output):
       quantiles = np.sort(data.quantiles)
       y = np.zeros([len(data.offsets), len(quantiles)], 'float')
       for i in range(0, len(quantiles)):
-         score = data.get_scores(verif.field.Quantile(quantiles[i]), 0)[0]
+         score = data.get_scores(verif.field.Quantile(quantiles[i]), 0)
          y[:, i] = verif.util.nanmean(verif.util.nanmean(score, axis=0), axis=1)
       for i in range(0, len(quantiles)):
          style = "k-"
@@ -1591,10 +1591,10 @@ class PitHist(Output):
    supports_threshold = False
    supports_x = False
 
-   def __init__(self, metric):
+   def __init__(self):
       Output.__init__(self)
-      self._numBins = 10
-      self._metric = metric
+      self._num_bins = 10
+      self._bar_color = "gray"
 
    def _show_stats(self):
       return not self.simple
@@ -1610,48 +1610,43 @@ class PitHist(Output):
       labels = data.get_legend()
       for f in range(0, F):
          verif.util.subplot(f, F)
-         color = self._get_color(f, F)
-         data.set_axis("none")
-         data.set_index(0)
-         data.set_file_index(f)
-         pit = self._metric.compute(data, None)
+         pit = data.get_scores(verif.field.Pit(), f)
 
-         width = 1.0 / self._numBins
-         x = np.linspace(0, 1, self._numBins + 1)
-         N = np.histogram(pit, x)[0]
-         n = N * 1.0 / sum(N)
-         color = "gray"
-         xx = x[range(0, len(x) - 1)]
-         mpl.bar(xx, n * 100.0, width=width, color=color)
-         mpl.plot([0, 1], [100.0 / self._numBins, 100.0 / self._numBins],
-               'k--')
+         edges = np.linspace(0, 1, self._num_bins + 1)
+         N = np.histogram(pit, edges)[0]
+         y = N * 1.0 / sum(N) * 100
+         width = 1.0 / self._num_bins
+         mpl.bar(edges[0:-1], y, width=width, color=self._bar_color)
+
+         # Plot expected mean line
+         mpl.plot([0, 1], [100.0 / self._num_bins, 100.0 / self._num_bins], 'k--')
+
+         # Axes and labels
          mpl.title(labels[f])
-         ytop = 200.0 / self._numBins
-         mpl.gca().set_ylim([0, ytop])
+         ytop = 200.0 / self._num_bins
+         mpl.ylim([0, ytop])
+         mpl.xlim([0, 1])
          if f == 0:
             mpl.ylabel("Frequency (%)")
          else:
             mpl.gca().set_yticks([])
 
+         # Draw red confidence band
          if self._show_expected_line():
             # Multiply by 100 to get to percent
-            std = verif.metric.PitDev.deviation_std(pit, self._numBins) * 100
+            std = verif.metric.PitDev.deviation_std(pit, self._num_bins) * 100
 
-            mpl.plot([0, 1], [100.0 / self._numBins - 2 * std,
-               100.0 / self._numBins - 2 * std], "r-")
-            mpl.plot([0, 1], [100.0 / self._numBins + 2 * std,
-               100.0 / self._numBins + 2 * std], "r-")
-            lower = [100.0 / self._numBins - 2 * std,
-                  100.0 / self._numBins - 2 * std]
-            upper = [100.0 / self._numBins + 2 * std,
-                  100.0 / self._numBins + 2 * std]
+            mpl.plot([0, 1], [100.0 / self._num_bins - 2 * std, 100.0 / self._num_bins - 2 * std], "r-")
+            mpl.plot([0, 1], [100.0 / self._num_bins + 2 * std, 100.0 / self._num_bins + 2 * std], "r-")
+            lower = [100.0 / self._num_bins - 2 * std, 100.0 / self._num_bins - 2 * std]
+            upper = [100.0 / self._num_bins + 2 * std, 100.0 / self._num_bins + 2 * std]
             verif.util.fill([0, 1], lower, upper, "r", zorder=100, alpha=0.5)
 
          # Compute calibration deviation
          if self._show_stats():
-            D = verif.metric.PitDev.deviation(pit, self._numBins)
-            D0 = verif.metric.PitDev.expected_deviation(pit, self._numBins)
-            ign = verif.metric.PitDev.ignorance_potential(pit, self._numBins)
+            D = verif.metric.PitDev.deviation(pit, self._num_bins)
+            D0 = verif.metric.PitDev.expected_deviation(pit, self._num_bins)
+            ign = verif.metric.PitDev.ignorance_potential(pit, self._num_bins)
             mpl.text(0, mpl.ylim()[1], "Dev: %2.4f\nExp: %2.4f\nIgn: %2.4f"
                   % (D, D0, ign), verticalalignment="top")
 
@@ -1665,7 +1660,7 @@ class Discrimination(Output):
 
    def __init__(self):
       Output.__init__(self)
-      self._numBins = 10
+      self._num_bins = 10
 
    def _plot_core(self, data):
       labels = data.get_legend()
@@ -1683,7 +1678,7 @@ class Discrimination(Output):
          [obs, p] = data.get_scores(["obs", var])
 
          # Determine the number of bins to use # (at least 11, at most 25)
-         edges = np.linspace(0, 1, self._numBins + 1)
+         edges = np.linspace(0, 1, self._num_bins + 1)
 
          y1 = np.nan * np.zeros([F, len(edges) - 1], 'float')
          y0 = np.nan * np.zeros([F, len(edges) - 1], 'float')
@@ -1711,9 +1706,9 @@ class Discrimination(Output):
                label = ""
             # Figure out where to put the bars. Each file will have pairs of
             # bars, so try to space them nicely.
-            width = 1.0 / self._numBins
-            space = 1.0 / self._numBins * 0.2
-            shift = (0.5 / self._numBins - width)
+            width = 1.0 / self._num_bins
+            space = 1.0 / self._num_bins * 0.2
+            shift = (0.5 / self._num_bins - width)
             center = (edges[0:-1]+edges[1:])/2
             clustercenter = edges[0:-1] + 1.0*(f + 1) / (F + 1) * width
             clusterwidth = width * 0.8 / F
@@ -2199,8 +2194,8 @@ class Against(Output):
             if f0 != f1 and (F != 2 or f0 == 0):
                if F > 2:
                   mpl.subplot(F, F, f0 + f1 * F + 1)
-               x = data.get_scores(verif.field.Fcst(), f0)[0].flatten()
-               y = data.get_scores(verif.field.Fcst(), f1)[0].flatten()
+               x = data.get_scores(verif.field.Fcst(), f0).flatten()
+               y = data.get_scores(verif.field.Fcst(), f1).flatten()
                lower = min(min(x), min(y))
                upper = max(max(x), max(y))
 

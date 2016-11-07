@@ -221,7 +221,7 @@ class Obs(Metric):
    orientation = 0
 
    def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      obs = data.get_scores(verif.field.Obs(), input_index, axis, axis_index)[0]
+      obs = data.get_scores(verif.field.Obs(), input_index, axis, axis_index)
       return self.aggregator(obs)
 
    def name(self):
@@ -234,7 +234,7 @@ class Fcst(Metric):
    orientation = 0
 
    def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      fcst = data.get_scores(verif.field.Fcst(), input_index, axis, axis_index)[0]
+      fcst = data.get_scores(verif.field.Fcst(), input_index, axis, axis_index)
       return self.aggregator(fcst)
 
    def name(self):
@@ -536,19 +536,20 @@ class Pit(Metric):
    max = 1
    orientation = 0
 
-   def __init__(self, name="pit"):
-      self._name = name
+   def __init__(self, field=verif.field.Pit()):
+      self._field = field
 
    def label(self, variable):
       return "PIT"
 
-   def compute(self, data, threshold_range):
+   def compute(self, data, input_index, axis, threshold_range):
       x0 = data.variable.x0
       x1 = data.variable.x1
       if(x0 is None and x1 is None):
-         [pit] = data.get_scores([self._name])
+         [pit] = data.get_scores([self._field], input_index)
       else:
-         [obs, pit] = data.get_scores(["obs", self._name])
+         [obs, pit] = data.get_scores([verif.field.Obs(), self._field],
+               input_index)
          if(x0 is not None):
             I = np.where(obs == x0)[0]
             pit[I] = np.random.rand(len(I)) * pit[I]

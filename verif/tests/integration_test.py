@@ -55,7 +55,7 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m taylor")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m error")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m reliability -r 0")
-      # self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithist")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithist")
 
    def test_option_b(self):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m ets -b below")

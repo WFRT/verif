@@ -49,6 +49,7 @@ class Input(object):
 
    obs:           A 3D numpy array with dims (time,offset,location)
    fcst:          A 3D numpy array with dims (time,offset,location)
+   pit:           A 3D numpy array with dims (time,offset,location)
    ensemble:      A 4D numpy array with dims (time,offset,location,member)
    threshold_scores (cdf?): A 4D numpy array with dims (time,offset,location, threshold)
    quantile_scores: A 4D numpy array with dims (time,offset,location, quantile)
@@ -57,7 +58,7 @@ class Input(object):
 
    def get_fields(self):
       """ Returns a list of all available fields """
-      fields = [verif.field.Obs(), verif.field.Fcst()]
+      fields = [verif.field.Obs(), verif.field.Fcst(), verif.field.Pit()]
       thresholds = [verif.field.Threshold(threshold) for threshold in self.thresholds]
       quantiles = [verif.field.Quantile(quantile) for quantile in self.quantiles]
       return fields + thresholds + quantiles
@@ -119,6 +120,10 @@ class Comps(Input):
    @property
    def fcst(self):
       return verif.util.clean(self._file.variables["fcst"])
+
+   @property
+   def pit(self):
+      return verif.util.clean(self._file.variables["pit"])
 
    @property
    def threshold_scores(self):
@@ -373,7 +378,6 @@ class Text(Input):
       file = open(self._filename, 'rU')
       self._variable_units = "Unknown units"
       self._variable_name = "Unknown"
-      self._pit = None
 
       self._times = set()
       self._offsets = set()
@@ -533,7 +537,7 @@ class Text(Input):
       self.obs = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
       self.fcst = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
       if(len(pit) != 0):
-         self._pit = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
+         self.pit = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
       self.threshold_scores = np.zeros([Ntimes, Noffsets, Nlocations, Nthresholds], 'float') * np.nan
       self.quantile_scores = np.zeros([Ntimes, Noffsets, Nlocations, Nquantiles], 'float') * np.nan
       for d in range(0, Ntimes):
@@ -551,7 +555,7 @@ class Text(Input):
                if(key in fcst):
                   self.fcst[d][o][s] = fcst[key]
                if(key in pit):
-                  self._pit[d][o][s] = pit[key]
+                  self.pit[d][o][s] = pit[key]
                for q in range(0, len(self._quantiles)):
                   quantile = self._quantiles[q]
                   key = (time, offset, lat, lon, elev, quantile)
