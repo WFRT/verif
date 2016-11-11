@@ -1,7 +1,9 @@
 import datetime
+import re
 import calendar
 import numpy as np
 import sys
+import verif
 from matplotlib.dates import *
 import copy
 import matplotlib.pyplot as mpl
@@ -403,3 +405,42 @@ def get_square_axis_limits(xlim, ylim):
    axismin = min(min(ylim), min(xlim))
    axismax = max(max(ylim), max(xlim))
    return [axismin, axismax]
+
+
+def get_intervals(bin_type, thresholds):
+   """ Returns a list of interval objects. If bin_type is *within*, then
+   intervals are formed by using each pair of consecutive thresholds. For
+   bin_type below* the interval [-np.inf, threshold] is used and for bin_type
+   above* the inveral [threshold, np.inf] is used.
+   
+   Arguments:
+   bin_type       one of below, below=, within, =within, within=, =within=,
+                  above, above=
+   thresholds     numy array of thresholds
+   """
+   intervals = list()
+
+   N = len(thresholds)
+   if re.compile(".*within.*").match(bin_type):
+      N = N - 1
+   for i in range(0, N):
+      lower_equality = False
+      upper_equality = False
+
+      if bin_type in ["below", "below="]:
+         lower = -np.inf
+         upper = thresholds[i]
+      elif bin_type in ["above", "above="]:
+         lower = thresholds[i]
+         upper = np.inf
+      elif bin_type in ["within", "=within", "within=", "=within="]:
+         lower = thresholds[i]
+         upper = thresholds[i+1]
+      else:
+         verif.util.error("Unrecognized bintype")
+      if bin_type in ["below=", "within=", "=within="]:
+         upper_equality = True
+      if bin_type in ["above=", "=within", "=within="]:
+         lower_equality = True
+      intervals.append(verif.Interval(lower, upper, lower_equality, upper_equality))
+   return intervals

@@ -80,14 +80,14 @@ class Metric(object):
    reference = None
    type = verif.metric_type.Deterministic()
 
-   def compute(self, data, input_index, axis, threshold_range):
+   def compute(self, data, input_index, axis, interval):
       """
       Compute the score
 
       Arguments:
       data              use get_scores([metric1, metric2...]) to get data data has already been
                         configured to only retrieve data along a certain dimension
-      threshold_range   [lowerThreshold, upperThreshold]
+      interval          Of class verif.Interval
 
       Returns:
       scores            A numpy array of one score for each slice along axis
@@ -96,18 +96,18 @@ class Metric(object):
       scores = np.zeros(size, 'float')
       # Loop through axis indices
       for axis_index in range(0, size):
-         x = self.compute_core(data, input_index, axis, axis_index, threshold_range)
+         x = self.compute_core(data, input_index, axis, axis_index, interval)
          scores[axis_index] = x
       return scores
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
+   def compute_core(self, data, input_index, axis, axis_index, interval):
       """ Computes the score for a given slice
 
       Arguments:
       input_index       Which input index to compute the result for
       axis              Along which axis to compute for
       axis_index        What slice along the axis
-      threshold_range         
+      interval         
       
       Returns a scalar value representing the score for the slice
       """
@@ -174,7 +174,7 @@ class ObsFcstBased(Metric):
    type = verif.metric_type.Deterministic()
    """ Class for scores that are based on observations and deterministic forecasts only """
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
+   def compute_core(self, data, input_index, axis, axis_index, interval):
       [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], input_index, axis, axis_index)
       assert(obs.shape[0] == fcst.shape[0])
       return self.compute_from_obs_fcst(obs, fcst)
@@ -234,7 +234,7 @@ class Obs(Metric):
    supports_aggregator = True
    orientation = 0
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
+   def compute_core(self, data, input_index, axis, axis_index, interval):
       obs = data.get_scores(verif.field.Obs(), input_index, axis, axis_index)
       return self.aggregator(obs)
 
@@ -248,7 +248,7 @@ class Fcst(Metric):
    supports_aggregator = True
    orientation = 0
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
+   def compute_core(self, data, input_index, axis, axis_index, interval):
       fcst = data.get_scores(verif.field.Fcst(), input_index, axis, axis_index)
       return self.aggregator(fcst)
 
@@ -558,7 +558,7 @@ class Pit(Metric):
    def label(self, variable):
       return "PIT"
 
-   def compute(self, data, input_index, axis, threshold_range):
+   def compute(self, data, input_index, axis, interval):
       x0 = data.variable.x0
       x1 = data.variable.x1
       if(x0 is None and x1 is None):
@@ -597,8 +597,8 @@ class PitDev(Metric):
    def label(self, variable):
       return "PIT histogram deviation"
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      pit = self._metric.compute(data, input_index, axis, axis_index, threshold_range)
+   def compute_core(self, data, input_index, axis, axis_index, interval):
+      pit = self._metric.compute(data, input_index, axis, axis_index, interval)
       pit = pit[np.isnan(pit) == 0]
 
       nb = len(self._bins) - 1
@@ -660,22 +660,22 @@ class MarginalRatio(Metric):
    experimental = True
    orientation = 0
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      if(np.isinf(threshold_range[0])):
-         pvar = data.get_p_var(threshold_range[1])
+   def compute_core(self, data, input_index, axis, axis_index, interval):
+      if(np.isinf(interval.lower)):
+         pvar = data.get_p_var(interval.upper)
          [obs, p1] = data.get_scores([verif.fields.Obs(), pvar], input_index, axis, axis_index)
          p0 = 0 * p1
-      elif(np.isinf(threshold_range[1])):
-         pvar = data.get_p_var(threshold_range[0])
+      elif(np.isinf(interval.upper)):
+         pvar = data.get_p_var(interval.lower)
          [obs, p0] = data.get_scores([verif.fields.Obs(), pvar], input_index,
                axis, axis_index)
          p1 = 0 * p0 + 1
       else:
-         pvar0 = data.get_p_var(threshold_range[0])
-         pvar1 = data.get_p_var(threshold_range[1])
+         pvar0 = data.get_p_var(interval.lower)
+         pvar1 = data.get_p_var(interval.upper)
          [obs, p0, p1] = data.get_scores([verif.fields.Obs(), pvar0, pvar1],
                input_index, axis, axis_index)
-      obs = verif.util.within(obs, threshold_range)
+      obs = verif.util.within(obs, interval)
       p = p1 - p0
       if(np.mean(p) == 0):
          return np.nan
@@ -691,7 +691,7 @@ class SpreadSkillDiff(Metric):
    perfect_score = 0
    orientation = 0
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
+   def compute_core(self, data, input_index, axis, axis_index, interval):
       import scipy.stats
       [obs, fcst, spread] = data.get_scores([verif.fields.Obs(),
          verif.fields.Fcst(), verif.fields.Spread()], input_index, axis,
@@ -722,11 +722,11 @@ class Within(Metric):
    perfect_score = 100
    orientation = -1
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
+   def compute_core(self, data, input_index, axis, axis_index, interval):
       [obs, fcst] = data.get_scores([verif.field.Obs(),
          verif.field.Fcst()], input_index, axis, axis_index)
       diff = abs(obs - fcst)
-      return np.mean(verif.util.within(diff, threshold_range)) * 100
+      return np.mean(interval.within(diff)) * 100
 
    def name(self):
       return "Within"
@@ -748,9 +748,9 @@ class Conditional(Metric):
       self._y = y
       self._func = func
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
+   def compute_core(self, data, input_index, axis, axis_index, interval):
       [obs, fcst] = data.get_scores([self._x, self._y], input_index, axis, axis_index)
-      I = np.where(verif.util.within(obs, threshold_range))[0]
+      I = np.where(interval.within(obs))[0]
       if(len(I) == 0):
          return np.nan
       return self._func(fcst[I])
@@ -769,10 +769,10 @@ class XConditional(Metric):
       self._x = x
       self._y = y
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
+   def compute_core(self, data, input_index, axis, axis_index, interval):
       [obs, fcst] = data.get_scores([self._x, self._y], input_index, axis,
             axis_index)
-      I = np.where(verif.util.within(obs, threshold_range))[0]
+      I = np.where(interval.within(obs))[0]
       if(len(I) == 0):
          return np.nan
       return np.median(obs[I])
@@ -789,9 +789,9 @@ class Count(Metric):
    def __init__(self, x):
       self._x = x
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
+   def compute_core(self, data, input_index, axis, axis_index, interval):
       values = data.get_scores(self._x, input_index, axis, axis_index)
-      I = np.where(verif.util.within(values, threshold_range))[0]
+      I = np.where(interval.within(values))[0]
       if(len(I) == 0):
          return np.nan
       return len(I)
@@ -805,7 +805,7 @@ class Quantile(Metric):
    def __init__(self, quantile):
       self._quantile = quantile
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
+   def compute_core(self, data, input_index, axis, axis_index, interval):
       var = data.get_q_var(self._quantile)
       scores = data.get_scores(var, input_index, axis, axis_index)
       return verif.util.nanmean(scores)
@@ -825,24 +825,24 @@ class Bs(Metric):
    def __init__(self, numBins=10):
       self._edges = np.linspace(0, 1.0001, numBins)
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
+   def compute_core(self, data, input_index, axis, axis_index, interval):
       # Compute probabilities based on thresholds
       p0 = 0
       p1 = 1
-      if(threshold_range[0] != -np.inf and threshold_range[1] != np.inf):
-         var0 = data.get_p_var(threshold_range[0])
-         var1 = data.get_p_var(threshold_range[1])
+      if(interval.lower != -np.inf and interval.upper != np.inf):
+         var0 = data.get_p_var(interval.lower)
+         var1 = data.get_p_var(interval.upper)
          [obs, p0, p1] = data.get_scores([verif.field.Obs(), var0, var1], input_index,
                axis, axis_index)
-      elif(threshold_range[0] != -np.inf):
-         var0 = data.get_p_var(threshold_range[0])
+      elif(interval.lower != -np.inf):
+         var0 = data.get_p_var(interval.lower)
          [obs, p0] = data.get_scores([verif.field.Obs(), var0], input_index, axis,
                axis_index)
-      elif(threshold_range[1] != np.inf):
-         var1 = data.get_p_var(threshold_range[1])
+      elif(interval.upper != np.inf):
+         var1 = data.get_p_var(interval.upper)
          [obs, p1] = data.get_scores([verif.field.Obs(), var1], input_index, axis,
                axis_index)
-      obsP = verif.util.within(obs, threshold_range)
+      obsP = interval.within(obs)
       p = p1 - p0  # Prob of obs within range
       bs = np.nan * np.zeros(len(p), 'float')
 
@@ -854,32 +854,32 @@ class Bs(Metric):
       return verif.util.nanmean(bs)
 
    @staticmethod
-   def get_p(data, input_index, axis, axis_index, threshold_range):
+   def get_p(data, input_index, axis, axis_index, interval):
       p0 = 0
       p1 = 1
-      if(threshold_range[0] != -np.inf and threshold_range[1] != np.inf):
-         var0 = data.get_p_var(threshold_range[0])
-         var1 = data.get_p_var(threshold_range[1])
+      if(interval.lower != -np.inf and interval.upper != np.inf):
+         var0 = data.get_p_var(interval.lower)
+         var1 = data.get_p_var(interval.upper)
          [obs, p0, p1] = data.get_scores([verif.field.Obs(), var0, var1],
                input_index, axis, axis_index)
-      elif(threshold_range[0] != -np.inf):
-         var0 = data.get_p_var(threshold_range[0])
+      elif(interval.lower != -np.inf):
+         var0 = data.get_p_var(interval.lower)
          [obs, p0] = data.get_scores([verif.field.Obs(), var0], input_index,
                axis, axis_index)
-      elif(threshold_range[1] != np.inf):
-         var1 = data.get_p_var(threshold_range[1])
+      elif(interval.upper != np.inf):
+         var1 = data.get_p_var(interval.upper)
          [obs, p1] = data.get_scores([verif.field.Obs(), var1], input_index,
                axis, axis_index)
 
-      obsP = verif.util.within(obs, threshold_range)
+      obsP = interval.within(obs)
       p = p1 - p0  # Prob of obs within range
       return [obsP, p]
 
    @staticmethod
-   def get_q(data, input_index, axis, axis_index, threshold_range):
+   def get_q(data, input_index, axis, axis_index, interval):
       p0 = 0
       p1 = 1
-      var = data.get_q_var(threshold_range[0])
+      var = data.get_q_var(interval.lower)
       [obs, q] = data.get_scores(["obs", var], input_index, axis, axis_index)
 
       return [obs, q]
@@ -901,8 +901,8 @@ class Bss(Metric):
    def __init__(self, numBins=10):
       self._edges = np.linspace(0, 1.0001, numBins)
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, threshold_range)
+   def compute_core(self, data, input_index, axis, axis_index, interval):
+      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
       bs = np.nan * np.zeros(len(p), 'float')
       for i in range(0, len(self._edges) - 1):
          I = np.where((p >= self._edges[i]) & (p < self._edges[i + 1]))[0]
@@ -933,8 +933,8 @@ class BsRel(Metric):
    def __init__(self, numBins=11):
       self._edges = np.linspace(0, 1.0001, numBins)
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, threshold_range)
+   def compute_core(self, data, input_index, axis, axis_index, interval):
+      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
 
       # Break p into bins, and comute reliability
       bs = np.nan * np.zeros(len(p), 'float')
@@ -959,8 +959,8 @@ class BsUnc(Metric):
    perfect_score = None
    orientation = 1
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, threshold_range)
+   def compute_core(self, data, input_index, axis, axis_index, interval):
+      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
       meanObs = np.mean(obsP)
       bs = meanObs * (1 - meanObs)
       return bs
@@ -982,8 +982,8 @@ class BsRes(Metric):
    def __init__(self, numBins=10):
       self._edges = np.linspace(0, 1.0001, numBins)
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, threshold_range)
+   def compute_core(self, data, input_index, axis, axis_index, interval):
+      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
       bs = np.nan * np.zeros(len(p), 'float')
       meanObs = np.mean(obsP)
       for i in range(0, len(self._edges) - 1):
@@ -1007,11 +1007,11 @@ class QuantileScore(Metric):
    perfect_score = 0
    orientation = -1
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      [obs, q] = Bs.get_q(data, input_index, axis, axis_index, threshold_range)
+   def compute_core(self, data, input_index, axis, axis_index, interval):
+      [obs, q] = Bs.get_q(data, input_index, axis, axis_index, interval)
       qs = np.nan * np.zeros(len(q), 'float')
       v = q - obs
-      qs = v * (threshold_range[0] - (v < 0))
+      qs = v * (interval.lower - (v < 0))
       return np.mean(qs)
 
 
@@ -1022,8 +1022,8 @@ class Ign0(Metric):
    supports_threshold = True
    orientation = -1
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, threshold_range)
+   def compute_core(self, data, input_index, axis, axis_index, interval):
+      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
 
       I0 = np.where(obsP == 0)[0]
       I1 = np.where(obsP == 1)[0]
@@ -1044,8 +1044,8 @@ class Spherical(Metric):
    min = 0
    orientation = -1
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
-      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, threshold_range)
+   def compute_core(self, data, input_index, axis, axis_index, interval):
+      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
 
       I0 = np.where(obsP == 0)[0]
       I1 = np.where(obsP == 1)[0]
@@ -1076,31 +1076,33 @@ class Contingency(Metric):
    def label(self, variable):
       return self.name()
 
-   def compute_core(self, data, input_index, axis, axis_index, threshold_range):
+   def compute_core(self, data, input_index, axis, axis_index, interval):
       [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], input_index, axis, axis_index)
-      return self.compute_from_obs_fcst(obs, fcst, threshold_range)
+      return self.compute_from_obs_fcst(obs, fcst, interval)
 
-   def _quantile_to_threshold(self, values, threshold_range):
+   def _quantile_to_threshold(self, values, interval):
       """
-      convert a range of quantiles to thresholds, for example converting
+      convert an interval of quantiles to thresholds, for example converting
       [10%, 50%] of some precip values to [5 mm, 25 mm]
       """
       sorted = np.sort(values)
-      qRange = [-np.inf, np.inf]
-      for i in range(0, 1):
-         if(not np.isinf(abs(threshold_range[i]))):
-            qRange[i] = np.percentile(sorted, threshold_range[i] * 100)
-      return qRange
+      lower = -np.inf
+      upper = np.inf
+      if not np.isinf(abs(interval.lower)):
+         lower = np.percentile(sorted, interval.lower * 100)
+      if not np.isinf(abs(interval.lower)):
+         upper = np.percentile(sorted, interval.upper * 100)
+      return verif.Interval(lower, upper, interval.lower_equality, interval.upper_equality)
 
-   def compute_from_obs_fcst(self, obs, fcst, threshold_range):
+   def compute_from_obs_fcst(self, obs, fcst, interval):
       """
       Computes the score.
 
-      obs      numpy array of observations
-      fcst     numpy array of forecasts
-      threshold_range   2-valued list of thresholds (lower, upper)
+      obs         numpy array of observations
+      fcst        numpy array of forecasts
+      interval    of type verif.Interval
       """
-      if(threshold_range is None):
+      if(interval is None):
          verif.util.error("Metric " + self.get_class_name() +
                " requires '-r <threshold>'")
       value = np.nan
@@ -1109,25 +1111,18 @@ class Contingency(Metric):
          if(self._usingQuantiles):
             fcstSort = np.sort(fcst)
             obsSort = np.sort(obs)
-            fRange = self._quantile_to_threshold(fcstSort, threshold_range)
-            oRange = self._quantile_to_threshold(obsSort, threshold_range)
-            a = np.ma.sum((verif.util.within(fcst, fRange)) &
-                  (verif.util.within(obs, oRange)))  # Hit
-            b = np.ma.sum((verif.util.within(fcst, fRange)) &
-                  (verif.util.within(obs, oRange) == 0))  # FA
-            c = np.ma.sum((verif.util.within(fcst, fRange) == 0) &
-                  (verif.util.within(obs, oRange)))  # Miss
-            d = np.ma.sum((verif.util.within(fcst, fRange) == 0) &
-                  (verif.util.within(obs, oRange) == 0))  # CR
+            f_interval = self._quantile_to_threshold(fcstSort, interval)
+            o_interval = self._quantile_to_threshold(obsSort, interval)
+            a = np.ma.sum(f_interval.within(fcst) & o_interval.within(obs))  # Hit
+            b = np.ma.sum(f_interval.within(fcst) & (o_interval.within(obs) == 0))  # FA
+            c = np.ma.sum((f_interval.within(fcst) == 0) & o_interval.within(obs))  # Miss
+            d = np.ma.sum((f_interval.within(fcst) == 0) & (o_interval.within(obs) == 0))  # CR
          else:
-            a = np.ma.sum((verif.util.within(fcst, threshold_range)) &
-                  (verif.util.within(obs, threshold_range)))  # Hit
-            b = np.ma.sum((verif.util.within(fcst, threshold_range)) &
-                  (verif.util.within(obs, threshold_range) == 0))  # FA
-            c = np.ma.sum((verif.util.within(fcst, threshold_range) == 0) &
-                  (verif.util.within(obs, threshold_range)))  # Miss
-            d = np.ma.sum((verif.util.within(fcst, threshold_range) == 0) &
-                  (verif.util.within(obs, threshold_range) == 0))  # CR
+            a = np.ma.sum(interval.within(fcst) & interval.within(obs)) # Hit
+            b = np.ma.sum(interval.within(fcst) & (interval.within(obs)==0))  # FA
+            c = np.ma.sum((interval.within(fcst)==0) & interval.within(obs))  # Miss
+            d = np.ma.sum((interval.within(fcst)==0) & (interval.within(obs)==0))  # CR
+
          value = self.compute_from_abcd(a, b, c, d)
          if(np.isinf(value)):
             value = np.nan

@@ -320,22 +320,6 @@ class Output(object):
             mpl.legend(names, loc=self.leg_loc, prop={'size':
                self.leg_font_size})
 
-   def _get_threshold_limits(self, thresholds):
-      x = thresholds
-      if self.bin_type in ["below", "below="]:
-         lowerT = [-np.inf for i in range(0, len(thresholds))]
-         upperT = thresholds
-      elif self.bin_type in ["above", "above="]:
-         lowerT = thresholds
-         upperT = [np.inf for i in range(0, len(thresholds))]
-      elif self.bin_type == "within":
-         lowerT = thresholds[0:-1]
-         upperT = thresholds[1:]
-         x = [(lowerT[i] + upperT[i]) / 2 for i in range(0, len(lowerT))]
-      else:
-         verif.util.error("Unrecognized bintype")
-      return [lowerT, upperT, x]
-
    def _set_y_axis_limits(self, metric):
       currYlim = mpl.ylim()
       ylim = [metric.min, metric.max]
@@ -500,7 +484,8 @@ class Standard(Output):
    def get_x_y(self, data, axis):
       thresholds = self.thresholds
 
-      [lowerT, upperT, xx] = self._get_threshold_limits(thresholds)
+      intervals = verif.util.get_intervals(self.bin_type, thresholds)
+      xx = [i.center for i in intervals]
       if not axis == verif.axis.Threshold():
          xx = data.get_axis_values(axis)
 
@@ -511,12 +496,12 @@ class Standard(Output):
       for f in range(0, F):
          yy = np.zeros(len(xx), 'float')
          if axis == verif.axis.Threshold():
-            for i in range(0, len(lowerT)):
-               yy[i] = self._metric.compute(data, f, axis, [lowerT[i], upperT[i]])
+            for i in range(0, len(intervals)):
+               yy[i] = self._metric.compute(data, f, axis, intervals[i])
          else:
             # Average all thresholds
-            for i in range(0, len(lowerT)):
-               yy = yy + self._metric.compute(data, f, axis, [lowerT[i], upperT[i]])
+            for i in range(0, len(intervals)):
+               yy = yy + self._metric.compute(data, f, axis, intervals[i])
             yy = yy / len(thresholds)
 
          if sum(np.isnan(yy)) == len(yy):
@@ -1041,9 +1026,9 @@ class Sort(Output):
       F = data.num_inputs
       thresholds = self.thresholds
 
-      [lowerT, upperT, xx] = self._get_threshold_limits(thresholds)
+      intervals = verif.util.get_intervals(self.bin_type, thresholds)
       for f in range(0, F):
-         x = self._metric.compute(data, f, self.axis, [lowerT[0], upperT[0]])
+         x = self._metric.compute(data, f, self.axis, intervals[0])
          x = np.sort(x)
          color = self._get_color(f, F)
          style = self._get_style(f, F)
@@ -1303,7 +1288,7 @@ class Cond(Output):
       return True
 
    def _plot_core(self, data):
-      [lowerT, upperT, x] = self._get_threshold_limits(self.thresholds)
+      intervals = verif.util.get_intervals(self.bin_type, self.thresholds)
 
       labels = data.get_legend()
       F = data.num_inputs
@@ -1321,10 +1306,10 @@ class Cond(Output):
          xmfo = verif.metric.XConditional(verif.field.Fcst(),verif.field.Obs())  # O | F
          mof0 = verif.metric.Conditional(verif.field.Obs(),verif.field.Fcst(), np.mean)  # F | O
          for i in range(0, len(lowerT)):
-            fo[i] = mfo.compute(data, f, verif.axis.No(), [lowerT[i], upperT[i]])
-            of[i] = mof.compute(data, f, verif.axis.No(), [lowerT[i], upperT[i]])
-            xfo[i] = xmfo.compute(data, f, verif.axis.No(), [lowerT[i], upperT[i]])
-            xof[i] = xmof.compute(data, f, verif.axis.No(), [lowerT[i], upperT[i]])
+            fo[i] = mfo.compute(data, f, verif.axis.No(), intervals[i])
+            of[i] = mof.compute(data, f, verif.axis.No(), intervals[i])
+            xfo[i] = xmfo.compute(data, f, verif.axis.No(), intervals[i])
+            xof[i] = xmof.compute(data, f, verif.axis.No(), intervals[i])
          mpl.plot(xof, of, style, color=color, label=labels[f] + " (F|O)",
                lw=self.lw, ms=self.ms)
          mpl.plot(fo, xfo, style, color=color, label=labels[f] + " (O|F)",
@@ -1396,7 +1381,7 @@ class Count(Output):
    def _plot_core(self, data):
       data.set_axis("none")
       data.set_index(0)
-      [lowerT, upperT, x] = self._get_threshold_limits(self.thresholds)
+      intervals = verif.util.get_intervals(self.bin_type, self.thresholds)
 
       labels = data.get_legend()
       F = data.num_inputs
@@ -1410,10 +1395,9 @@ class Count(Output):
          obs = verif.metric.Count("obs")
          fcst = verif.metric.Count("fcst")
          for i in range(0, len(lowerT)):
-            Nobs[i] = obs.compute(data, [lowerT[i], upperT[i]])
-            Nfcst[i] = fcst.compute(data, [lowerT[i], upperT[i]])
-         mpl.plot(x, Nfcst, style, color=color, label=labels[f], lw=self.lw,
-               ms=self.ms)
+            Nobs[i] = obs.compute(data, intervals[i])
+            Nfcst[i] = fcst.compute(data, intervals[i])
+         mpl.plot(x, Nfcst, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
       self._plot_obs(x, Nobs)
       mpl.ylabel("Number")
       mpl.xlabel(data.get_axis_label())

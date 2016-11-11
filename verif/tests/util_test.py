@@ -1,5 +1,6 @@
 import unittest
 import verif.util
+import verif
 import numpy as np
 
 
@@ -86,6 +87,13 @@ class TestGetDate(unittest.TestCase):
       self.assertEqual(20141226, verif.util.get_date(20150105, -10))
       self.assertEqual(20150105, verif.util.get_date(20141226, 10))
       self.assertEqual(20141231, verif.util.get_date(20150101, -1))
+
+
+class TestGetIntervals(unittest.TestCase):
+   def test_get_intervals(self):
+      thresholds = [0,1,5]
+      intervals = verif.util.get_intervals("above", thresholds)
+      self.assertEqual(verif.Interval(0,np.inf,False,False), intervals[0])
 
 if __name__ == '__main__':
    unittest.main()
