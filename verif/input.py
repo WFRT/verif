@@ -656,11 +656,68 @@ class Text(Input):
 
 
 class Fake(Input):
-   def __init__(self, obs, fcst):
-      self._obs = obs
-      self._fcst = fcst
+   def __init__(self, obs, fcst, times=None, offsets=None, locations=None, variable=None):
+      """
+      A fake input 
+
+      obs      A 1, 2, or 3D array of obsevations.
+               If 3D assume the dimensions are (time,lead_time,location)
+               If 2D assume the dimensions are (time,lead_time)
+               If 1D assume the dimensions are (time)
+      """
+      # Turn into numpy array
+      if isinstance(obs, list):
+         obs = np.array(obs, float)
+      if isinstance(fcst, list):
+         fcst = np.array(fcst, float)
+
+      # Convert to floats if needed
+      if obs.dtype is not float:
+         obs = obs.astype(float)
+      if fcst.dtype is not float:
+         fcst = fcst.astype(float)
+
+      D = len(obs.shape)
+      if D == 1:
+         self.obs = np.expand_dims(np.expand_dims(obs, axis=2), axis=1)
+         self.fcst = np.expand_dims(np.expand_dims(fcst, axis=2), axis=1)
+      elif D == 2:
+         self.obs = np.expand_dims(obs, axis=2)
+         self.fcst = np.expand_dims(fcst, axis=2)
+      else:
+         self.obs = obs
+         self.fcst = fcst
       self.fullname = "Fake"
-      self.name = "Fake"
+
+      if times is None:
+         if self.obs.shape[0] == 1:
+            self.times = [0]
+         else:
+            # Default to daily times from 2000/01/01
+            self.times = 946684800 + np.arange(0, self.obs.shape[0]*3600, 3600)
+      else:
+         self.times = times
+
+      if offsets is None:
+         if self.obs.shape[1] == 1:
+            self.offsets = [0]
+         else:
+            # Default to offsets of 0, 1, 2, ...
+            self.offsets = range(0, self.obs.shape[1])
+      else:
+         self.offsets = offsets
+      if locations is None:
+         # Default to locations with lat,lon of (0,0), (0,1), (0,2), ...
+         self.locations = [verif.location.Location(i,0,i,0) for i in range(0, self.obs.shape[2])]
+      else:
+         self.locations = locations
+      self.thresholds = []
+      self.quantiles = []
+      if variable == None:
+         self.variable = verif.variable.Variable("fake", "fake units")
+      else:
+         self.variable = variable
+      self.pit = None
 
    def get_obs(self):
       return self._obs

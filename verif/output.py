@@ -148,7 +148,7 @@ class Output(object):
       self.dpi = 100
       self.tight = False
       self.simple = False
-      self.aggregator = None
+      self.aggregator = verif.aggregator.Mean()
       self.cmap = mpl.cm.jet
       self.xlim = None
       self.ylim = None
