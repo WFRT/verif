@@ -12,53 +12,6 @@ import textwrap
 import numpy as np
 
 
-def format_argument(arg, description, arg_width=19, total_width=None, indent=2):
-   """
-   Prints formated description to screen, but adds a column for a short descriptor, like this:
-             arg  description more description   
-                  here more more more more more  
-   | indent |
-   | arg_width   |
-   | total_width                                 |
-   """
-   if(total_width is None):
-      total_width = get_text_width()
-   fmt = "%-" + str(indent) + "s%-" + str(arg_width - indent) + "s"
-   curr = fmt % ("", arg)
-   if(len(arg) > arg_width - indent - 2):
-      output = curr + '\n'
-      curr = ""
-      for i in range(0, arg_width):
-         curr = curr + " "
-   else:
-      output = ""
-   lines = description.split('\n')
-   for line_num in range(0, len(lines)):
-      line = lines[line_num]
-      words = line.split()
-      for i in range(0, len(words)):
-         word = words[i]
-         if len(curr) + len(word) >= total_width:
-            output = output + curr + "\n"
-            curr = ""
-            for i in range(0, arg_width):
-               curr = curr + " "
-         elif(i != 0):
-            curr = curr + " "
-         curr = curr + word
-      output = output + curr
-      if line_num < len(lines)-1:
-         output = output + "\n"
-      curr = " " * arg_width
-   return output
-
-
-def get_text_width():
-   """ How wide should the text be output? """
-   # return max(50, min(100, get_screen_width()))
-   return 80
-
-
 def run(argv):
    ############
    # Defaults #
@@ -657,6 +610,54 @@ def show_description(data=None):
    print verif.util.green("File formats:")
    print format_argument("text", verif.input.Text.description)
    print format_argument("netcdf", verif.input.Comps.description)
+
+
+def format_argument(arg, description, arg_width=19, total_width=None, indent=2):
+   """
+   Prints formated description to screen, but adds a column for a short descriptor, like this:
+             arg  description more description   
+                  here more more more more more  
+   | indent |
+   | arg_width   |
+   | total_width                                 |
+   """
+   if(total_width is None):
+      total_width = get_text_width()
+   fmt = "%-" + str(indent) + "s%-" + str(arg_width - indent) + "s"
+   curr = fmt % ("", arg)
+   if(len(arg) > arg_width - indent - 2):
+      output = curr + '\n'
+      curr = ""
+      for i in range(0, arg_width):
+         curr = curr + " "
+   else:
+      output = ""
+   lines = description.split('\n')
+   for line_num in range(0, len(lines)):
+      line = lines[line_num]
+      words = line.split()
+      for i in range(0, len(words)):
+         word = words[i]
+         if len(curr) + len(word) >= total_width:
+            output = output + curr + "\n"
+            curr = ""
+            for i in range(0, arg_width):
+               curr = curr + " "
+         elif(i != 0):
+            curr = curr + " "
+         curr = curr + word
+      output = output + curr
+      if line_num < len(lines)-1:
+         output = output + "\n"
+      curr = " " * arg_width
+   return output
+
+
+def get_text_width():
+   """ How wide should the text be output? """
+   # return max(50, min(100, get_screen_width()))
+   return 80
+
 
 if __name__ == '__main__':
        main()

@@ -30,34 +30,40 @@ def get_input(filename):
 class Input(object):
    """ Base class representing verification data
 
-   Stores observation and forecast data
+   Stores observation and forecast data in deterministic, ensemble, and
+   probabilistic format.
 
    Class attributes:
-   description (str): A description of the parser
+   description       A string description of the parser
 
    Instance attributes:
-   name:          A string name identifying the dataset (such as a filename)
-   fullname:      A string name identifying the dataset (such as a filename)
-   shortname:     A string name identifying the dataset (such as a filename)
-   variable:      A verif.Variable representing the stored in the input
+   name              A string name identifying the dataset (such as a filename)
+   fullname          A string name identifying the dataset (such as a filename)
+   shortname         A string name identifying the dataset (such as a filename)
+   variable          A verif.variable representing the stored in the input
 
-   times:         A numpy array of available initialization times (unix time)
-   offsets:       A numpy array of available leadtimes
-   locations:     A list of available locations
-   thresholds:    A numpy array of available thresholds
-   quantiles:     A numpy array of available quantiles
+   times             A numpy array of available initialization times (unix time)
+   offsets           A numpy array of available leadtimes (in hours)
+   locations         A list of verif.location of available locations
+   thresholds        A numpy array of available thresholds
+   quantiles         A numpy array of available quantiles
 
-   obs:           A 3D numpy array with dims (time,offset,location)
-   fcst:          A 3D numpy array with dims (time,offset,location)
-   pit:           A 3D numpy array with dims (time,offset,location)
-   ensemble:      A 4D numpy array with dims (time,offset,location,member)
-   threshold_scores (cdf?): A 4D numpy array with dims (time,offset,location, threshold)
-   quantile_scores: A 4D numpy array with dims (time,offset,location, quantile)
+   The following are 3D numpy arrays with dims (time, offset, location)
+   obs               Observations with dims
+   fcst              Forecasts with dims
+   pit               Verifying probability integral transform values (i.e. the CDF
+                     where the observation falls in)
+
+   ensemble          A 4D numpy array of ensemble data with dims (time,offset,location,member)
+   threshold_scores  A 4D numpy array with CDF values for each threshold
+                     with dims (time,offset,location, threshold)
+   quantile_scores   A 4D numpy array with values at certain quantiles with
+                     dims (time,offset,location, quantile)
    """
    description = None  # Overwrite this
 
    def get_fields(self):
-      """ Returns a list of all available fields """
+      """ Get the available fields in this input. Returns a list of verif.field """
       fields = list()
       if self.obs is not None:
          fields.append(verif.field.Obs())
@@ -86,7 +92,7 @@ class Input(object):
 
 class Comps(Input):
    """
-   Original fileformat used by OutputVerif in COMPS
+   Original fileformat used by OutputVerif in COMPS (https://github.com/WFRT/Comps)
    """
    _dimensionNames = ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]
    description = "Undocumented legacy NetCDF format, to be phased out. A new NetCDF based format will be defined."
@@ -394,12 +400,12 @@ class Text(Input):
    "\n"\
    "# variable: Temperature\n"\
    "# units: $^oC$\n"\
-   "date     offset id      lat     lon      elev obs fcst      p10\n"\
-   "20150101 0      214     49.2    -122.1   92 3.4 2.1     0.91\n"\
-   "20150101 1      214     49.2    -122.1   92 4.7 4.2      0.85\n"\
-   "20150101 0      180     50.3    -120.3   150 0.2 -1.2 0.99\n"\
+   "date     offset id      lat     lon      elev  obs  fcst  p10\n"\
+   "20150101 0      214     49.2    -122.1   92    3.4  2.1   0.91\n"\
+   "20150101 1      214     49.2    -122.1   92    4.7  4.2   0.85\n"\
+   "20150101 0      180     50.3    -120.3   150   0.2  -1.2  0.99\n"\
    "\n"\
-   "Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (location identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of 10). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0. If there is conflicting information (for example different lat/lon/elev for the same id), then the information from the first row containing id will be used."
+   "Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (location identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of for example 10), and q<number> (value corresponding to the <number> quantile, e.g. q0.9 for the 90th precentile). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0. If there is conflicting information (for example different lat/lon/elev for the same id), then the information from the first row containing id will be used."
 
    def __init__(self, filename):
       self.fullname = filename
