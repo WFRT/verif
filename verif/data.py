@@ -134,9 +134,9 @@ class Data(object):
             verif.util.error("No available locations within elevation range")
 
       # Find common indicies
-      self._timesI = self._get_common_indices(self._inputs, "Time", times)
-      self._offsetsI = self._get_common_indices(self._inputs, "Offset", offsets)
-      self._locationsI = self._get_common_indices(self._inputs, "Location", use_locationss)
+      self._timesI = self._get_common_indices(self._inputs, verif.axis.Time(), times)
+      self._offsetsI = self._get_common_indices(self._inputs,verif.axis.Offset(), offsets)
+      self._locationsI = self._get_common_indices(self._inputs, verif.axis.Location(), use_locationss)
       if(len(self._timesI[0]) == 0):
          verif.util.error("No valid times selected")
       if(len(self._offsetsI[0]) == 0):
@@ -561,22 +561,26 @@ class Data(object):
       return use_locations
 
    @staticmethod
-   def _get_common_indices(files, name, aux=None):
+   def _get_common_indices(inputs, axis, aux=None):
       """
-      Find indicies of elements that are present in all files. Merge in values
+      Find indicies of elements that are present in all inputs. Merge in values
       in 'aux' as well
 
-      Returns a list of arrays, one array for each file
+      Arguments:
+      inputs      A list of verif.input
+      axis        An axis of type verif.axis
+
+      Returns a list of arrays, one array for each input
       """
-      # Find common values among all files
+      # Find common values among all inputs
       values = aux
-      for file in files:
-         if(name == "Time"):
-            temp = file.times
-         elif(name == "Offset"):
-            temp = file.offsets
-         elif(name == "Location"):
-            locations = file.locations
+      for input in inputs:
+         if(axis ==verif.axis.Time()):
+            temp = input.times
+         elif(axis == verif.axis.Offset()):
+            temp = input.offsets
+         elif(axis == verif.axis.Location()):
+            locations = input.locations
             temp = [loc.id for loc in locations]
          if(values is None):
             values = temp
@@ -587,28 +591,30 @@ class Data(object):
 
       # Determine which index each value is at
       indices = list()
-      for file in files:
-         if(name == "Time"):
-            temp = file.times
-         elif(name == "Offset"):
-            temp = file.offsets
-         elif(name == "Location"):
-            locations = file.locations
+      for input in inputs:
+         if(axis == verif.axis.Time()):
+            temp = input.times
+         elif(axis == verif.axis.Offset()):
+            temp = input.offsets
+         elif(axis == verif.axis.Location()):
+            locations = input.locations
             temp = np.zeros(len(locations))
             for i in range(0, len(locations)):
                temp[i] = locations[i].id
          I = np.where(np.in1d(temp, values))[0]
          II = np.zeros(len(I), 'int')
          for i in range(0, len(I)):
-            II[i] = np.where(values[i] == temp)[0]
+            III = np.where(values[i] == temp)[0]
+            assert(len(III) == 1)
+            II[i] = III
 
          indices.append(II)
       return indices
 
    def _get_thresholds(self):
       thresholds = None
-      for file in self._inputs:
-         currThresholds = file.thresholds
+      for input in self._inputs:
+         currThresholds = input.thresholds
          if(thresholds is None):
             thresholds = currThresholds
          else:
@@ -619,8 +625,8 @@ class Data(object):
 
    def _get_quantiles(self):
       quantiles = None
-      for file in self._inputs:
-         currQuantiles = file.quantiles
+      for input in self._inputs:
+         currQuantiles = input.quantiles
          if(quantiles is None):
             quantiles = currQuantiles
          else:
