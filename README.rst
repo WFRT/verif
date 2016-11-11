@@ -242,28 +242,30 @@ proposal, based on the NetCDF/CF standard:
 
    netcdf format {
    dimensions :
-      date    = UNLIMITED;
-      offset  = 48;
-      station = 10;
+      time    = UNLIMITED;
+         time:standard_name = "time" ;
+         time:units = "seconds since 1970-01-01 00:00:00 +00:00" ;
+      lead_time  = 48;
+      location = 10;
       ensemble = 21;
       threshold = 11;
       quantile = 11;
    variables:
-      int id(station);
-      int offset(offset);
-      int date(date);
+      int time(time);
+      float lead_time(lead_time);
+      int id(location);
       float threshold(threshold);
       float quantile(quantile);
-      float lat(station);
-      float lon(station);
-      float elev(station);
-      float obs(date, offset, station);               // Observations
-      float ens(date, offset, station, member);       // Ensemble forecast
-      float fcst(date, offset, station);              // Deterministic forecast
-      float cdf(date, offset, station, threshold);    // Accumulated prob at threshold
-      float pdf(date, offset, station, threshold);    // Pdf at threshold
-      float x(date, offset, station, quantile);       // Threshold corresponding to quantile
-      float pit(date, offset, station);               // CDF for threshold=observation
+      float lat(location);
+      float lon(location);
+      float elev(location);
+      float obs(time, lead_time, location);               // Observations
+      float ens(time, lead_time, location, member);       // Ensemble forecast
+      float fcst(time, lead_time, location);              // Deterministic forecast
+      float cdf(time, lead_time, location, threshold);    // Accumulated prob at threshold
+      float pdf(time, lead_time, location, threshold);    // Pdf at threshold
+      float x(time, lead_time, location, quantile);       // Threshold corresponding to quantile
+      float pit(time, lead_time, location);               // CDF for threshold=observation
 
    global attributes:
       : name = "raw";                                 // Used as configuration name
@@ -272,6 +274,34 @@ proposal, based on the NetCDF/CF standard:
       : Units = "^oC";                                // Used to label axes
       : Conventions = "verif_1.0.0";
       }
+
+Using verif as a module
+-----------------------
+verif can also be used as a module within python.
+
+.. code-block:: python
+
+   import numpy as np
+   import verif.data
+   import verif.data
+   import verif.input
+   import verif.metric
+   import verif.variable
+
+   # Set up random forecasts and observations
+   obs = np.random.randn(100,20,5)
+   fcst = obs + np.random.randn(100,20,5)*0.2 + 0.3
+   variable = verif.variable.Variable("Temperature", "Degrees C")
+   input = verif.input.Fake(obs, fcst, variable=variable)
+   data = verif.data.Data(input)
+
+   # Create output
+   metric = verif.metric.Ets()
+   output = verif.output.Standard(metric)
+   output.axis = verif.axis.Threshold()
+   output.thresholds = range(-5,6)
+   output.plot(data)
+
 
 Copyright and license
 ---------------------
