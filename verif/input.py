@@ -108,14 +108,14 @@ class Comps(Input):
    @staticmethod
    def is_valid(filename):
       """ Checks that 'filename' is a valid object of this type """
-      valid = False
+      valid = True
       try:
          file = netcdf(filename, 'r')
-         if hasattr(file, "Convensions") and file.Convension == "comps":
-            valid = True
-         # TODO: Check for dimensions and variables
+         required_dimensions = ["Offset", "Date", "Location"]
+         for dim in required_dimensions:
+            valid = valid & (dim in file.dimensions )
          file.close()
-         return True
+         return valid
       except:
          return False
 
@@ -135,7 +135,10 @@ class Comps(Input):
 
    @property
    def pit(self):
-      return verif.util.clean(self._file.variables["pit"])
+      if "pit" in self._file.variables:
+         return verif.util.clean(self._file.variables["pit"])
+      else:
+         return None
 
    @property
    def threshold_scores(self):
@@ -307,16 +310,16 @@ class NetcdfCf(Input):
          return None
 
    @property
-   def pit(self):
-      if "pit" in self._file.variables:
-         return verif.util.clean(self._file.variables["pit"])
+   def fcst(self):
+      if "fcst" in self._file.variables:
+         return verif.util.clean(self._file.variables["fcst"])
       else:
          return None
 
    @property
-   def fcst(self):
-      if "fcst" in self._file.variables:
-         return verif.util.clean(self._file.variables["fcst"])
+   def pit(self):
+      if "pit" in self._file.variables:
+         return verif.util.clean(self._file.variables["pit"])
       else:
          return None
 
@@ -410,6 +413,9 @@ class Text(Input):
       self._locations = set()
       self._quantiles = set()
       self._thresholds = set()
+      self.obs = None
+      self.fcst = None
+      self.pit = None
       fields = dict()
       obs = dict()
       fcst = dict()
@@ -555,9 +561,11 @@ class Text(Input):
       Nthresholds = len(self._thresholds)
 
       # Put the dictionary data into a regular 3D array
-      self.obs = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
-      self.fcst = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
-      if(len(pit) != 0):
+      if len(obs) > 0:
+         self.obs = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
+      if len(fcst) > 0:
+         self.fcst = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
+      if len(pit) > 0:
          self.pit = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
       self.threshold_scores = np.zeros([Ntimes, Noffsets, Nlocations, Nthresholds], 'float') * np.nan
       self.quantile_scores = np.zeros([Ntimes, Noffsets, Nlocations, Nquantiles], 'float') * np.nan
