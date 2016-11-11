@@ -11,12 +11,13 @@ def get_data_from_text(filename):
 class TestData(unittest.TestCase):
    def test_doesnotexist(self):
       with self.assertRaises(SystemExit):
-         inputs = [verif.input.get_input(filename) for filename in ["verif/tests/file1.txt",
-            "verif/tests/doesnotexist.txt"]]
+         inputs = [verif.input.get_input(filename) for filename in ["verif/tests/files/file1.txt",
+            "verif/tests/files/doesnotexist.txt"]]
          data = verif.data.Data(inputs=inputs)
 
    def test_simple(self):
-      inputs = [verif.input.get_input(filename) for filename in ["verif/tests/file1.txt", "verif/tests/file2.txt"]]
+      inputs = [verif.input.get_input(filename) for filename in ["verif/tests/files/file1.txt",
+         "verif/tests/files/file2.txt"]]
       data = verif.data.Data(inputs=inputs)
       lats = [loc.lat for loc in data.locations]
       self.assertTrue(len(lats) == 1)

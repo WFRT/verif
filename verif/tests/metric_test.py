@@ -20,5 +20,9 @@ class MyTest(unittest.TestCase):
    def test_get_all_by_type(self):
       types = verif.metric.get_all_by_type(verif.metric_type.Deterministic())
 
+   def test_name(self):
+      mae = verif.metric.Mae()
+      self.assertEqual("MAE", mae.name())
+
 if __name__ == '__main__':
    unittest.main()
