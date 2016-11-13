@@ -37,8 +37,22 @@ class Aggregator(object):
    mean = verif.aggregator.Mean()
    mean(np.array([1,2,3]))
 
+   Class attributes:
    name:    A string representing the name of the aggregator
    """
+
+   def __call__(self, array):
+      """ Compute the aggregated value. Returns a scalar value.
+
+      Arguments:
+      array    A 1D numpy array
+      """
+      raise NotImplementedError()
+
+   @classmethod
+   def name(cls):
+      return cls.__name__.lower()
+
    def __hash__(self):
       # TODO
       return 1
@@ -46,9 +60,6 @@ class Aggregator(object):
    def __eq__(self, other):
       return self.__class__ == other.__class__
 
-   @classmethod
-   def name(cls):
-      return cls.__name__.lower()
 
 class Mean(Aggregator):
    def __call__(self, array):
@@ -101,17 +112,24 @@ class Sum(Aggregator):
 
 
 class Meanabs(Aggregator):
+   """ The mean of the absolute values of the array """
    def __call__(self, array):
-      return verif.util.meanabs(array)
+      return np.mean(np.abs(array))
 
 
 class Absmean(Aggregator):
+   """ Absolute value of the mean of the array """
    def __call__(self, array):
       return np.abs(np.mean(array))
 
 
 class Quantile(Aggregator):
    def __init__(self, quantile):
+      """ Returns a certain quantile from the array
+
+      Arguments:
+      quantile       A scalar value between 0 and 1 inclusive
+      """
       self.quantile = quantile
       if self.quantile < 0 or self.quantile > 1:
          verif.util.error("Quantile must be between 0 and 1")

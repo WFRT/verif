@@ -510,7 +510,7 @@ def get_aggregation_string():
    for aggregator in aggregators:
       if aggregator.name() != "quantile":
          value = "%s'%s', " % (value, aggregator.name())
-   value = value + "or a number between 0 and 1. Some metrics computes a value for each value on the x-axis. Which function should be used to do the collapsing? Default is 'mean'. 'meanabs' is the mean absolute value. Only supported by some metrics. A number between 0 and 1 returns a specific quantile (e.g.  0.5 is the median)"
+   value = value + "or a number between 0 and 1. Some metrics computes a value for each value on the x-axis. Which function should be used to do the aggregation? Default is 'mean'. Only supported by some metrics. A number between 0 and 1 returns a specific quantile (e.g. 0.5 is the median)."
    return value
 
 

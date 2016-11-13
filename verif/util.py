@@ -263,11 +263,6 @@ def numvalid(data, **args):
    return len(I)
 
 
-def meanabs(data, **args):
-   """ Compute the mean absolute value """
-   return np.mean(abs(data))
-
-
 def nprange(data):
    return np.max(data) - np.min(data)
 
