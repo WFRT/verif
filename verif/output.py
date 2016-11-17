@@ -481,6 +481,7 @@ class Standard(Output):
       self.show_acc = False
       self.leg_sort = False
       self.show_smoothing_line = False  # Draw a smoothed line through the points
+      self.show_missing = False  # Show missing stations on map
 
       # Settings
       self._mapLowerPerc = 0    # Lower percentile (%) to show in colourmap
@@ -818,7 +819,8 @@ class Standard(Output):
             mpl.xlim([llcrnrlon, urcrnrlon])
             mpl.ylim([llcrnrlat, urcrnrlat])
          I = np.where(np.isnan(y[f, :]))[0]
-         map.plot(x0[I], y0[I], 'kx')
+         if self.show_missing:
+            map.plot(x0[I], y0[I], 'kx')
 
          isMax = (y[f, :] == np.amax(y, 0)) &\
                  (y[f, :] > np.mean(y, 0) + minDiff)
@@ -828,7 +830,7 @@ class Standard(Output):
          s = self.ms*self.ms
          if self.show_rank:
             lmissing = None
-            if len(I) > 0:
+            if self.show_missing and len(I) > 0:
                lmissing = map.scatter(x0[I], y0[I], s=s, c="k", marker="x")
             lsimilar = map.scatter(x0[is_valid], y0[is_valid], s=s, c="w")
             lmax = map.scatter(x0[isMax], y0[isMax], s=s, c="r")
