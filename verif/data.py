@@ -302,12 +302,11 @@ class Data(object):
    # What values represent this axis?
    def get_axis_values(self, axis):
       if(axis == verif.axis.Time()):
-         # TODO: Does it make sense to convert here, but not with data.times?
-         return verif.util.convert_times(self.times)
+         return self.times
       elif(axis == verif.axis.Month()):
-         return verif.util.convert_times(self.months)
+         return self.months
       elif(axis == verif.axis.Year()):
-         return verif.util.convert_times(self.years)
+         return self.years
       elif(axis == verif.axis.Offset()):
          return self.offsets
       elif(axis == verif.axis.No()):

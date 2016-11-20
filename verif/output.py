@@ -488,6 +488,8 @@ class Standard(Output):
       xx = [i.center for i in intervals]
       if not axis == verif.axis.Threshold():
          xx = data.get_axis_values(axis)
+      if axis.is_time_like:
+         xx = verif.util.convert_times(xx)
 
       names = data.get_names()
       F = data.num_inputs
@@ -1049,6 +1051,8 @@ class ObsFcst(Output):
    def _plot_core(self, data):
       F = data.num_inputs
       x = data.get_axis_values(self.axis)
+      if self.axis.is_time_like:
+         x = verif.util.convert_times(x)
 
       isCont = self.axis.is_continuous
 
@@ -1422,7 +1426,8 @@ class TimeSeries(Output):
       obs = data.get_scores(verif.field.Obs(), 0)
       for d in range(0, obs.shape[0]):
          # Obs line
-         dates = data.get_axis_values(verif.axis.Time())
+         times = data.get_axis_values(verif.axis.Time())
+         dates = verif.util.convert_times(times)
          x = dates[d] + data.offsets / 24.0
          y = verif.util.nanmean(obs[d, :, :], axis=1)
          if connect and d < obs.shape[0] - 1:
