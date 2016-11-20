@@ -162,7 +162,9 @@ class Data(object):
       obs or determinsitic fields.
 
       Arguments:
-      fields         A list of verif.field to retrieve
+      fields         Which verif.field should be retreived? Either a list or a
+                     single field can be supplied, however the return type will
+                     match this choice.
       input_index    Which input to pull from? Must be between 0 and num_inputs
       axis           Which axis to aggregate against. If verif.axis.All() is
                      used, then no aggregation takes place and the 3D numpy
@@ -170,8 +172,8 @@ class Data(object):
       axis_index     Which slice along the axis to retrieve
 
       Returns:
-      scores         A list of numpy arrays. If only a single field is
-                     supplied, then a numpy array is returned.
+      scores         A list of numpy arrays. If fields is not a list, but a
+                     single field, then a numpy array is returned.
       """
 
       fields_is_single = False
@@ -181,7 +183,10 @@ class Data(object):
 
       key = (tuple(fields), input_index, axis, axis_index)
       if key in self._get_scores_cache.keys():
-         return self._get_scores_cache[key]
+         if fields_is_single:
+            return self._get_scores_cache[key][0]
+         else:
+            return self._get_scores_cache[key]
 
       if input_index < 0 or input_index >= self.num_inputs:
          verif.util.error("input_index must be between 0 and %d" % self.num_inputs)
@@ -269,14 +274,14 @@ class Data(object):
             valid = (valid & currValid)
          scores.append(curr)
 
-      if axis is not verif.axis.All():
+      if axis == verif.axis.All():
+         for i in range(0, len(fields)):
+            I = np.unravel_index(np.where(valid == 0)[0], valid.shape)
+            scores[i][I] = np.nan
+      else:
          I = np.where(valid)
          for i in range(0, len(fields)):
             scores[i] = scores[i][I]
-      else:
-         for i in range(0, len(fields)):
-            I = np.unravel_index(np.where(valid == 0)[0], valid.shape)
-            scores[i][valid == 0] = np.nan
 
       # No valid data. Therefore return a list of nans instead of an empty list
       if(scores[0].shape[0] == 0):
@@ -287,8 +292,9 @@ class Data(object):
       # Turn into a single numpy array if we were not supplied with a list of
       # fields
       if fields_is_single:
-         scores = scores[0]
-      return scores
+         return scores[0]
+      else:
+         return scores
 
    def get_axis_size(self, axis):
       return len(self.get_axis_values(axis))
