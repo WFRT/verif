@@ -299,8 +299,24 @@ class Data(object):
    def get_axis_size(self, axis):
       return len(self.get_axis_values(axis))
 
-   # What values represent this axis?
    def get_axis_values(self, axis):
+      """ What are the values along an axis?
+      verif.axis.Time()       Unixtimes
+      verif.axis.Month()      Unixtimes of the begining of each month
+      verif.axis.Year()       Unixtimes of the beginning of each year
+      verif.axis.Offset()     Lead times in hours
+      verif.axis.Location()   Index into location array
+      verif.axis.LocationId() Location id
+      verif.axis.Lat()        Latitudes of locations
+      verif.axis.Lon()        Longitudes of locations
+      verif.axis.Elev()       Elevations of locations
+
+      Arguments:
+      axis        of type verif.axis.Axis
+
+      Returns:
+      array       a 1D numpy array of values
+      """
       if(axis == verif.axis.Time()):
          return self.times
       elif(axis == verif.axis.Month()):
@@ -315,13 +331,13 @@ class Data(object):
          if(axis == verif.axis.Location()):
             data = range(0, len(self.locations))
          elif(axis == verif.axis.LocationId()):
-            data = self.get_location_ids()
+            data = np.array([loc.id for loc in self.locations])
          elif(axis == verif.axis.Elev()):
-            data = self.get_elevs()
+            data = np.array([loc.elev for loc in self.locations])
          elif(axis == verif.axis.Lat()):
-            data = self.get_lats()
+            data = np.array([loc.lat for loc in self.locations])
          elif(axis == verif.axis.Lon()):
-            data = self.get_lons()
+            data = np.array([loc.lon for loc in self.locations])
          else:
             verif.util.error("Data.get_axis_values has a bad axis name: " + axis)
          return data
@@ -376,6 +392,7 @@ class Data(object):
       return var.name + " (" + var.units + ")"
 
    def get_axis_label(self, axis):
+      """ Returns an appropriate string for labeling an axis on a plot """
       if(axis == verif.axis.Time()):
          return "Date"
       elif(axis == verif.axis.Offset()):
@@ -392,18 +409,6 @@ class Data(object):
          return "Longitude ($^o$)"
       elif(axis == verif.axis.Threshold()):
          return self.get_variable_and_units()
-
-   def get_lats(self):
-      return np.array([loc.lat for loc in self.locations])
-
-   def get_lons(self):
-      return np.array([loc.lon for loc in self.locations])
-
-   def get_elevs(self):
-      return np.array([loc.elev for loc in self.locations])
-
-   def get_location_ids(self):
-      return np.array([loc.id for loc in self.locations], int)
 
    def get_axis_descriptions(self, axis, csv=False):
       if axis.is_location_like:
@@ -639,17 +644,6 @@ class Data(object):
 
       quantiles = sorted(quantiles)
       return quantiles
-
-   def _get_indices(self, axis, findex=None):
-      if(axis == "time"):
-         I = self._get_time_indices(findex)
-      elif(axis == "offset"):
-         I = self._get_offset_indices(findex)
-      elif(axis == "location"):
-         I = self._get_location_indices(findex)
-      else:
-         verif.util.error("Could not get indices for axis: " + str(axis))
-      return I
 
    def _get_time_indices(self, input_index):
       return self._timesI[input_index]

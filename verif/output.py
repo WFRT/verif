@@ -719,9 +719,9 @@ class Standard(Output):
 
       labels = data.get_legend()
       F = data.num_inputs
-      lats = data.get_lats()
-      lons = data.get_lons()
-      ids = data.get_location_ids()
+      lats = np.array([loc.lat for loc in data.locations])
+      lons = np.array([loc.lon for loc in data.locations])
+      ids = np.array([loc.id for loc in data.locations])
       dlat = max(lats) - min(lats)
       dlon = max(lons) - min(lons)
       llcrnrlat = max(-90, min(lats) - dlat / 10)
