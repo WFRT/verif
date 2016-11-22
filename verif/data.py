@@ -199,31 +199,7 @@ class Data(object):
       doClim = self._clim is not None and obsFcstAvailable
       if(doClim):
          temp = self._get_score(verif.field.Fcst(), len(self._inputs) - 1)
-         if(axis == verif.axis.Time()):
-            clim = temp[axis_index, :, :].flatten()
-         elif(axis == verif.axis.Month()):
-            if(axis_index == self.months.shape[0]-1):
-               # TODO
-               I = np.where(self.times >= self.months[axis_index])
-            else:
-               I = np.where((self.times >= self.months[axis_index]) &
-                            (self.times < self.months[axis_index + 1]))
-            clim = temp[I, :, :].flatten()
-         elif(axis == verif.axis.Year()):
-            if(axis_index == self.years.shape[0]-1):
-               I = np.where(self.times >= self.years[axis_index])
-            else:
-               I = np.where((self.times >= self.years[axis_index]) &
-                            (self.times < self.years[axis_index + 1]))
-            clim = temp[I, :, :].flatten()
-         elif(axis == verif.axis.Offset()):
-            clim = temp[:, axis_index, :].flatten()
-         elif(axis.is_location_like):
-            clim = temp[:, :, axis_index].flatten()
-         elif(axis == verif.axis.No() or axis == verif.axis.Threshold()):
-            clim = temp.flatten()
-         elif(axis == verif.axis.All() or axis is None):
-            clim = temp
+         clim = self._apply_axis(temp, axis, axis_index)
       else:
          clim = 0
 
@@ -231,33 +207,7 @@ class Data(object):
       for i in range(0, len(fields)):
          field = fields[i]
          temp = self._get_score(field, input_index)
-
-         if(axis == verif.axis.Time()):
-            curr = temp[axis_index, :, :].flatten()
-         elif(axis == verif.axis.Month()):
-            if(axis_index == self.months.shape[0] - 1):
-               I = np.where(self.times >= self.months[axis_index])
-            else:
-               I = np.where((self.times >= self.months[axis_index]) &
-                            (self.times < self.months[axis_index + 1]))
-            curr = temp[I, :, :].flatten()
-         elif(axis == verif.axis.Year()):
-            if(axis_index == self.years.shape[0] - 1):
-               I = np.where(self.times >= self.years[axis_index])
-            else:
-               I = np.where((self.times >= self.years[axis_index]) &
-                            (self.times < self.years[axis_index + 1]))
-            curr = temp[I, :, :].flatten()
-         elif(axis == verif.axis.Offset()):
-            curr = temp[:, axis_index, :].flatten()
-         elif(axis.is_location_like):
-            curr = temp[:, :, axis_index].flatten()
-         elif(axis == verif.axis.No() or axis == verif.axis.Threshold()):
-            curr = temp.flatten()
-         elif(axis == verif.axis.All() or axis is None):
-            curr = temp
-         else:
-            verif.util.error("Data.py: unrecognized axis: " + axis.name())
+         curr = self._apply_axis(temp, axis, axis_index)
 
          # Subtract climatology
          if(doClim and (field == verif.field.Fcst() or field == verif.field.Obs())):
@@ -671,3 +621,42 @@ class Data(object):
       variable = verif.variable.Variable(name, units, formatter)
 
       return variable
+
+   def _apply_axis(self, array, axis, axis_index):
+      """ Slice an array along a certain axis and return an extract array
+
+      Arguments:
+      array       3D numpy array
+      axis        Of type verif.axis.Axis
+      axis_index  Index along the axis to slice
+      """
+      output = None
+      if(axis == verif.axis.Time()):
+         output = array[axis_index, :, :].flatten()
+      elif(axis == verif.axis.Month()):
+         if(axis_index == self.months.shape[0]-1):
+            # TODO
+            I = np.where(self.times >= self.months[axis_index])
+         else:
+            I = np.where((self.times >= self.months[axis_index]) &
+                         (self.times < self.months[axis_index + 1]))
+         output = array[I, :, :].flatten()
+      elif(axis == verif.axis.Year()):
+         if(axis_index == self.years.shape[0]-1):
+            I = np.where(self.times >= self.years[axis_index])
+         else:
+            I = np.where((self.times >= self.years[axis_index]) &
+                         (self.times < self.years[axis_index + 1]))
+         output = array[I, :, :].flatten()
+      elif(axis == verif.axis.Offset()):
+         output = array[:, axis_index, :].flatten()
+      elif(axis.is_location_like):
+         output = array[:, :, axis_index].flatten()
+      elif(axis == verif.axis.No() or axis == verif.axis.Threshold()):
+         output = array.flatten()
+      elif(axis == verif.axis.All() or axis is None):
+         output = array
+      else:
+         verif.util.error("data.py: unrecognized axis: " + axis.name())
+
+      return output
