@@ -341,25 +341,6 @@ class Data(object):
       var = self.variable
       return var.name + " (" + var.units + ")"
 
-   def get_axis_label(self, axis):
-      """ Returns an appropriate string for labeling an axis on a plot """
-      if(axis == verif.axis.Time()):
-         return "Date"
-      elif(axis == verif.axis.Offset()):
-         return "Lead time (h)"
-      elif(axis == verif.axis.Month()):
-         return "Month"
-      elif(axis == verif.axis.Year()):
-         return "Year"
-      elif(axis == verif.axis.Elev()):
-         return "Elevation (m)"
-      elif(axis == verif.axis.Lat()):
-         return "Latitude ($^o$)"
-      elif(axis == verif.axis.Lon()):
-         return "Longitude ($^o$)"
-      elif(axis == verif.axis.Threshold()):
-         return self.get_variable_and_units()
-
    def get_axis_descriptions(self, axis, csv=False):
       if axis.is_location_like:
          descs = list()

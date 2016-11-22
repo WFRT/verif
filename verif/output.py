@@ -575,7 +575,7 @@ class Standard(Output):
                yy = ndimage.convolve(yy, 1.0/N*np.ones(N), mode="mirror")
                mpl.plot(xx, yy, "--", color=color, lw=self.lw, ms=self.ms)
 
-         mpl.xlabel(data.get_axis_label(self.axis))
+         mpl.xlabel(self.axis.label(data.variable))
          mpl.ylabel(self._metric.label(data.variable))
          #mpl.ylabel(data.obsfield.label() + data.obsfield.units(data.variable))
 
@@ -916,7 +916,7 @@ class Hist(Output):
             y[f] = y[f] * 1.0 / sum(y[f]) * 100
          mpl.plot(x[f], y[f], style, color=color, label=labels[f], lw=self.lw,
                ms=self.ms)
-      mpl.xlabel(data.get_axis_label("threshold"))
+      mpl.xlabel(verif.axis.Threshold().label(data.variable))
       if self._show_percent:
          mpl.ylabel("Frequency (%)")
       else:
@@ -1037,7 +1037,7 @@ class Sort(Output):
          y = np.linspace(0, 1, x.shape[0])
          mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
                ms=self.ms)
-      mpl.xlabel("Sorted " + data.get_axis_label(verif.axis.Threshold()))
+      mpl.xlabel("Sorted " + verif.axis.Threshold().label(data.variable))
       mpl.grid()
 
 
@@ -1073,7 +1073,7 @@ class ObsFcst(Output):
          mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
                ms=self.ms)
       mpl.ylabel(data.get_variable_and_units())
-      mpl.xlabel(data.get_axis_label(self.axis))
+      mpl.xlabel(self.axis.label(data.variable))
       mpl.grid()
       if self.axis.is_time_like:
          mpl.gca().xaxis_date()
@@ -1404,7 +1404,7 @@ class Count(Output):
          mpl.plot(x, Nfcst, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
       self._plot_obs(x, Nobs)
       mpl.ylabel("Number")
-      mpl.xlabel(data.get_axis_label())
+      mpl.xlabel(self.axis.label(data.variable))
       mpl.grid()
 
 
@@ -1463,7 +1463,7 @@ class TimeSeries(Output):
             mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms,
                   label=lab)
 
-      mpl.xlabel(data.get_axis_label("date"))
+      mpl.xlabel(self.axis.label(data.variable))
       if self.ylabel is None:
          mpl.ylabel(data.get_variable_and_units())
       else:
@@ -2534,7 +2534,7 @@ class Marginal(Output):
       self._plot_obs(x, clim)
 
       mpl.ylim([0, 1])
-      mpl.xlabel(data.get_axis_label("threshold"))
+      mpl.xlabel(verif.axis.Threshold().label(data.variable))
       mpl.ylabel("Marginal probability")
       mpl.grid()
 
@@ -2584,7 +2584,7 @@ class Freq(Output):
       self._plot_obs(x, clim)
 
       mpl.ylim([0, 1])
-      mpl.xlabel(data.get_axis_label("threshold"))
+      mpl.xlabel(verif.axis.Threshold().label(data.variable))
       mpl.ylabel("Frequency " + self.bin_type)
       mpl.grid()
 

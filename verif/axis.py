@@ -47,6 +47,10 @@ class Axis(object):
       name = cls.__name__
       return name
 
+   def label(self, variable):
+      """ Returns an appropriate string for labeling an axis on a plot """
+      raise NotImplementedError()
+
    def formatter(self, variable):
       """ How should ticks be generated for this axis? """
       return matplotlib.ticker.ScalarFormatter()
@@ -65,35 +69,54 @@ class Time(Axis):
    def formatter(self, variable):
       return matplotlib.dates.DateFormatter('\n%Y-%m-%d')
 
+   def label(self, variable):
+      return "Date"
 
 class Offset(Axis):
    """ Forecast lead-time """
-   pass
+
+   def label(self, variable):
+      return "Lead time (h)"
 
 
 class Location(Axis):
    is_continuous = False
    is_location_like = True
 
+   def label(self, variable):
+      return "Location"
+
 
 class Lat(Axis):
    is_continuous = False
    is_location_like = True
+
+   def label(self, variable):
+      return "Latitude ($^o$)"
 
 
 class Lon(Axis):
    is_continuous = False
    is_location_like = True
 
+   def label(self, variable):
+      return "Longitude ($^o$)"
+
 
 class Elev(Axis):
    is_continuous = False
    is_location_like = True
 
+   def label(self, variable):
+      return "Elevation (m)"
+
 
 class LocationId(Axis):
    is_continuous = False
    is_location_like = True
+
+   def label(self, variable):
+      return "Location"
 
 
 class All(Axis):
@@ -109,29 +132,51 @@ class No(Axis):
 class Week(Axis):
    is_time_like = True
 
+   def label(self, variable):
+      return "Location"
+
 
 class Month(Axis):
    is_time_like = True
    formatter = matplotlib.dates.DateFormatter('\n%Y-%m')
+
+   def label(self, variable):
+      return "Month"
 
 
 class Year(Axis):
    is_time_like = True
    formatter = matplotlib.dates.DateFormatter('\n%Y')
 
+   def label(self, variable):
+      return "Year"
+
 
 class DayOfMonth(Axis):
    is_time_like = True
+
+   def label(self, variable):
+      return "Day of month"
 
 
 class DayOfYear(Axis):
    is_time_like = True
 
+   def label(self, variable):
+      return "Day of year"
+
 
 class MonthOfYear(Axis):
    is_time_like = True
+
+   def label(self, variable):
+      return "Month of year"
+
 
 
 class Threshold(Axis):
    def formatter(self, variable):
       return variable.formatter
+
+   def label(self, variable):
+      return variable.name + " (" + variable.units + ")"
