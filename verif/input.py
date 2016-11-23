@@ -490,8 +490,8 @@ class Text(Input):
                   if("time" in indices):
                      add = (self._clean(row[indices["time"]]))*3600
                   time = time + add
-               elif("unixtime" in indicies):
-                  time = self._clean(row[indiies["unixtime"]])
+               elif("unixtime" in indices):
+                  time = self._clean(row[indices["unixtime"]])
                self._times.add(time)
                if("offset" in indices):
                   offset = self._clean(row[indices["offset"]])
@@ -718,9 +718,3 @@ class Fake(Input):
       else:
          self.variable = variable
       self.pit = None
-
-   def get_obs(self):
-      return self._obs
-
-   def get_mean(self):
-      return self._fcst
