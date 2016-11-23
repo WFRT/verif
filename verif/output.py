@@ -68,6 +68,7 @@ class Output(object):
    dpi
    filename          When set, output the figure to this filename. File extension is
                      auto-detected.
+   grid              When True, show a grid on the plot
    lab_font_size
    left
    leg_font_size
@@ -154,6 +155,7 @@ class Output(object):
       self.ylim = None
       self.clim = None
       self.xticks = None
+      self.grid = True
       self.xticklabels = None
       self.yticks = None
       self.title = None
@@ -366,6 +368,9 @@ class Output(object):
             ax.set_xscale('log')
          if self.log_y:
             ax.set_yscale('log')
+         if self.grid:
+            ax.grid('on')
+
 
       # Labels
       if self.xlabel is not None:
@@ -588,7 +593,6 @@ class Standard(Output):
          perfect_score = self._metric.perfect_score
          self._plot_perfect_score(x[0], perfect_score)
 
-      mpl.grid()
       if not self.show_acc:
          self._set_y_axis_limits(self._metric)
 
@@ -912,7 +916,6 @@ class Hist(Output):
          mpl.ylabel("Frequency (%)")
       else:
          mpl.ylabel("Frequency")
-      mpl.grid()
 
    def _text_core(self, data):
       labels = data.get_legend()
@@ -1024,7 +1027,6 @@ class Sort(Output):
          mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
       mpl.xlabel("Sorted " + verif.axis.Threshold().label(data.variable))
       mpl.ylabel("Percentile (%)")
-      mpl.grid()
 
 
 class ObsFcst(Output):
@@ -1060,7 +1062,6 @@ class ObsFcst(Output):
                ms=self.ms)
       mpl.ylabel(data.get_variable_and_units())
       mpl.xlabel(self.axis.label(data.variable))
-      mpl.grid()
       if self.axis.is_time_like:
          mpl.gca().xaxis_date()
       else:
@@ -1099,7 +1100,6 @@ class QQ(Output):
       mpl.xlabel("Sorted observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
       self._plot_perfect_score(lims, lims)
-      mpl.grid()
 
    def _csv_core(self, data):
       labels = data.get_legend()
@@ -1216,7 +1216,6 @@ class Scatter(Output):
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
       self._plot_perfect_score(lims, lims)
       mpl.plot(lims, lims, "--", color=[0.3, 0.3, 0.3], lw=3, zorder=-100)
-      mpl.grid()
       mpl.gca().set_aspect(1)
 
 
@@ -1262,7 +1261,6 @@ class Change(Output):
       self._plot_perfect_score(x, 0)
       mpl.xlabel("Daily obs change (" + data.variable.units + ")")
       mpl.ylabel("MAE (" + data.variable.units + ")")
-      mpl.grid()
 
 
 class Cond(Output):
@@ -1308,7 +1306,6 @@ class Cond(Output):
       mpl.xlabel("Observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
       self._plot_perfect_score(lims, lims)
-      mpl.grid()
       mpl.gca().set_aspect(1)
 
 
@@ -1355,7 +1352,6 @@ class SpreadSkill(Output):
       self._plot_perfect_score([axismin, axismax], [axismin, axismax])
       mpl.xlabel("Spread (" + data.variable.units + ")")
       mpl.ylabel("RMSE (" + data.variable.units + ")")
-      mpl.grid()
 
 
 class Count(Output):
@@ -1391,7 +1387,6 @@ class Count(Output):
       self._plot_obs(x, Nobs)
       mpl.ylabel("Number")
       mpl.xlabel(self.axis.label(data.variable))
-      mpl.grid()
 
 
 class TimeSeries(Output):
@@ -1454,7 +1449,6 @@ class TimeSeries(Output):
          mpl.ylabel(data.get_variable_and_units())
       else:
          mpl.ylabel(self.ylabel)
-      mpl.grid()
       #mpl.gca().xaxis.set_major_formatter(verif.axis.Time().formatter(data.variable))
       mpl.gca().xaxis_date()
 
@@ -1514,7 +1508,6 @@ class Meteo(Output):
          mpl.ylabel(data.get_variable_and_units())
       else:
          mpl.ylabel(self.ylabel)
-      mpl.grid()
       mpl.gca().xaxis_date()
 
       if np.min(x) == np.max(x):
@@ -1971,7 +1964,6 @@ class EconomicValue(Output):
       mpl.ylabel("Economic value")
       mpl.xlim([0, 1])
       mpl.ylim([0, 1])
-      mpl.grid()
 
 
 class Roc(Output):
@@ -2039,7 +2031,6 @@ class Roc(Output):
       self._plot_perfect_score([0, 0, 1], [0, 1, 1])
       units = " " + data.variable.units
       mpl.title("Threshold: " + str(threshold) + units)
-      mpl.grid()
 
 
 # doClassic: Use the classic definition, by not varying the forecast threshold
@@ -2121,7 +2112,6 @@ class DRoc(Output):
          self._plot_perfect_score([0, 0, 1], [0, 1, 1])
       units = " " + data.variable.units
       mpl.title("Threshold: " + str(threshold) + units)
-      mpl.grid()
 
 
 class DRocNorm(DRoc):
@@ -2196,7 +2186,6 @@ class Against(Output):
 
                mpl.xlabel(labels[f0], color="r")
                mpl.ylabel(labels[f1], color="b")
-               mpl.grid()
                lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
                mpl.xlim(lims)
                mpl.ylim(lims)
@@ -2417,7 +2406,6 @@ class Performance(Output):
       mpl.ylabel("Probability of detection")
       mpl.xlim([0, 1])
       mpl.ylim([0, 1])
-      mpl.grid()
       mpl.gca().set_aspect(1)
 
 
@@ -2480,7 +2468,6 @@ class Error(Output):
          self._draw_circle(X, style=":")
 
       mpl.plot([0, maxx], [0, 0], 'k-', lw=2)  # Draw x-axis line
-      mpl.grid()
 
 
 class Marginal(Output):
@@ -2522,7 +2509,6 @@ class Marginal(Output):
       mpl.ylim([0, 1])
       mpl.xlabel(verif.axis.Threshold().label(data.variable))
       mpl.ylabel("Marginal probability")
-      mpl.grid()
 
 
 class Freq(Output):
@@ -2572,7 +2558,6 @@ class Freq(Output):
       mpl.ylim([0, 1])
       mpl.xlabel(verif.axis.Threshold().label(data.variable))
       mpl.ylabel("Frequency " + self.bin_type)
-      mpl.grid()
 
 
 class InvReliability(Output):
@@ -2733,7 +2718,6 @@ class Impact(Output):
          mpl.scatter(XX, YY, s=abs(num**2) * Snum, edgecolor="k",
                color=[1, 1, 1, 0], lw=1, zorder=100)
 
-      mpl.grid()
       xlim = mpl.xlim()
       ylim = mpl.ylim()
       lower = min(xlim[0], ylim[0])

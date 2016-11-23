@@ -48,6 +48,7 @@ def run(argv):
    title_font_size = None
    leg_loc = None
    type = "plot"
+   grid = True
    xrot = None
    major_length = None
    minor_length = None
@@ -113,9 +114,11 @@ def run(argv):
             log_x = True
          elif(arg == "-logy"):
             log_y = True
+         elif(arg == "-nogrid"):
+            grid = False
          else:
             if len(argv) <= i + 1:
-               verif.util.error("Missing argument after %s" % argv[i])
+               verif.util.error("Missing value after %s" % argv[i])
             arg_next = argv[i + 1]
             if(arg == "-f"):
                ofile = arg_next
@@ -460,6 +463,7 @@ def run(argv):
       pl.log_x = log_x
    if(log_y is not None):
       pl.log_y = log_y
+   pl.grid = grid
    if(cmap is not None):
       pl.cmap = cmap
    if(map_type is not None):
@@ -570,6 +574,7 @@ def show_description(data=None):
    print format_argument("-maptype", "One of 'simple', 'sat', 'topo', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.")
    print format_argument("-minlth length", "Length of minor tick marks")
    print format_argument("-ms size", "How big should markers be?")
+   print format_argument("-nogrid", "Turn the grid on the plot off")
    print format_argument("-nomargin", "Remove margins (whitespace) in the plot not x[i] <= T.")
    print format_argument("-right value", "Right boundary location for saved figure [range 0-1]")
    print format_argument("-simple", "Make a simpler plot, without extra lines, subplots, etc.")
