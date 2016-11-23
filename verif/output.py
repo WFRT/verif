@@ -1222,19 +1222,15 @@ class Scatter(Output):
 class Change(Output):
    supports_threshold = False
    supports_x = False
-   description = "Forecast skill (MAE) as a function of change in obs from "\
-                  "previous day"
+   description = "Forecast skill (MAE) as a function of change in obs from previous forecast run"
 
    def __init__(self):
       Output.__init__(self)
 
    def _plot_core(self, data):
-      data.set_axis("all")
-      data.set_index(0)
       labels = data.get_legend()
       # Find range
-      data.set_file_index(0)
-      [obs, fcst] = data.get_scores(["obs", "fcst"])
+      [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], 0)
       change = obs[1:, Ellipsis] - obs[0:-1, Ellipsis]
       maxChange = np.nanmax(abs(change.flatten()))
       edges = np.linspace(-maxChange, maxChange, 20)
@@ -1242,10 +1238,9 @@ class Change(Output):
       F = data.num_inputs
 
       for f in range(0, F):
+         [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
          color = self._get_color(f, F)
          style = self._get_style(f, F)
-         data.set_file_index(f)
-         [obs, fcst] = data.get_scores(["obs", "fcst"])
          change = obs[1:, Ellipsis] - obs[0:-1, Ellipsis]
          err = abs(obs - fcst)
          err = err[1:, Ellipsis]
@@ -1256,8 +1251,7 @@ class Change(Output):
             I = (change > edges[i]) & (change <= edges[i + 1])
             y[i] = verif.util.nanmean(err[I])
             x[i] = verif.util.nanmean(change[I])
-         mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms,
-               label=labels[f])
+         mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=labels[f])
       self._plot_perfect_score(x, 0)
       mpl.xlabel("Daily obs change (" + data.variable.units + ")")
       mpl.ylabel("MAE (" + data.variable.units + ")")
