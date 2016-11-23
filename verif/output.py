@@ -871,37 +871,28 @@ class Standard(Output):
 
 class Hist(Output):
    requires_threshold = True
-   supports_threshold = False
+   supports_threshold = True
+   default_bin_type = "within="
 
-   def __init__(self, name):
+   def __init__(self, field):
       Output.__init__(self)
-      self._name = name
+      self._field = field
 
       # Settings
       self._show_percent = True
 
    def get_x_y(self, data):
       F = data.num_inputs
-      allValues = [0] * F
-      edges = self.thresholds
-      for f in range(0, F):
-         allValues[f] = data.get_scores(self._name, f)
+      values = [data.get_scores(self._field, f, verif.axis.No()) for f in range(0,F)]
 
-      xx = (edges[0:-1] + edges[1:]) / 2
-      y = np.zeros([F, len(xx)], 'float')
-      x = np.zeros([F, len(xx)], 'float')
+      intervals = verif.util.get_intervals(self.bin_type, self.thresholds)
+      y = np.zeros([F, len(intervals)], 'float')
+      x = np.zeros([F, len(intervals)], 'float')
+      xx = [i.center for i in intervals]
       for f in range(0, F):
-         data.set_file_index(f)
-         N = len(allValues[f][0])
-
-         for i in range(0, len(xx)):
-            if i == len(xx) - 1:
-               I = np.where((allValues[f][0] >= edges[i]) &
-                            (allValues[f][0] <= edges[i + 1]))[0]
-            else:
-               I = np.where((allValues[f][0] >= edges[i]) &
-                            (allValues[f][0] < edges[i + 1]))[0]
-            y[f, i] = float(len(I))
+         # Compute how many are with each interval
+         for i in range(0, len(intervals)):
+            y[f, i] = np.sum(verif.util.apply_threshold(values[f], self.bin_type, intervals[i].lower, intervals[i].upper))
          x[f, :] = xx
       return [x, y]
 
@@ -924,9 +915,7 @@ class Hist(Output):
       mpl.grid()
 
    def _text_core(self, data):
-      data.set_axis("none")
       labels = data.get_legend()
-
       F = data.num_inputs
       [x, y] = self.get_x_y(data)
 
@@ -940,7 +929,7 @@ class Hist(Output):
 
       # Header line
       fmt = "%-" + maxlength + "s"
-      lineDesc = data.get_axis_description_header()
+      lineDesc = data.get_axis_description_header(verif.axis.Threshold())
       lineDescN = len(lineDesc) + 2
       lineDescFmt = "%-" + str(lineDescN) + "s |"
       print lineDescFmt % lineDesc,
@@ -1019,25 +1008,22 @@ class Sort(Output):
    requires_threshold = False
    supports_threshold = False
 
-   def __init__(self, metric):
+   def __init__(self, field):
       Output.__init__(self)
-      self._metric = metric
+      self._field = field
 
    def _plot_core(self, data):
       labels = data.get_legend()
       F = data.num_inputs
-      thresholds = self.thresholds
 
-      intervals = verif.util.get_intervals(self.bin_type, thresholds)
       for f in range(0, F):
-         x = self._metric.compute(data, f, self.axis, intervals[0])
-         x = np.sort(x)
+         x = np.sort(data.get_scores(self._field, f, verif.axis.No()))
          color = self._get_color(f, F)
          style = self._get_style(f, F)
-         y = np.linspace(0, 1, x.shape[0])
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
-               ms=self.ms)
+         y = np.linspace(0, 100, x.shape[0])
+         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
       mpl.xlabel("Sorted " + verif.axis.Threshold().label(data.variable))
+      mpl.ylabel("Percentile (%)")
       mpl.grid()
 
 

@@ -370,9 +370,11 @@ def run(argv):
       if(type in ["plot", "text", "csv", "map", "maprank"]):
          pl = verif.output.Standard(m)
          if do_sort:
-            pl = verif.output.Sort(m)
+            field = verif.field.get(metric)
+            pl = verif.output.Sort(field)
          if do_hist:
-            pl = verif.output.Hist(m)
+            field = verif.field.get(metric)
+            pl = verif.output.Hist(field)
          pl.show_acc = do_acc
       else:
          verif.util.error("Type not understood")
