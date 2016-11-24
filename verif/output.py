@@ -87,6 +87,7 @@ class Output(object):
    show_margin
    show_perfect
    thresholds
+   quantiles
    tick_font_size
    title
    top
@@ -119,6 +120,7 @@ class Output(object):
    def __init__(self):
       self.filename = None
       self.thresholds = [None]
+      self.quantiles = None
       leg = None
       self.default_lines = ['-', '-', '-', '--']
       self.default_markers = ['o', '', '.', '']
@@ -1304,9 +1306,10 @@ class Cond(Output):
 
 
 class SpreadSkill(Output):
-   supports_threshold = False
+   supports_threshold = True
    supports_x = False
-   description = "Spread/skill plot showing RMSE of ensemble mean as a function of ensemble spread (use -r to specify spread thresholds)"
+   requires_threshold = True
+   description = "Spread/skill plot showing RMSE of ensemble mean as a function of ensemble spread (use -r to specify spread thresholds and -q to specify a lower and upper quantile to represent spread)"
 
    def __init__(self):
       Output.__init__(self)
@@ -1314,10 +1317,14 @@ class SpreadSkill(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
       F = data.num_inputs
-      lower_q = data.quantiles[0]
-      upper_q = data.quantiles[-1]
-      lower_field = verif.field.Quantile(data.quantiles[0])
-      upper_field = verif.field.Quantile(data.quantiles[-1])
+      if self.quantiles is not None:
+         lower_q = np.min(self.quantiles)
+         upper_q = np.max(self.quantiles)
+      else:
+         lower_q = data.quantiles[0]
+         upper_q = data.quantiles[-1]
+      lower_field = verif.field.Quantile(lower_q)
+      upper_field = verif.field.Quantile(upper_q)
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F, connectingLine=False)
@@ -2554,8 +2561,8 @@ class Freq(Output):
 
 
 class InvReliability(Output):
-   description = "Reliability diagram for a certain quantile (-r)"
-   requires_threshold = True
+   description = "Reliability diagram for a certain quantile (-q)"
+   requires_threshold = False
    supports_x = False
    experimental = True
 
@@ -2567,19 +2574,20 @@ class InvReliability(Output):
 
    def _plot_core(self, data):
       labels = data.get_legend()
+      if self.quantiles is None:
+         verif.util.error("InvReliability requires at least one quantile")
 
       F = data.num_inputs
       ax = mpl.gca()
-      quantiles = self.thresholds
       if self._show_count():
-         if quantiles[0] < 0.5:
+         if self.quantiles[0] < 0.5:
             axi = mpl.axes([0.66, 0.65, 0.2, 0.2])
          else:
             axi = mpl.axes([0.66, 0.15, 0.2, 0.2])
       mpl.sca(ax)
 
-      for t in range(0, len(quantiles)):
-         quantile = self.thresholds[t]
+      for t in range(0, len(self.quantiles)):
+         quantile = self.quantiles[t]
          var = verif.field.Quantile(quantile)
          [obs, p] = data.get_scores([verif.field.Obs(), var], 0, verif.axis.No())
 

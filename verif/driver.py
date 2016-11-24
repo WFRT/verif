@@ -24,6 +24,7 @@ def run(argv):
    lon_range = None
    elev_range = None
    thresholds = None
+   quantiles = None
    clim_file = None
    clim_type = "subtract"
    leg = None
@@ -182,6 +183,10 @@ def run(argv):
                aggregator_name = arg_next
             elif(arg == "-r"):
                thresholds = np.array(verif.util.parse_numbers(arg_next))
+            elif(arg == "-q"):
+               quantiles = np.array(verif.util.parse_numbers(arg_next))
+               if np.min(quantiles) < 0 or np.max(quantiles) > 1:
+                  verif.util.error("Quantiles must be between 0 and 1 inclusive")
             elif(arg == "-ms"):
                marker_size = float(arg_next)
             elif(arg == "-lw"):
@@ -471,6 +476,8 @@ def run(argv):
    pl.filename = ofile
    if thresholds is not None:
       pl.thresholds = thresholds
+   if quantiles is not None:
+      pl.quantiles = quantiles
    pl.figsize = figsize
    pl.dpi = dpi
    if axis is not None:
@@ -540,6 +547,7 @@ def show_description(data=None):
    print format_argument("-o offsets", "Limit the verification to these offsets (in hours).")
    print format_argument("-obs", "Which field should be used as the observation?")
    print format_argument("-r thresholds", "Compute scores for these thresholds (only used by some metrics).")
+   print format_argument("-q quantiles", "Compute scores for these quantiles (only used by some metrics).")
    print format_argument("-x dim", "Plot this dimension on the x-axis: date, offset, year, month, location, locationId, elev, lat, lon, threshold, or none. Not supported by all metrics. If not specified, then a default is used based on the metric. 'none' collapses all dimensions and computes one value.")
 
    # Data manipulation
