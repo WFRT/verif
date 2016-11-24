@@ -207,7 +207,7 @@ class Comps(Input):
             quantile = self._comps_to_verif_quantile(var)
             if(quantile is not None):
                quantiles.append(quantile)
-      return quantiles
+      return np.array(quantiles)
 
    def _get_variable(self):
       name = self._file.Variable

@@ -1312,18 +1312,17 @@ class SpreadSkill(Output):
       Output.__init__(self)
 
    def _plot_core(self, data):
-      data.set_axis("all")
-      data.set_index(0)
       labels = data.get_legend()
       F = data.num_inputs
+      lower_q = data.quantiles[0]
+      upper_q = data.quantiles[-1]
+      lower_field = verif.field.Quantile(data.quantiles[0])
+      upper_field = verif.field.Quantile(data.quantiles[-1])
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F, connectingLine=False)
-         data.set_file_index(f)
-
-         data.set_file_index(f)
-         [obs, fcst, spread] = data.get_scores(["obs", "fcst", "spread"])
-         spread = spread.flatten()
+         [obs, fcst, lower, upper] = data.get_scores([verif.field.Obs(), verif.field.Fcst(), lower_field, upper_field], f)
+         spread = upper.flatten() - lower.flatten()
          skill = (obs.flatten() - fcst.flatten())**2
          x = np.nan*np.zeros(len(self.thresholds), 'float')
          y = np.nan*np.zeros(len(x), 'float')
@@ -1338,13 +1337,13 @@ class SpreadSkill(Output):
 
          style = self._get_style(f, F)
          mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=labels[f])
-      xlim[0] = [0, mpl.xlim()[1]]
-      ylim[0] = [0, mpl.ylim()[1]]
+      xlim = [0, mpl.xlim()[1]]
+      ylim = [0, mpl.ylim()[1]]
       lims = verif.util.get_square_axis_limits(xlim, ylim)
       mpl.xlim(lims)
       mpl.ylim(lims)
-      self._plot_perfect_score([axismin, axismax], [axismin, axismax])
-      mpl.xlabel("Spread (" + data.variable.units + ")")
+      self._plot_perfect_score(lims, lims)
+      mpl.xlabel("%.1f - %.1f quantiles (%s)" % (upper_q, lower_q, data.variable.units))
       mpl.ylabel("RMSE (" + data.variable.units + ")")
 
 
