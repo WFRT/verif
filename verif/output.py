@@ -2578,18 +2578,15 @@ class InvReliability(Output):
             axi = mpl.axes([0.66, 0.15, 0.2, 0.2])
       mpl.sca(ax)
 
-      data.set_axis("none")
-      data.set_index(0)
-      data.set_file_index(0)
       for t in range(0, len(quantiles)):
          quantile = self.thresholds[t]
          var = verif.field.Quantile(quantile)
-         [obs, p] = data.get_scores(["obs", var])
+         [obs, p] = data.get_scores([verif.field.Obs(), var], 0)
 
          # Determine the number of bins to use # (at least 11, at most 25)
          N = min(25, max(11, int(len(obs) / 1000)))
-         N = 21
-         edges = np.linspace(0, 20, N + 1)
+         N = 4
+         edges = np.linspace(0, 3, N + 1)
          if data.variable.name == "Precip":
             edges = np.linspace(0, np.sqrt(verif.util.nanmax(obs)), N + 1) ** 2
          else:
@@ -2603,10 +2600,7 @@ class InvReliability(Output):
          for f in range(0, F):
             color = self._get_color(f, F)
             style = self._get_style(f, F)
-            data.set_file_index(f)
-            data.set_axis("none")
-            data.set_index(0)
-            [obs, p] = data.get_scores(["obs", var])
+            [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
             obs = obs <= p
 
