@@ -1713,7 +1713,7 @@ class Reliability(Output):
       for t in range(0, len(self.thresholds)):
          threshold = self.thresholds[t]
          var = verif.field.Threshold(threshold)
-         [obs, p] = data.get_scores([verif.field.Obs(), var], 0)
+         [obs, p] = data.get_scores([verif.field.Obs(), var], 0, verif.axis.No())
 
          # Determine the number of bins to use # (at least 11, at most 25)
          N = min(25, max(11, int(len(obs) / 1000)))
@@ -1730,7 +1730,7 @@ class Reliability(Output):
          for f in range(0, F):
             color = self._get_color(f, F)
             style = self._get_style(f, F)
-            [obs, p] = data.get_scores([verif.field.Obs(), var], f)
+            [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
             obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
             p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
@@ -2581,7 +2581,7 @@ class InvReliability(Output):
       for t in range(0, len(quantiles)):
          quantile = self.thresholds[t]
          var = verif.field.Quantile(quantile)
-         [obs, p] = data.get_scores([verif.field.Obs(), var], 0)
+         [obs, p] = data.get_scores([verif.field.Obs(), var], 0, verif.axis.No())
 
          # Determine the number of bins to use # (at least 11, at most 25)
          N = min(25, max(11, int(len(obs) / 1000)))
