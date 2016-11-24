@@ -1462,29 +1462,32 @@ class TimeSeries(Output):
 
 
 class Meteo(Output):
-   description = "Plot a meteogram, with deterministic forecast, all quantile lines available, and observations. If multiple dates and locations are used, then the average is made."
+   description = "Plot a meteogram, with deterministic forecast, all quantile lines available (use -q to select a subset of quantiles), and observations. If multiple dates and locations are used, then the average is made."
    supports_threshold = False
    supports_x = False
-   _obsCol = [1, 0, 0]
-   _fcstCol = [0, 1, 0]
+   _obs_col = [1, 0, 0]
+   _fcst_col = [0, 1, 0]
 
    def _plot_core(self, data):
       F = data.num_inputs
-      x = data.dates[0] + data.offsets/24.0
-      isSingleDate = len(data.dates) == 1
+      x = verif.util.convert_times(data.times[0] + data.offsets*3600)
+      isSingleTime = len(data.times) == 1
 
       # Plot obs line
       obs = data.get_scores(verif.field.Obs(), 0)
       obs = verif.util.nanmean(verif.util.nanmean(obs, axis=0), axis=1)
-      mpl.plot(x, obs, "o-", color=self._obsCol, lw=2, ms=8, label="Observations")
+      mpl.plot(x, obs, "o-", color=self._obs_col, lw=2, ms=8, label="Observations")
 
       # Plot deterministic forecast
       fcst = data.get_scores(verif.field.Fcst(), 0)
       fcst = verif.util.nanmean(verif.util.nanmean(fcst, axis=0), axis=1)
-      mpl.plot(x, fcst, "o-", color=self._fcstCol, lw=2, ms=8, label="Fcst")
+      mpl.plot(x, fcst, "o-", color=self._fcst_col, lw=2, ms=8, label="Fcst")
 
       # Plot quantiles
-      quantiles = np.sort(data.quantiles)
+      if self.quantiles is None:
+         quantiles = np.sort(data.quantiles)
+      else:
+         quantiles = np.sort(self.quantiles)
       y = np.zeros([len(data.offsets), len(quantiles)], 'float')
       for i in range(0, len(quantiles)):
          score = data.get_scores(verif.field.Quantile(quantiles[i]), 0)
@@ -1493,7 +1496,7 @@ class Meteo(Output):
          style = "k-"
          if i == 0 or i == len(quantiles) - 1:
             style = "k--"
-         label = "%d%%" % (quantiles[i])
+         label = "%d%%" % (quantiles[i]*100)
          mpl.plot(x, y[:, i], style, label=label, zorder=-1)
 
       # Fill areas betweeen lines
@@ -1510,10 +1513,13 @@ class Meteo(Output):
          mpl.ylabel(self.ylabel)
       mpl.gca().xaxis_date()
 
-      if np.min(x) == np.max(x):
-         mpl.xlim(x[0], x[0] + 1)
+      if self.xlim is not None:
+         mpl.xlim(verif.util.convert_dates(self.xlim))
       else:
-         mpl.xlim(np.min(x), np.max(x))
+         if np.min(x) == np.max(x):
+            mpl.xlim(x[0], x[0] + 1)
+         else:
+            mpl.xlim(np.min(x), np.max(x))
       mpl.gca().xaxis.set_major_locator(mpldates.DayLocator(interval=1))
       mpl.gca().xaxis.set_minor_locator(mpldates.HourLocator(interval=6))
       mpl.gca().xaxis.set_major_formatter(mpldates.DateFormatter('\n  %a %d %b %Y'))
@@ -1528,7 +1534,7 @@ class Meteo(Output):
       majlabels = [tick.label1 for tick in mpl.gca().xaxis.get_major_ticks()]
       for i in range(0, len(majlabels)):
          label = majlabels[i]
-         if isSingleDate and i < len(majlabels)-1:
+         if isSingleTime and i < len(majlabels)-1:
             label.set_horizontalalignment('left')
             label.set_verticalalignment('top')
             label.set_fontsize(self.tickfs)
@@ -1539,7 +1545,7 @@ class Meteo(Output):
          else:
             # Turn off the last date label, since it is outside the graph
             label.set_visible(0)
-      if not isSingleDate:
+      if not isSingleTime:
          mpl.xlabel("Time of day (h)")
 
       mpl.gca().xaxis.grid(True, which='major', color='k', zorder=-10, linestyle='-', linewidth=2)
