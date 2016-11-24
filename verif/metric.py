@@ -1,10 +1,11 @@
-import numpy as np
-import verif.util
-import sys
 import inspect
-import verif.axis
-import verif.aggregator
 import metric_type
+import numpy as np
+import sys
+import verif.aggregator
+import verif.axis
+import verif.interval
+import verif.util
 
 
 def get_all():
@@ -87,7 +88,7 @@ class Metric(object):
       Arguments:
       data              use get_scores([metric1, metric2...]) to get data data has already been
                         configured to only retrieve data along a certain dimension
-      interval          Of class verif.Interval
+      interval          Of class verif.interval.Interval
 
       Returns:
       scores            A numpy array of one score for each slice along axis
@@ -675,7 +676,7 @@ class MarginalRatio(Metric):
          pvar1 = data.get_p_var(interval.upper)
          [obs, p0, p1] = data.get_scores([verif.fields.Obs(), pvar0, pvar1],
                input_index, axis, axis_index)
-      obs = verif.util.within(obs, interval)
+      obs = interval.within(obs)
       p = p1 - p0
       if(np.mean(p) == 0):
          return np.nan
@@ -1092,7 +1093,7 @@ class Contingency(Metric):
          lower = np.percentile(sorted, interval.lower * 100)
       if not np.isinf(abs(interval.lower)):
          upper = np.percentile(sorted, interval.upper * 100)
-      return verif.Interval(lower, upper, interval.lower_equality, interval.upper_equality)
+      return verif.interval.Interval(lower, upper, interval.lower_equality, interval.upper_equality)
 
    def compute_from_obs_fcst(self, obs, fcst, interval):
       """
@@ -1100,7 +1101,7 @@ class Contingency(Metric):
 
       obs         numpy array of observations
       fcst        numpy array of forecasts
-      interval    of type verif.Interval
+      interval    of type verif.interval.Interval
       """
       if(interval is None):
          verif.util.error("Metric " + self.get_class_name() +

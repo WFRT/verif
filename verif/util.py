@@ -3,7 +3,7 @@ import re
 import calendar
 import numpy as np
 import sys
-import verif
+import verif.interval
 from matplotlib.dates import *
 import copy
 import matplotlib.pyplot as mpl
@@ -315,18 +315,6 @@ def distance(lat1, lon1, lat2, lon2):
    return distance
 
 
-def within(x, range):
-   """ Is x within the range?
-
-   x        A numeric value
-   range    A tuple with lower and upper values
-   """
-   # TODO: Which is correct?
-   # The second is best for precip, when doing Brier score -r 0
-   # return (x >= range[0]) & (x < range[1])
-   return (x > range[0]) & (x <= range[1])
-
-
 def apply_threshold(array, bin_type, threshold, upper_threshold=None):
    """ 
    Use bin_type to turn array into binary values
@@ -442,5 +430,5 @@ def get_intervals(bin_type, thresholds):
          upper_equality = True
       if bin_type in ["above=", "=within", "=within="]:
          lower_equality = True
-      intervals.append(verif.Interval(lower, upper, lower_equality, upper_equality))
+      intervals.append(verif.interval.Interval(lower, upper, lower_equality, upper_equality))
    return intervals

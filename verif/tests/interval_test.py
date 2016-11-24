@@ -1,5 +1,5 @@
 import unittest
-import verif
+import verif.interval
 
 
 class MyTest(unittest.TestCase):
@@ -10,35 +10,35 @@ class MyTest(unittest.TestCase):
          self.assertEqual(expected[i], interval.within(self._tests[i]))
 
    def test_1(self):
-      interval = verif.Interval(0, 1, False, False)  # 0 < x < 1
+      interval = verif.interval.Interval(0, 1, False, False)  # 0 < x < 1
       self.compare(interval, [False, False, True, True, False, False])
 
    def test_2(self):
-      interval = verif.Interval(0, 1, True, True)  # 0 <= x <= 1
+      interval = verif.interval.Interval(0, 1, True, True)  # 0 <= x <= 1
       self.compare(interval, [False, True, True, True, True, False])
 
    def test_3(self):
-      interval = verif.Interval(0, 1, False, True)  # 0 < x <= 1
+      interval = verif.interval.Interval(0, 1, False, True)  # 0 < x <= 1
       self.compare(interval, [False, False, True, True, True, False])
 
    def test_4(self):
-      interval = verif.Interval(0, 1, True, False)  # 0 <= x < 1
+      interval = verif.interval.Interval(0, 1, True, False)  # 0 <= x < 1
       self.compare(interval, [False, True, True, True, False, False])
 
    def test_zero_interval_1(self):
-      interval = verif.Interval(0, 0, False, False)  # 0 < x < 0
+      interval = verif.interval.Interval(0, 0, False, False)  # 0 < x < 0
       self.compare(interval, [False, False, False, False, False, False])
 
    def test_zero_interval_2(self):
-      interval = verif.Interval(0, 0, True, True)  # 0 <= x <= 0
+      interval = verif.interval.Interval(0, 0, True, True)  # 0 <= x <= 0
       self.compare(interval, [False, True, False, False, False, False])
 
    def test_zero_interval_3(self):
-      interval = verif.Interval(0, 0, False, True)  # 0 < x <= 0
+      interval = verif.interval.Interval(0, 0, False, True)  # 0 < x <= 0
       self.compare(interval, [False, False, False, False, False, False])
 
    def test_zero_interval_4(self):
-      interval = verif.Interval(0, 0, True, False)  # 0 <= x < 0
+      interval = verif.interval.Interval(0, 0, True, False)  # 0 <= x < 0
       self.compare(interval, [False, False, False, False, False, False])
 
 if __name__ == '__main__':

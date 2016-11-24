@@ -93,7 +93,7 @@ class TestGetIntervals(unittest.TestCase):
    def test_get_intervals(self):
       thresholds = [0,1,5]
       intervals = verif.util.get_intervals("above", thresholds)
-      self.assertEqual(verif.Interval(0,np.inf,False,False), intervals[0])
+      self.assertEqual(verif.interval.Interval(0,np.inf,False,False), intervals[0])
 
 if __name__ == '__main__':
    unittest.main()
