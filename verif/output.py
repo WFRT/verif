@@ -2581,13 +2581,14 @@ class InvReliability(Output):
          [obs, p] = data.get_scores([verif.field.Obs(), var], 0, verif.axis.No())
 
          # Determine the number of bins to use # (at least 11, at most 25)
-         N = min(25, max(11, int(len(obs) / 1000)))
-         N = 4
-         edges = np.linspace(0, 3, N + 1)
-         if data.variable.name == "Precip":
-            edges = np.linspace(0, np.sqrt(verif.util.nanmax(obs)), N + 1) ** 2
+         if self.thresholds[0] is None:
+            N = min(25, max(11, int(len(obs) / 1000)))
+            if data.variable.name == "Precip":
+               edges = np.linspace(0, np.sqrt(verif.util.nanmax(obs)), N + 1) ** 2
+            else:
+               edges = np.linspace(verif.util.nanmin(obs), verif.util.nanmax(obs), N + 1)
          else:
-            edges = np.linspace(verif.util.nanmin(obs), verif.util.nanmax(obs), N + 1)
+            edges = np.array(self.thresholds)
 
          x = np.zeros([len(edges) - 1, F], 'float')
          y = np.nan * np.zeros([F, len(edges) - 1], 'float')
