@@ -119,7 +119,7 @@ class Output(object):
 
    def __init__(self):
       self.filename = None
-      self.thresholds = [None]
+      self.thresholds = None
       self.quantiles = None
       leg = None
       self.default_lines = ['-', '-', '-', '--']
@@ -511,7 +511,7 @@ class Standard(Output):
             # Average all thresholds
             for i in range(0, len(intervals)):
                yy = yy + self._metric.compute(data, f, axis, intervals[i])
-            yy = yy / len(thresholds)
+            yy = yy / len(intervals)
 
          if sum(np.isnan(yy)) == len(yy):
             verif.util.warning("No valid scores for " + names[f])
@@ -607,8 +607,6 @@ class Standard(Output):
          mpl.autoscale(enable=True, axis=u'x', tight=True)  # make xaxis tight
 
    def _text_core(self, data):
-      thresholds = self.thresholds
-
       # Set configuration names
       names = data.get_legend()
 
@@ -662,7 +660,6 @@ class Standard(Output):
          self._print_line(values, maxlength, "int")
 
    def _csv_core(self, data):
-      thresholds = self.thresholds
 
       # Set configuration names
       names = data.get_legend()
@@ -1152,7 +1149,7 @@ class Scatter(Output):
          if self._show_quantiles():
             # Determine bin edges for computing quantiles
             # Use those provided by -r
-            if self.thresholds[0] is not None:
+            if self.thresholds is not None:
                edges = self.thresholds
             # For precip, we want a bin at exacly 0
             elif re.compile("Precip.*").match(data.variable.name):
@@ -1640,46 +1637,45 @@ class Discrimination(Output):
       # Determine the number of bins to use # (at least 11, at most 25)
       edges = np.linspace(0, 1, self._num_bins + 1)
 
-      for t in range(0, len(self.thresholds)):
-         threshold = self.thresholds[t]
-         var = verif.field.Threshold(threshold)
+      if len(self.thresholds) != 1:
+         verif.util.error("Discrimination diagram requires exactly one threshold")
+      threshold = self.thresholds[0]
 
-         y1 = np.nan * np.zeros([F, len(edges) - 1], 'float')
-         y0 = np.nan * np.zeros([F, len(edges) - 1], 'float')
-         n = np.zeros([F, len(edges) - 1], 'float')
-         for f in range(0, F):
-            color = self._get_color(f, F)
-            style = self._get_style(f, F)
-            [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
+      var = verif.field.Threshold(threshold)
 
-            obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
-            p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
+      y1 = np.nan * np.zeros([F, len(edges) - 1], 'float')
+      y0 = np.nan * np.zeros([F, len(edges) - 1], 'float')
+      n = np.zeros([F, len(edges) - 1], 'float')
+      for f in range(0, F):
+         color = self._get_color(f, F)
+         style = self._get_style(f, F)
+         [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
-            clim = np.mean(obs)
-            I1 = np.where(obs == 1)[0]
-            I0 = np.where(obs == 0)[0]
-            # Compute frequencies
-            for i in range(0, len(edges) - 1):
-               y0[f, i] = np.mean((p[I0] >= edges[i]) & (p[I0] < edges[i + 1]))
-               y1[f, i] = np.mean((p[I1] >= edges[i]) & (p[I1] < edges[i + 1]))
-            label = labels[f]
-            if not t == 0:
-               label = ""
-            # Figure out where to put the bars. Each file will have pairs of
-            # bars, so try to space them nicely.
-            width = 1.0 / self._num_bins
-            space = 1.0 / self._num_bins * 0.2
-            shift = (0.5 / self._num_bins - width)
-            center = (edges[0:-1]+edges[1:])/2
-            clustercenter = edges[0:-1] + 1.0*(f + 1) / (F + 1) * width
-            clusterwidth = width * 0.8 / F
-            barwidth = clusterwidth / 2
-            shift = barwidth
-            mpl.bar(clustercenter-shift, y1[f, :], barwidth, color=color,
-                  ec=color, lw=self.lw, label=label)
-            mpl.bar(clustercenter, y0[f, :], barwidth, color="w", ec=color,
-                  lw=self.lw)
-         mpl.plot([clim, clim], [0, 1], "k-")
+         obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
+         p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
+
+         clim = np.mean(obs)
+         I1 = np.where(obs == 1)[0]
+         I0 = np.where(obs == 0)[0]
+         # Compute frequencies
+         for i in range(0, len(edges) - 1):
+            y0[f, i] = np.mean((p[I0] >= edges[i]) & (p[I0] < edges[i + 1]))
+            y1[f, i] = np.mean((p[I1] >= edges[i]) & (p[I1] < edges[i + 1]))
+
+         label = labels[f]
+         # Figure out where to put the bars. Each file will have pairs of
+         # bars, so try to space them nicely.
+         width = 1.0 / self._num_bins
+         space = 1.0 / self._num_bins * 0.2
+         shift = (0.5 / self._num_bins - width)
+         center = (edges[0:-1]+edges[1:])/2
+         clustercenter = edges[0:-1] + 1.0*(f + 1) / (F + 1) * width
+         clusterwidth = width * 0.8 / F
+         barwidth = clusterwidth / 2
+         shift = barwidth
+         mpl.bar(clustercenter-shift, y1[f, :], barwidth, color=color, ec=color, lw=self.lw, label=label)
+         mpl.bar(clustercenter, y0[f, :], barwidth, color="w", ec=color, lw=self.lw)
+      mpl.plot([clim, clim], [0, 1], "k-")
 
       mpl.xlim([0, 1])
       mpl.xlabel("Forecasted probability")
@@ -2581,7 +2577,7 @@ class InvReliability(Output):
          [obs, p] = data.get_scores([verif.field.Obs(), var], 0, verif.axis.No())
 
          # Determine the number of bins to use # (at least 11, at most 25)
-         if self.thresholds[0] is None:
+         if self.thresholds is None:
             N = min(25, max(11, int(len(obs) / 1000)))
             if data.variable.name == "Precip":
                edges = np.linspace(0, np.sqrt(verif.util.nanmax(obs)), N + 1) ** 2

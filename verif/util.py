@@ -401,8 +401,10 @@ def get_intervals(bin_type, thresholds):
                   above, above=
    thresholds     numy array of thresholds
    """
-   intervals = list()
+   if thresholds is None:
+      return [verif.interval.Interval(-np.inf, np.inf, True, True)]
 
+   intervals = list()
    N = len(thresholds)
    if re.compile(".*within.*").match(bin_type):
       N = N - 1
