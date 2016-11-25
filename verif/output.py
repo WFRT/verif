@@ -1083,9 +1083,9 @@ class QQ(Output):
       y = list()
       F = len(data.get_names())
       for f in range(0, F):
-         [xx, yy] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
-         x.append(np.sort(xx.flatten()))
-         y.append(np.sort(yy.flatten()))
+         [xx, yy] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No())
+         x.append(np.sort(xx))
+         y.append(np.sort(yy))
       return [x, y]
 
    def _plot_core(self, data):
@@ -1143,7 +1143,7 @@ class Scatter(Output):
       labels = data.get_legend()
       F = data.num_inputs
       for f in range(0, F):
-         [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No(), 0)
+         [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No())
 
          color = self._get_color(f, F)
          style = self._get_style(f, F, connectingLine=False)
@@ -1328,9 +1328,9 @@ class SpreadSkill(Output):
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F, connectingLine=False)
-         [obs, fcst, lower, upper] = data.get_scores([verif.field.Obs(), verif.field.Fcst(), lower_field, upper_field], f)
-         spread = upper.flatten() - lower.flatten()
-         skill = (obs.flatten() - fcst.flatten())**2
+         [obs, fcst, lower, upper] = data.get_scores([verif.field.Obs(), verif.field.Fcst(), lower_field, upper_field], f, verif.axis.No())
+         spread = upper - lower
+         skill = (obs - fcst)**2
          x = np.nan*np.zeros(len(self.thresholds), 'float')
          y = np.nan*np.zeros(len(x), 'float')
          for i in range(1, len(self.thresholds)):
@@ -1577,7 +1577,7 @@ class PitHist(Output):
       labels = data.get_legend()
       for f in range(0, F):
          verif.util.subplot(f, F)
-         pit = data.get_scores(verif.field.Pit(), f)
+         pit = data.get_scores(verif.field.Pit(), f, verif.axis.No())
 
          edges = np.linspace(0, 1, self._num_bins + 1)
          N = np.histogram(pit, edges)[0]
@@ -1634,18 +1634,15 @@ class Discrimination(Output):
 
       F = data.num_inputs
 
-      data.set_axis("none")
-      data.set_index(0)
-      data.set_file_index(0)
       mpl.bar(np.nan, np.nan, color="w", ec="k", lw=self.lw, label="Observed")
       mpl.bar(np.nan, np.nan, color="k", ec="k", lw=self.lw, label="Not observed")
+
+      # Determine the number of bins to use # (at least 11, at most 25)
+      edges = np.linspace(0, 1, self._num_bins + 1)
+
       for t in range(0, len(self.thresholds)):
          threshold = self.thresholds[t]
          var = verif.field.Threshold(threshold)
-         [obs, p] = data.get_scores(["obs", var])
-
-         # Determine the number of bins to use # (at least 11, at most 25)
-         edges = np.linspace(0, 1, self._num_bins + 1)
 
          y1 = np.nan * np.zeros([F, len(edges) - 1], 'float')
          y0 = np.nan * np.zeros([F, len(edges) - 1], 'float')
@@ -1653,10 +1650,7 @@ class Discrimination(Output):
          for f in range(0, F):
             color = self._get_color(f, F)
             style = self._get_style(f, F)
-            data.set_file_index(f)
-            data.set_axis("none")
-            data.set_index(0)
-            [obs, p] = data.get_scores(["obs", var])
+            [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
             obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
             p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
@@ -1830,22 +1824,18 @@ class IgnContrib(Output):
 
       mpl.subplot(2, 1, 1)
       units = " " + data.variable.units
-      titlestr = "Ignorance contribution diagram for obs > " +\
-                 str(self.thresholds[0]) + units
-      mpl.title(titlestr)
+      middle = verif.util.get_threshold_string(self.bin_type)
+      mpl.title("Ignorance contribution diagram for obs " + middle + " " + str(threshold) + units)
 
-      data.set_axis("none")
-      data.set_index(0)
-      data.set_file_index(0)
       mpl.subplot(2, 1, 1)
       var = verif.field.Threshold(threshold)
-      [obs, p] = data.get_scores([verif.field.Obs(), var], 0)
+      [obs, p] = data.get_scores([verif.field.Obs(), var], 0, verif.axis.No())
 
       # Determine the number of bins to use # (at least 11, at most 25)
       N = min(25, max(11, int(len(obs) / 1000)))
       edges = np.linspace(0, 1, N + 1)
 
-      x = np.zeros([F, len(edges) - 1], 'float')
+      x = np.nan * np.zeros([F, len(edges) - 1], 'float')
       y = np.nan * np.zeros([F, len(edges) - 1], 'float')
       n = np.zeros([F, len(edges) - 1], 'float')
 
@@ -1853,7 +1843,7 @@ class IgnContrib(Output):
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
-         [obs, p] = data.get_scores([verif.field.Obs(), var], f)
+         [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
          obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
          p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
@@ -1922,7 +1912,7 @@ class EconomicValue(Output):
       mpl.title("Economic value for obs " + middle + " " + str(self.thresholds[0]) + units)
 
       var = verif.field.Threshold(threshold)
-      [obs, p] = data.get_scores([verif.field.Obs(), var], 0)
+      [obs, p] = data.get_scores([verif.field.Obs(), var], 0, verif.axis.No())
 
       # Determine the number of bins to use # (at least 11, at most 25)
       N = min(25, max(11, int(len(obs) / 1000)))
@@ -1940,7 +1930,7 @@ class EconomicValue(Output):
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
-         [obs, p] = data.get_scores([verif.field.Obs(), var], f)
+         [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
          obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
          p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
@@ -1955,6 +1945,7 @@ class EconomicValue(Output):
             cost = costLossRatio * loss
             totalCost = cost * len(Icost) + loss * len(Iloss)
             totalCost = totalCost / len(obs)
+
             # Cost when using a climatological forecast
             climCost = min(clim * loss, cost)
             perfectCost = clim * cost
@@ -1979,14 +1970,17 @@ class Roc(Output):
 
    def __init__(self):
       Output.__init__(self)
-      self._labelQuantiles = True
+
+   def _label_quantiles(self):
+      return not self.simple
 
    def _plot_core(self, data):
       threshold = self.thresholds[0]   # Observation threshold
       if threshold is None:
          verif.util.error("Roc plot needs a threshold (use -r)")
 
-      quantiles = list(data.get_quantiles())
+      q_fields = [verif.field.Quantile(i) for i in data.quantiles]
+      quantiles = data.quantiles
       if len(quantiles) == 0:
          verif.util.error("Your files do not have any quantiles")
 
@@ -1995,10 +1989,7 @@ class Roc(Output):
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
-         data.set_axis("none")
-         data.set_index(0)
-         data.set_file_index(f)
-         scores = data.get_scores(["obs"] + data.get_quantile_names())
+         scores = data.get_scores([verif.field.Obs()] + q_fields, f, verif.axis.No())
          obs = scores[0]
          fcsts = scores[1:]
          y = np.nan * np.zeros([len(quantiles)], 'float')
@@ -2025,9 +2016,8 @@ class Roc(Output):
          y[0] = 0
          x[len(x) - 1] = 1
          y[len(y) - 1] = 1
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
-               ms=self.ms)
-         if self._labelQuantiles:
+         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
+         if self._label_quantiles():
             for i in range(0, len(quantiles)):
                mpl.text(x[i + 1], y[i + 1], " %g%%" % quantiles[i], verticalalignment='center')
       mpl.plot([0, 1], [0, 1], color="k")
@@ -2145,7 +2135,7 @@ class Against(Output):
    supports_threshold = False
    supports_x = False
    # How big difference should colour kick in (in number of STDs)?
-   _minStdDiff = 0.1
+   _min_std_diff = 0.1
 
    def _plot_core(self, data):
       F = data.num_inputs
@@ -2158,24 +2148,23 @@ class Against(Output):
             if f0 != f1 and (F != 2 or f0 == 0):
                if F > 2:
                   mpl.subplot(F, F, f0 + f1 * F + 1)
-               x = data.get_scores(verif.field.Fcst(), f0).flatten()
-               y = data.get_scores(verif.field.Fcst(), f1).flatten()
+               x = data.get_scores(verif.field.Fcst(), f0, verif.axis.No())
+               y = data.get_scores(verif.field.Fcst(), f1, verif.axis.No())
                lower = min(min(x), min(y))
                upper = max(max(x), max(y))
 
+               # Plot all points (including ones with missing obs)
                mpl.plot(x, y, "x", mec="k", ms=self.ms / 2, mfc="k", zorder=-10)
 
-               # Show which forecast is better
-               [obsx, x] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f0)
-               [obsy, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f1)
-               x = x.flatten()
-               y = y.flatten()
-               obs = obsx.flatten()
+               # Show which forecast is better, plot on top of missing
+               [obsx, x] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f0, verif.axis.No())
+               [obsy, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f1, verif.axis.No())
+               obs = obsx
 
                mpl.plot(x, y, "s", mec="k", ms=self.ms / 2, mfc="w", zorder=-5)
 
                std = np.std(obs) / 2
-               minDiff = self._minStdDiff * std
+               minDiff = self._min_std_diff * std
                if len(x) == len(y):
                   N = 5
                   for k in range(0, N):
@@ -2185,18 +2174,12 @@ class Against(Output):
                      mpl.plot(x[Ix], y[Ix], "r.", ms=self.ms, alpha=alpha)
                      mpl.plot(x[Iy], y[Iy], "b.", ms=self.ms, alpha=alpha)
 
-               # Contour of the frequency
-               # q = np.histogram2d(x[1,:], x[0,:], [np.linspace(lower,upper,100), np.linspace(lower,upper,100)])
-               # [X,Y] = np.meshgrid(q[1],q[2])
-               # mpl.contour(X[1:,1:],Y[1:,1:],q[0],[1,100],zorder=90)
-
                mpl.xlabel(labels[f0], color="r")
                mpl.ylabel(labels[f1], color="b")
                lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
                mpl.xlim(lims)
                mpl.ylim(lims)
-               mpl.plot(lims, lims, '--',
-                        color=[0.3, 0.3, 0.3], lw=3, zorder=100)
+               mpl.plot(lims, lims, '--', color=[0.3, 0.3, 0.3], lw=3, zorder=100)
                if F == 2:
                   break
       mpl.gca().set_aspect(1)
@@ -2664,8 +2647,6 @@ class Impact(Output):
    supports_threshold = False
    requires_threshold = True
    supports_x = False
-   # How big difference should colour kick in (in number of STDs)?
-   _minStdDiff = 0.1
    _showNumbers = False
    _prob = False
 
