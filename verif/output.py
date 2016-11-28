@@ -1279,16 +1279,16 @@ class Cond(Output):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
 
-         of = np.zeros(len(x), 'float')
-         fo = np.zeros(len(x), 'float')
-         xof = np.zeros(len(x), 'float')
-         xfo = np.zeros(len(x), 'float')
+         of = np.zeros(len(intervals), 'float')
+         fo = np.zeros(len(intervals), 'float')
+         xof = np.zeros(len(intervals), 'float')
+         xfo = np.zeros(len(intervals), 'float')
          mof = verif.metric.Conditional(verif.field.Obs(),verif.field.Fcst(), np.mean)  # F | O
          mfo = verif.metric.Conditional(verif.field.Fcst(),verif.field.Obs(), np.mean)  # O | F
          xmof = verif.metric.XConditional(verif.field.Obs(),verif.field.Fcst())  # F | O
          xmfo = verif.metric.XConditional(verif.field.Fcst(),verif.field.Obs())  # O | F
          mof0 = verif.metric.Conditional(verif.field.Obs(),verif.field.Fcst(), np.mean)  # F | O
-         for i in range(0, len(lowerT)):
+         for i in range(0, len(intervals)):
             fo[i] = mfo.compute(data, f, verif.axis.No(), intervals[i])
             of[i] = mof.compute(data, f, verif.axis.No(), intervals[i])
             xfo[i] = xmfo.compute(data, f, verif.axis.No(), intervals[i])
