@@ -402,8 +402,8 @@ def run(argv):
    # Create thresholds if needed
    if((thresholds is None) and (pl.requires_threshold or
          (m is not None and m.requires_threshold))):
-      obs = data.get_scores(verif.field.Obs(), 0)[0]
-      fcst = data.get_scores(verif.field.Fcst(), 0)[0]
+      obs = data.get_scores(verif.field.Obs(), 0)
+      fcst = data.get_scores(verif.field.Fcst(), 0)
       smin = min(np.nanmin(obs), np.nanmin(fcst))
       smax = max(np.nanmax(obs), np.nanmax(fcst))
       thresholds = np.linspace(smin, smax, 10)
