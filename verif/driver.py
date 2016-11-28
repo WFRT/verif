@@ -624,7 +624,7 @@ def show_description(data=None):
    print ""
    print verif.util.green("File formats:")
    print format_argument("text", verif.input.Text.description)
-   print format_argument("netcdf", verif.input.Comps.description)
+   print format_argument("netcdf", verif.input.Netcdf.description)
 
 
 def format_argument(arg, description, arg_width=19, total_width=None, indent=2):

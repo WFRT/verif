@@ -105,38 +105,6 @@ commands to test out:
    verif examples/raw.txt examples/kf.txt -m reliability -r 0
    verif examples/raw.txt examples/kf.txt -m pithist
 
-Text-based input
-----------------
-To verify your own forecasts, the easiest option is to put the data into the following format:
-
-.. code-block:: bash
-
-   # variable: Temperature
-   # units: $^oC$
-   date     offset id      lat     lon      elev     obs      fcst   p10
-   20150101 0      214     49.2    -122.1   92       3.4      2.1    0.914
-   20150101 1      214     49.2    -122.1   92       4.7      4.2    0.858
-   20150101 0      180     50.3    -120.3   150      0.2      -1.2   0.992
-
-Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After
-that is a header line that must describe the data columns below. The following attributes are
-recognized:
-
-* date (in YYYYMMDD)
-* offset (forecast lead time in hours)
-* id (station identifier)
-* lat (in degrees)
-* lon (in degrees)
-* obs (observations)
-* fcst (deterministic forecast)
-* p<number> (cumulative probability at a threshold of 10)
-
-obs and fcst are the only required columns. Note that the file will likely have many rows with repeated values of offsetid/lat/lon/elev. If station and lead time information is missing, then ``verif`` assumes they are all for the same station and lead time. The columns can be in any order.
-
-Deterministic forecasts will only have "obs" and "fcst", however probabilistic forecasts can provide
-any number of cumulative probabilities. For probabilistic forecasts, "fcst" could represent the
-ensemble mean (or any other method to reduce the ensemble to a deterministic forecast).
-
 Available metrics
 -----------------
 Here is a list of currently supported metrics. Note that the plots that are possible to make depend
@@ -233,16 +201,48 @@ on what variables are available in the input files.
 ``-m timeseries``       Time series of obs and forecasts
 ======================  ===============================================================
 
-Proposed NetCDF input
+Text-based input
+----------------
+To verify your own forecasts, the easiest option is to put the data into the following format:
+
+.. code-block:: bash
+
+   # variable: Temperature
+   # units: $^oC$
+   date     offset id      lat     lon      elev     obs      fcst   p10
+   20150101 0      214     49.2    -122.1   92       3.4      2.1    0.914
+   20150101 1      214     49.2    -122.1   92       4.7      4.2    0.858
+   20150101 0      180     50.3    -120.3   150      0.2      -1.2   0.992
+
+Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After
+that is a header line that must describe the data columns below. The following attributes are
+recognized:
+
+* date (in YYYYMMDD)
+* offset (forecast lead time in hours)
+* id (station identifier)
+* lat (in degrees)
+* lon (in degrees)
+* obs (observations)
+* fcst (deterministic forecast)
+* p<number> (cumulative probability at a threshold of 10)
+
+obs and fcst are the only required columns. Note that the file will likely have many rows with repeated values of offsetid/lat/lon/elev. If station and lead time information is missing, then ``verif`` assumes they are all for the same station and lead time. The columns can be in any order.
+
+Deterministic forecasts will only have "obs" and "fcst", however probabilistic forecasts can provide
+any number of cumulative probabilities. For probabilistic forecasts, "fcst" could represent the
+ensemble mean (or any other method to reduce the ensemble to a deterministic forecast).
+
+NetCDF-based  input
 ---------------------
-We are working on defining a NetCDF format that can also be read by ``verif``. Here is our current
-proposal, based on the NetCDF/CF standard:
+For larger datasets, the files in NetCDF are much quicker to read. The following dimensions and
+variables are understood by ``verif``:
 
 .. code-block:: bash
 
    netcdf format {
    dimensions :
-      time    = UNLIMITED;
+      time = UNLIMITED;
          time:standard_name = "time" ;
          time:units = "seconds since 1970-01-01 00:00:00 +00:00" ;
       lead_time  = 48;
@@ -251,27 +251,27 @@ proposal, based on the NetCDF/CF standard:
       threshold = 11;
       quantile = 11;
    variables:
-      int time(time);
-      float lead_time(lead_time);
-      int id(location);
+      int time(time);                                     // Valid time of forecast initialization
+      float lead_time(lead_time);                         // Number of hours since forecast init
+      int id(location);                                   // Id for each station location
       float threshold(threshold);
-      float quantile(quantile);
-      float lat(location);
-      float lon(location);
-      float elev(location);
+      float quantile(quantile);                           // Numbers between 0 and 1
+      float lat(location);                                // Decimal degrees latitude
+      float lon(location);                                // Decimal degrees longitude
+      float elev(location);                               // Elevation in meters
       float obs(time, lead_time, location);               // Observations
       float ens(time, lead_time, location, member);       // Ensemble forecast
       float fcst(time, lead_time, location);              // Deterministic forecast
       float cdf(time, lead_time, location, threshold);    // Accumulated prob at threshold
-      float pdf(time, lead_time, location, threshold);    // Pdf at threshold
+      float pdf(time, lead_time, location, threshold);    // Probability density at threshold
       float x(time, lead_time, location, quantile);       // Threshold corresponding to quantile
       float pit(time, lead_time, location);               // CDF for threshold=observation
 
    global attributes:
-      : name = "raw";                                 // Used as configuration name
-      : long_name = "Temperature";                    // Used to label plots
-      : standard_name = "air_temperature_2m";
-      : Units = "^oC";                                // Used to label axes
+      : name = "raw";                                    // Used as configuration name
+      : standard_name = "air_temperature";               // Name of the forecast variabl
+      : long_name = "Temperature";                       // Used to label plots
+      : Units = "^oC";                                   // Used to label axes
       : Conventions = "verif_1.0.0";
       }
 

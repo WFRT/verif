@@ -16,8 +16,8 @@ import verif.field
 def get_input(filename):
    if not os.path.isfile(filename):
       verif.util.error("File '" + filename + "' does not exist")
-   if(verif.input.NetcdfCf.is_valid(filename)):
-      input = verif.input.NetcdfCf(filename)
+   if(verif.input.Netcdf.is_valid(filename)):
+      input = verif.input.Netcdf(filename)
    elif(verif.input.Comps.is_valid(filename)):
       input = verif.input.Comps(filename)
    elif(verif.input.Text.is_valid(filename)):
@@ -95,7 +95,7 @@ class Comps(Input):
    Original fileformat used by OutputVerif in COMPS (https://github.com/WFRT/Comps)
    """
    _dimensionNames = ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]
-   description = "Undocumented legacy NetCDF format, to be phased out. A new NetCDF based format will be defined."
+   description = "Undocumented legacy NetCDF format, to be phased out."
 
    def __init__(self, filename):
       self.fullname = filename
@@ -281,20 +281,11 @@ class Comps(Input):
       return variable_name
 
 
-class NetcdfCf(Input):
+class Netcdf(Input):
    """
    New standard format, based on NetCDF/CF
    """
-   def __init__(self, filename):
-      self.fullname = filename
-      self._filename = os.path.expanduser(filename)
-      self._file = netcdf(self._filename, 'r')
-      self.times = self._get_times()
-      self.offsets = self._get_offsets()
-      self.locations = self._get_locations()
-      self.thresholds = self._get_thresholds()
-      self.quantiles = self._get_quantiles()
-      self.variable = self._get_variable()
+   description = "NetCDF format that runs much quicker than the text format, though requires more effort to create. See https://github.com/WFRT/verif for more information about creating this file"
 
    @staticmethod
    def is_valid(filename):
