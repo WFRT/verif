@@ -287,6 +287,17 @@ class Netcdf(Input):
    """
    description = "NetCDF format that runs much quicker than the text format, though requires more effort to create. See https://github.com/WFRT/verif for more information about creating this file"
 
+   def __init__(self, filename):
+      self.fullname = filename
+      self._filename = os.path.expanduser(filename)
+      self._file = netcdf(self._filename, 'r')
+      self.times = self._get_times()
+      self.offsets = self._get_offsets()
+      self.locations = self._get_locations()
+      self.thresholds = self._get_thresholds()
+      self.quantiles = self._get_quantiles()
+      self.variable = self._get_variable()
+
    @staticmethod
    def is_valid(filename):
       try:
