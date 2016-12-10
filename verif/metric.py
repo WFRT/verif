@@ -1093,7 +1093,7 @@ class Contingency(Metric):
          lower = np.percentile(sorted, interval.lower * 100)
       if not np.isinf(abs(interval.lower)):
          upper = np.percentile(sorted, interval.upper * 100)
-      return verif.interval.Interval(lower, upper, interval.lower_equality, interval.upper_equality)
+      return verif.interval.Interval(lower, upper, interval.lower_eq, interval.upper_eq)
 
    def compute_from_obs_fcst(self, obs, fcst, interval):
       """

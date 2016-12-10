@@ -409,8 +409,8 @@ def get_intervals(bin_type, thresholds):
    if re.compile(".*within.*").match(bin_type):
       N = N - 1
    for i in range(0, N):
-      lower_equality = False
-      upper_equality = False
+      lower_eq = False
+      upper_eq = False
 
       if bin_type in ["below", "below="]:
          lower = -np.inf
@@ -424,8 +424,8 @@ def get_intervals(bin_type, thresholds):
       else:
          verif.util.error("Unrecognized bintype")
       if bin_type in ["below=", "within=", "=within="]:
-         upper_equality = True
+         upper_eq = True
       if bin_type in ["above=", "=within", "=within="]:
-         lower_equality = True
-      intervals.append(verif.interval.Interval(lower, upper, lower_equality, upper_equality))
+         lower_eq = True
+      intervals.append(verif.interval.Interval(lower, upper, lower_eq, upper_eq))
    return intervals
