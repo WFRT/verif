@@ -1,7 +1,8 @@
-import sys
 import inspect
-import matplotlib.ticker
 import matplotlib.dates
+import matplotlib.ticker
+import sys
+
 import verif.util
 
 
@@ -27,16 +28,17 @@ def get(name):
 
 
 class Axis(object):
-   """
-   Class attributes:
-   is_continuous     Is this axis represent a notion that is continuous? I.e. does it make
-                     sense to connect dots with a line on a graph? For example, Location is
-                     not a continuous axis.
-   is_location_like  Does this axis related to the notion of location?
-   is_time_like      Does this axis have anything to do with the notion of time?
-   formatter         What format should this axis have? Returns an mpl Formatter
-                     Note the date formatters are never retrieved from here, since
-                     mpl.gca().xaxis_date() is used instead
+   """ Represents axes that data can be arranged by
+
+   Attributes:
+      is_continuous (bool): Does this axis represent a notion that is
+         continuous (does it make sense to connect dots with a line on a
+         graph)? For example, Location is not a continuous axis.
+      is_location_like (bool): Does this axis related to the notion of location?
+      is_time_like (bool): Does this axis have anything to do with the notion of time?
+      formatter (matplotlib.ticker.Formatter): What format should this axis
+         have? Returns an mpl Formatter Note the date formatters are never
+         retrieved from here, since mpl.gca().xaxis_date() is used instead
    """
    is_continuous = True
    is_location_like = False

@@ -1,38 +1,45 @@
-import datetime
-import re
-import calendar
-import numpy as np
-import sys
-import verif.interval
 from matplotlib.dates import *
+import calendar
 import copy
+import datetime
 import matplotlib.pyplot as mpl
-import textwrap
+import numpy as np
 import os
+import re
+import sys
+import textwrap
 
-
-def bin(x, y, edges, func=np.mean):
-   yy = np.nan*np.zeros(len(edges)-1, 'float')
-   xx = (edges[0:-1] + edges[1:]) / 2
-   for i in range(0, len(xx)):
-      I = np.where((x > edges[i]) & (x <= edges[i + 1]))[0]
-      if len(I) > 0:
-         yy[i] = func(y[I])
-   return xx, yy
+import verif.interval
 
 
 def convert_dates(dates):
+   """ Converts dates in YYYYMMDD format into datetime values
+
+   Arguments:
+      dates (np.array): dates in YYYYMMDD format
+
+   Returns:
+      np.array: datetime values
+   """
    numDates = len(dates)
-   dates2 = np.zeros([numDates], 'float')
+   datetimes = np.zeros([numDates], 'float')
    for i in range(0, numDates):
       year = int(dates[i] / 10000)
       month = int(dates[i] / 100 % 100)
       day = int(dates[i] % 100)
-      dates2[i] = date2num(datetime.datetime(year, month, day, 0))
-   return dates2
+      datetimes[i] = date2num(datetime.datetime(year, month, day, 0))
+   return datetimes
 
 
 def convert_times(times):
+   """ Converts unixtimes into datetime values
+
+   Arguments:
+      times (np.array): uniximes in seconds since 1970
+
+   Returns:
+      np.array: datetime values
+   """
    num_times = len(times)
    times2 = np.zeros([num_times], 'float')
    for i in range(0, num_times):
@@ -42,6 +49,14 @@ def convert_times(times):
 
 
 def convert_to_yyyymmdd(dates):
+   """ Converts datetime values into YYYYMMDD values
+
+   Arguments:
+      dates (np.array): datetime values
+
+   Returns:
+      np.array: integers in YYYYMMDD
+   """
    num_dates = len(dates)
    dates2 = np.zeros([num_dates], 'int')
    for i in range(0, num_dates):
@@ -49,19 +64,22 @@ def convert_to_yyyymmdd(dates):
    return dates2
 
 
-def date_to_unixtime_slow(date):
-   ut = calendar.timegm(datetime.datetime.strptime(str(date), "%Y%m%d").timetuple())
-   return ut
-
-
 def date_to_unixtime(date):
+   """ Convert YYYYMMDD to unixtime """
    year = date / 10000
    month = date / 100 % 100
    day = date % 100
    ut = calendar.timegm(datetime.datetime(year, month, day).timetuple())
    return ut
 
+
+def date_to_unixtime_slow(date):
+   ut = calendar.timegm(datetime.datetime.strptime(str(date), "%Y%m%d").timetuple())
+   return ut
+
+
 def unixtime_to_date(unixtime):
+   """ Convert unixtime to YYYYMMDD """
    dt = datetime.datetime.utcfromtimestamp(int(unixtime))
    date = dt.year * 10000 + dt.month * 100 + dt.day
    return date
@@ -101,7 +119,7 @@ def warning(message):
    print "\033[1;33mWarning: " + message + "\033[0m"
 
 
-def parse_numbers(numbers, isDate=False):
+def parse_numbers(numbers, is_date=False):
    """
    Parses numbers from an input string. Recognizes MATLAB syntax, such as:
    3              single numbers
@@ -111,6 +129,13 @@ def parse_numbers(numbers, isDate=False):
    3,4:6,2:5:9,6  combinations
 
    Aborts if the number cannot be parsed.
+
+   Arguments:
+      numbers (str): String of numbers
+      is_date (bool): True if values should be interpreted as YYYYMMDD
+
+   Returns:
+      list: parsed numbers
    """
    # Check if valid string
    if(any(char not in set('-01234567890.:,') for char in numbers)):
@@ -130,7 +155,7 @@ def parse_numbers(numbers, isDate=False):
          stepSign = step / abs(step)
          # arange does not include the end point:
          end = float(colonList[-1]) + stepSign * 0.0001
-         if(isDate):
+         if(is_date):
             date = min(start, end)
             curr = list()
             while date <= max(start, end):
@@ -141,7 +166,7 @@ def parse_numbers(numbers, isDate=False):
             values = values + list(np.arange(start, end, step))
       else:
          error("Could not translate '" + numbers + "' into numbers")
-      if(isDate):
+      if(is_date):
          for i in range(0, len(values)):
             values[i] = int(values[i])
    return values
@@ -180,28 +205,47 @@ def get_map_resolution(lats, lons):
    return res
 
 
-def fill(x, yLower, yUpper, col, alpha=1, zorder=0, hatch=''):
-   """
-   Fill an area along x, between yLower and yUpper. Both yLower and yUpper most
+def fill(x, y_lower, y_upper, col, alpha=1, zorder=0, hatch=''):
+   """ Fill an area between two curves
+
+   Fill an area along x, between y_lower and y_upper. Both y_lower and y_upper most
    correspond to points in x (i.e. be in the same order)
+
+   Arguments:
+      x (np.array): x-axis values
+      y_lower (np.array): y-axis values for lower envelope
+      y_upper (np.array): y-axis values for upper envelope
+      col: Color of filled area in any format understood by mpl.fill
+      alpha: alpha of filled area
+      zorder: zorder
+      hatch: any hatch string understood by mpl.fill
    """
    # Populate a list of non-missing points
    X = list()
    Y = list()
    for i in range(0, len(x)):
-      if(not(np.isnan(x[i]) or np.isnan(yLower[i]))):
+      if(not(np.isnan(x[i]) or np.isnan(y_lower[i]))):
          X.append(x[i])
-         Y.append(yLower[i])
+         Y.append(y_lower[i])
    for i in range(len(x) - 1, -1, -1):
-      if(not (np.isnan(x[i]) or np.isnan(yUpper[i]))):
+      if(not (np.isnan(x[i]) or np.isnan(y_upper[i]))):
          X.append(x[i])
-         Y.append(yUpper[i])
+         Y.append(y_upper[i])
    if(len(X) > 0):
       mpl.fill(X, Y, facecolor=col, alpha=alpha, linewidth=0, zorder=zorder,
             hatch=hatch)
 
 
 def clean(data):
+   """ Copy and sanitize data from a netCDF4 variable
+
+   Arguments:
+      data: A netCDF4 variable
+
+   Returns:
+      np.array: A numpy array where invalid values have been set to np.nan
+
+   """
    data = data[:].astype(float)
    q = copy.deepcopy(data)
    # Remove missing values. Convert to -999 and then back to nan to avoid
@@ -212,11 +256,14 @@ def clean(data):
 
 
 def get_date(date, diff):
-   """
-   Date calculation: Adds 'diff' to 'date'
+   """ Date calculation: Adds 'diff' to 'date'
 
-   date     An integer of the form YYYYMMDD
-   diff     Number of days to add to date
+   Arguments:
+      date (int): An integer of the form YYYYMMDD
+      diff (int): Number of days to add to date
+
+   Returns:
+      int: A new date in the form YYYYMMDD
    """
    year = int(date / 10000)
    month = int(date / 100 % 100)
@@ -311,14 +358,7 @@ def distance(lat1, lon1, lat2, lon2):
 
 
 def apply_threshold(array, bin_type, threshold, upper_threshold=None):
-   """ 
-   Use bin_type to turn array into binary values
-
-   array
-   bin_type
-   threshold
-   upper_threshold   Upper threshold (only needed with bin_type = *within*)
-   """
+   """ Use bin_type to turn array into binary values """
    if bin_type == "below":
       array = array < threshold
    elif bin_type == "below=":

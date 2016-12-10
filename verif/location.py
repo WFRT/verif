@@ -1,15 +1,15 @@
-import verif.util
 import numpy as np
+import verif.util
 
 
 class Location(object):
    """ Class for storing a geographical point, as well as its metadata
 
    Attributes:
-   id       integer, station identifier
-   lat      decimal degrees latitude
-   lon      decimal degrees longitude
-   elev     elevation in meters
+      id (int): station identifier
+      lat (float): decimal degrees latitude
+      lon (float): decimal degrees longitude
+      elev (float): elevation in meters
    """
 
    radius_earth = 6.37e6
@@ -21,7 +21,14 @@ class Location(object):
       self.elev = elev
 
    def get_distance(self, other):
-      """ Calculate the distance (in meters) between this location and the other location """
+      """ Calculate the distance between this location and another location
+
+      Arguments:
+         other (Location): The other location
+
+      Returns:
+         float: Distance in meters
+      """
       lat1 = self.lat
       lon1 = self.lon
       lat2 = other.lat

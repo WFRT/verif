@@ -26,14 +26,27 @@ def get(name):
 
 
 class Field(object):
-   """
-   Base class representing scalar fields of data that can be retrieved from
-   input files
-   """
+   """ Base class representing scalar fields of data that can be retrieved from input files """
    @classmethod
    def name(cls):
       name = cls.__name__
       return name
+
+   def label(self, variable):
+      """ Get an appropriate axis label for this field """
+      return variable.name
+
+   def units(self, variable):
+      """ Get the units of this field """
+      return variable.units
+
+   def formatter(self, variable):
+      """ What formatter for plotting is appropriate for this field?
+
+      Returns:
+         matplotlib.ticker.Formatter: The formatter
+      """
+      return variable.formatter
 
    def __eq__(self, other):
       return self.__class__ == other.__class__
@@ -42,37 +55,23 @@ class Field(object):
       # TODO
       return 1
 
-   def units(self, variable):
-      return variable.units
-
-   def formatter(self, variable):
-      return variable.formatter
-
 
 class Obs(Field):
-   def label(self, variable):
-      return variable.name
+   pass
 
 
 class Fcst(Field):
-   def label(self, variable):
-      return variable.name
+   pass
 
 
 class Ensemble(Field):
    def __init__(self, member):
       self.member = member
 
-   def label(self, variable):
-      return variable.name
-
 
 class Quantile(Field):
    def __init__(self, quantile):
       self.quantile = quantile
-
-   def label(self, variable):
-      return variable.name
 
    def name(self):
       return "Quantile(%g)" % self.quantile

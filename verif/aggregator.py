@@ -1,6 +1,7 @@
-import numpy as np
 import inspect
+import numpy as np
 import sys
+
 import verif.util
 
 
@@ -11,11 +12,11 @@ def get_all():
 
 
 def get(name):
-   """
-   Returns an instance of an object with the given class name
+   """ Returns an instance of an object with the given class name
    
-   name     The name of the class. Use a number between 0 and 1 to get the
-            corresponding quantile aggregator. 
+   Arguments:
+      name (str): The name of the class. Use a number between 0 and 1 to get the
+         corresponding quantile aggregator. 
    """
    aggregators = get_all()
    a = None
@@ -29,23 +30,21 @@ def get(name):
 
 
 class Aggregator(object):
-   """
-   Base class for aggregating an array (i.e. computing a single value from an
-   array)
+   """ Base class for aggregating an array (computing a scalar value from an array)
 
    Usage:
-   mean = verif.aggregator.Mean()
-   mean(np.array([1,2,3]))
+      mean = verif.aggregator.Mean()
+      mean(np.array([1,2,3]))
 
-   Class attributes:
-   name:    A string representing the name of the aggregator
+   Attributes:
+      name: A string representing the name of the aggregator
    """
 
    def __call__(self, array):
       """ Compute the aggregated value. Returns a scalar value.
 
       Arguments:
-      array    A 1D numpy array
+         array (np.array): A 1D numpy array
       """
       raise NotImplementedError()
 
@@ -128,7 +127,7 @@ class Quantile(Aggregator):
       """ Returns a certain quantile from the array
 
       Arguments:
-      quantile       A scalar value between 0 and 1 inclusive
+         quantile (float): A value between 0 and 1 inclusive
       """
       self.quantile = quantile
       if self.quantile < 0 or self.quantile > 1:

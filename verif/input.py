@@ -1,13 +1,14 @@
-import os
 import csv
-import numpy as np
-import time
 import datetime
+import numpy as np
+import os
 import re
+import time
 try:
    from netCDF4 import Dataset as netcdf
 except:
    from scipy.io.netcdf import netcdf_file as netcdf
+
 import verif.location
 import verif.util
 import verif.variable
@@ -34,36 +35,42 @@ class Input(object):
    probabilistic format.
 
    Class attributes:
-   description       A string description of the parser
+      description: A string description of the parser
 
-   Instance attributes:
-   name              A string name identifying the dataset (such as a filename)
-   fullname          A string name identifying the dataset (such as a filename)
-   shortname         A string name identifying the dataset (such as a filename)
-   variable          A verif.variable representing the stored in the input
+   Attributes:
+      name: A string name identifying the dataset (such as a filename)
+      fullname: A string name identifying the dataset (such as a filename)
+      shortname: A string name identifying the dataset (such as a filename)
+      variable: A verif.variable representing the stored in the input
 
-   times             A numpy array of available initialization times (unix time)
-   offsets           A numpy array of available leadtimes (in hours)
-   locations         A list of verif.location of available locations
-   thresholds        A numpy array of available thresholds
-   quantiles         A numpy array of available quantiles
+      times (np.array): Available initialization times (unix time)
+      offsets (np.array): Available leadtimes (in hours)
+      locations (list): A list of verif.location of available locations
+      thresholds (np.array): Available thresholds
+      quantiles (np.array): Available quantiles
 
-   The following are 3D numpy arrays with dims (time, offset, location)
-   obs               Observations with dims
-   fcst              Forecasts with dims
-   pit               Verifying probability integral transform values (i.e. the CDF
-                     where the observation falls in)
+      The following are 3D numpy arrays with dims (time, offset, location)
+      obs: Observations with dims
+      fcst: Forecasts with dims
+      pit: Verifying probability integral transform values (i.e. the CDF where
+         the observation falls in)
 
-   ensemble          A 4D numpy array of ensemble data with dims (time,offset,location,member)
-   threshold_scores  A 4D numpy array with CDF values for each threshold
-                     with dims (time,offset,location, threshold)
-   quantile_scores   A 4D numpy array with values at certain quantiles with
-                     dims (time,offset,location, quantile)
+      ensemble: A 4D numpy array of ensemble data with dims (time,offset,location,member)
+      threshold_scores: A 4D numpy array with CDF values for each threshold
+         with dims (time,offset,location, threshold)
+      quantile_scores: A 4D numpy array with values at certain quantiles with
+         dims (time,offset,location, quantile)
+
+   Subclasses must populate all attributes
    """
    description = None  # Overwrite this
 
    def get_fields(self):
-      """ Get the available fields in this input. Returns a list of verif.field """
+      """ Get the available fields in this input
+
+      Returns:
+         list(verif.field): The available fields
+      """
       fields = list()
       if self.obs is not None:
          fields.append(verif.field.Obs())
@@ -90,200 +97,9 @@ class Input(object):
       return name
 
 
-class Comps(Input):
-   """
-   Original fileformat used by OutputVerif in COMPS (https://github.com/WFRT/Comps)
-   """
-   _dimensionNames = ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]
-   description = "Undocumented legacy NetCDF format, to be phased out."
-
-   def __init__(self, filename):
-      self.fullname = filename
-      self._filename = os.path.expanduser(filename)
-      self._file = netcdf(self._filename, 'r')
-
-      # Pre-load these variables, to save time when queried repeatedly
-      dates = verif.util.clean(self._file.variables["Date"])
-      self.times = np.array([verif.util.date_to_unixtime(int(date)) for date in dates], int)
-      self.offsets = verif.util.clean(self._file.variables["Offset"])
-      self.thresholds = self._get_thresholds()
-      self.quantiles = self._get_quantiles()
-      self.locations = self._get_locations()
-      self.variable = self._get_variable()
-
-   @staticmethod
-   def is_valid(filename):
-      """ Checks that 'filename' is a valid object of this type """
-      valid = True
-      try:
-         file = netcdf(filename, 'r')
-         required_dimensions = ["Offset", "Date", "Location"]
-         for dim in required_dimensions:
-            valid = valid & (dim in file.dimensions )
-         file.close()
-         return valid
-      except:
-         return False
-
-   @property
-   def obs(self):
-      if "obs" in self._file.variables:
-         return verif.util.clean(self._file.variables["obs"])
-      else:
-         return None
-
-   @property
-   def fcst(self):
-      if "obs" in self._file.variables:
-         return verif.util.clean(self._file.variables["fcst"])
-      else:
-         return None
-
-   @property
-   def pit(self):
-      if "pit" in self._file.variables:
-         return verif.util.clean(self._file.variables["pit"])
-      else:
-         return None
-
-   @property
-   def threshold_scores(self):
-      thresholds = self.thresholds
-      Nt = len(thresholds)
-      values = None
-
-      for t in range(0, Nt):
-         p_var = self._verif_to_comps_threshold(thresholds[t])
-         np.array([Nt], float)
-         temp = self._get_score(p_var)
-         if values is None:
-            shape = [i for i in temp.shape] + [Nt]
-            values = np.zeros(shape, float)
-         values[:, :, :, t] = temp
-
-      return values
-
-   @property
-   def quantile_scores(self):
-      quantiles = self.quantiles
-      Nq = len(quantiles)
-      values = None
-
-      for q in range(0, Nq):
-         q_var = self._verif_to_comps_quantile(quantiles[q])
-         np.array([Nq], float)
-         temp = self._get_score(q_var)
-         if values is None:
-            shape = [i for i in temp.shape] + [Nq]
-            values = np.zeros(shape, float)
-         values[:, :, :, q] = temp
-
-      return values
-
-   def _get_locations(self):
-      lat = verif.util.clean(self._file.variables["Lat"])
-      lon = verif.util.clean(self._file.variables["Lon"])
-      id = verif.util.clean(self._file.variables["Location"])
-      elev = verif.util.clean(self._file.variables["Elev"])
-      locations = list()
-      for i in range(0, lat.shape[0]):
-         location = verif.location.Location(id[i], lat[i], lon[i], elev[i])
-         locations.append(location)
-      return locations
-
-   def _get_thresholds(self):
-      thresholds = list()
-      for (var, v) in self._file.variables.iteritems():
-         if(var not in self._dimensionNames):
-            threshold = self._comps_to_verif_threshold(var)
-            if threshold is not None:
-               thresholds.append(threshold)
-      return np.array(thresholds)
-
-   def _get_quantiles(self):
-      quantiles = list()
-      for (var, v) in self._file.variables.iteritems():
-         if(var not in self._dimensionNames):
-            quantile = self._comps_to_verif_quantile(var)
-            if(quantile is not None):
-               quantiles.append(quantile)
-      return np.array(quantiles)
-
-   def _get_variable(self):
-      name = self._file.Variable
-      units = "No units"
-      if(hasattr(self._file, "Units")):
-         if(self._file.Units == ""):
-            units = "No units"
-         elif(self._file.Units == "%"):
-            units = "%"
-         else:
-            units = "$" + self._file.Units + "$"
-      x0 = verif.variable.guess_x0(name)
-      x1 = verif.variable.guess_x1(name)
-      return verif.variable.Variable(name, units, x0=x0, x1=x1)
-
-   def _get_score(self, metric):
-      temp = verif.util.clean(self._file.variables[metric])
-      return temp
-
-   @staticmethod
-   def _comps_to_verif_threshold(variable_name):
-      """ Converts from COMPS name (i.e p03) to verif threshold (i.e 0.3) """
-      threshold = None
-      if len(variable_name) >= 2 or variable_name[0] == "p":
-         variable_name = variable_name.replace("m", "-")
-         variable_name = variable_name.replace("p0", "0.")
-         variable_name = variable_name.replace("p", "")
-         assert(len(np.where(variable_name == ".")) < 2)
-         if verif.util.is_number(variable_name):
-            threshold = float(variable_name)
-      return threshold
-
-   @staticmethod
-   def _comps_to_verif_quantile(variable_name):
-      """ Converts from COMPS name (i.e q30) to verif quantile (i.e 0.3) """
-      quantile = None
-      if len(variable_name) >= 2 or variable_name[0] == "q":
-         variable_name = variable_name.replace("q0", "0.")
-         variable_name = variable_name.replace("q", "")
-         if verif.util.is_number(variable_name):
-            temp = float(variable_name)/100
-            if temp >= 0 and temp <= 1:
-               quantile = temp
-      return quantile
-
-   @staticmethod
-   def _verif_to_comps_threshold(threshold):
-      """ Converts from verif threshold (i.e. 0.3) to COMPS name (i.e p03) """
-      if threshold == 0:
-         variable_name = "0"
-      elif np.abs(threshold) < 1:
-         variable_name = "%g" % threshold
-         variable_name = variable_name.replace(".", "")
-      else:
-         variable_name = "%d" % threshold
-      variable_name = variable_name.replace("-", "m")
-      variable_name = "p%s" % variable_name
-      return variable_name
-
-   @staticmethod
-   def _verif_to_comps_quantile(quantile):
-      """ Converts from verif quantile (i.e. 0.3) to COMPS name (i.e q30) """
-      if quantile < 0 or quantile > 1:
-         return None
-      if quantile == 0:
-         variable_name = "0"
-      else:
-         variable_name = "%g" % (quantile * 100)
-         variable_name = variable_name.replace(".", "")
-      variable_name = "q%s" % variable_name
-      return variable_name
-
-
 class Netcdf(Input):
    """
-   New standard format, based on NetCDF/CF
+   Netcdf file format
    """
    description = "NetCDF format that runs much quicker than the text format, though requires more effort to create. See https://github.com/WFRT/verif for more information about creating this file"
 
@@ -655,6 +471,197 @@ class Text(Input):
          if(att[0] == "p" and att != "pit"):
             thresholds.append(att)
       return thresholds
+
+
+class Comps(Input):
+   """
+   Original NetCDF file format used by OutputVerif in COMPS (https://github.com/WFRT/Comps)
+   """
+   _dimensionNames = ["Date", "Offset", "Location", "Lat", "Lon", "Elev"]
+   description = "Undocumented legacy NetCDF format, to be phased out."
+
+   def __init__(self, filename):
+      self.fullname = filename
+      self._filename = os.path.expanduser(filename)
+      self._file = netcdf(self._filename, 'r')
+
+      # Pre-load these variables, to save time when queried repeatedly
+      dates = verif.util.clean(self._file.variables["Date"])
+      self.times = np.array([verif.util.date_to_unixtime(int(date)) for date in dates], int)
+      self.offsets = verif.util.clean(self._file.variables["Offset"])
+      self.thresholds = self._get_thresholds()
+      self.quantiles = self._get_quantiles()
+      self.locations = self._get_locations()
+      self.variable = self._get_variable()
+
+   @staticmethod
+   def is_valid(filename):
+      """ Checks that 'filename' is a valid object of this type """
+      valid = True
+      try:
+         file = netcdf(filename, 'r')
+         required_dimensions = ["Offset", "Date", "Location"]
+         for dim in required_dimensions:
+            valid = valid & (dim in file.dimensions )
+         file.close()
+         return valid
+      except:
+         return False
+
+   @property
+   def obs(self):
+      if "obs" in self._file.variables:
+         return verif.util.clean(self._file.variables["obs"])
+      else:
+         return None
+
+   @property
+   def fcst(self):
+      if "obs" in self._file.variables:
+         return verif.util.clean(self._file.variables["fcst"])
+      else:
+         return None
+
+   @property
+   def pit(self):
+      if "pit" in self._file.variables:
+         return verif.util.clean(self._file.variables["pit"])
+      else:
+         return None
+
+   @property
+   def threshold_scores(self):
+      thresholds = self.thresholds
+      Nt = len(thresholds)
+      values = None
+
+      for t in range(0, Nt):
+         p_var = self._verif_to_comps_threshold(thresholds[t])
+         np.array([Nt], float)
+         temp = self._get_score(p_var)
+         if values is None:
+            shape = [i for i in temp.shape] + [Nt]
+            values = np.zeros(shape, float)
+         values[:, :, :, t] = temp
+
+      return values
+
+   @property
+   def quantile_scores(self):
+      quantiles = self.quantiles
+      Nq = len(quantiles)
+      values = None
+
+      for q in range(0, Nq):
+         q_var = self._verif_to_comps_quantile(quantiles[q])
+         np.array([Nq], float)
+         temp = self._get_score(q_var)
+         if values is None:
+            shape = [i for i in temp.shape] + [Nq]
+            values = np.zeros(shape, float)
+         values[:, :, :, q] = temp
+
+      return values
+
+   def _get_locations(self):
+      lat = verif.util.clean(self._file.variables["Lat"])
+      lon = verif.util.clean(self._file.variables["Lon"])
+      id = verif.util.clean(self._file.variables["Location"])
+      elev = verif.util.clean(self._file.variables["Elev"])
+      locations = list()
+      for i in range(0, lat.shape[0]):
+         location = verif.location.Location(id[i], lat[i], lon[i], elev[i])
+         locations.append(location)
+      return locations
+
+   def _get_thresholds(self):
+      thresholds = list()
+      for (var, v) in self._file.variables.iteritems():
+         if(var not in self._dimensionNames):
+            threshold = self._comps_to_verif_threshold(var)
+            if threshold is not None:
+               thresholds.append(threshold)
+      return np.array(thresholds)
+
+   def _get_quantiles(self):
+      quantiles = list()
+      for (var, v) in self._file.variables.iteritems():
+         if(var not in self._dimensionNames):
+            quantile = self._comps_to_verif_quantile(var)
+            if(quantile is not None):
+               quantiles.append(quantile)
+      return np.array(quantiles)
+
+   def _get_variable(self):
+      name = self._file.Variable
+      units = "No units"
+      if(hasattr(self._file, "Units")):
+         if(self._file.Units == ""):
+            units = "No units"
+         elif(self._file.Units == "%"):
+            units = "%"
+         else:
+            units = "$" + self._file.Units + "$"
+      x0 = verif.variable.guess_x0(name)
+      x1 = verif.variable.guess_x1(name)
+      return verif.variable.Variable(name, units, x0=x0, x1=x1)
+
+   def _get_score(self, metric):
+      temp = verif.util.clean(self._file.variables[metric])
+      return temp
+
+   @staticmethod
+   def _comps_to_verif_threshold(variable_name):
+      """ Converts from COMPS name (i.e p03) to verif threshold (i.e 0.3) """
+      threshold = None
+      if len(variable_name) >= 2 or variable_name[0] == "p":
+         variable_name = variable_name.replace("m", "-")
+         variable_name = variable_name.replace("p0", "0.")
+         variable_name = variable_name.replace("p", "")
+         assert(len(np.where(variable_name == ".")) < 2)
+         if verif.util.is_number(variable_name):
+            threshold = float(variable_name)
+      return threshold
+
+   @staticmethod
+   def _comps_to_verif_quantile(variable_name):
+      """ Converts from COMPS name (i.e q30) to verif quantile (i.e 0.3) """
+      quantile = None
+      if len(variable_name) >= 2 or variable_name[0] == "q":
+         variable_name = variable_name.replace("q0", "0.")
+         variable_name = variable_name.replace("q", "")
+         if verif.util.is_number(variable_name):
+            temp = float(variable_name)/100
+            if temp >= 0 and temp <= 1:
+               quantile = temp
+      return quantile
+
+   @staticmethod
+   def _verif_to_comps_threshold(threshold):
+      """ Converts from verif threshold (i.e. 0.3) to COMPS name (i.e p03) """
+      if threshold == 0:
+         variable_name = "0"
+      elif np.abs(threshold) < 1:
+         variable_name = "%g" % threshold
+         variable_name = variable_name.replace(".", "")
+      else:
+         variable_name = "%d" % threshold
+      variable_name = variable_name.replace("-", "m")
+      variable_name = "p%s" % variable_name
+      return variable_name
+
+   @staticmethod
+   def _verif_to_comps_quantile(quantile):
+      """ Converts from verif quantile (i.e. 0.3) to COMPS name (i.e q30) """
+      if quantile < 0 or quantile > 1:
+         return None
+      if quantile == 0:
+         variable_name = "0"
+      else:
+         variable_name = "%g" % (quantile * 100)
+         variable_name = variable_name.replace(".", "")
+      variable_name = "q%s" % variable_name
+      return variable_name
 
 
 class Fake(Input):
