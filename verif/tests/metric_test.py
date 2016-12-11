@@ -24,5 +24,6 @@ class MyTest(unittest.TestCase):
       mae = verif.metric.Mae()
       self.assertEqual("MAE", mae.name())
 
+
 if __name__ == '__main__':
    unittest.main()

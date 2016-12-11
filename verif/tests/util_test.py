@@ -95,5 +95,12 @@ class TestGetIntervals(unittest.TestCase):
       intervals = verif.util.get_intervals("above", thresholds)
       self.assertEqual(verif.interval.Interval(0,np.inf,False,False), intervals[0])
 
+
+class TestConvert(unittest.TestCase):
+   def test_convert_back_and_forth(self):
+      dates = [20150101, 20141231]
+      new_dates = verif.util.convert_to_yyyymmdd(verif.util.convert_dates(dates))
+      self.assertItemsEqual(new_dates, dates)
+
 if __name__ == '__main__':
    unittest.main()
