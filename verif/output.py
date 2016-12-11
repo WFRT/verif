@@ -106,7 +106,7 @@ class Output(object):
    description = None
    default_axis = verif.axis.Offset()
    default_bin_type = "above"
-   requires_threshold = False
+   require_threshold_type = None
    supports_threshold = True
    supports_x = True
    leg_loc = "best"
@@ -872,7 +872,7 @@ class Standard(Output):
 
 
 class Hist(Output):
-   requires_threshold = True
+   require_threshold_type = "deterministic"
    supports_threshold = True
    default_bin_type = "within="
 
@@ -1006,7 +1006,6 @@ class Hist(Output):
 
 
 class Sort(Output):
-   requires_threshold = False
    supports_threshold = False
 
    def __init__(self, field):
@@ -1260,7 +1259,7 @@ class Cond(Output):
                   "bin-edges)"
    default_axis = "threshold"
    default_bin_type = "within"
-   requires_threshold = True
+   require_threshold_type = "determinsitic"
    supports_threshold = True
    supports_x = False
 
@@ -1304,7 +1303,7 @@ class Cond(Output):
 class SpreadSkill(Output):
    supports_threshold = True
    supports_x = False
-   requires_threshold = True
+   require_threshold_type = "determinsitic"
    description = "Spread/skill plot showing RMSE of ensemble mean as a function of ensemble spread (use -r to specify spread thresholds and -q to specify a lower and upper quantile to represent spread)"
 
    def __init__(self):
@@ -1356,7 +1355,7 @@ class Count(Output):
          "bins, nstead of number above each threshold."
    default_axis = "threshold"
    default_bin_type = "within"
-   requires_threshold = True
+   require_threshold_type = "determinsitic"
    supports_threshold = True
    supports_x = False
 
@@ -1618,7 +1617,7 @@ class PitHist(Output):
 
 class Discrimination(Output):
    description = "Discrimination diagram for a certain threshold (-r)"
-   requires_threshold = True
+   require_threshold_type = "threshold"
    supports_x = False
 
    def __init__(self):
@@ -1686,7 +1685,7 @@ class Discrimination(Output):
 
 class Reliability(Output):
    description = "Reliability diagram for a certain threshold (-r)"
-   requires_threshold = True
+   require_threshold_type = "threshold"
    supports_x = False
    leg_loc = "lower right"
 
@@ -1800,7 +1799,6 @@ class IgnContrib(Output):
    description = "Binary Ignorance contribution diagram for a single "\
          "threshold (-r). Shows how much each probability issued contributes "\
          "to the total ignorance."
-   requires_threshold = True
    supports_x = False
    leg_loc = "upper center"
 
@@ -1810,7 +1808,7 @@ class IgnContrib(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
 
-      if len(self.thresholds) != 1:
+      if self.thresholds is None or len(self.thresholds) != 1:
          verif.util.error("IgnContrib diagram requires exactly one threshold")
       threshold = self.thresholds[0]
 
@@ -1885,7 +1883,6 @@ class EconomicValue(Output):
    description = "Economic value diagram for a single "\
          "threshold (-r). Shows what fraction of costs/loses can be reduced by"\
          " the forecast relative to using climatology."
-   requires_threshold = True
    supports_x = False
 
    def __init__(self):
@@ -1894,7 +1891,7 @@ class EconomicValue(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
 
-      if len(self.thresholds) != 1:
+      if self.thresholds is None or len(self.thresholds) != 1:
          verif.util.error("Economic value diagram requires exactly one threshold")
       threshold = self.thresholds[0]
 
@@ -1959,7 +1956,6 @@ class EconomicValue(Output):
 class Roc(Output):
    description = "Plots the receiver operating characteristics curve for a single threshold (-r)"
    supports_x = False
-   requires_threshold = True
 
    def __init__(self):
       Output.__init__(self)
@@ -1968,9 +1964,9 @@ class Roc(Output):
       return not self.simple
 
    def _plot_core(self, data):
-      threshold = self.thresholds[0]   # Observation threshold
-      if threshold is None:
+      if self.thresholds is None or len(self.thresholds) != 1:
          verif.util.error("Roc plot needs a threshold (use -r)")
+      threshold = self.thresholds[0]
 
       q_fields = [verif.field.Quantile(i) for i in data.quantiles]
       quantiles = data.quantiles
@@ -2029,54 +2025,55 @@ class DRoc(Output):
          "the deterministic forecast for a single threshold. Uses different "\
          "forecast thresholds to create points."
    supports_x = False
-   requires_threshold = True
 
    def __init__(self, fthresholds=None, doNorm=False, doClassic=False):
       Output.__init__(self)
       self._doNorm = doNorm
       self._fthresholds = fthresholds
       self._doClassic = doClassic
-      self._showThresholds = False
+      self._showThresholds = True
 
    def _plot_core(self, data):
+      if self.thresholds is None or len(self.thresholds) != 1:
+         verif.util.error("DRoc plot needs a single threshold (use -r)")
       threshold = self.thresholds[0]   # Observation threshold
-      if threshold is None:
-         verif.util.error("DRoc plot needs a threshold (use -r)")
 
       if self._doClassic:
-         fthresholds = [threshold]
+         f_thresholds = [threshold]
       else:
          if self._fthresholds is not None:
-            fthresholds = self._fthresholds
+            f_thresholds = self._fthresholds
          else:
             if data.variable.name == "Precip":
-               fthresholds = [0, 1e-7, 1e-6, 1e-5, 1e-4, 0.001, 0.005,
+               f_thresholds = [0, 1e-7, 1e-6, 1e-5, 1e-4, 0.001, 0.005,
                      0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 1, 2, 3, 5, 10, 20, 100]
             else:
                N = 31
-               fthresholds = np.linspace(threshold - 10, threshold + 10, N)
+               f_thresholds = np.linspace(threshold - 10, threshold + 10, N)
 
       F = data.num_inputs
       labels = data.get_legend()
+      f_intervals = verif.util.get_intervals(self.bin_type, f_thresholds)
+      interval = verif.util.get_intervals(self.bin_type, [threshold])[0]
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F)
          [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
 
-         y = np.nan * np.zeros([len(fthresholds), 1], 'float')
-         x = np.nan * np.zeros([len(fthresholds), 1], 'float')
-         for i in range(0, len(fthresholds)):
-            fthreshold = fthresholds[i]
-            x[i] = verif.metric.Fa().compute_obs_fcst(obs, fcst + threshold - fthresholds[i], [threshold, np.inf])
-            y[i] = verif.metric.Hit().compute_obs_fcst(obs, fcst + threshold - fthresholds[i], [threshold, np.inf])
+         y = np.nan * np.zeros([len(f_intervals), 1], 'float')
+         x = np.nan * np.zeros([len(f_intervals), 1], 'float')
+         for i in range(0, len(f_intervals)):
+            f_interval = f_intervals[i]
+            x[i] = verif.metric.Fa().compute_from_obs_fcst(obs, fcst, interval, f_interval)
+            y[i] = verif.metric.Hit().compute_from_obs_fcst(obs, fcst, interval, f_interval)
             if self._showThresholds and (not np.isnan(x[i]) and not np.isnan(y[i]) and f == 0):
-               mpl.text(x[i], y[i], "%2.1f" % fthreshold, color=color)
+               mpl.text(x[i], y[i], "%2.1f" % f_thresholds[i], color=color)
          if not self._doNorm:
             # Add end points at 0,0 and 1,1:
             xx = x
             yy = y
-            x = np.zeros([len(fthresholds) + 2, 1], 'float')
-            y = np.zeros([len(fthresholds) + 2, 1], 'float')
+            x = np.zeros([len(f_intervals) + 2, 1], 'float')
+            y = np.zeros([len(f_intervals) + 2, 1], 'float')
             x[1:-1] = xx
             y[1:-1] = yy
             x[0] = 1

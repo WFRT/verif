@@ -401,14 +401,35 @@ def run(argv):
       axis = None
 
    # Create thresholds if needed
-   if((thresholds is None) and (pl.requires_threshold or
-         (m is not None and m.requires_threshold))):
-      obs = data.get_scores(verif.field.Obs(), 0)
-      fcst = data.get_scores(verif.field.Fcst(), 0)
-      smin = min(np.nanmin(obs), np.nanmin(fcst))
-      smax = max(np.nanmax(obs), np.nanmax(fcst))
-      thresholds = np.linspace(smin, smax, 10)
-      verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+   if thresholds is None:
+      type = None
+      if pl.require_threshold_type == "deterministic":
+         type = "deterministic"
+      elif pl.require_threshold_type == "threshold":
+         type = "threshold"
+      elif pl.require_threshold_type == "probabilistic":
+         type = "probabilistic"
+      elif m is not None:
+         if m.require_threshold_type == "deterministic":
+            type = "deterministic"
+         elif m.require_threshold_type == "threshold":
+            type = "threshold"
+         elif m.require_threshold_type == "probabilistic":
+            type = "probabilistic"
+
+      if type == "deterministic":
+         obs = data.get_scores(verif.field.Obs(), 0)
+         fcst = data.get_scores(verif.field.Fcst(), 0)
+         smin = min(np.nanmin(obs), np.nanmin(fcst))
+         smax = max(np.nanmax(obs), np.nanmax(fcst))
+         thresholds = np.linspace(smin, smax, 10)
+         verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+      elif type == "threshold":
+         thresholds = data.thresholds
+         verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+      elif type == "quantile":
+         thresholds = data.quantiles
+         verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
 
    # Set plot parameters
    if(simple is not None):

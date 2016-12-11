@@ -60,7 +60,8 @@ class Metric(object):
          documentation when a specific metric is chosen.
       min (float): Minimum possible value the metric can take on. None if no min.
       max (float): Maximum possible value the metric can take on. None if no max.
-      requires_threshold (bool) : Does this metric require thresholds in order to be computable?
+      require_threshold_type (str) : What type of thresholds does this metric
+         require? One of 'None', 'deterministic', 'threshold', 'quantile'.
       supports_threshold (bool) : Does it make sense to use '-x threshold' with this metric?
       orientation (int): 1 for a positively oriented score (higher values are better),
          -1 for negative, and 0 for all others
@@ -83,7 +84,7 @@ class Metric(object):
    max = None
    default_axis = verif.axis.Offset()  # If no axis is specified, use this axis as default
    default_bin_type = None
-   requires_threshold = False
+   require_threshold_type = None
    supports_threshold = False
    perfect_score = None
    aggregator = verif.aggregator.Mean()
@@ -666,7 +667,7 @@ class MarginalRatio(Metric):
    description = "Ratio of marginal probability of obs to marginal" \
          " probability of fcst. Use -r."
    perfect_score = 1
-   requires_threshold = True
+   require_threshold_type = "threshold"
    supports_threshold = True
    default_axis = verif.axis.Threshold()
    orientation = 0
@@ -728,7 +729,7 @@ class Within(Metric):
    max = 100
    description = "The percentage of forecasts within some error bound (use -r)"
    default_bin_type = "below"
-   requires_threshold = True
+   require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = 100
    orientation = -1
@@ -753,8 +754,6 @@ class Conditional(Metric):
    """
    type = verif.metric_type.Deterministic()
    orientation = 0
-   requires_threshold = True
-   supports_threshold = True
 
    def __init__(self, x=verif.field.Obs(), y=verif.field.Fcst(), func=np.mean):
       self._x = x
@@ -777,8 +776,6 @@ class XConditional(Metric):
    """
    type = verif.metric_type.Deterministic()
    orientation = 0
-   requires_threshold = True
-   supports_threshold = True
 
    def __init__(self, x=verif.field.Obs(), y=verif.field.Fcst()):
       self._x = x
@@ -793,13 +790,13 @@ class XConditional(Metric):
       return np.median(obs[I])
 
 
-# Counts how many values of a specific variable is within the threshold range
-# Not a real metric.
 class Count(Metric):
+   """
+   Counts how many values of a specific variable is within the threshold range
+   Not a real metric.
+   """
    type = verif.metric_type.Deterministic()
    orientation = 0
-   requires_threshold = True
-   supports_threshold = True
 
    def __init__(self, x):
       self._x = x
@@ -827,11 +824,12 @@ class Quantile(Metric):
 
 
 class Bs(Metric):
+   default_axis = verif.axis.Threshold()
    type = verif.metric_type.Probabilistic()
    min = 0
    max = 1
    description = "Brier score"
-   requires_threshold = True
+   require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = 0
    orientation = 1
@@ -908,7 +906,7 @@ class Bss(Metric):
    min = 0
    max = 1
    description = "Brier skill score"
-   requires_threshold = True
+   require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = 1
    orientation = 1
@@ -940,7 +938,7 @@ class BsRel(Metric):
    min = 0
    max = 1
    description = "Brier score, reliability term"
-   requires_threshold = True
+   require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = 0
    orientation = 1
@@ -969,7 +967,7 @@ class BsUnc(Metric):
    min = 0
    max = 1
    description = "Brier score, uncertainty term"
-   requires_threshold = True
+   require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = None
    orientation = 1
@@ -989,7 +987,7 @@ class BsRes(Metric):
    min = 0
    max = 1
    description = "Brier score, resolution term"
-   requires_threshold = True
+   require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = 1
    orientation = 1
@@ -1017,7 +1015,7 @@ class QuantileScore(Metric):
    min = 0
    description = "Quantile score. Requires quantiles to be stored"\
                   "(e.g q10, q90...).  Use -x to set which quantiles to use."
-   requires_threshold = True
+   require_threshold_type = "quantile"
    supports_threshold = True
    perfect_score = 0
    orientation = -1
@@ -1033,7 +1031,7 @@ class QuantileScore(Metric):
 class Ign0(Metric):
    type = verif.metric_type.Probabilistic()
    description = "Ignorance of the binary probability based on threshold"
-   requires_threshold = True
+   require_threshold_type = "threshold"
    supports_threshold = True
    orientation = -1
 
@@ -1053,7 +1051,7 @@ class Ign0(Metric):
 class Spherical(Metric):
    type = verif.metric_type.Probabilistic()
    description = "Spherical probabilistic scoring rule for binary events"
-   requires_threshold = True
+   require_threshold_type = "threshold"
    supports_threshold = True
    max = 1
    min = 0
@@ -1083,7 +1081,7 @@ class Contingency(Metric):
    min = 0
    max = 1
    default_axis = verif.axis.Threshold()
-   requires_threshold = True
+   require_threshold_type = "deterministic"
    supports_threshold = True
    _usingQuantiles = False
 
