@@ -325,10 +325,6 @@ def get_screen_width():
    return columns
 
 
-def get_p_var(threshold):
-   return "p%g" % (threshold)
-
-
 def is_number(s):
    """ Returns true if x is a scalar number """
    try:

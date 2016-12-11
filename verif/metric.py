@@ -673,17 +673,17 @@ class MarginalRatio(Metric):
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
       if(np.isinf(interval.lower)):
-         pvar = data.get_p_var(interval.upper)
+         pvar = verif.field.Threshold(interval.upper)
          [obs, p1] = data.get_scores([verif.fields.Obs(), pvar], input_index, axis, axis_index)
          p0 = 0 * p1
       elif(np.isinf(interval.upper)):
-         pvar = data.get_p_var(interval.lower)
+         pvar = verif.field.Threshold(interval.lower)
          [obs, p0] = data.get_scores([verif.fields.Obs(), pvar], input_index,
                axis, axis_index)
          p1 = 0 * p0 + 1
       else:
-         pvar0 = data.get_p_var(interval.lower)
-         pvar1 = data.get_p_var(interval.upper)
+         pvar0 = verif.field.Threshold(interval.lower)
+         pvar1 = verif.field.Threshold(interval.upper)
          [obs, p0, p1] = data.get_scores([verif.fields.Obs(), pvar0, pvar1],
                input_index, axis, axis_index)
       obs = interval.within(obs)
@@ -821,7 +821,7 @@ class Quantile(Metric):
       self._quantile = quantile
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
-      var = data.get_q_var(self._quantile)
+      var = verif.field.Quantile(self._quantile)
       scores = data.get_scores(var, input_index, axis, axis_index)
       return verif.util.nanmean(scores)
 
@@ -845,16 +845,16 @@ class Bs(Metric):
       p0 = 0
       p1 = 1
       if(interval.lower != -np.inf and interval.upper != np.inf):
-         var0 = data.get_p_var(interval.lower)
-         var1 = data.get_p_var(interval.upper)
+         var0 = verif.field.Threshold(interval.lower)
+         var1 = verif.field.Threshold(interval.upper)
          [obs, p0, p1] = data.get_scores([verif.field.Obs(), var0, var1], input_index,
                axis, axis_index)
       elif(interval.lower != -np.inf):
-         var0 = data.get_p_var(interval.lower)
+         var0 = verif.field.Threshold(interval.lower)
          [obs, p0] = data.get_scores([verif.field.Obs(), var0], input_index, axis,
                axis_index)
       elif(interval.upper != np.inf):
-         var1 = data.get_p_var(interval.upper)
+         var1 = verif.field.Threshold(interval.upper)
          [obs, p1] = data.get_scores([verif.field.Obs(), var1], input_index, axis,
                axis_index)
       obsP = interval.within(obs)
@@ -873,16 +873,16 @@ class Bs(Metric):
       p0 = 0
       p1 = 1
       if(interval.lower != -np.inf and interval.upper != np.inf):
-         var0 = data.get_p_var(interval.lower)
-         var1 = data.get_p_var(interval.upper)
+         var0 = verif.field.Threshold(interval.lower)
+         var1 = verif.field.Threshold(interval.upper)
          [obs, p0, p1] = data.get_scores([verif.field.Obs(), var0, var1],
                input_index, axis, axis_index)
       elif(interval.lower != -np.inf):
-         var0 = data.get_p_var(interval.lower)
+         var0 = verif.field.Threshold(interval.lower)
          [obs, p0] = data.get_scores([verif.field.Obs(), var0], input_index,
                axis, axis_index)
       elif(interval.upper != np.inf):
-         var1 = data.get_p_var(interval.upper)
+         var1 = verif.field.Threshold(interval.upper)
          [obs, p1] = data.get_scores([verif.field.Obs(), var1], input_index,
                axis, axis_index)
 
@@ -894,7 +894,7 @@ class Bs(Metric):
    def get_q(data, input_index, axis, axis_index, interval):
       p0 = 0
       p1 = 1
-      var = data.get_q_var(interval.lower)
+      var = verif.field.Quantile(interval.lower)
       [obs, q] = data.get_scores(["obs", var], input_index, axis, axis_index)
 
       return [obs, q]
