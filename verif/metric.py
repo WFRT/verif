@@ -54,38 +54,40 @@ class Metric(object):
    uses observations and forecasts from data.
 
    Class attributes:
-      description: A short one-liner describing the metric. This will show
+      description (str): A short one-liner describing the metric. This will show
          up in the main verif documentation.
-      long: A longer description. This will show up in the
+      long (str): A longer description. This will show up in the
          documentation when a specific metric is chosen.
-      min: Minimum possible value the metric can take on
-      max: Maximum possible value the metric can take on
-      requires_threshold: Does this metric require thresholds in order to be computable?
-      supports_threshold: Does it make sense to use '-x threshold' with this metric?
-      orientation: 1 for a positively oriented score (higher values are better),
+      min (float): Minimum possible value the metric can take on. None if no min.
+      max (float): Maximum possible value the metric can take on. None if no max.
+      requires_threshold (bool) : Does this metric require thresholds in order to be computable?
+      supports_threshold (bool) : Does it make sense to use '-x threshold' with this metric?
+      orientation (int): 1 for a positively oriented score (higher values are better),
          -1 for negative, and 0 for all others
-      reference: A string with an academic reference
-      experimental: Is this metric not fully testet yet?
+      reference (str): A string with an academic reference
       suports_aggregator: Does this metric use self.aggregator?
-      type: Of type verif.metric_type
+      type (verif.metric_type.MetricType): What type of metric is this?
+
+   To implement a new metric:
+      Fill out cls.description and implement compute_core(). The other class
+      attributes (see above) are optional.
    """
-   # These must be overloaded
-   description = ""
+   # This must be overloaded
+   description = None
 
    # Default values
+   long = None
+   reference = None
+   orientation = 0
    min = None
    max = None
    default_axis = verif.axis.Offset()  # If no axis is specified, use this axis as default
    default_bin_type = None
    requires_threshold = False
    supports_threshold = False
-   experimental = False
    perfect_score = None
    aggregator = verif.aggregator.Mean()
    supports_aggregator = False  
-   orientation = 0
-   long = None
-   reference = None
    type = verif.metric_type.Deterministic()
 
    def compute(self, data, input_index, axis, interval):
@@ -136,11 +138,13 @@ class Metric(object):
    @classmethod
    def is_valid(cls):
       """ Is this a valid metric that can be initialized? """
-      return cls.summary() is not ""
+      return cls.description is not None
 
    @classmethod
    def help(cls):
-      s = cls.description
+      s = ""
+      if cls.description is not None:
+         s = cls.description
       if(cls.orientation is not 0):
          s = s + "\n" + verif.util.green("Orientation: ")
          if(cls.orientation == 1):
@@ -160,20 +164,6 @@ class Metric(object):
       if(cls.reference is not None):
          s = s + "\n" + verif.util.green("Reference: ") + cls.reference
       return s
-
-   @classmethod
-   def summary(cls):
-      desc = cls.description
-      if(desc == ""):
-         return ""
-      extra = ""
-      # if(cls.experimental):
-      #    extra = " " + verif.util.experimental() + "."
-      if(cls.supports_aggregator):
-         extra = " Supports -ct."
-      if(cls.perfect_score is not None):
-         extra = extra + " " + "Perfect score " + str(cls.perfect_score) + "."
-      return desc + "." + extra
 
    @classmethod
    def get_class_name(cls):
@@ -679,7 +669,6 @@ class MarginalRatio(Metric):
    requires_threshold = True
    supports_threshold = True
    default_axis = verif.axis.Threshold()
-   experimental = True
    orientation = 0
 
    def compute_single(self, data, input_index, axis, axis_index, interval):

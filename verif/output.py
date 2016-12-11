@@ -103,13 +103,12 @@ class Output(object):
 
    type
    """
-   description = ""
+   description = None
    default_axis = verif.axis.Offset()
    default_bin_type = "above"
    requires_threshold = False
    supports_threshold = True
    supports_x = True
-   experimental = False
    leg_loc = "best"
    log_x = False
    log_y = False
@@ -173,20 +172,18 @@ class Output(object):
    # Is this a valid output that should be created be called?
    @classmethod
    def is_valid(cls):
-      return cls.summary() is not ""
+      return cls.description is not None
 
    @classmethod
    def help(cls):
-      s = cls.description
+      s = ""
+      if cls.description is not None:
+         s = cls.description
       if cls._long is not None:
          s = s + "\n" + verif.util.green("Description: ") + cls._long
       if cls.reference is not None:
          s = s + "\n" + verif.util.green("Reference: ") + cls.reference
       return s
-
-   @classmethod
-   def summary(cls):
-      return cls.description
 
    # Public
    # Call this to create a plot, saves to file
@@ -1806,7 +1803,6 @@ class IgnContrib(Output):
    requires_threshold = True
    supports_x = False
    leg_loc = "upper center"
-   experimental = True
 
    def __init__(self):
       Output.__init__(self)
@@ -1891,7 +1887,6 @@ class EconomicValue(Output):
          " the forecast relative to using climatology."
    requires_threshold = True
    supports_x = False
-   experimental = True
 
    def __init__(self):
       Output.__init__(self)
@@ -2461,7 +2456,6 @@ class Marginal(Output):
    description = "Show marginal distribution for different thresholds"
    requires_threshold = True
    supports_x = False
-   experimental = True
 
    def __init__(self):
       Output.__init__(self)
@@ -2502,7 +2496,6 @@ class Freq(Output):
    description = "Show frequency of obs and forecasts"
    requires_threshold = True
    supports_x = False
-   experimental = True
 
    def __init__(self):
       Output.__init__(self)
@@ -2551,7 +2544,6 @@ class InvReliability(Output):
    description = "Reliability diagram for a certain quantile (-q)"
    requires_threshold = False
    supports_x = False
-   experimental = True
 
    def __init__(self):
       Output.__init__(self)

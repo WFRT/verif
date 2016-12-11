@@ -604,7 +604,7 @@ def show_description(data=None):
    print format_argument("-xticklabels labels", "A comma-separated list of labels for the y-axis ticks")
    print ""
    print verif.util.green("Metrics (-m):")
-   print "  (For a full description, run verif -m <metric>)"
+   print "  (For a full description of a metric, run verif -m <metric>)"
    metric_types = [verif.metric_type.Deterministic(),
          verif.metric_type.Threshold(),
          verif.metric_type.Probabilistic(),
@@ -619,7 +619,7 @@ def show_description(data=None):
          for m in metric_outputs:
             name = m[0].lower()
             if(m[1].is_valid()):
-               desc = m[1].summary() + m[1].type.name()
+               desc = m[1].description
                print format_argument(name, desc)
    print ""
    print ""
@@ -631,11 +631,9 @@ def show_description(data=None):
 def format_argument(arg, description, arg_width=19, total_width=None, indent=2):
    """
    Prints formated description to screen, but adds a column for a short descriptor, like this:
-             arg  description more description   
-                  here more more more more more  
-   | indent |
-   | arg_width   |
-   | total_width                                 |
+               arg            description more description
+                              here more more more more more
+   | indent | | arg_width   | | total_width                                 |
    """
    if(total_width is None):
       total_width = get_text_width()
