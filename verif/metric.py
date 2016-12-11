@@ -303,22 +303,21 @@ class Bias(ObsFcstBased):
 
 
 class Ef(ObsFcstBased):
-   description = "Exeedance fraction: percentage of times that forecasts"\
-                  " > observations"
+   description = "Exeedance fraction: fraction of times that forecasts > observations"
    min = 0
-   max = 100
-   perfect_score = 50
+   max = 1
+   perfect_score = 0.5
    orientation = 0
 
    def _compute_from_obs_fcst(self, obs, fcst):
       Nfcst = np.sum(obs < fcst)
-      return Nfcst / 1.0 / len(fcst) * 100
+      return Nfcst / 1.0 / len(fcst)
 
    def name(self):
       return "Exceedance fraction"
 
    def label(self, variable):
-      return "% times fcst > obs"
+      return "Fraction fcst > obs"
 
 
 class StdError(ObsFcstBased):
