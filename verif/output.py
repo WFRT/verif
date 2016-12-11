@@ -1046,12 +1046,12 @@ class ObsFcst(Output):
       isCont = self.axis.is_continuous
 
       # Obs line
-      mObs = verif.metric.Standard(verif.field.Obs(), aux=verif.field.Fcst())
+      mObs = verif.metric.FromField(verif.field.Obs(), aux=verif.field.Fcst())
       mObs.aggregator = self.aggregator
       y = mObs.compute(data, 0, self.axis, None)
       self._plot_obs(x, y, isCont)
 
-      mFcst = verif.metric.Standard(verif.field.Fcst(), aux=verif.field.Obs())
+      mFcst = verif.metric.FromField(verif.field.Fcst(), aux=verif.field.Obs())
       mFcst.aggregator = self.aggregator
       labels = data.get_legend()
       for f in range(0, F):
