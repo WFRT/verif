@@ -48,7 +48,7 @@ def run(argv):
    leg_font_size = None
    title_font_size = None
    leg_loc = None
-   type = "plot"
+   plot_type = "plot"
    grid = True
    xrot = None
    major_length = None
@@ -147,7 +147,7 @@ def run(argv):
             elif(arg == "-b"):
                bin_type = arg_next
             elif(arg == "-type"):
-               type = arg_next
+               plot_type = arg_next
             elif(arg == "-fs"):
                figsize = arg_next
             elif(arg == "-dpi"):
@@ -375,7 +375,7 @@ def run(argv):
          m.aggregator = verif.aggregator.get(aggregator_name)
 
       # Output type
-      if(type in ["plot", "text", "csv", "map", "maprank"]):
+      if(plot_type in ["plot", "text", "csv", "map", "maprank"]):
          if do_sort:
             field = verif.field.get(metric)
             pl = verif.output.Sort(field)
@@ -513,13 +513,13 @@ def run(argv):
    if title is not None:
       pl.title = title
 
-   if(type == "text"):
+   if(plot_type == "text"):
       pl.text(data)
-   elif(type == "csv"):
+   elif(plot_type == "csv"):
       pl.csv(data)
-   elif(type == "map"):
+   elif(plot_type == "map"):
       pl.map(data)
-   elif(type == "maprank"):
+   elif(plot_type == "maprank"):
       pl.show_rank = True
       pl.map(data)
    else:
