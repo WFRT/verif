@@ -1,3 +1,32 @@
+verif (1.0.0) precise; urgency=low
+
+  * New metrics:
+    -m alphaindex
+    -m performance
+    -m discrimination
+    -m dscore
+    -m leps
+    -m nsec
+  * New options:
+    Added -maptype
+    Added -xticks
+    Added -yticks
+    Added -type csv
+  * Changed metrics:
+    -m bias now means (obs - fcst)
+    -m ef no shows fraction, not percent
+  * Changed options:
+    Changed -x date to -x time
+    Changed -llrange to -latrange and -lonrange
+    Changed -x locationLat to -x lat
+    Changed -x locationLon to -x lon
+    Changed -x locationElev to -x elev
+    Changed -ct to -agg
+    Changed -d start end to -d start:end
+    Changed -sat to -maptype sat
+
+ -- Thomas Nipen <thomas.nipen@met.no>  Wed, 14 Dec 2016 12:00:00 +0100
+
 verif (0.4.0) precise; urgency=low
 
   * New metrics:
