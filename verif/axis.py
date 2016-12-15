@@ -43,6 +43,7 @@ class Axis(object):
    is_continuous = True
    is_location_like = False
    is_time_like = False
+   fmt = "%f"
 
    @classmethod
    def name(cls):
@@ -68,6 +69,7 @@ class Axis(object):
 class Time(Axis):
    """ Forecast initialization time """
    is_time_like = True
+   fmt = "%Y-%m-%d"
    def formatter(self, variable):
       return matplotlib.dates.DateFormatter('\n%Y-%m-%d')
 
@@ -140,6 +142,7 @@ class Week(Axis):
 
 class Month(Axis):
    is_time_like = True
+   fmt = "%Y/%m"
    formatter = matplotlib.dates.DateFormatter('\n%Y-%m')
 
    def label(self, variable):
@@ -148,6 +151,7 @@ class Month(Axis):
 
 class Year(Axis):
    is_time_like = True
+   fmt = "%Y"
    formatter = matplotlib.dates.DateFormatter('\n%Y')
 
    def label(self, variable):

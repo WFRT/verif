@@ -7,7 +7,7 @@ import datetime
 import time
 import calendar
 import verif.input
-from matplotlib.dates import *
+import matplotlib.dates
 import matplotlib.ticker
 import verif.field
 import verif.util
@@ -357,12 +357,14 @@ class Data(object):
             descs.append(string)
          return descs
       if(axis.is_time_like):
-         values = self.get_axis_values(axis)
-         values = num2date(values)
+         unixtimes = self.get_axis_values(axis)
+         # Convert to date objects
+         dates = matplotlib.dates.num2date(verif.util.convert_times(unixtimes))
          times = list()
-         for i in range(0, len(values)):
-            # TODO
-            times = times + [values[i].strftime("%Y/%m/%d")]
+         fmt = axis.fmt
+
+         for i in range(0, len(dates)):
+            times = times + [dates[i].strftime(fmt)]
          return times
       else:
          return self.get_axis_values(axis)
