@@ -185,22 +185,79 @@ class Output(object):
          s = s + "\n" + verif.util.green("Reference: ") + cls.reference
       return s
 
-   # Public
-   # Call this to create a plot, saves to file
    def plot(self, data):
+      """ Call this to create a plot
+      """
       mpl.clf()
       self._plot_core(data)
       self._adjust_axes(data)
       self._legend(data)
       self._save_plot(data)
 
-   # Call this to write text output
    def text(self, data):
-      self._text_core(data)
+      """ Call this to create nicely formatted text output
 
-   # Call this to write csv output
+      Prints to screen, unless self.filename is defined, in which case it
+      writes to file.
+      """
+      text = self._text_core(data)
+      if self.filename is not None:
+         file = open(self.filename, 'w')
+         file.write(text)
+         file.write("\n")
+         file.close()
+      else:
+         print text
+
    def csv(self, data):
-      self._csv_core(data)
+      """ Call this to write machine-readable csv output
+
+      Prints to screen, unless self.filename is defined, in which case it
+      writes to file.
+      """
+      csv = self._csv_core(data)
+      if self.filename is not None:
+         file = open(self.filename, 'w')
+         file.write(csv)
+         file.write("\n")
+         file.close()
+      else:
+         print csv
+
+   def _text_core(self, data):
+      """ Creates text
+
+      Returns:
+         str: text
+
+      This function parses the csv output and prints evenly spaced columns with
+      bars (|) between each column.
+      """
+      text = self._csv_core(data)
+      lines = text.split("\n")
+
+      # Determine how wide to make each column
+      header = lines[0].split(',')
+      lengths = [0 for word in lines[0].split(',')] #[max(5, len(label)) for label in header]
+      for line in lines:
+         words = line.split(',')
+         for i in range(0, len(words)):
+            lengths[i] = max(lengths[i], len(words[i]))
+
+      # Add a 1-space buffer at the end of the column
+      for i in range(len(lengths)):
+         lengths[i] += 1
+
+      s = ""
+      for line in lines:
+         words = line.split(',')
+         for i in range(0, len(words)):
+            fmt = "%-"+ str(lengths[i]) + "s"
+            s += fmt % words[i]
+            s += "| "
+         s += "\n"
+      s = s.strip()
+      return s
 
    # Draws a map of the data
    def map(self, data):
@@ -228,11 +285,13 @@ class Output(object):
    def _plot_core(self, data):
       verif.util.error("This type does not plot")
 
-   def _text_core(self, data):
-      verif.util.error("This type does not output text")
-
    def _csv_core(self, data):
-      verif.util.error("This type does not output csv")
+      """ Implement this function to provide csv supports
+
+      Returns:
+         str: text string (with newlines)
+      """
+      verif.util.error("This type does not produce csv")
 
    def _map_core(self, data):
       verif.util.error("This type does not produce maps")
@@ -604,110 +663,30 @@ class Standard(Output):
          mpl.gca().set_xticks(tickRange)
          mpl.autoscale(enable=True, axis=u'x', tight=True)  # make xaxis tight
 
-   def _text_core(self, data):
-      # Set configuration names
-      names = data.get_legend()
-
-      F = data.num_inputs
-      [x, y] = self.get_x_y(data, self.axis)
-
-      if self.filename is not None:
-         sys.stdout = open(self.filename, 'w')
-
-      maxlength = 0
-      for name in names:
-         maxlength = max(maxlength, len(name))
-      maxlength = str(maxlength)
-
-      # Header line
-      fmt = "%-" + maxlength + "s"
-      lineDesc = data.get_axis_description_header(self.axis)
-      lineDescN = len(lineDesc) + 2
-      lineDescFmt = "%-" + str(lineDescN) + "s |"
-      print lineDescFmt % lineDesc,
-      if self.axis == verif.axis.Threshold():
-         descs = self.thresholds
-      else:
-         descs = data.get_axis_descriptions(self.axis)
-      for name in names:
-         print fmt % name,
-      print ""
-
-      # Loop over rows
-      for i in range(0, len(x[0])):
-         print lineDescFmt % descs[i],
-         self._print_line(y[:, i], maxlength, "float")
-
-      # Print stats
-      for func in [verif.util.nanmin, verif.util.nanmean, verif.util.nanmax,
-            verif.util.nanstd]:
-         name = func.__name__[3:]
-         print lineDescFmt % name,
-         values = np.zeros(F, 'float')
-         for f in range(0, F):
-            values[f] = func(y[f, :])
-         self._print_line(values, maxlength, "float")
-
-      # Print count stats
-      for func in [verif.util.nanmin, verif.util.nanmax]:
-         name = func.__name__[3:]
-         print lineDescFmt % ("num " + name),
-         values = np.zeros(F, 'float')
-         for f in range(0, F):
-            values[f] = np.sum(y[f, :] == func(y, axis=0))
-         self._print_line(values, maxlength, "int")
-
    def _csv_core(self, data):
-
-      # Set configuration names
-      names = data.get_legend()
-
       [x, y] = self.get_x_y(data, self.axis)
 
-      if self.filename is not None:
-         sys.stdout = open(self.filename, 'w')
-
       # Header line
+      names = data.get_legend()
       header = data.get_axis_description_header(self.axis, csv=True)
-      for name in names:
-         header = header + ',' + name
-      print header
+      s = header + ',' + ','.join(names) + '\n'
 
-      # Loop over rows
+      # Get column descriptions
       if self.axis == verif.axis.Threshold():
          descs = self.thresholds
       else:
          descs = data.get_axis_descriptions(self.axis, csv=True)
+
+      # Loop over rows
       for i in range(0, len(x[0])):
          line = str(descs[i])
          for j in range(0, len(y[:, i])):
             line = line + ',%g' % y[j, i]
-         print line
+         s += line + "\n"
 
-   def _print_line(self, values, colWidth, type="float"):
-      if type == "int":
-         fmt = "%-" + colWidth + "i"
-      else:
-         fmt = "%-" + colWidth + ".4f"
-      missfmt = "%-" + colWidth + "s"
-      minI = np.argmin(values)
-      maxI = np.argmax(values)
-      for f in range(0, len(values)):
-         value = values[f]
-         if np.isnan(value):
-            txt = missfmt % "--"
-         else:
-            txt = fmt % value
-         if not np.isnan(np.nanmean(values)):
-            if minI == f:
-               print verif.util.green(txt),
-            elif maxI == f:
-               print verif.util.red(txt),
-            else:
-               print txt,
-         else:
-            print txt,
-      print ""
+      # Remove last newline
+      s = s.strip()
+      return s
 
    def _map_core(self, data):
       # Use the Basemap package if it is available
@@ -915,64 +894,19 @@ class Hist(Output):
       else:
          mpl.ylabel("Frequency")
 
-   def _text_core(self, data):
-      labels = data.get_legend()
-      F = data.num_inputs
-      [x, y] = self.get_x_y(data)
-
-      if self.filename is not None:
-         sys.stdout = open(self.filename, 'w')
-
-      maxlength = 0
-      for label in labels:
-         maxlength = max(maxlength, len(label))
-      maxlength = str(maxlength)
-
-      # Header line
-      fmt = "%-" + maxlength + "s"
-      lineDesc = data.get_axis_description_header(verif.axis.Threshold())
-      lineDescN = len(lineDesc) + 2
-      lineDescFmt = "%-" + str(lineDescN) + "s |"
-      print lineDescFmt % lineDesc,
-      descs = self.thresholds
-      for label in labels:
-         print fmt % label,
-      print ""
-
-      # Loop over rows
-      for i in range(0, len(x[0])):
-         print lineDescFmt % descs[i],
-         self._print_line(y[:, i], maxlength, "int")
-
-      # Print count stats
-      for func in [verif.util.nanmin, verif.util.nanmax]:
-         name = func.__name__[3:]
-         print lineDescFmt % ("num " + name),
-         values = np.zeros(F, 'float')
-         for f in range(0, F):
-            values[f] = np.sum(y[f, :] == func(y, axis=0))
-         self._print_line(values, maxlength, "int")
-
    def _csv_core(self, data):
-      data.set_axis("none")
+      s = ""
+
       labels = data.get_legend()
 
       F = data.num_inputs
       [x, y] = self.get_x_y(data)
-
-      if self.filename is not None:
-         sys.stdout = open(self.filename, 'w')
-
-      maxlength = 0
-      for label in labels:
-         maxlength = max(maxlength, len(label))
-      maxlength = str(maxlength)
 
       # Header line
       header = "threshold"
       for label in labels:
          header = header + "," + label
-      print header
+      s += header + "\n"
 
       # Loop over rows
       descs = self.thresholds
@@ -980,29 +914,10 @@ class Hist(Output):
          line = str(descs[i])
          for j in range(0, len(y[:, i])):
             line = line + ",%g" % y[j, i]
-         print line
+         s += line + "\n"
+      s = s.strip()
 
-   def _print_line(self, values, colWidth, type="float"):
-      if type == "int":
-         fmt = "%-" + colWidth + "i"
-      else:
-         fmt = "%-" + colWidth + ".2f"
-      missfmt = "%-" + colWidth + "s"
-      minI = np.argmin(values)
-      maxI = np.argmax(values)
-      for f in range(0, len(values)):
-         value = values[f]
-         if np.isnan(value):
-            txt = missfmt % "--"
-         else:
-            txt = fmt % value
-         if minI == f:
-            print verif.util.green(txt),
-         elif maxI == f:
-            print verif.util.red(txt),
-         else:
-            print txt,
-      print ""
+      return s
 
 
 class Sort(Output):
@@ -1099,14 +1014,17 @@ class QQ(Output):
       self._plot_perfect_score(lims, lims)
 
    def _csv_core(self, data):
-      labels = data.get_legend()
       F = data.num_inputs
 
       # Header
-      header = ""
-      for label in labels:
-         header = header + label + "(obs)" + "," + label + "(fcst)"
-      print header
+      names = data.get_legend()
+      s = ""
+      for i in range(len(names)):
+         name = names[i]
+         s += name + "(obs)" + "," + name + "(fcst)"
+         if i < len(names)-1:
+            s += ','
+      s += "\n"
 
       [x, y] = self.get_x_y(data)
       maxPairs = len(x[0])
@@ -1116,10 +1034,14 @@ class QQ(Output):
          line = ""
          for f in range(0, F):
             if len(x[f]) < i:
-               line = line + ","
+               line += ","
             else:
-               line = line + "%f,%f" % (x[f][i], y[f][i])
-         print line
+               line += "%f,%f" % (x[f][i], y[f][i])
+            if f < F-1:
+               line += ','
+         s += line + "\n"
+      s = s.strip()
+      return s
 
 
 class Scatter(Output):
