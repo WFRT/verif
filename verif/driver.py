@@ -75,8 +75,8 @@ def run(argv):
    list_locations = False
    list_times = False
    map_type = None
-   log_x = False
-   log_y = False
+   xlog = False
+   ylog = False
    cmap = None
    obs_field = verif.field.Obs()
    fcst_field = verif.field.Fcst()
@@ -109,10 +109,10 @@ def run(argv):
             do_sort = True
          elif(arg == "-simple"):
             simple = True
-         elif(arg == "-logx"):
-            log_x = True
-         elif(arg == "-logy"):
-            log_y = True
+         elif(arg == "-xlog"):
+            xlog = True
+         elif(arg == "-ylog"):
+            ylog = True
          elif(arg == "-nogrid"):
             grid = False
          else:
@@ -476,10 +476,10 @@ def run(argv):
       pl.yticks = yticks
    if(yticklabels is not None):
       pl.yticklabels = yticklabels
-   if(log_x is not None):
-      pl.log_x = log_x
-   if(log_y is not None):
-      pl.log_y = log_y
+   if(xlog is not None):
+      pl.xlog = xlog
+   if(ylog is not None):
+      pl.ylog = ylog
    pl.grid = grid
    if(cmap is not None):
       pl.cmap = cmap
@@ -587,8 +587,6 @@ def show_description(data=None):
    print format_argument("-legfs size", "Font size for legend. Set to 0 to hide legend.")
    print format_argument("-legloc loc", "Where should the legend be placed?  Locations such as 'best', 'upper_left', 'lower_right', 'center'. Use underscore when using two words.")
    print format_argument("-lw width", "How wide should lines be?")
-   print format_argument("-logx", "Use a logarithmic x-axis")
-   print format_argument("-logy", "Use a logarithmic y-axis")
    print format_argument("-maptype", "One of 'simple', 'sat', 'topo', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.")
    print format_argument("-ms size", "How big should markers be?")
    print format_argument("-nogrid", "Turn the grid on the plot off")
@@ -603,11 +601,13 @@ def show_description(data=None):
    print format_argument("-type type", "One of 'plot' (default), 'text', 'csv', 'map', or 'maprank'.")
    print format_argument("-xlabel text", "Custom x-axis label")
    print format_argument("-xlim limits", "Force x-axis limits to the two values lower,upper")
+   print format_argument("-xlog", "Use a logarithmic x-axis")
    print format_argument("-xticks ticks", "A vector of values to put ticks on the x-axis")
    print format_argument("-xticklabels labels", "A comma-separated list of labels for the x-axis ticks")
    print format_argument("-xrot value", "Rotation angle for x-axis labels")
    print format_argument("-ylabel text", "Custom y-axis label")
    print format_argument("-ylim limits", "Force y-axis limits to the two values lower,upper")
+   print format_argument("-ylog", "Use a logarithmic y-axis")
    print format_argument("-yrot value", "Rotation angle for y-axis labels")
    print format_argument("-yticks ticks", "A vector of values to put ticks on the y-axis")
    print format_argument("-xticklabels labels", "A comma-separated list of labels for the y-axis ticks")
