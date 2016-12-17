@@ -546,6 +546,12 @@ class Standard(Output):
       self._minLatLonRange = 0.001  # What is the smallest map size allowed (in degrees)
 
    def get_x_y(self, data, axis):
+      """ Retrieves x and y axis values from data
+
+      Returns:
+         x (np.array): Array of x-axis values
+         y (np.array): 2D array of y-axis values, one column for each file
+      """
       thresholds = self.thresholds
 
       intervals = verif.util.get_intervals(self.bin_type, thresholds)
@@ -573,13 +579,13 @@ class Standard(Output):
          if sum(np.isnan(yy)) == len(yy):
             verif.util.warning("No valid scores for " + names[f])
          if y is None:
-            y = np.zeros([F, len(yy)], 'float')
-            x = np.zeros([F, len(xx)], 'float')
-         y[f, :] = yy
-         x[f, :] = xx
+            y = np.zeros([len(yy),F], 'float')
+            x = np.zeros([len(xx),F], 'float')
+         y[:,f] = yy
+         x[:,f] = xx
          if self.show_acc:
-            y[f, :] = np.nan_to_num(y[f, :])
-            y[f, :] = np.cumsum(y[f, :])
+            y[:,f] = np.nan_to_num(y[:,f])
+            y[:,f] = np.cumsum(y[:,f])
       return [x, y]
 
    def _legend(self, data, names=None):
@@ -620,18 +626,19 @@ class Standard(Output):
          mpl.xticks(range(1, len(y) + 1), labels)
       else:
          for f in range(0, F):
+            id = ids[f]
             # colors and styles to follow labels
-            color = self._get_color(ids[f], F)
-            style = self._get_style(ids[f], F, self.axis.is_continuous)
+            color = self._get_color(id, F)
+            style = self._get_style(id, F, self.axis.is_continuous)
             alpha = (1 if self.axis.is_continuous else 0.55)
-            mpl.plot(x[ids[f]], y[ids[f]], style, color=color,
+            mpl.plot(x[:,id], y[:,id], style, color=color,
                   label=labels[f], lw=self.lw, ms=self.ms,
                   alpha=alpha)
             if self.show_smoothing_line:
                from scipy import ndimage
-               I = np.argsort(x[ids[f]])
-               xx = np.sort(x[ids[f]])
-               yy = y[ids[f]][I]
+               I = np.argsort(x[:,id])
+               xx = np.sort(x[:,id])
+               yy = y[:,id][I]
                I = np.where((np.isnan(xx) == 0) & (np.isnan(yy) == 0))[0]
                xx = xx[I]
                yy = yy[I]
@@ -678,10 +685,10 @@ class Standard(Output):
          descs = data.get_axis_descriptions(self.axis, csv=True)
 
       # Loop over rows
-      for i in range(0, len(x[0])):
+      for i in range(0, len(y)):
          line = str(descs[i])
-         for j in range(0, len(y[:, i])):
-            line = line + ',%g' % y[j, i]
+         for f in range(0, x.shape[1]):
+            line = line + ',%g' % y[i, f]
          s += line + "\n"
 
       # Remove last newline
@@ -956,28 +963,69 @@ class ObsFcst(Output):
 
       isCont = self.axis.is_continuous
 
-      # Obs line
-      mObs = verif.metric.FromField(verif.field.Obs(), aux=verif.field.Fcst())
-      mObs.aggregator = self.aggregator
-      y = mObs.compute(data, 0, self.axis, None)
-      self._plot_obs(x, y, isCont)
+      [x,fcst,obs] = self.get_x_fcst_obs(data, self.axis)
 
-      mFcst = verif.metric.FromField(verif.field.Fcst(), aux=verif.field.Obs())
-      mFcst.aggregator = self.aggregator
+      # Obs line
+      self._plot_obs(x, obs, isCont)
+
       labels = data.get_legend()
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F, isCont)
+         mpl.plot(x, fcst[:,f], style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
 
-         y = mFcst.compute(data, f, self.axis, None)
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
-               ms=self.ms)
       mpl.ylabel(data.get_variable_and_units())
       mpl.xlabel(self.axis.label(data.variable))
       if self.axis.is_time_like:
          mpl.gca().xaxis_date()
       else:
          mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
+
+   def get_x_fcst_obs(self, data, axis):
+      F = data.num_inputs
+      x = data.get_axis_values(self.axis)
+      if self.axis.is_time_like:
+         x = verif.util.convert_times(x)
+
+      # Obs line
+      mObs = verif.metric.FromField(verif.field.Obs(), aux=verif.field.Fcst())
+      mObs.aggregator = self.aggregator
+      obs = mObs.compute(data, 0, self.axis, None)
+
+      mFcst = verif.metric.FromField(verif.field.Fcst(), aux=verif.field.Obs())
+      mFcst.aggregator = self.aggregator
+      labels = data.get_legend()
+      y = np.zeros([len(x),F], float)
+      for f in range(0, F):
+         y[:,f] = mFcst.compute(data, f, self.axis, None)
+
+      return [x,y,obs]
+
+   def _csv_core(self, data):
+      [x, fcst, obs] = self.get_x_fcst_obs(data, self.axis)
+
+      # Header line
+      names = data.get_legend()
+      header = data.get_axis_description_header(self.axis, csv=True)
+      s = header + ',obs,' + ','.join(names) + '\n'
+
+      # Get column descriptions
+      if self.axis == verif.axis.Threshold():
+         descs = self.thresholds
+      else:
+         descs = data.get_axis_descriptions(self.axis, csv=True)
+
+      # Loop over rows
+      for i in range(0, len(x)):
+         line = str(descs[i])
+         line = line + ',%g' % obs[i]
+         for f in range(0, fcst.shape[1]):
+            line = line + ',%g' % fcst[i,f]
+         s += line + "\n"
+
+      # Remove last newline
+      s = s.strip()
+      return s
 
 
 class QQ(Output):
