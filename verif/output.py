@@ -1126,10 +1126,9 @@ class Change(Output):
 
 
 class Cond(Output):
-   description = "Plots forecasts as a function of obs (use -r to specify "\
-                  "bin-edges)"
+   description = "Plots forecasts as a function of obs (use -r to specify bin-edges)"
    default_axis = "threshold"
-   default_bin_type = "within"
+   default_bin_type = "within="
    require_threshold_type = "determinsistic"
    supports_threshold = True
    supports_x = False
@@ -2341,6 +2340,7 @@ class Marginal(Output):
 
 class Freq(Output):
    description = "Show frequency of obs and forecasts"
+   default_bin_type = "within="
    require_threshold_type = "deterministic"
    supports_x = False
 
@@ -2349,34 +2349,25 @@ class Freq(Output):
 
    def _plot_core(self, data):
       labels = data.get_legend()
+      intervals = verif.util.get_intervals(self.bin_type, self.thresholds)
+      x = [i.center for i in intervals]
 
       F = data.num_inputs
+      N = len(intervals)
 
       for f in range(0, F):
-         # Setup x and y: When -b within, we need one less value in the array
-         N = len(self.thresholds)
-         x = self.thresholds
-         if re.compile("within").match(self.bin_type):
-            N = len(self.thresholds) - 1
-            x = (self.thresholds[1:] + self.thresholds[:-1]) / 2
+         color = self._get_color(f, F)
+         style = self._get_style(f, F)
          y = np.zeros(N, 'float')
          clim = np.zeros(N, 'float')
-         for t in range(0, N):
-            threshold = self.thresholds[t]
-            [obs, fcst] = data.get_scores([verif.field.Obs(),
-               verif.field.Fcst()], f, verif.axis.No())
+         [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No())
+         for i in range(N):
+            interval = intervals[i]
+            obs0 = verif.util.apply_threshold(obs, self.bin_type, interval.lower, interval.upper)
+            fcst0 = verif.util.apply_threshold(fcst, self.bin_type, interval.lower, interval.upper)
 
-            color = self._get_color(f, F)
-            style = self._get_style(f, F)
-
-            other_threshold = None
-            if re.compile("within").match(self.bin_type):
-               other_threshold = self.thresholds[t+1]
-            obs = verif.util.apply_threshold(obs, self.bin_type, threshold, other_threshold)
-            fcst = verif.util.apply_threshold(fcst, self.bin_type, threshold, other_threshold)
-
-            clim[t] = np.nanmean(obs)
-            y[t] = np.nanmean(fcst)
+            clim[i] = np.nanmean(obs0)
+            y[i] = np.nanmean(fcst0)
 
          label = labels[f]
          mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=label)
