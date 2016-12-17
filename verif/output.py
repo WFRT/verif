@@ -79,6 +79,8 @@ class Output(object):
    map_type
    ms                Marker size
    pad
+   require_threshold_type (str) : What type of thresholds does this metric
+      require? One of 'None', 'deterministic', 'threshold', 'quantile'.
    right
    show_margin
    show_perfect
@@ -1554,7 +1556,6 @@ class Discrimination(Output):
 
 class Reliability(Output):
    description = "Reliability diagram for a certain threshold (-r)"
-   require_threshold_type = "threshold"
    supports_x = False
    leg_loc = "lower right"
 
@@ -1572,6 +1573,9 @@ class Reliability(Output):
       return not self.simple
 
    def _plot_core(self, data):
+      if self.thresholds is None or len(self.thresholds) != 1:
+         verif.util.error("Reliability plot needs a single threshold (use -r)")
+      threshold = self.thresholds[0]   # Observation threshold
       labels = data.get_legend()
 
       F = data.num_inputs
@@ -2164,8 +2168,6 @@ class Taylor(Output):
 
 class Performance(Output):
    description = "Categorical performance diagram showing POD, FAR, bias, and Threat score. Also shows the scores the forecasts would attain by using different forecast thresholds (turn off using -simple)"
-   supports_threshold = True
-   requires_threshold = True
    supports_x = True
    leg_loc = "upper left"
    reference = "Roebber, P.J., 2009: Visualizing multiple measures of forecast quality. Wea. Forecasting, 24, 601-608."
@@ -2175,8 +2177,13 @@ class Performance(Output):
       return not self.simple
 
    def _plot_core(self, data):
+      if self.thresholds is None or len(self.thresholds) != 1:
+         verif.util.error("Performance plot needs a single threshold (use -r)")
+      threshold = self.thresholds[0]   # Observation threshold
       labels = data.get_legend()
       F = data.num_inputs
+      interval = verif.util.get_intervals(self.bin_type, [threshold])[0]
+      num_max_points = 20
 
       # Plot points
       maxstd = 0
@@ -2192,31 +2199,23 @@ class Performance(Output):
             Far = verif.metric.Far()
             Hit = verif.metric.Hit()
             for i in range(0, size):
-               [obs, fcst] = data.get_scores([verif.field.Obs(),
-                  verif.field.Fcst()], f, self.axis, i)
-               fa = Far.compute_from_obs_fcst(obs, fcst, [threshold, np.inf])
-               hit = Hit.compute_from_obs_fcst(obs, fcst, [threshold, np.inf])
+               [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis, i)
+               f_intervals = self._get_f_intervals(fcst, self.bin_type, num_max_points)
+               J = len(f_intervals)
+
+               fa = Far.compute_from_obs_fcst(obs, fcst, interval)
+               hit = Hit.compute_from_obs_fcst(obs, fcst, interval)
                sr[i] = 1 - fa
                pod[i] = hit
 
                # Compute the potential that the forecast can attan by using
                # different forecast thresholds
                if self._show_potential():
-                  J = 20
-                  dx = threshold - np.percentile(np.unique(np.sort(fcst)), np.linspace(0, 100, J))
-                  # Put a point in forecast point (so that the line goes
-                  # through the point
-                  dx = np.unique(np.sort(np.append(dx, 0)))
-                  # Alternatively, nudge the closest point to 0
-                  # Iclosest = np.argmin(np.abs(dx))
-                  # dx[Iclosest] = 0
-
-                  J = len(dx)
                   x = np.zeros(J, 'float')
                   y = np.zeros(J, 'float')
                   for j in range(0, J):
-                     x[j] = 1 - Far.compute_from_obs_fcst(obs, fcst + dx[j], [threshold, np.inf])
-                     y[j] = Hit.compute_from_obs_fcst(obs, fcst + dx[j], [threshold, np.inf])
+                     x[j] = 1 - Far.compute_from_obs_fcst(obs, fcst, interval, f_intervals[j])
+                     y[j] = Hit.compute_from_obs_fcst(obs, fcst, interval, f_intervals[j])
                   mpl.plot(x, y, ".-", color=color, ms=3*self.lw, lw=2*self.lw, zorder=-100, alpha=0.3)
 
             label = ""
@@ -2255,6 +2254,18 @@ class Performance(Output):
       mpl.xlim([0, 1])
       mpl.ylim([0, 1])
       mpl.gca().set_aspect(1)
+
+   @staticmethod
+   def _get_f_intervals(fcst, bin_type, num_max):
+      f_thresholds = np.percentile(np.unique(np.sort(fcst)), np.linspace(0, 100, num_max))
+      # put a point in forecast point (so that the line goes
+      # through the point
+      f_thresholds = np.unique(np.sort(np.append(f_thresholds, 0)))
+      # alternatively, nudge the closest point to 0
+      # iclosest = np.argmin(np.abs(dx))
+      # dx[iclosest] = 0
+      f_intervals = verif.util.get_intervals(bin_type, f_thresholds)
+      return f_intervals
 
 
 class Error(Output):
@@ -2320,7 +2331,7 @@ class Error(Output):
 
 class Marginal(Output):
    description = "Show marginal distribution for different thresholds"
-   requires_threshold = True
+   require_threshold_type = "threshold"
    supports_x = False
 
    def __init__(self):
@@ -2360,7 +2371,7 @@ class Marginal(Output):
 
 class Freq(Output):
    description = "Show frequency of obs and forecasts"
-   requires_threshold = True
+   require_threshold_type = "deterministic"
    supports_x = False
 
    def __init__(self):
@@ -2408,7 +2419,6 @@ class Freq(Output):
 
 class InvReliability(Output):
    description = "Reliability diagram for a certain quantile (-q)"
-   requires_threshold = False
    supports_x = False
 
    def __init__(self):
@@ -2419,7 +2429,7 @@ class InvReliability(Output):
 
    def _plot_core(self, data):
       labels = data.get_legend()
-      if self.quantiles is None:
+      if self.quantiles is None or len(self.quantiles) != 1:
          verif.util.error("InvReliability requires at least one quantile")
 
       F = data.num_inputs
@@ -2502,7 +2512,7 @@ class Impact(Output):
    "more than 10% of the standard deviation of the observation)."
    default_axis = verif.axis.No()
    supports_threshold = False
-   requires_threshold = True
+   require_threshold_type = "deterministic"
    supports_x = False
    _showNumbers = False
    _prob = False
