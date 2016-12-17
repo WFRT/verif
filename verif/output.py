@@ -200,64 +200,101 @@ class Output(object):
       Prints to screen, unless self.filename is defined, in which case it
       writes to file.
       """
-      text = self._text_core(data)
+      [x, y, xlabel, ylabels] = self._get_x_y(data, self.axis)
+
+      lengths = [max(10, len(label)) for label in ylabels]
+
+      # Get column descriptions
+      if self.axis == verif.axis.Threshold():
+         descs = {"Threshold":self.thresholds}
+      else:
+         descs = data.get_axis_descriptions(self.axis)
+      s = ','.join(descs.keys()) + ',' + ','.join(ylabels) + '\n'
+
+      desc_lengths = dict()
+      for w in descs.keys():
+         desc_lengths[w] = max(10, len(w))
+
+      # Header line
+      s = ""
+      for w in descs.keys():
+         # Axis descriptiors
+         fmt = "%-"+ str(desc_lengths[w]) + "s| "
+         s += fmt % w
+      for i in range(len(ylabels)):
+         # Labels
+         fmt = "%-"+ str(lengths[i]) + "s| "
+         s += fmt % ylabels[i]
+      s += "\n"
+
+      # Loop over rows
+      for i in range(0, len(x)):
+         for w in descs.keys():
+            if isinstance(descs[w][i], basestring):
+               fmt = "%-"+ str(desc_lengths[w]) + "s| "
+            else:
+               fmt = "%-"+ str(desc_lengths[w]) + "g| "
+            s += fmt % descs[w][i]
+         for f in range(0, y.shape[1]):
+            fmt = "%-"+ str(lengths[f]) + "g| "
+            s += fmt % y[i,f]
+         s += "\n"
+
+      # Remove last newline
+      s = s.strip()
+
       if self.filename is not None:
          file = open(self.filename, 'w')
-         file.write(text)
+         file.write(s)
          file.write("\n")
          file.close()
       else:
-         print text
+         print s
 
    def csv(self, data):
-      """ Call this to write machine-readable csv output
+      """ Call this to create machine-readable csv output
 
       Prints to screen, unless self.filename is defined, in which case it
       writes to file.
       """
-      csv = self._csv_core(data)
+      x, y, _, labels = self._get_x_y(data, self.axis)
+
+      # Get column descriptions
+      if self.axis == verif.axis.Threshold():
+         descs = {"Threshold":self.thresholds}
+      else:
+         descs = data.get_axis_descriptions(self.axis)
+      s = ','.join(descs.keys()) + ',' + ','.join(labels) + '\n'
+
+      # Loop over rows
+      for i in range(0, len(x)):
+         line = ""
+         line += ','.join(str(descs[k][i]) for k in descs)
+         for f in range(0, y.shape[1]):
+            line = line + ',%g' % y[i,f]
+         s += line + "\n"
+
+      # Remove last newline
+      s = s.strip()
+
       if self.filename is not None:
          file = open(self.filename, 'w')
-         file.write(csv)
+         file.write(s)
          file.write("\n")
          file.close()
       else:
-         print csv
+         print s
 
-   def _text_core(self, data):
-      """ Creates text
+   def _get_x_y(self, data, axis):
+      """ Retrieve x and y axis values
 
       Returns:
-         str: text
-
-      This function parses the csv output and prints evenly spaced columns with
-      bars (|) between each column.
+         x (np.array): X-axis values
+         y (np.array): 2D array with Y-axis values, one column for each line
+         xname:
+         ynames:
       """
-      text = self._csv_core(data)
-      lines = text.split("\n")
-
-      # Determine how wide to make each column
-      header = lines[0].split(',')
-      lengths = [0 for word in lines[0].split(',')] #[max(5, len(label)) for label in header]
-      for line in lines:
-         words = line.split(',')
-         for i in range(0, len(words)):
-            lengths[i] = max(lengths[i], len(words[i]))
-
-      # Add a 1-space buffer at the end of the column
-      for i in range(len(lengths)):
-         lengths[i] += 1
-
-      s = ""
-      for line in lines:
-         words = line.split(',')
-         for i in range(0, len(words)):
-            fmt = "%-"+ str(lengths[i]) + "s"
-            s += fmt % words[i]
-            s += "| "
-         s += "\n"
-      s = s.strip()
-      return s
+      verif.util.error("This output does not provide text output")
 
    # Draws a map of the data
    def map(self, data):
@@ -284,14 +321,6 @@ class Output(object):
    # Implement these methods
    def _plot_core(self, data):
       verif.util.error("This type does not plot")
-
-   def _csv_core(self, data):
-      """ Implement this function to provide csv supports
-
-      Returns:
-         str: text string (with newlines)
-      """
-      verif.util.error("This type does not produce csv")
 
    def _map_core(self, data):
       verif.util.error("This type does not produce maps")
@@ -545,28 +574,22 @@ class Standard(Output):
       self._mapLabelLocations = False  # Show locationIds in map?
       self._minLatLonRange = 0.001  # What is the smallest map size allowed (in degrees)
 
-   def get_x_y(self, data, axis):
-      """ Retrieves x and y axis values from data
-
-      Returns:
-         x (np.array): Array of x-axis values
-         y (np.array): 2D array of y-axis values, one column for each file
-      """
+   def _get_x_y(self, data, axis):
       thresholds = self.thresholds
 
       intervals = verif.util.get_intervals(self.bin_type, thresholds)
-      xx = [i.center for i in intervals]
+      x = [i.center for i in intervals]
       if not axis == verif.axis.Threshold():
-         xx = data.get_axis_values(axis)
+         x = data.get_axis_values(axis)
       if axis.is_time_like:
-         xx = verif.util.convert_times(xx)
+         x = verif.util.convert_times(x)
 
-      names = data.get_names()
+      xname = axis.name()
+      ynames = data.get_names()
       F = data.num_inputs
       y = None
-      x = None
       for f in range(0, F):
-         yy = np.zeros(len(xx), 'float')
+         yy = np.zeros(len(x), 'float')
          if axis == verif.axis.Threshold():
             for i in range(0, len(intervals)):
                yy[i] = self._metric.compute(data, f, axis, intervals[i])
@@ -577,16 +600,14 @@ class Standard(Output):
             yy = yy / len(intervals)
 
          if sum(np.isnan(yy)) == len(yy):
-            verif.util.warning("No valid scores for " + names[f])
+            verif.util.warning("No valid scores for " + ynames[f])
          if y is None:
             y = np.zeros([len(yy),F], 'float')
-            x = np.zeros([len(xx),F], 'float')
          y[:,f] = yy
-         x[:,f] = xx
          if self.show_acc:
             y[:,f] = np.nan_to_num(y[:,f])
-            y[:,f] = np.cumsum(y[:,f])
-      return [x, y]
+            y = np.cumsum(y)
+      return x, y, xname, ynames
 
    def _legend(self, data, names=None):
       if self.leg_font_size > 0:
@@ -599,7 +620,7 @@ class Standard(Output):
       labels = np.array(data.get_legend())
 
       F = data.num_inputs
-      [x, y] = self.get_x_y(data, self.axis)
+      [x, y, _, labels] = self._get_x_y(data, self.axis)
 
       # Sort legend entries such that the appear in the same order as the
       # y-values of the lines
@@ -631,7 +652,7 @@ class Standard(Output):
             color = self._get_color(id, F)
             style = self._get_style(id, F, self.axis.is_continuous)
             alpha = (1 if self.axis.is_continuous else 0.55)
-            mpl.plot(x[:,id], y[:,id], style, color=color,
+            mpl.plot(x, y[:,id], style, color=color,
                   label=labels[f], lw=self.lw, ms=self.ms,
                   alpha=alpha)
             if self.show_smoothing_line:
@@ -669,31 +690,6 @@ class Standard(Output):
          # make new ticks, to start from the first day of the desired interval
          mpl.gca().set_xticks(tickRange)
          mpl.autoscale(enable=True, axis=u'x', tight=True)  # make xaxis tight
-
-   def _csv_core(self, data):
-      [x, y] = self.get_x_y(data, self.axis)
-
-      # Header line
-      names = data.get_legend()
-      header = data.get_axis_description_header(self.axis, csv=True)
-      s = header + ',' + ','.join(names) + '\n'
-
-      # Get column descriptions
-      if self.axis == verif.axis.Threshold():
-         descs = self.thresholds
-      else:
-         descs = data.get_axis_descriptions(self.axis, csv=True)
-
-      # Loop over rows
-      for i in range(0, len(y)):
-         line = str(descs[i])
-         for f in range(0, x.shape[1]):
-            line = line + ',%g' % y[i, f]
-         s += line + "\n"
-
-      # Remove last newline
-      s = s.strip()
-      return s
 
    def _map_core(self, data):
       # Use the Basemap package if it is available
@@ -750,7 +746,7 @@ class Standard(Output):
          dy = 5
       else:
          dy = 10
-      [x, y] = self.get_x_y(data, verif.axis.Location())
+      [x, y,_,labels] = self._get_x_y(data, verif.axis.Location())
 
       # Colorbar limits should be the same for all subplots
       clim = [verif.util.nanpercentile(y.flatten(), self._mapLowerPerc),
@@ -801,15 +797,15 @@ class Standard(Output):
             y0 = lats
             mpl.xlim([llcrnrlon, urcrnrlon])
             mpl.ylim([llcrnrlat, urcrnrlat])
-         I = np.where(np.isnan(y[f, :]))[0]
+         I = np.where(np.isnan(y[:, f]))[0]
          if self.show_missing:
             map.plot(x0[I], y0[I], 'kx')
 
-         isMax = (y[f, :] == np.amax(y, 0)) &\
-                 (y[f, :] > np.mean(y, 0) + minDiff)
-         isMin = (y[f, :] == np.amin(y, 0)) &\
-                 (y[f, :] < np.mean(y, 0) - minDiff)
-         is_valid = (np.isnan(y[f, :]) == 0)
+         isMax = (y[:, f] == np.amax(y, 0)) &\
+                 (y[:, f] > np.mean(y, 0) + minDiff)
+         isMin = (y[:,f] == np.amin(y, 0)) &\
+                 (y[:,f] < np.mean(y, 0) - minDiff)
+         is_valid = (np.isnan(y[:, f]) == 0)
          s = self.ms*self.ms
          if self.show_rank:
             lmissing = None
@@ -819,14 +815,14 @@ class Standard(Output):
             lmax = map.scatter(x0[isMax], y0[isMax], s=s, c="r")
             lmin = map.scatter(x0[isMin], y0[isMin], s=s, c="b")
          else:
-            map.scatter(x0, y0, c=y[f, :], s=s, cmap=cmap)
+            map.scatter(x0, y0, c=y[:, f], s=s, cmap=cmap)
             cb = map.colorbar()
             cb.set_label(self._metric.label(data.variable))
             cb.set_clim(clim)
             mpl.clim(clim)
          if self._mapLabelLocations:
             for i in range(0, len(x0)):
-               value = y[f, i]
+               value = y[:, f]
 
                if not np.isnan(value):
                   mpl.text(x0[i], y0[i], "%d %3.2f" % (ids[i], value))
@@ -869,62 +865,31 @@ class Hist(Output):
       # Settings
       self._show_percent = True
 
-   def get_x_y(self, data):
+   def _plot_core(self, data):
       F = data.num_inputs
       values = [data.get_scores(self._field, f, verif.axis.No()) for f in range(0,F)]
 
+      labels = data.get_names()
       intervals = verif.util.get_intervals(self.bin_type, self.thresholds)
-      y = np.zeros([F, len(intervals)], 'float')
-      x = np.zeros([F, len(intervals)], 'float')
-      xx = [i.center for i in intervals]
+      x = [i.center for i in intervals]
+      N = len(intervals)
       for f in range(0, F):
+         y = np.zeros(N, float)
          # Compute how many are with each interval
-         for i in range(0, len(intervals)):
-            y[f, i] = np.sum(verif.util.apply_threshold(values[f], self.bin_type, intervals[i].lower, intervals[i].upper))
-         x[f, :] = xx
-      return [x, y]
-
-   def _plot_core(self, data):
-      labels = data.get_legend()
-      F = data.num_inputs
-      [x, y] = self.get_x_y(data)
-      for f in range(0, F):
+         for i in range(0, N):
+            y[i] = np.sum(verif.util.apply_threshold(values[f], self.bin_type, intervals[i].lower, intervals[i].upper))
          color = self._get_color(f, F)
          style = self._get_style(f, F)
          if self._show_percent:
-            y[f] = y[f] * 1.0 / sum(y[f]) * 100
-         mpl.plot(x[f], y[f], style, color=color, label=labels[f], lw=self.lw,
-               ms=self.ms)
+            y = y * 100.0 / np.sum(y)
+
+         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
+
       mpl.xlabel(verif.axis.Threshold().label(data.variable))
       if self._show_percent:
          mpl.ylabel("Frequency (%)")
       else:
          mpl.ylabel("Frequency")
-
-   def _csv_core(self, data):
-      s = ""
-
-      labels = data.get_legend()
-
-      F = data.num_inputs
-      [x, y] = self.get_x_y(data)
-
-      # Header line
-      header = "threshold"
-      for label in labels:
-         header = header + "," + label
-      s += header + "\n"
-
-      # Loop over rows
-      descs = self.thresholds
-      for i in range(0, len(x[0])):
-         line = str(descs[i])
-         for j in range(0, len(y[:, i])):
-            line = line + ",%g" % y[j, i]
-         s += line + "\n"
-      s = s.strip()
-
-      return s
 
 
 class Sort(Output):
@@ -935,8 +900,8 @@ class Sort(Output):
       self._field = field
 
    def _plot_core(self, data):
-      labels = data.get_legend()
       F = data.num_inputs
+      labels = data.get_legend()
 
       for f in range(0, F):
          x = np.sort(data.get_scores(self._field, f, verif.axis.No()))
@@ -963,16 +928,15 @@ class ObsFcst(Output):
 
       isCont = self.axis.is_continuous
 
-      [x,fcst,obs] = self.get_x_fcst_obs(data, self.axis)
+      [x,y,labels] = self.get_x_y(data, self.axis)
 
       # Obs line
-      self._plot_obs(x, obs, isCont)
+      self._plot_obs(x, y[:,0], isCont)
 
-      labels = data.get_legend()
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F, isCont)
-         mpl.plot(x, fcst[:,f], style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
+         mpl.plot(x, y[:,f+1], style, color=color, label=labels[f+1], lw=self.lw, ms=self.ms)
 
       mpl.ylabel(data.get_variable_and_units())
       mpl.xlabel(self.axis.label(data.variable))
@@ -981,7 +945,7 @@ class ObsFcst(Output):
       else:
          mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
 
-   def get_x_fcst_obs(self, data, axis):
+   def get_x_y(self, data, axis):
       F = data.num_inputs
       x = data.get_axis_values(self.axis)
       if self.axis.is_time_like:
@@ -995,37 +959,13 @@ class ObsFcst(Output):
       mFcst = verif.metric.FromField(verif.field.Fcst(), aux=verif.field.Obs())
       mFcst.aggregator = self.aggregator
       labels = data.get_legend()
-      y = np.zeros([len(x),F], float)
+      y = np.zeros([len(x),F+1], float)
+      y[:,0] = obs
       for f in range(0, F):
-         y[:,f] = mFcst.compute(data, f, self.axis, None)
+         y[:,f+1] = mFcst.compute(data, f, self.axis, None)
 
-      return [x,y,obs]
-
-   def _csv_core(self, data):
-      [x, fcst, obs] = self.get_x_fcst_obs(data, self.axis)
-
-      # Header line
-      names = data.get_legend()
-      header = data.get_axis_description_header(self.axis, csv=True)
-      s = header + ',obs,' + ','.join(names) + '\n'
-
-      # Get column descriptions
-      if self.axis == verif.axis.Threshold():
-         descs = self.thresholds
-      else:
-         descs = data.get_axis_descriptions(self.axis, csv=True)
-
-      # Loop over rows
-      for i in range(0, len(x)):
-         line = str(descs[i])
-         line = line + ',%g' % obs[i]
-         for f in range(0, fcst.shape[1]):
-            line = line + ',%g' % fcst[i,f]
-         s += line + "\n"
-
-      # Remove last newline
-      s = s.strip()
-      return s
+      labels = ["obs"] + labels
+      return x,y,axis.name(),labels
 
 
 class QQ(Output):
@@ -1036,60 +976,21 @@ class QQ(Output):
    def __init__(self):
       Output.__init__(self)
 
-   def get_x_y(self, data):
-      x = list()
-      y = list()
-      F = len(data.get_names())
-      for f in range(0, F):
-         [xx, yy] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No())
-         x.append(np.sort(xx))
-         y.append(np.sort(yy))
-      return [x, y]
-
    def _plot_core(self, data):
       labels = data.get_legend()
       F = data.num_inputs
-      [x, y] = self.get_x_y(data)
       for f in range(0, F):
+         [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No())
+         x = np.sort(x)
+         y = np.sort(y)
          color = self._get_color(f, F)
          style = self._get_style(f, F)
+         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
 
-         mpl.plot(x[f], y[f], style, color=color, label=labels[f], lw=self.lw,
-               ms=self.ms)
       mpl.ylabel("Sorted forecasts (" + data.variable.units + ")")
       mpl.xlabel("Sorted observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
       self._plot_perfect_score(lims, lims)
-
-   def _csv_core(self, data):
-      F = data.num_inputs
-
-      # Header
-      names = data.get_legend()
-      s = ""
-      for i in range(len(names)):
-         name = names[i]
-         s += name + "(obs)" + "," + name + "(fcst)"
-         if i < len(names)-1:
-            s += ','
-      s += "\n"
-
-      [x, y] = self.get_x_y(data)
-      maxPairs = len(x[0])
-      for f in range(1, F):
-         maxPairs = max(maxPairs, len(x[f]))
-      for i in range(0, maxPairs):
-         line = ""
-         for f in range(0, F):
-            if len(x[f]) < i:
-               line += ","
-            else:
-               line += "%f,%f" % (x[f][i], y[f][i])
-            if f < F-1:
-               line += ','
-         s += line + "\n"
-      s = s.strip()
-      return s
 
 
 class Scatter(Output):

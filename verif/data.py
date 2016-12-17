@@ -341,21 +341,15 @@ class Data(object):
       var = self.variable
       return var.name + " (" + var.units + ")"
 
-   def get_axis_descriptions(self, axis, csv=False):
+   def get_axis_descriptions(self, axis):
       if axis.is_location_like:
+         q = dict()
          descs = list()
          ids = [loc.id for loc in self.locations]
          lats = [loc.lat for loc in self.locations]
          lons = [loc.lon for loc in self.locations]
          elevs = [loc.elev for loc in self.locations]
-         if csv:
-            fmt = "%d,%f,%f,%f"
-         else:
-            fmt = "%6d %5.2f %5.2f %5.0f"
-         for i in range(0, len(ids)):
-            string = fmt % (ids[i], lats[i], lons[i], elevs[i])
-            descs.append(string)
-         return descs
+         return {"id": ids, "lat":lats, "lon":lons, "elev":elevs}
       if(axis.is_time_like):
          unixtimes = self.get_axis_values(axis)
          # Convert to date objects
@@ -365,19 +359,9 @@ class Data(object):
 
          for i in range(0, len(dates)):
             times = times + [dates[i].strftime(fmt)]
-         return times
+         return {axis.name():times}
       else:
-         return self.get_axis_values(axis)
-
-   def get_axis_description_header(self, axis, csv=False):
-      if axis.is_location_like:
-         if csv:
-            fmt = "%s,%s,%s,%s"
-         else:
-            fmt = "%6s %5s %5s %5s"
-         return fmt % ("id", "lat", "lon", "elev")
-      else:
-         return axis.name()
+         return {axis.name():self.get_axis_values(axis)}
 
    def _get_score(self, field, input_index):
       """ Load the field variable from input, but only include the common data
