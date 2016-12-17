@@ -1261,6 +1261,7 @@ class TimeSeries(Output):
          "effect, as it is always shown by date."
    supports_threshold = False
    supports_x = False
+   default_axis = verif.axis.Time()
 
    def _plot_core(self, data):
       F = data.num_inputs
