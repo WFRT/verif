@@ -69,18 +69,14 @@ class Output(object):
    filename          When set, output the figure to this filename. File extension is
                      auto-detected.
    grid              When True, show a grid on the plot
-   lab_font_size
+   labfs
    left
-   leg_font_size
+   legfs
    leg_loc           Where should the legend be placed?
    log_x
    log_y
    lw                Line width
-   major_length
-   major_width
    map_type
-   minor_length
-   minor_width
    ms                Marker size
    pad
    right
@@ -132,18 +128,17 @@ class Output(object):
       self.lw = 2
       self.labfs = 16
       self.tickfs = 16
-      self.leg_font_size = 16
+      self.legfs = 16
       self.titlefs = 16
       self.figsize = [5, 8]
       self.show_margin = True
-      self.xrot = 0
-      self.minlth = None
-      self.majlth = None
-      self.majwid = None
-      self.bot = None
+      self.xrot = None
+      self.yrot = None
+      self.bottom = None
       self.top = None
       self.left = None
       self.right = None
+      self.tick_font_size = 16
       self.axis = self.default_axis
       self.bin_type = self.default_bin_type
       self.show_perfect = False
@@ -402,12 +397,11 @@ class Output(object):
          mpl.show()
 
    def _legend(self, data, names=None):
-      if self.leg_font_size > 0:
+      if self.legfs > 0:
          if names is None:
-            mpl.legend(loc=self.leg_loc, prop={'size': self.leg_font_size})
+            mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
          else:
-            mpl.legend(names, loc=self.leg_loc, prop={'size':
-               self.leg_font_size})
+            mpl.legend(names, loc=self.leg_loc, prop={'size': self.legfs})
 
    def _set_y_axis_limits(self, metric):
       currYlim = mpl.ylim()
@@ -432,13 +426,16 @@ class Output(object):
          # mpl.rcParams['axes.labelsize'] = self.labfs
 
          # Tick lines
-         if self.minlth is not None:
-            mpl.tick_params('both', length=self.minlth, which='minor')
-         if self.majlth is not None:
-            mpl.tick_params('both', length=self.majlth, width=self.majwid,
-                  which='major')
          for label in ax.get_xticklabels():
-            label.set_rotation(self.xrot)
+            if self.xrot is not None:
+               label.set_rotation(self.xrot)
+            if self.tick_font_size is not None:
+               label.set_fontsize(self.tick_font_size)
+         for label in ax.get_yticklabels():
+            if self.xrot is not None:
+               label.set_rotation(self.yrot)
+            if self.tick_font_size is not None:
+               label.set_fontsize(self.tick_font_size)
 
       for ax in mpl.gcf().get_axes():
          if self.xlim is not None:
@@ -458,14 +455,15 @@ class Output(object):
          if self.grid:
             ax.grid('on')
 
-
       # Labels
       if self.xlabel is not None:
          mpl.xlabel(self.xlabel)
       if self.ylabel is not None:
          mpl.ylabel(self.ylabel)
       if self.title is not None:
-         mpl.title(self.title, fontsize=self.titlefs)
+         mpl.title(self.title)
+      q = mpl.gca().get_title()
+      mpl.gca().set_title(q, fontsize=self.titlefs)
 
       # Ticks
       if self.xticks is not None:
@@ -480,7 +478,7 @@ class Output(object):
             mpl.yticks(self.yticks)
 
       # Margins
-      mpl.gcf().subplots_adjust(bottom=self.bot, top=self.top,
+      mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top,
             left=self.left, right=self.right)
 
    def _plot_obs(self, x, y, isCont=True, zorder=0, label="obs"):
@@ -610,8 +608,8 @@ class Standard(Output):
       return x, y, xname, ynames
 
    def _legend(self, data, names=None):
-      if self.leg_font_size > 0:
-         mpl.legend(loc=self.leg_loc, prop={'size': self.leg_font_size})
+      if self.legfs > 0:
+         mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
 
    def _plot_core(self, data):
 
@@ -849,8 +847,7 @@ class Standard(Output):
             if lmissing is not None:
                 lines.append(lmissing)
                 names.append("missing")
-            mpl.legend(lines, names, loc=self.leg_loc, prop={'size':
-               self.leg_font_size})
+            mpl.legend(lines, names, loc=self.leg_loc, prop={'size': self.legfs})
 
 
 class Hist(Output):
@@ -2574,9 +2571,8 @@ class Impact(Output):
       mpl.gca().set_aspect(1)
 
    def _legend(self, data, names=None):
-      if self.leg_font_size > 0:
+      if self.legfs > 0:
          if names is None:
-            mpl.legend(loc=self.leg_loc, prop={'size': self.leg_font_size})
+            mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
          else:
-            mpl.legend(names, loc=self.leg_loc, prop={'size':
-               self.leg_font_size})
+            mpl.legend(names, loc=self.leg_loc, prop={'size': self.legfs})

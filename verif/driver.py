@@ -51,9 +51,7 @@ def run(argv):
    plot_type = "plot"
    grid = True
    xrot = None
-   major_length = None
-   minor_length = None
-   major_width = None
+   yrot = None
    bottom_padding = None
    top_padding = None
    right_padding = None
@@ -203,13 +201,9 @@ def run(argv):
                leg_loc = arg_next.replace('_', ' ')
             elif(arg == "-xrot"):
                xrot = float(arg_next)
-            elif(arg == "-majlth"):
-               major_length = float(arg_next)
-            elif(arg == "-minlth"):
-               minor_length = float(arg_next)
-            elif(arg == "-majwid"):
-               major_width = float(arg_next)
-            elif(arg == "-bot"):
+            elif(arg == "-yrot"):
+               yrot = float(arg_next)
+            elif(arg == "-bottom"):
                bottom_padding = float(arg_next)
             elif(arg == "-top"):
                top_padding = float(arg_next)
@@ -441,9 +435,9 @@ def run(argv):
    if(line_colors is not None):
       pl.line_colors = line_colors
    if(lab_font_size is not None):
-      pl.lab_font_size = lab_font_size
+      pl.labfs = lab_font_size
    if(leg_font_size is not None):
-      pl.leg_font_size = leg_font_size
+      pl.legfs = leg_font_size
    if(title_font_size is not None):
       pl.title_font_size = title_font_size
    if(leg_loc is not None):
@@ -452,12 +446,8 @@ def run(argv):
       pl.tick_font_size = tick_font_size
    if(xrot is not None):
       pl.xrot = xrot
-   if(major_length is not None):
-      pl.major_length = major_length
-   if(minor_length is not None):
-      pl.minor_length = minor_length
-   if(major_width is not None):
-      pl.major_width = major_width
+   if(yrot is not None):
+      pl.yrot = yrot
    if(bottom_padding is not None):
       pl.bottom = bottom_padding
    if(top_padding is not None):
@@ -584,7 +574,7 @@ def show_description(data=None):
 
    # Plot options
    print verif.util.green("  Plotting options:")
-   print format_argument("-bot value", "Bottom boundary location for saved figure [range 0-1]")
+   print format_argument("-bottom value", "Bottom boundary location for saved figure [range 0-1]")
    print format_argument("-clim limits", "Force colorbar limits to the two values lower,upper")
    print format_argument("-cmap colormap", "Use this colormap when possible (e.g. jet, inferno, RdBu)")
    print format_argument("-dpi value", "Resolution of image in dots per inch (default 100)")
@@ -599,13 +589,10 @@ def show_description(data=None):
    print format_argument("-lw width", "How wide should lines be?")
    print format_argument("-logx", "Use a logarithmic x-axis")
    print format_argument("-logy", "Use a logarithmic y-axis")
-   print format_argument("-majlth length", "Length of major tick marks")
-   print format_argument("-majtwid width", "Adjust the thickness of the major tick marks")
    print format_argument("-maptype", "One of 'simple', 'sat', 'topo', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.")
-   print format_argument("-minlth length", "Length of minor tick marks")
    print format_argument("-ms size", "How big should markers be?")
    print format_argument("-nogrid", "Turn the grid on the plot off")
-   print format_argument("-nomargin", "Remove margins (whitespace) in the plot not x[i] <= T.")
+   print format_argument("-nomargin", "Remove margins (whitespace) in the plot")
    print format_argument("-right value", "Right boundary location for saved figure [range 0-1]")
    print format_argument("-simple", "Make a simpler plot, without extra lines, subplots, etc.")
    print format_argument("-sp", "Show a line indicating the perfect score")
@@ -621,6 +608,7 @@ def show_description(data=None):
    print format_argument("-xrot value", "Rotation angle for x-axis labels")
    print format_argument("-ylabel text", "Custom y-axis label")
    print format_argument("-ylim limits", "Force y-axis limits to the two values lower,upper")
+   print format_argument("-yrot value", "Rotation angle for y-axis labels")
    print format_argument("-yticks ticks", "A vector of values to put ticks on the y-axis")
    print format_argument("-xticklabels labels", "A comma-separated list of labels for the y-axis ticks")
    print ""
