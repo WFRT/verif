@@ -1,16 +1,17 @@
 # -*- coding: ISO-8859-1 -*-
-import matplotlib.pyplot as mpl
-import re
 import datetime
-import verif.util
-import verif.metric
-import verif.metric_type
-import verif.axis
-import numpy as np
-import os
 import inspect
+import os
+import re
 import sys
 import matplotlib.dates as mpldates
+import matplotlib.pyplot as mpl
+import numpy as np
+import scipy.stats
+import verif.axis
+import verif.metric
+import verif.metric_type
+import verif.util
 reload(sys)
 sys.setdefaultencoding('ISO-8859-1')
 
@@ -1904,7 +1905,9 @@ class DRoc(Output):
       self._doNorm = doNorm
       self._fthresholds = fthresholds
       self._doClassic = doClassic
-      self._showThresholds = True
+
+   def _show_thresholds(self):
+      return not self.simple
 
    def _plot_core(self, data):
       if self.thresholds is None or len(self.thresholds) != 1:
@@ -1939,8 +1942,12 @@ class DRoc(Output):
             f_interval = f_intervals[i]
             x[i] = verif.metric.Fa().compute_from_obs_fcst(obs, fcst, interval, f_interval)
             y[i] = verif.metric.Hit().compute_from_obs_fcst(obs, fcst, interval, f_interval)
-            if self._showThresholds and (not np.isnan(x[i]) and not np.isnan(y[i]) and f == 0):
-               mpl.text(x[i], y[i], "%2.1f" % f_thresholds[i], color=color)
+         if self._doNorm:
+             x = scipy.stats.norm.ppf(x)
+             y = scipy.stats.norm.ppf(y)
+         for i in range(0, len(f_intervals)):
+            if self._show_thresholds() and (not np.isnan(x[i]) and not np.isnan(y[i])):
+               mpl.text(x[i], y[i], "%2.1f" % f_intervals[i].center, color=color)
          if not self._doNorm:
             # Add end points at 0,0 and 1,1:
             xx = x
@@ -1953,8 +1960,7 @@ class DRoc(Output):
             y[0] = 1
             x[len(x) - 1] = 0
             y[len(y) - 1] = 0
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
-               ms=self.ms)
+         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
       if self._doNorm:
          xlim = mpl.xlim()
          ylim = mpl.ylim()
