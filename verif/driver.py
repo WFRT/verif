@@ -408,6 +408,10 @@ def run(argv):
             type = "threshold"
          elif m.require_threshold_type == "probabilistic":
             type = "probabilistic"
+         elif m.require_threshold_type is not None:
+            verif.util.error("Internal error for metric %s: Cannot understand required threshold type '%s'" % (m.name(), m.require_threshold_type))
+      elif pl.require_threshold_type is not None:
+         verif.util.error("Internal error for output %s: Cannot understand required threshold type '%s'" % (pl.name(), pl.require_threshold_type))
 
       if type == "deterministic":
          obs = data.get_scores(verif.field.Obs(), 0)

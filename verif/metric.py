@@ -675,17 +675,17 @@ class MarginalRatio(Metric):
    def compute_single(self, data, input_index, axis, axis_index, interval):
       if(np.isinf(interval.lower)):
          pvar = verif.field.Threshold(interval.upper)
-         [obs, p1] = data.get_scores([verif.fields.Obs(), pvar], input_index, axis, axis_index)
+         [obs, p1] = data.get_scores([verif.field.Obs(), pvar], input_index, axis, axis_index)
          p0 = 0 * p1
       elif(np.isinf(interval.upper)):
          pvar = verif.field.Threshold(interval.lower)
-         [obs, p0] = data.get_scores([verif.fields.Obs(), pvar], input_index,
+         [obs, p0] = data.get_scores([verif.field.Obs(), pvar], input_index,
                axis, axis_index)
          p1 = 0 * p0 + 1
       else:
          pvar0 = verif.field.Threshold(interval.lower)
          pvar1 = verif.field.Threshold(interval.upper)
-         [obs, p0, p1] = data.get_scores([verif.fields.Obs(), pvar0, pvar1],
+         [obs, p0, p1] = data.get_scores([verif.field.Obs(), pvar0, pvar1],
                input_index, axis, axis_index)
       obs = interval.within(obs)
       p = p1 - p0
@@ -705,8 +705,8 @@ class SpreadSkillDiff(Metric):
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
       import scipy.stats
-      [obs, fcst, spread] = data.get_scores([verif.fields.Obs(),
-         verif.fields.Fcst(), verif.fields.Spread()], input_index, axis,
+      [obs, fcst, spread] = data.get_scores([verif.field.Obs(),
+         verif.field.Fcst(), verif.field.Spread()], input_index, axis,
          axis_index)
       if(len(obs) <= 1):
          return np.nan

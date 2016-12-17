@@ -163,7 +163,7 @@ class Output(object):
       self.map_type = None
 
    @classmethod
-   def get_class_name(cls):
+   def name(cls):
       name = cls.__name__
       return name
 
@@ -1130,7 +1130,7 @@ class Cond(Output):
                   "bin-edges)"
    default_axis = "threshold"
    default_bin_type = "within"
-   require_threshold_type = "determinsitic"
+   require_threshold_type = "determinsistic"
    supports_threshold = True
    supports_x = False
 
@@ -1454,7 +1454,6 @@ class PitHist(Output):
 
 class Discrimination(Output):
    description = "Discrimination diagram for a certain threshold (-r)"
-   require_threshold_type = "threshold"
    supports_x = False
 
    def __init__(self):
@@ -1700,7 +1699,7 @@ class IgnContrib(Output):
       mpl.ylabel("Ignorance contribution")
 
       # Draw expected sharpness
-      xx = np.linspace(0, 1, 100)
+      xx = np.linspace(0.01, 0.99, 100)
       yy = -(xx * np.log2(xx) + (1 - xx) * np.log2(1 - xx))
       mpl.plot(xx, yy, "--", color="gray")
       yy = -np.log2(clim) * np.ones(len(xx))
@@ -2242,7 +2241,7 @@ class Performance(Output):
 class Error(Output):
    description = "Decomposition of RMSE into systematic and unsystematic components"
    supports_threshold = False
-   supports_x = True
+   supports_x = False
    default_axis = verif.axis.No()
 
    def _plot_core(self, data):
