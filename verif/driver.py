@@ -322,8 +322,6 @@ def run(argv):
       pl = verif.output.Against()
    elif(metric == "impact"):
       pl = verif.output.Impact()
-   elif(metric == "count"):
-      pl = verif.output.Count()
    elif(metric == "scatter"):
       pl = verif.output.Scatter()
    elif(metric == "change"):

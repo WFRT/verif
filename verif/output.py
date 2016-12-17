@@ -1220,41 +1220,6 @@ class SpreadSkill(Output):
       mpl.ylabel("RMSE (" + data.variable.units + ")")
 
 
-class Count(Output):
-   description = "Counts number of forecasts above or within thresholds "\
-         "(use -r to specify bin-edges). Use -binned to count number in "\
-         "bins, nstead of number above each threshold."
-   default_axis = "threshold"
-   default_bin_type = "within"
-   require_threshold_type = "determinsitic"
-   supports_threshold = True
-   supports_x = False
-
-   def _plot_core(self, data):
-      data.set_axis("none")
-      data.set_index(0)
-      intervals = verif.util.get_intervals(self.bin_type, self.thresholds)
-
-      labels = data.get_legend()
-      F = data.num_inputs
-      for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
-         data.set_file_index(f)
-
-         Nobs = np.zeros(len(x), 'float')
-         Nfcst = np.zeros(len(x), 'float')
-         obs = verif.metric.Count("obs")
-         fcst = verif.metric.Count("fcst")
-         for i in range(0, len(lowerT)):
-            Nobs[i] = obs.compute(data, intervals[i])
-            Nfcst[i] = fcst.compute(data, intervals[i])
-         mpl.plot(x, Nfcst, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
-      self._plot_obs(x, Nobs)
-      mpl.ylabel("Number")
-      mpl.xlabel(self.axis.label(data.variable))
-
-
 class TimeSeries(Output):
    description = "Plot observations and forecasts as a time series "\
          "(i.e. by concatinating all offsets). '-x <dimension>' has no "\
