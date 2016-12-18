@@ -399,15 +399,15 @@ def run(argv):
          type = "deterministic"
       elif pl.require_threshold_type == "threshold":
          type = "threshold"
-      elif pl.require_threshold_type == "probabilistic":
-         type = "probabilistic"
+      elif pl.require_threshold_type == "quantile":
+         type = "quantile"
       elif m is not None:
          if m.require_threshold_type == "deterministic":
             type = "deterministic"
          elif m.require_threshold_type == "threshold":
             type = "threshold"
-         elif m.require_threshold_type == "probabilistic":
-            type = "probabilistic"
+         elif m.require_threshold_type == "quantile":
+            type = "quantile"
          elif m.require_threshold_type is not None:
             verif.util.error("Internal error for metric %s: Cannot understand required threshold type '%s'" % (m.name(), m.require_threshold_type))
       elif pl.require_threshold_type is not None:

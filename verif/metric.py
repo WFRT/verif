@@ -868,7 +868,7 @@ class Bs(Metric):
       p0 = 0
       p1 = 1
       var = verif.field.Quantile(interval.lower)
-      [obs, q] = data.get_scores(["obs", var], input_index, axis, axis_index)
+      [obs, q] = data.get_scores([verif.field.Obs(), var], input_index, axis, axis_index)
 
       return [obs, q]
 
