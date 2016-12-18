@@ -2,6 +2,7 @@ import inspect
 import metric_type
 import numpy as np
 import sys
+import scipy.stats
 import verif.aggregator
 import verif.axis
 import verif.interval
@@ -509,7 +510,6 @@ class RankCorr(ObsFcstBased):
    orientation = 1
 
    def _compute_from_obs_fcst(self, obs, fcst):
-      import scipy.stats
       if(len(obs) <= 1):
          return np.nan
       return scipy.stats.spearmanr(obs, fcst)[0]
@@ -529,7 +529,6 @@ class KendallCorr(ObsFcstBased):
    orientation = 1
 
    def _compute_from_obs_fcst(self, obs, fcst):
-      import scipy.stats
       if(len(obs) <= 1):
          return np.nan
       if(np.var(fcst) == 0):
@@ -695,30 +694,6 @@ class MarginalRatio(Metric):
 
    def label(self, variable):
       return "Ratio of marginal probs: Pobs/Pfcst"
-
-
-class SpreadSkillDiff(Metric):
-   type = verif.metric_type.Probabilistic()
-   description = "Difference between spread and skill in %"
-   perfect_score = 0
-   orientation = 0
-
-   def compute_single(self, data, input_index, axis, axis_index, interval):
-      import scipy.stats
-      [obs, fcst, spread] = data.get_scores([verif.field.Obs(),
-         verif.field.Fcst(), verif.field.Spread()], input_index, axis,
-         axis_index)
-      if(len(obs) <= 1):
-         return np.nan
-      rmse = np.sqrt(np.mean((obs - fcst) ** 2))
-      spread = np.mean(spread) / 2.563103
-      return 100 * (spread / rmse - 1)
-
-   def name(self):
-      return "Spread-skill difference"
-
-   def label(self, variable):
-      return "Spread-skill difference (%)"
 
 
 class Within(Metric):
