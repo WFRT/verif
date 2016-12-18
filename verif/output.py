@@ -1129,7 +1129,7 @@ class Cond(Output):
    description = "Plots forecasts as a function of obs (use -r to specify bin-edges)"
    default_axis = "threshold"
    default_bin_type = "within="
-   require_threshold_type = "determinsistic"
+   require_threshold_type = "deterministic"
    supports_threshold = True
    supports_x = False
 
@@ -1173,7 +1173,7 @@ class Cond(Output):
 class SpreadSkill(Output):
    supports_threshold = True
    supports_x = False
-   require_threshold_type = "determinsitic"
+   require_threshold_type = "deterministic"
    description = "Spread/skill plot showing RMSE of ensemble mean as a function of ensemble spread (use -r to specify spread thresholds and -q to specify a lower and upper quantile to represent spread)"
 
    def __init__(self):
@@ -1186,6 +1186,8 @@ class SpreadSkill(Output):
          lower_q = np.min(self.quantiles)
          upper_q = np.max(self.quantiles)
       else:
+         if len(data.quantiles) < 2:
+            verif.util.error("Spread-skill diagram needs input files to have at least 2 quantiles")
          lower_q = data.quantiles[0]
          upper_q = data.quantiles[-1]
       lower_field = verif.field.Quantile(lower_q)
@@ -1198,6 +1200,8 @@ class SpreadSkill(Output):
          skill = (obs - fcst)**2
          x = np.nan*np.zeros(len(self.thresholds), 'float')
          y = np.nan*np.zeros(len(x), 'float')
+         lower = np.nan*np.zeros(len(x), 'float')
+         upper = np.nan*np.zeros(len(x), 'float')
          for i in range(1, len(self.thresholds)):
             I = np.where((np.isnan(spread) == 0) &
                          (np.isnan(skill) == 0) &
@@ -1206,16 +1210,27 @@ class SpreadSkill(Output):
             if len(I) > 0:
                x[i] = np.mean(spread[I])
                y[i] = np.sqrt(np.mean(skill[I]))
+               lower[i] = np.percentile(np.sqrt(skill[I]), 5)
+               upper[i] = np.percentile(np.sqrt(skill[I]), 95)
 
          style = self._get_style(f, F)
          mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=labels[f])
-      xlim = [0, mpl.xlim()[1]]
-      ylim = [0, mpl.ylim()[1]]
-      lims = verif.util.get_square_axis_limits(xlim, ylim)
+
+      xlim = mpl.xlim(left=0)
+      ylim = mpl.ylim(bottom=0)
+      lims = np.array(verif.util.get_square_axis_limits(xlim, ylim))
+
       mpl.xlim(lims)
       mpl.ylim(lims)
-      self._plot_perfect_score(lims, lims)
-      mpl.xlabel("%.1f - %.1f quantiles (%s)" % (upper_q, lower_q, data.variable.units))
+
+      # The perfect score depends on how far the quantiles are apart. Compute
+      # the number of standard deviations that the quantile interval would
+      # contain assuming a Gaussian distribution. The ideal line will then be
+      # scaled by this number.
+      num_std = scipy.stats.norm.ppf(upper_q) - scipy.stats.norm.ppf(lower_q)
+      self._plot_perfect_score(lims, 1.0/num_std*lims)
+
+      mpl.xlabel("Width of the %g%% - %g%% interval (%s)" % (upper_q*100, lower_q*100, data.variable.units))
       mpl.ylabel("RMSE (" + data.variable.units + ")")
 
 
