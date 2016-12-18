@@ -1487,6 +1487,8 @@ class Discrimination(Output):
 
       if len(self.thresholds) != 1:
          verif.util.error("Discrimination diagram requires exactly one threshold")
+      if re.compile(".*within.*").match(self.bin_type):
+         verif.util.error("A 'within' bin type cannot be used in this diagram")
       threshold = self.thresholds[0]
 
       var = verif.field.Threshold(threshold)
@@ -1554,6 +1556,8 @@ class Reliability(Output):
    def _plot_core(self, data):
       if self.thresholds is None or len(self.thresholds) != 1:
          verif.util.error("Reliability plot needs a single threshold (use -r)")
+      if re.compile(".*within.*").match(self.bin_type):
+         verif.util.error("A 'within' bin type cannot be used in this diagram")
       threshold = self.thresholds[0]   # Observation threshold
       labels = data.get_legend()
 
@@ -1662,6 +1666,8 @@ class IgnContrib(Output):
 
       if self.thresholds is None or len(self.thresholds) != 1:
          verif.util.error("IgnContrib diagram requires exactly one threshold")
+      if re.compile(".*within.*").match(self.bin_type):
+         verif.util.error("A 'within' bin type cannot be used in this diagram")
       threshold = self.thresholds[0]
 
       F = data.num_inputs
@@ -1745,6 +1751,8 @@ class EconomicValue(Output):
 
       if self.thresholds is None or len(self.thresholds) != 1:
          verif.util.error("Economic value diagram requires exactly one threshold")
+      if re.compile(".*within.*").match(self.bin_type):
+         verif.util.error("A 'within' bin type cannot be used in this diagram")
       threshold = self.thresholds[0]
 
       F = data.num_inputs
