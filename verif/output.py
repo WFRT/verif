@@ -802,10 +802,10 @@ class Standard(Output):
          if self.show_missing:
             map.plot(x0[I], y0[I], 'kx')
 
-         isMax = (y[:, f] == np.amax(y, 0)) &\
-                 (y[:, f] > np.mean(y, 0) + minDiff)
-         isMin = (y[:,f] == np.amin(y, 0)) &\
-                 (y[:,f] < np.mean(y, 0) - minDiff)
+         isMax = (y[:, f] == np.amax(y, 1)) &\
+                 (y[:, f] > np.mean(y, 1) + minDiff)
+         isMin = (y[:,f] == np.amin(y, 1)) &\
+                 (y[:,f] < np.mean(y, 1) - minDiff)
          is_valid = (np.isnan(y[:, f]) == 0)
          s = self.ms*self.ms
          if self.show_rank:
