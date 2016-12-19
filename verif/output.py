@@ -928,7 +928,7 @@ class ObsFcst(Output):
 
       isCont = self.axis.is_continuous
 
-      [x,y,labels] = self.get_x_y(data, self.axis)
+      [x,y,_,labels] = self._get_x_y(data, self.axis)
 
       # Obs line
       self._plot_obs(x, y[:,0], isCont)
@@ -945,7 +945,7 @@ class ObsFcst(Output):
       else:
          mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
 
-   def get_x_y(self, data, axis):
+   def _get_x_y(self, data, axis):
       F = data.num_inputs
       x = data.get_axis_values(self.axis)
       if self.axis.is_time_like:
