@@ -823,10 +823,10 @@ class Standard(Output):
             mpl.clim(clim)
          if self._mapLabelLocations:
             for i in range(0, len(x0)):
-               value = y[:, f]
+               value = y[i, f]
 
                if not np.isnan(value):
-                  mpl.text(x0[i], y0[i], "%d %3.2f" % (ids[i], value))
+                  mpl.text(x0[i], y0[i], "%d" % (ids[i]))
          names = data.get_legend()
          if self.title is not None:
             mpl.title(self.title)
