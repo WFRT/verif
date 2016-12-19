@@ -586,7 +586,7 @@ class Standard(Output):
          x = verif.util.convert_times(x)
 
       xname = axis.name()
-      ynames = data.get_names()
+      ynames = data.get_legend()
       F = data.num_inputs
       y = None
       for f in range(0, F):
