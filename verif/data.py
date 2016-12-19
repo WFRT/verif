@@ -125,8 +125,8 @@ class Data(object):
          max_elev = elev_range[1]
          elev_locations = list()
          for i in range(0, len(locations)):
-            curr_elev = float(locations[i].elev())
-            id = locations[i].id()
+            curr_elev = float(locations[i].elev)
+            id = locations[i].id
             if(curr_elev >= min_elev and curr_elev <= max_elev):
                elev_locations.append(id)
          use_locationss = verif.util.intersect(use_locationss, elev_locations)
