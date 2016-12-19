@@ -542,7 +542,7 @@ def show_description(data=None):
    print textwrap.fill(desc, get_text_width())
    print ""
    print verif.util.green("Arguments:")
-   print format_argument("files", "Filenames of one or more verification files in NetCDF or text format (see 'File Formats' below).")
+   print format_argument("files", "One or more verification files in NetCDF or text format (see 'File Formats' below). The format of file is autodetected.")
    print format_argument("-m metric", "Which verification metric to use? See 'Metrics' below.")
    print ""
    print format_argument("--list-times", "What times are available in the files?")
