@@ -25,6 +25,8 @@ def get(name):
          a = aggregator()
    if a is None and verif.util.is_number(name):
       a = Quantile(float(name))
+   else:
+      verif.util.error("No aggregator by the name '%s'" % name)
 
    return a
 
