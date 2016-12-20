@@ -24,7 +24,9 @@ class TestParseNumbers(unittest.TestCase):
       self.assertEqual([8, 5, 2], verif.util.parse_numbers("8:-3:0"))
       with self.assertRaises(SystemExit):
          verif.util.parse_numbers("2:3:test")
+      with self.assertRaises(SystemExit):
          verif.util.parse_numbers("test:3:5")
+      with self.assertRaises(SystemExit):
          verif.util.parse_numbers("2:test:5")
 
    def test_comma(self):
@@ -33,14 +35,32 @@ class TestParseNumbers(unittest.TestCase):
       with self.assertRaises(SystemExit):
          verif.util.parse_numbers("test")
 
+   def test_0_step(self):
+      with self.assertRaises(SystemExit):
+         verif.util.parse_numbers("0:0:5")
+      with self.assertRaises(SystemExit):
+         verif.util.parse_numbers("0:0:0")
+      with self.assertRaises(SystemExit):
+         verif.util.parse_numbers("0:0:-5")
+      with self.assertRaises(SystemExit):
+         verif.util.parse_numbers("20150101:0:20150101", is_date=True)
+      with self.assertRaises(SystemExit):
+         verif.util.parse_numbers("20150101:0:20150105", is_date=True)
+      with self.assertRaises(SystemExit):
+         verif.util.parse_numbers("20150101:0:20140101", is_date=True)
+
    def test_mix(self):
-      self.assertEqual([3, 4, 3, 2, 3, 4, 5], verif.util.parse_numbers("3:4,3,2:5"))
       with self.assertRaises(SystemExit):
          verif.util.parse_numbers("2,5:8,3,test")
+      with self.assertRaises(SystemExit):
          verif.util.parse_numbers("2,5:8,test,5")
+      with self.assertRaises(SystemExit):
          verif.util.parse_numbers("2,5:test,3,5")
+      with self.assertRaises(SystemExit):
          verif.util.parse_numbers("2,5:test,3,5")
+      with self.assertRaises(SystemExit):
          verif.util.parse_numbers("2,test:8,3,5")
+      with self.assertRaises(SystemExit):
          verif.util.parse_numbers("test,5:8,3,5")
 
    def test_date(self):

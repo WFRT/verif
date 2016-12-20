@@ -152,6 +152,8 @@ def parse_numbers(numbers, is_date=False):
          step = 1
          if(len(colonList) == 3):
             step = float(colonList[1])
+         if step == 0:
+            verif.util.error("Could not parse '%s': Step cannot be 0." % (numbers))
          stepSign = step / abs(step)
          # arange does not include the end point:
          end = float(colonList[-1]) + stepSign * 0.0001

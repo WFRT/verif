@@ -47,6 +47,7 @@ class IntegrationTest(unittest.TestCase):
    def test_invalid(self):
       with self.assertRaises(SystemExit):
          self.run_with_image("verif --list-thresholds")
+      with self.assertRaises(SystemExit):
          self.run_with_image("verif --list-quantiles")
 
    def test_README(self):
