@@ -2260,7 +2260,8 @@ class Performance(Output):
 
    @staticmethod
    def _get_f_intervals(fcst, bin_type, num_max):
-      f_thresholds = np.percentile(np.unique(np.sort(fcst)), np.linspace(0, 100, num_max))
+      percentiles = np.linspace(0, 100, num_max)
+      f_thresholds = np.array([np.percentile(np.unique(np.sort(fcst)), p) for p in percentiles])
       # put a point in forecast point (so that the line goes
       # through the point
       f_thresholds = np.unique(np.sort(np.append(f_thresholds, 0)))
