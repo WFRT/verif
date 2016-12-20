@@ -275,34 +275,6 @@ variables are understood by ``verif``:
       : Conventions = "verif_1.0.0";
       }
 
-Using verif as a module
------------------------
-verif can also be used as a module within python.
-
-.. code-block:: python
-
-   import numpy as np
-   import verif.data
-   import verif.data
-   import verif.input
-   import verif.metric
-   import verif.variable
-
-   # Set up random forecasts and observations
-   obs = np.random.randn(100,20,5)
-   fcst = obs + np.random.randn(100,20,5)*0.2 + 0.3
-   variable = verif.variable.Variable("Temperature", "Degrees C")
-   input = verif.input.Fake(obs, fcst, variable=variable)
-   data = verif.data.Data(input)
-
-   # Create output
-   metric = verif.metric.Ets()
-   output = verif.output.Standard(metric)
-   output.axis = verif.axis.Threshold()
-   output.thresholds = range(-5,6)
-   output.plot(data)
-
-
 Copyright and license
 ---------------------
 
