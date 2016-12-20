@@ -300,15 +300,26 @@ class Output(object):
       # self._legend(data)
       self._save_plot(data)
 
-   def _plot_perfect_score(self, x, perfect, label="ideal", color="gray", zorder=-1000, always_show=0):
-      if perfect is None:
+   def _plot_perfect_score(self, x, y, label="ideal", color="gray", zorder=-1000, always_show=0):
+      """ Plots a line representing the perfect score
+
+      Arguments:
+         x (np.array): x-axis values
+         y (float or np.array): y-axis values. If a float, then assume the same
+            y-axis values for all x-axis values
+         label: Add this label to the legend
+         color: Line color
+         zorder: zorder of the line
+         always_show: If True, force the line to be shown, otherwise only show
+            if self.show_perfect is set to True
+      """
+      if y is None:
          return
       if self.show_perfect or always_show:
          # Make 'perfect' same length as 'x'
-         if not hasattr(perfect, "__len__"):
-            perfect = perfect * np.ones(len(x), 'float')
-         mpl.plot(x, perfect, '-', lw=5, color=color, label=label,
-               zorder=zorder)
+         if not hasattr(y, "__len__"):
+            y = y * np.ones(len(x), 'float')
+         mpl.plot(x, y, '-', lw=5, color=color, label=label, zorder=zorder)
 
    def _plot_diagnoal(self, label="ideal", color="gray", zorder=-1000):
       axismin = min(min(mpl.ylim()), min(mpl.xlim()))
@@ -679,7 +690,7 @@ class Standard(Output):
             # NOTE: Don't call the locator on a date axis
             mpl.gca().xaxis.set_major_locator(data.get_axis_locator(self.axis))
          perfect_score = self._metric.perfect_score
-         self._plot_perfect_score(x[0], perfect_score)
+         self._plot_perfect_score(mpl.xlim(), perfect_score)
 
       if not self.show_acc:
          self._set_y_axis_limits(self._metric)
