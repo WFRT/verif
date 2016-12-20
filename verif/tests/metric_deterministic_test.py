@@ -13,9 +13,9 @@ class MyTest(unittest.TestCase):
                 [2]]
       metrics = [verif.metric.Mae(), verif.metric.Bias(), verif.metric.Ef()]
       # Metrics in the inner lists, datasets in the outer
-      expSet = [[2, -4.0 / 3, 1.0 / 3],
-                [1, -1, 0.5],
-                [1, -1, 1]]
+      expSet = [[2, 4.0 / 3, 1.0 / 3],
+                [1, 1, 0.5],
+                [1, 1, 1]]
       for s in range(0, len(obsSet)):
          obs = obsSet[s]
          fcst = fcstSet[s]
