@@ -198,12 +198,15 @@ class Netcdf(Input):
          return np.array([])
 
    def _get_variable(self):
-      name = self._file.standard_name
+      if hasattr(self._file, "standard_name"):
+         name = self._file.standard_name
+      else:
+         name = "Unknown"
       units = "No units"
-      if(hasattr(self._file, "Units")):
+      if hasattr(self._file, "Units"):
          if(self._file.Units == ""):
             units = "No units"
-         elif(self._file.Units == "%"):
+         elif self._file.Units == "%":
             units = "%"
          else:
             units = "$" + self._file.Units + "$"
