@@ -291,7 +291,7 @@ class Bias(ObsFcstBased):
    orientation = 0
 
    def _compute_from_obs_fcst(self, obs, fcst):
-      return self.aggregator(obs - fcst)
+      return self.aggregator(fcst - obs)
 
 
 class Ef(ObsFcstBased):
