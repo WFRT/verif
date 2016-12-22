@@ -101,7 +101,7 @@ class Netcdf(Input):
    """
    Netcdf file format
    """
-   description = "NetCDF format that runs much quicker than the text format, though requires more effort to create. See https://github.com/WFRT/verif for more information about creating this file"
+   description = "NetCDF format that runs much quicker than the text format, though requires more effort to create. See https://github.com/WFRT/verif for more information about creating this file."
 
    def __init__(self, filename):
       self.fullname = filename

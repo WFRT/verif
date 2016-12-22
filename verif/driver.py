@@ -529,28 +529,23 @@ def get_aggregation_string():
 
 
 def show_description(data=None):
-   desc = "Program to compute verification scores for weather forecasts. Can be " \
-          "used to compare forecasts from different files. In that case only times, "\
-          "offsets, and locations that are common to all forecast files are used."
+   desc = "Program to compute verification scores for weather forecasts"
+   print "usage: verif files -m metric [options]"
+   print ""
    print textwrap.fill(desc, get_text_width())
    print ""
-   print "usage: verif files -m metric [options]"
-   print "       verif files [--list-thresholds] [--list-quantiles] [--list-locations]"
-   print "       verif --version"
-   print ""
    print verif.util.green("Arguments:")
-   print format_argument("files", "One or more verification files in NetCDF or text format (see 'File Formats' below).")
+   print format_argument("files", "Filenames of one or more verification files in NetCDF or text format (see 'File Formats' below).")
    print format_argument("-m metric", "Which verification metric to use? See 'Metrics' below.")
+   print ""
    print format_argument("--list-times", "What times are available in the files?")
    print format_argument("--list-locations", "What locations are available in the files?")
    print format_argument("--list-quantiles", "What quantiles are available in the files?")
    print format_argument("--list-thresholds", "What thresholds are available in the files?")
    print format_argument("--version", "What version of verif is this?")
-   print ""
-   print verif.util.green("Options:")
-   print "Note: vectors can be entered using commas, or MATLAB syntax (i.e 3:5 is 3,4,5 and 3:2:7 is 3,5,7)"
    # Dimensions
    print verif.util.green("  Dimensions and subset:")
+   print "  (Note: vectors can be entered using commas, or MATLAB syntax i.e 3:5 is 3,4,5 and 3:2:7 is 3,5,7)"
    print format_argument("-elevrange range", "Limit the verification to locations within minelev,maxelev.")
    print format_argument("-d dates", "A vector of dates in YYYYMMDD format, e.g.  20130101:20130201.")
    print format_argument("-t times", "A vector of unix timestamps.")
@@ -605,14 +600,14 @@ def show_description(data=None):
    print format_argument("-xlim limits", "Force x-axis limits to the two values lower,upper")
    print format_argument("-xlog", "Use a logarithmic x-axis")
    print format_argument("-xticks ticks", "A vector of values to put ticks on the x-axis")
-   print format_argument("-xticklabels labels", "A comma-separated list of labels for the x-axis ticks")
+   print format_argument("-xticklabels labs", "A comma-separated list of labels for the x-axis ticks")
    print format_argument("-xrot value", "Rotation angle for x-axis labels")
    print format_argument("-ylabel text", "Custom y-axis label")
    print format_argument("-ylim limits", "Force y-axis limits to the two values lower,upper")
    print format_argument("-ylog", "Use a logarithmic y-axis")
    print format_argument("-yrot value", "Rotation angle for y-axis labels")
    print format_argument("-yticks ticks", "A vector of values to put ticks on the y-axis")
-   print format_argument("-xticklabels labels", "A comma-separated list of labels for the y-axis ticks")
+   print format_argument("-xticklabels labs", "A comma-separated list of labels for the y-axis ticks")
    print ""
    print verif.util.green("Metrics (-m):")
    print "  (For a full description of a metric, run verif -m <metric>)"
@@ -639,7 +634,7 @@ def show_description(data=None):
    print format_argument("netcdf", verif.input.Netcdf.description)
 
 
-def format_argument(arg, description, arg_width=19, total_width=None, indent=2):
+def format_argument(arg, description, arg_width=22, total_width=None, indent=2):
    """
    Prints formated description to screen, but adds a column for a short descriptor, like this:
                arg            description more description
