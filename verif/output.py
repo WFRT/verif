@@ -2423,9 +2423,12 @@ class InvReliability(Output):
    def _show_count(self):
       return False
 
+   def _shade_confidence(self):
+      return not self.simple
+
    def _plot_core(self, data):
       labels = data.get_legend()
-      if self.quantiles is None or len(self.quantiles) != 1:
+      if self.quantiles is None or len(self.quantiles) < 1:
          verif.util.error("InvReliability requires at least one quantile")
 
       F = data.num_inputs
@@ -2487,7 +2490,8 @@ class InvReliability(Output):
          # sneak into the legend)
          for f in range(0, F):
             color = self._get_color(f, F)
-            self._plot_confidence(x[:, f], y[f], v[f], n[f], color=color)
+            if self._shade_confidence():
+               self._plot_confidence(x[:, f], y[f], v[f], n[f], color=color)
             if self._show_count():
                axi.plot(x[:, f], n[f], style, color=color, lw=self.lw, ms=self.ms)
                axi.xaxis.set_major_locator(mpl.NullLocator())
