@@ -74,8 +74,8 @@ class Output(object):
    left
    legfs
    leg_loc           Where should the legend be placed?
-   log_x
-   log_y
+   xlog
+   ylog
    lw                Line width
    map_type
    ms                Marker size
@@ -109,8 +109,8 @@ class Output(object):
    supports_threshold = True
    supports_x = True
    leg_loc = "best"
-   log_x = False
-   log_y = False
+   xlog = False
+   ylog = False
    reference = None
    _long = None
    type = verif.metric_type.Diagram()
@@ -462,9 +462,9 @@ class Output(object):
             mpl.ylim(self.ylim)
          if self.clim is not None:
             mpl.clim(self.clim)
-         if self.log_x:
+         if self.xlog:
             ax.set_xscale('log')
-         if self.log_y:
+         if self.ylog:
             ax.set_yscale('log')
          if self.grid:
             ax.grid('on')
