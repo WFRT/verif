@@ -2503,7 +2503,8 @@ class InvReliability(Output):
       mpl.xlabel(data.get_variable_and_units())
       mpl.ylabel("Observed frequency")
       units = " " + data.variable.units
-      mpl.title("Quantile: " + str(quantile * 100) + "%")
+      if len(self.quantiles) == 1:
+         mpl.title("Quantile: " + str(self.quantiles[0] * 100) + "%")
 
 
 class Impact(Output):
