@@ -426,6 +426,8 @@ def run(argv):
       elif type == "quantile":
          thresholds = data.quantiles
          verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+      if len(thresholds) == 0:
+         verif.util.error("No thresholds available")
 
    # Set plot parameters
    if(simple is not None):

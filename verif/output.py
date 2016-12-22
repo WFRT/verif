@@ -2355,14 +2355,14 @@ class Marginal(Output):
             var = verif.field.Threshold(threshold)
             [obs, p] = data.get_scores([verif.field.Obs(), var], f)
 
-            color = self._get_color(f, F)
-            style = self._get_style(f, F)
-
             obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
             p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
 
             clim[t] = np.mean(obs)
             y[t] = np.mean(p)
+
+         color = self._get_color(f, F)
+         style = self._get_style(f, F)
 
          label = labels[f]
          mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=label)
