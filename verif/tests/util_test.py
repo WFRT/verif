@@ -35,6 +35,11 @@ class TestParseNumbers(unittest.TestCase):
       with self.assertRaises(SystemExit):
          verif.util.parse_numbers("test")
 
+   def test_decimal(self):
+      self.assertEqual([0.1,0.2,0.3,0.4,0.5,0.6,0.7], verif.util.parse_numbers("0.1:0.1:0.7"))
+      self.assertEqual([1e-4,2e-4,3e-4,4e-4,5e-4,6e-4,7e-4], verif.util.parse_numbers("0.0001:0.0001:0.0007"))
+      self.assertEqual([1e-6,3e-6], verif.util.parse_numbers("0.000001,0.000003"))
+
    def test_0_step(self):
       with self.assertRaises(SystemExit):
          verif.util.parse_numbers("0:0:5")

@@ -128,7 +128,8 @@ def parse_numbers(numbers, is_date=False):
    3:2:12         number range with a step size of 2
    3,4:6,2:5:9,6  combinations
 
-   Aborts if the number cannot be parsed.
+   Aborts if the number cannot be parsed. Expect round-off errors for values
+   below about 1e-4.
 
    Arguments:
       numbers (str): String of numbers
@@ -165,7 +166,9 @@ def parse_numbers(numbers, is_date=False):
                date = get_date(date, step)
             values = values + list(curr)
          else:
-            values = values + list(np.arange(start, end, step))
+            # Note: Values are rounded, to avoid problems with floating point
+            # comparison for strings like 0.1:0.1:0.9
+            values = values + list(np.round(np.arange(start, end, step),7))
       else:
          error("Could not translate '" + numbers + "' into numbers")
       if(is_date):
