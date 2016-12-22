@@ -413,21 +413,22 @@ def run(argv):
       elif pl.require_threshold_type is not None:
          verif.util.error("Internal error for output %s: Cannot understand required threshold type '%s'" % (pl.name(), pl.require_threshold_type))
 
-      if type == "deterministic":
-         obs = data.get_scores(verif.field.Obs(), 0)
-         fcst = data.get_scores(verif.field.Fcst(), 0)
-         smin = min(np.nanmin(obs), np.nanmin(fcst))
-         smax = max(np.nanmax(obs), np.nanmax(fcst))
-         thresholds = np.linspace(smin, smax, 10)
-         verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
-      elif type == "threshold":
-         thresholds = data.thresholds
-         verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
-      elif type == "quantile":
-         thresholds = data.quantiles
-         verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
-      if len(thresholds) == 0:
-         verif.util.error("No thresholds available")
+      if type is not None:
+         if type == "deterministic":
+            obs = data.get_scores(verif.field.Obs(), 0)
+            fcst = data.get_scores(verif.field.Fcst(), 0)
+            smin = min(np.nanmin(obs), np.nanmin(fcst))
+            smax = max(np.nanmax(obs), np.nanmax(fcst))
+            thresholds = np.linspace(smin, smax, 10)
+            verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+         elif type == "threshold":
+            thresholds = data.thresholds
+            verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+         elif type == "quantile":
+            thresholds = data.quantiles
+            verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+         if len(thresholds) == 0:
+            verif.util.error("No thresholds available")
 
    # Set plot parameters
    if(simple is not None):
