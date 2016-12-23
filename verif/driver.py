@@ -560,7 +560,7 @@ def show_description(data=None):
    print format_argument("-obs", "Which field should be used as the observation?")
    print format_argument("-r thresholds", "Compute scores for these thresholds (only used by some metrics).")
    print format_argument("-q quantiles", "Compute scores for these quantiles (only used by some metrics).")
-   print format_argument("-x dim", "Plot this dimension on the x-axis: date, offset, year, month, location, locationId, elev, lat, lon, threshold, or none. Not supported by all metrics. If not specified, then a default is used based on the metric. 'none' collapses all dimensions and computes one value.")
+   print format_argument("-x dim", "Plot this dimension on the x-axis: date, offset, year, month, week, location, locationId, elev, lat, lon, threshold, or none. Not supported by all metrics. If not specified, then a default is used based on the metric. 'none' collapses all dimensions and computes one value.")
 
    # Data manipulation
    print verif.util.green("  Data manipulation:")

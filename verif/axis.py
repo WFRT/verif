@@ -133,11 +133,13 @@ class No(Axis):
    is_continuous = False
 
 
-class Week(Axis):
+class Year(Axis):
    is_time_like = True
+   fmt = "%Y"
+   formatter = matplotlib.dates.DateFormatter('\n%Y')
 
    def label(self, variable):
-      return "Location"
+      return "Year"
 
 
 class Month(Axis):
@@ -149,13 +151,13 @@ class Month(Axis):
       return "Month"
 
 
-class Year(Axis):
+class Week(Axis):
    is_time_like = True
-   fmt = "%Y"
-   formatter = matplotlib.dates.DateFormatter('\n%Y')
+   fmt = "%Y/%U"
+   formatter = matplotlib.dates.DateFormatter('\n%Y-%U')
 
    def label(self, variable):
-      return "Year"
+      return "Week"
 
 
 class DayOfMonth(Axis):
