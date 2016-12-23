@@ -33,7 +33,7 @@ class Data(object):
    years          Available years (derived from times)
    weeks          Available weeks (derived from times)
    """
-   def __init__(self, inputs, times=None, offsets=None, locations=None,
+   def __init__(self, inputs, times=None, offsets=None, locations=None, locations_x=None,
          lat_range=None, lon_range=None, elev_range=None, clim=None, clim_type="subtract",
          legend=None, remove_missing_across_all=True,
          obs_field=verif.field.Obs(),
@@ -45,6 +45,7 @@ class Data(object):
       times          A numpy array of times. Discard data for all other times
       offsets        A numpy array of offsets. Discard data for all other offsets
       locations      A list of verif.location. Discard data for all other locations
+      locations_x    A list of verif.location to not remove
       clim           Use this NetCDF file to compute anomaly. Should therefore
                      be a climatological forecast. Subtract/divide the
                      forecasts from this file from all forecasts and
@@ -104,20 +105,20 @@ class Data(object):
             if(currLat >= min_lat and currLat <= max_lat and
                   currLon >= min_lon and currLon <= max_lon):
                latlon_locations.append(loc_id[i])
-         use_locationss = list()
+         use_locations = list()
          if(locations is not None):
             for i in range(0, len(locations)):
                currLocation = locations[i]
                if(currLocation in latlon_locations):
-                  use_locationss.append(currLocation)
+                  use_locations.append(currLocation)
          else:
-            use_locationss = latlon_locations
-         if(len(use_locationss) == 0):
+            use_locations = latlon_locations
+         if(len(use_locations) == 0):
             verif.util.error("No available locations within lat/lon range")
       elif locations is not None:
-         use_locationss = locations
+         use_locations = locations
       else:
-         use_locationss = [s.id for s in self._inputs[0].locations]
+         use_locations = [s.id for s in self._inputs[0].locations]
 
       # Elevation range
       if(elev_range is not None):
@@ -130,14 +131,18 @@ class Data(object):
             id = locations[i].id
             if(curr_elev >= min_elev and curr_elev <= max_elev):
                elev_locations.append(id)
-         use_locationss = verif.util.intersect(use_locationss, elev_locations)
-         if(len(use_locationss) == 0):
+         use_locations = verif.util.intersect(use_locations, elev_locations)
+         if(len(use_locations) == 0):
             verif.util.error("No available locations within elevation range")
+
+      # Remove locations
+      if locations_x is not None:
+         use_locations = [loc for loc in use_locations if loc not in locations_x]
 
       # Find common indicies
       self._timesI = self._get_common_indices(self._inputs, verif.axis.Time(), times)
       self._offsetsI = self._get_common_indices(self._inputs,verif.axis.Offset(), offsets)
-      self._locationsI = self._get_common_indices(self._inputs, verif.axis.Location(), use_locationss)
+      self._locationsI = self._get_common_indices(self._inputs, verif.axis.Location(), use_locations)
       if(len(self._timesI[0]) == 0):
          verif.util.error("No valid times selected")
       if(len(self._offsetsI[0]) == 0):

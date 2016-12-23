@@ -20,6 +20,7 @@ def run(argv):
    ofile = None
    metric = None
    locations = None
+   locations_x = None
    lat_range = None
    lon_range = None
    elev_range = None
@@ -123,6 +124,8 @@ def run(argv):
                ofile = arg_next
             elif(arg == "-l"):
                locations = verif.util.parse_numbers(arg_next)
+            elif(arg == "-lx"):
+               locations_x = verif.util.parse_numbers(arg_next)
             elif(arg == "-latrange"):
                lat_range = verif.util.parse_numbers(arg_next)
             elif(arg == "-lonrange"):
@@ -255,6 +258,7 @@ def run(argv):
       inputs = [verif.input.get_input(filename) for filename in ifiles]
       data = verif.data.Data(inputs, clim=clim_file, clim_type=clim_type,
             times=times, offsets=offsets, locations=locations,
+            locations_x=locations_x,
             lat_range=lat_range, lon_range=lon_range, elev_range=elev_range,
             legend=leg, obs_field=obs_field, fcst_field=fcst_field)
    else:
@@ -554,13 +558,14 @@ def show_description(data=None):
    print format_argument("-t times", "A vector of unix timestamps.")
    print format_argument("-fcst", "Which field should be used as the forecast?")
    print format_argument("-l locations", "Limit the verification to these location IDs.")
+   print format_argument("-lx locations", "Remove these locations from the verification. This happens after -l, -latrange, -lonrange, and -elevrange has been applied.")
    print format_argument("-latrange range", "Limit the verification to locations within minlat,maxlat.")
    print format_argument("-lonrange range", "Limit the verification to locations within minlon,maxlon.")
    print format_argument("-o offsets", "Limit the verification to these offsets (in hours).")
    print format_argument("-obs", "Which field should be used as the observation?")
    print format_argument("-r thresholds", "Compute scores for these thresholds (only used by some metrics).")
    print format_argument("-q quantiles", "Compute scores for these quantiles (only used by some metrics).")
-   print format_argument("-x dim", "Plot this dimension on the x-axis: date, offset, year, month, week, location, locationId, elev, lat, lon, threshold, or none. Not supported by all metrics. If not specified, then a default is used based on the metric. 'none' collapses all dimensions and computes one value.")
+   print format_argument("-x dim", "Plot this dimension on the x-axis: date, offset, year, month, week, location, locationid, elev, lat, lon, threshold, or none. Not supported by all metrics. If not specified, then a default is used based on the metric. 'none' collapses all dimensions and computes one value.")
 
    # Data manipulation
    print verif.util.green("  Data manipulation:")
