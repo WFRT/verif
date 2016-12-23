@@ -71,6 +71,33 @@ class TestData(unittest.TestCase):
       with self.assertRaises(SystemExit):
          data = verif.data.Data(inputs, lat_range=[55, 60])
          
+class TestDataRemovingLocations(unittest.TestCase):
+   def test_inside_lat_range(self):
+      inputs = [verif.input.Text("verif/tests/files/file3locations.txt")]
+      data = verif.data.Data(inputs, lat_range=[39, 51], locations_x=[2])
+      self.assertEqual(1, len(data.locations))
+      self.assertEqual(1, data.locations[0].id)
+      self.assertEqual(40, data.locations[0].lat)
+
+   def test_outside_lat_range(self):
+      inputs = [verif.input.Text("verif/tests/files/file3locations.txt")]
+      data = verif.data.Data(inputs, lat_range=[39, 51], locations_x=[3])
+      self.assertEqual(2, len(data.locations))
+      self.assertTrue(1 in [loc.id for loc in data.locations])
+      self.assertTrue(2 in [loc.id for loc in data.locations])
+
+   def test_with_l(self):
+      inputs = [verif.input.Text("verif/tests/files/file3locations.txt")]
+      data = verif.data.Data(inputs, locations=[1,2], locations_x=[2])
+      self.assertEqual(1, len(data.locations))
+      self.assertTrue(1 in [loc.id for loc in data.locations])
+
+   def test_with_l(self):
+      inputs = [verif.input.Text("verif/tests/files/file3locations.txt")]
+      data = verif.data.Data(inputs, locations=[1,2], locations_x=[3])
+      self.assertEqual(2, len(data.locations))
+      self.assertTrue(1 in [loc.id for loc in data.locations])
+      self.assertTrue(2 in [loc.id for loc in data.locations])
 
 if __name__ == '__main__':
    unittest.main()
