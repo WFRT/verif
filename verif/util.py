@@ -381,6 +381,17 @@ def apply_threshold(array, bin_type, threshold, upper_threshold=None):
    return array
 
 
+def apply_interval(array, interval):
+   """
+   Converts an input array into True where a value is within the interval
+   and False where it is not
+   """
+   binary = np.zeros(len(array), bool)
+   for i in range(0, len(array)):
+      binary[i] = interval.within(array[i])
+   return binary
+
+
 def apply_threshold_prob(array, bin_type, upper_array=None):
    """
    Compute the probability of x given bin_type
