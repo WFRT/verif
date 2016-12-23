@@ -1237,6 +1237,18 @@ class Ets(Contingency):
       return "ETS"
 
 
+class FcstRate(Contingency):
+   description = "Fractions of forecasts (a + b)"
+   perfect_score = None
+   orientation = 0
+
+   def compute_from_abcd(self, a, b, c, d):
+      return (a + b) / 1.0 / (a + b + c + d)
+
+   def name(self):
+      return "Forecast rate"
+
+
 class Dscore(Contingency):
    description = "Generalized discrimination score"
    perfect_score = 1
@@ -1409,7 +1421,7 @@ class Hss(Contingency):
 
 
 class BaseRate(Contingency):
-   description = "Base rate"
+   description = "Base rate: Fraction of observations (a + c)"
    perfect_score = None
    orientation = 0
 
@@ -1417,6 +1429,9 @@ class BaseRate(Contingency):
       if(a + b + c + d == 0):
          return np.nan
       return (a + c) / 1.0 / (a + b + c + d)
+
+   def name(self):
+      return "Base rate"
 
 
 class Or(Contingency):
