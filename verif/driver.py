@@ -33,7 +33,7 @@ def run(argv):
    xlabel = None
    title = None
    times = None
-   offsets = None
+   leadtimes = None
    axis = None
    sdim = None
    figsize = None
@@ -136,7 +136,7 @@ def run(argv):
                axisname = arg_next
                axis = verif.axis.get(axisname)
             elif(arg == "-o"):
-               offsets = verif.util.parse_numbers(arg_next)
+               leadtimes = verif.util.parse_numbers(arg_next)
             elif(arg == "-leg"):
                leg = unicode(arg_next, 'utf8')
             elif(arg == "-ylabel"):
@@ -257,7 +257,7 @@ def run(argv):
    if(len(ifiles) > 0):
       inputs = [verif.input.get_input(filename) for filename in ifiles]
       data = verif.data.Data(inputs, clim=clim_file, clim_type=clim_type,
-            times=times, offsets=offsets, locations=locations,
+            times=times, leadtimes=leadtimes, locations=locations,
             locations_x=locations_x,
             lat_range=lat_range, lon_range=lon_range, elev_range=elev_range,
             legend=leg, obs_field=obs_field, fcst_field=fcst_field)
@@ -561,11 +561,11 @@ def show_description(data=None):
    print format_argument("-lx locations", "Remove these locations from the verification. This happens after -l, -latrange, -lonrange, and -elevrange has been applied.")
    print format_argument("-latrange range", "Limit the verification to locations within minlat,maxlat.")
    print format_argument("-lonrange range", "Limit the verification to locations within minlon,maxlon.")
-   print format_argument("-o offsets", "Limit the verification to these offsets (in hours).")
+   print format_argument("-o leadtimes", "Limit the verification to these leadtimes (in hours).")
    print format_argument("-obs", "Which field should be used as the observation?")
    print format_argument("-r thresholds", "Compute scores for these thresholds (only used by some metrics).")
    print format_argument("-q quantiles", "Compute scores for these quantiles (only used by some metrics).")
-   print format_argument("-x dim", "Plot this dimension on the x-axis: date, offset, year, month, week, location, locationid, elev, lat, lon, threshold, or none. Not supported by all metrics. If not specified, then a default is used based on the metric. 'none' collapses all dimensions and computes one value.")
+   print format_argument("-x dim", "Plot this dimension on the x-axis: date, leadtime, year, month, week, location, locationid, elev, lat, lon, threshold, or none. Not supported by all metrics. If not specified, then a default is used based on the metric. 'none' collapses all dimensions and computes one value.")
 
    # Data manipulation
    print verif.util.green("  Data manipulation:")

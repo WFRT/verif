@@ -83,7 +83,7 @@ class Metric(object):
    orientation = 0
    min = None
    max = None
-   default_axis = verif.axis.Offset()  # If no axis is specified, use this axis as default
+   default_axis = verif.axis.Leadtime()  # If no axis is specified, use this axis as default
    default_bin_type = None
    require_threshold_type = None
    supports_threshold = False

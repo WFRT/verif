@@ -19,11 +19,11 @@ class Data(object):
 
    Access verification data from a list of verif.input. Only returns data that
    is available for all files, for fair comparisons i.e if some
-   times/offsets/locations are missing.
+   times/leadtimes/locations are missing.
 
    Instance attribute:
    times          A numpy array of available initialization times
-   offsets        A numpy array of available leadtimes
+   leadtimes      A numpy array of available leadtimes
    locations      A list of available locations
    thresholds     A numpy array of available thresholds
    quantiles      A numpy array of available quantiles
@@ -33,7 +33,7 @@ class Data(object):
    years          Available years (derived from times)
    weeks          Available weeks (derived from times)
    """
-   def __init__(self, inputs, times=None, offsets=None, locations=None, locations_x=None,
+   def __init__(self, inputs, times=None, leadtimes=None, locations=None, locations_x=None,
          lat_range=None, lon_range=None, elev_range=None, clim=None, clim_type="subtract",
          legend=None, remove_missing_across_all=True,
          obs_field=verif.field.Obs(),
@@ -43,7 +43,7 @@ class Data(object):
       Arguments:
       inputs         A list of verif.input
       times          A numpy array of times. Discard data for all other times
-      offsets        A numpy array of offsets. Discard data for all other offsets
+      leadtimes      A numpy array of leadtimes. Discard data for all other leadtimes
       locations      A list of verif.location. Discard data for all other locations
       locations_x    A list of verif.location to not remove
       clim           Use this NetCDF file to compute anomaly. Should therefore
@@ -141,18 +141,18 @@ class Data(object):
 
       # Find common indicies
       self._timesI = self._get_common_indices(self._inputs, verif.axis.Time(), times)
-      self._offsetsI = self._get_common_indices(self._inputs,verif.axis.Offset(), offsets)
+      self._leadtimesI = self._get_common_indices(self._inputs,verif.axis.Leadtime(), leadtimes)
       self._locationsI = self._get_common_indices(self._inputs, verif.axis.Location(), use_locations)
       if(len(self._timesI[0]) == 0):
          verif.util.error("No valid times selected")
-      if(len(self._offsetsI[0]) == 0):
-         verif.util.error("No valid offsets selected")
+      if(len(self._leadtimesI[0]) == 0):
+         verif.util.error("No valid leadtimes selected")
       if(len(self._locationsI[0]) == 0):
          verif.util.error("No valid locations selected")
 
       # Load dimension information
       self.times = self._get_times()
-      self.offsets = self._get_offsets()
+      self.leadtimes = self._get_leadtimes()
       self.locations = self._get_locations()
       self.thresholds = self._get_thresholds()
       self.quantiles = self._get_quantiles()
@@ -261,7 +261,7 @@ class Data(object):
       verif.axis.Time()       Unixtimes
       verif.axis.Month()      Unixtimes of the begining of each month
       verif.axis.Year()       Unixtimes of the beginning of each year
-      verif.axis.Offset()     Lead times in hours
+      verif.axis.Leadtime()   Lead times in hours
       verif.axis.Location()   Index into location array
       verif.axis.LocationId() Location id
       verif.axis.Lat()        Latitudes of locations
@@ -282,8 +282,8 @@ class Data(object):
          return self.months
       elif(axis == verif.axis.Week()):
          return self.weeks
-      elif(axis == verif.axis.Offset()):
-         return self.offsets
+      elif(axis == verif.axis.Leadtime()):
+         return self.leadtimes
       elif(axis == verif.axis.No()):
          return [0]
       elif(axis.is_location_like):
@@ -305,12 +305,12 @@ class Data(object):
 
    def get_axis_locator(self, axis):
       """ Where should ticks be located for this axis? Returns an mpl Locator """
-      if(axis == verif.axis.Offset()):
+      if(axis == verif.axis.Leadtime()):
          # Define our own locators, since in general we want multiples of 24
          # (or even fractions thereof) to make the ticks repeat each day. Aim
          # for a maximum of 12 ticks.
-         offsets = self.get_axis_values(verif.axis.Offset())
-         span = max(offsets) - min(offsets)
+         leadtimes = self.get_axis_values(verif.axis.Leadtime())
+         span = max(leadtimes) - min(leadtimes)
          if(span > 300):
             return matplotlib.ticker.AutoLocator()
          elif(span > 200):
@@ -423,19 +423,19 @@ class Data(object):
 
             elif field == verif.field.ObsWindow():
                temp = input.obs[:, :, :]
-               temp = self._calculate_window(temp, input.offsets)
+               temp = self._calculate_window(temp, input.leadtimes)
 
             elif field == verif.field.FcstWindow():
                temp = input.fcst[:, :, :]
-               temp = self._calculate_window(temp, input.offsets)
+               temp = self._calculate_window(temp, input.leadtimes)
 
             else:
                verif.util.error("Not implemented")
             Itimes = self._get_time_indices(i)
-            Ioffsets = self._get_offset_indices(i)
+            Ileadtimes = self._get_leadtime_indices(i)
             Ilocations = self._get_location_indices(i)
             temp = temp[Itimes, :, :]
-            temp = temp[:, Ioffsets, :]
+            temp = temp[:, Ileadtimes, :]
             temp = temp[:, :, Ilocations]
             self._get_score_cache[i][field] = temp
 
@@ -451,7 +451,7 @@ class Data(object):
 
       return self._get_score_cache[input_index][field]
 
-   def _calculate_window(self, array, offsets):
+   def _calculate_window(self, array, leadtimes):
       O = array.shape[1]
       Inan = np.isnan(array)
       for o in range(0, O):
@@ -459,7 +459,7 @@ class Data(object):
          q = np.nansum(np.cumsum(array[:,o:,:], axis=1) <= threshold, axis=1)
          I = q+o
          I[I >= O] = O-1
-         array[:,o,:] = offsets[I] - offsets[o]
+         array[:,o,:] = leadtimes[I] - leadtimes[o]
       array[Inan] = np.nan
       # array[array > 2] = 2
       return array
@@ -493,10 +493,10 @@ class Data(object):
       weeks = np.unique(np.array([calendar.timegm(dt.timetuple()) for dt in dts]))
       return weeks
 
-   def _get_offsets(self):
-      offsets = self._inputs[0].offsets
-      I = self._offsetsI[0]
-      return np.array([offsets[i] for i in I], float)
+   def _get_leadtimes(self):
+      leadtimes = self._inputs[0].leadtimes
+      I = self._leadtimesI[0]
+      return np.array([leadtimes[i] for i in I], float)
 
    def _get_locations(self):
       locations = self._inputs[0].locations
@@ -523,8 +523,8 @@ class Data(object):
       for input in inputs:
          if(axis ==verif.axis.Time()):
             temp = input.times
-         elif(axis == verif.axis.Offset()):
-            temp = input.offsets
+         elif(axis == verif.axis.Leadtime()):
+            temp = input.leadtimes
          elif(axis == verif.axis.Location()):
             locations = input.locations
             temp = [loc.id for loc in locations]
@@ -540,8 +540,8 @@ class Data(object):
       for input in inputs:
          if(axis == verif.axis.Time()):
             temp = input.times
-         elif(axis == verif.axis.Offset()):
-            temp = input.offsets
+         elif(axis == verif.axis.Leadtime()):
+            temp = input.leadtimes
          elif(axis == verif.axis.Location()):
             locations = input.locations
             temp = np.zeros(len(locations))
@@ -584,8 +584,8 @@ class Data(object):
    def _get_time_indices(self, input_index):
       return self._timesI[input_index]
 
-   def _get_offset_indices(self, input_index):
-      return self._offsetsI[input_index]
+   def _get_leadtime_indices(self, input_index):
+      return self._leadtimesI[input_index]
 
    def _get_location_indices(self, input_index):
       return self._locationsI[input_index]
@@ -642,7 +642,7 @@ class Data(object):
             I = np.where((self.times >= self.weeks[axis_index]) &
                          (self.times < self.weeks[axis_index + 1]))
          output = array[I, :, :].flatten()
-      elif(axis == verif.axis.Offset()):
+      elif(axis == verif.axis.Leadtime()):
          output = array[:, axis_index, :].flatten()
       elif(axis.is_location_like):
          output = array[:, :, axis_index].flatten()

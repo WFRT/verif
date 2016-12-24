@@ -7,14 +7,14 @@ import verif.location
 
 
 class MyTest(unittest.TestCase):
-   def test_get_offsets(self):
+   def test_get_leadtimes(self):
       input = verif.input.Text("verif/tests/files/example.txt")
-      offsets = input.offsets
-      self.assertEqual(4, offsets.shape[0])
-      self.assertEqual(0, offsets[0])
-      self.assertEqual(1, offsets[1])
-      self.assertEqual(3, offsets[2])
-      self.assertEqual(22, offsets[3])
+      leadtimes = input.leadtimes
+      self.assertEqual(4, leadtimes.shape[0])
+      self.assertEqual(0, leadtimes[0])
+      self.assertEqual(1, leadtimes[1])
+      self.assertEqual(3, leadtimes[2])
+      self.assertEqual(22, leadtimes[3])
 
    def test_get_times(self):
       input = verif.input.Text("verif/tests/files/example.txt")

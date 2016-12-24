@@ -103,7 +103,7 @@ class Output(object):
    type
    """
    description = None
-   default_axis = verif.axis.Offset()
+   default_axis = verif.axis.Leadtime()
    default_bin_type = "above"
    require_threshold_type = None
    supports_threshold = True
@@ -1247,7 +1247,7 @@ class SpreadSkill(Output):
 
 class TimeSeries(Output):
    description = "Plot observations and forecasts as a time series "\
-         "(i.e. by concatinating all offsets). '-x <dimension>' has no "\
+         "(i.e. by concatinating all leadtimes). '-x <dimension>' has no "\
          "effect, as it is always shown by date."
    supports_threshold = False
    supports_x = False
@@ -1256,21 +1256,21 @@ class TimeSeries(Output):
    def _plot_core(self, data):
       F = data.num_inputs
 
-      # Connect the last offset of a day with the first offset on the next day
+      # Connect the last leadtime of a day with the first leadtime on the next day
       # This only makes sense if the obs/fcst don't span more than a day
-      connect = min(data.offsets) + 24 > max(data.offsets)
-      minOffset = min(data.offsets)
+      connect = min(data.leadtimes) + 24 > max(data.leadtimes)
+      minLeadtime = min(data.leadtimes)
 
       obs = data.get_scores(verif.field.Obs(), 0)
       for d in range(0, obs.shape[0]):
          # Obs line
          times = data.get_axis_values(verif.axis.Time())
          dates = verif.util.convert_times(times)
-         x = dates[d] + data.offsets / 24.0
+         x = dates[d] + data.leadtimes / 24.0
          y = verif.util.nanmean(obs[d, :, :], axis=1)
          if connect and d < obs.shape[0] - 1:
             obsmean = verif.util.nanmean(obs[d + 1, 0, :], axis=0)
-            x = np.insert(x, x.shape[0], dates[d + 1] + minOffset / 24.0)
+            x = np.insert(x, x.shape[0], dates[d + 1] + minLeadtime / 24.0)
             y = np.insert(y, y.shape[0], obsmean)
 
          if d == 0:
@@ -1290,10 +1290,10 @@ class TimeSeries(Output):
             style = self._get_style(f, F)
 
             fcst = data.get_scores(verif.field.Fcst(), f)
-            x = dates[d] + data.offsets / 24.0
+            x = dates[d] + data.leadtimes / 24.0
             y = verif.util.nanmean(fcst[d, :, :], axis=1)
             if connect and d < obs.shape[0] - 1:
-               x = np.insert(x, x.shape[0], dates[d + 1] + minOffset / 24.0)
+               x = np.insert(x, x.shape[0], dates[d + 1] + minLeadtime / 24.0)
                y = np.insert(y, y.shape[0], verif.util.nanmean(fcst[d + 1, 0, :]))
             lab = labels[f] if d == 0 else ""
             mpl.rcParams['ytick.major.pad'] = '20'
@@ -1327,7 +1327,7 @@ class Meteo(Output):
 
    def _plot_core(self, data):
       F = data.num_inputs
-      x = verif.util.convert_times(data.times[0] + data.offsets*3600)
+      x = verif.util.convert_times(data.times[0] + data.leadtimes*3600)
       isSingleTime = len(data.times) == 1
 
       # Plot obs line
@@ -1345,7 +1345,7 @@ class Meteo(Output):
          quantiles = np.sort(data.quantiles)
       else:
          quantiles = np.sort(self.quantiles)
-      y = np.zeros([len(data.offsets), len(quantiles)], 'float')
+      y = np.zeros([len(data.leadtimes), len(quantiles)], 'float')
       for i in range(0, len(quantiles)):
          score = data.get_scores(verif.field.Quantile(quantiles[i]), 0)
          y[:, i] = verif.util.nanmean(verif.util.nanmean(score, axis=0), axis=1)

@@ -44,22 +44,22 @@ class Input(object):
       variable: A verif.variable representing the stored in the input
 
       times (np.array): Available initialization times (unix time)
-      offsets (np.array): Available leadtimes (in hours)
+      leadtimes (np.array): Available leadtimes (in hours)
       locations (list): A list of verif.location of available locations
       thresholds (np.array): Available thresholds
       quantiles (np.array): Available quantiles
 
-      The following are 3D numpy arrays with dims (time, offset, location)
+      The following are 3D numpy arrays with dims (time, leadtime, location)
       obs: Observations with dims
       fcst: Forecasts with dims
       pit: Verifying probability integral transform values (i.e. the CDF where
          the observation falls in)
 
-      ensemble: A 4D numpy array of ensemble data with dims (time,offset,location,member)
+      ensemble: A 4D numpy array of ensemble data with dims (time,leadtime,location,member)
       threshold_scores: A 4D numpy array with CDF values for each threshold
-         with dims (time,offset,location, threshold)
+         with dims (time,leadtime,location, threshold)
       quantile_scores: A 4D numpy array with values at certain quantiles with
-         dims (time,offset,location, quantile)
+         dims (time,leadtime,location, quantile)
 
    Subclasses must populate all attributes
    """
@@ -108,7 +108,7 @@ class Netcdf(Input):
       self._filename = os.path.expanduser(filename)
       self._file = netcdf(self._filename, 'r')
       self.times = self._get_times()
-      self.offsets = self._get_offsets()
+      self.leadtimes = self._get_leadtimes()
       self.locations = self._get_locations()
       self.thresholds = self._get_thresholds()
       self.quantiles = self._get_quantiles()
@@ -182,7 +182,7 @@ class Netcdf(Input):
          locations.append(location)
       return locations
 
-   def _get_offsets(self):
+   def _get_leadtimes(self):
       return verif.util.clean(self._file.variables["lead_time"])
 
    def _get_thresholds(self):
@@ -221,12 +221,12 @@ class Text(Input):
    "\n"\
    "# variable: Temperature\n"\
    "# units: $^oC$\n"\
-   "date     offset id      lat     lon      elev  obs  fcst  p10\n"\
-   "20150101 0      214     49.2    -122.1   92    3.4  2.1   0.91\n"\
-   "20150101 1      214     49.2    -122.1   92    4.7  4.2   0.85\n"\
-   "20150101 0      180     50.3    -120.3   150   0.2  -1.2  0.99\n"\
+   "date     leadtime id      lat     lon      elev  obs  fcst  p10\n"\
+   "20150101 0        214     49.2    -122.1   92    3.4  2.1   0.91\n"\
+   "20150101 1        214     49.2    -122.1   92    4.7  4.2   0.85\n"\
+   "20150101 0        180     50.3    -120.3   150   0.2  -1.2  0.99\n"\
    "\n"\
-   "Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), offset (in hours), id (location identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of for example 10), and q<number> (value corresponding to the <number> quantile, e.g. q0.9 for the 90th precentile). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0. If there is conflicting information (for example different lat/lon/elev for the same id), then the information from the first row containing id will be used."
+   "Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD), leadtime (in hours), id (location identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of for example 10), and q<number> (value corresponding to the <number> quantile, e.g. q0.9 for the 90th precentile). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0. If there is conflicting information (for example different lat/lon/elev for the same id), then the information from the first row containing id will be used. For compatibility reasons, 'offset' can be used instead of 'leadtime'"
 
    def __init__(self, filename):
       self.fullname = filename
@@ -236,7 +236,7 @@ class Text(Input):
       self._variable_name = "Unknown"
 
       self._times = set()
-      self._offsets = set()
+      self._leadtimes = set()
       self._locations = set()
       self._quantiles = set()
       self._thresholds = set()
@@ -253,7 +253,7 @@ class Text(Input):
       header = None
 
       # Default values if columns not available
-      offset = 0
+      leadtime = 0
       time = 0
       lat = 0
       lon = 0
@@ -264,7 +264,7 @@ class Text(Input):
 
       import time
       start = time.time()
-      # Read the data into dictionary with (time,offset,lat,lon,elev) as key and obs/fcst as values
+      # Read the data into dictionary with (time,leadtime,lat,lon,elev) as key and obs/fcst as values
       for rowstr in file:
          if(rowstr[0] == "#"):
             curr = rowstr[1:]
@@ -286,8 +286,10 @@ class Text(Input):
                      indices["date"] = i
                   if(att == "unixtime"):
                      indices["unixtime"] = i
+                  elif(att == "leadtime"):
+                     indices["leadtime"] = i
                   elif(att == "offset"):
-                     indices["offset"] = i
+                     indices["leadtime"] = i
                   elif(att == "lat"):
                      indices["lat"] = i
                   elif(att == "lon"):
@@ -314,9 +316,9 @@ class Text(Input):
                elif("unixtime" in indices):
                   time = self._clean(row[indices["unixtime"]])
                self._times.add(time)
-               if("offset" in indices):
-                  offset = self._clean(row[indices["offset"]])
-               self._offsets.add(offset)
+               if("leadtime" in indices):
+                  leadtime = self._clean(row[indices["leadtime"]])
+               self._leadtimes.add(leadtime)
                if("id" in indices):
                   id = self._clean(row[indices["id"]])
                else:
@@ -355,7 +357,7 @@ class Text(Input):
                lat = locationInfo[id].lat
                lon = locationInfo[id].lon
                elev = locationInfo[id].elev
-               key = (time, offset, lat, lon, elev)
+               key = (time, leadtime, lat, lon, elev)
                if "obs" in indices:
                   obs[key] = self._clean(row[indices["obs"]])
                if "fcst" in indices:
@@ -367,45 +369,45 @@ class Text(Input):
                for field in quantileFields:
                   quantile = float(field[1:])
                   self._quantiles.add(quantile)
-                  key = (time, offset, lat, lon, elev, quantile)
+                  key = (time, leadtime, lat, lon, elev, quantile)
                   x[key] = self._clean(row[indices[field]])
                for field in thresholdFields:
                   threshold = float(field[1:])
                   self._thresholds.add(threshold)
-                  key = (time, offset, lat, lon, elev, threshold)
+                  key = (time, leadtime, lat, lon, elev, threshold)
                   cdf[key] = self._clean(row[indices[field]])
 
       file.close()
       self._times = list(self._times)
-      self._offsets = list(self._offsets)
+      self._leadtimes = list(self._leadtimes)
       self._locations = list(self._locations)
       self._quantiles = list(self._quantiles)
       self._thresholds = list(self._thresholds)
       Ntimes = len(self._times)
-      Noffsets = len(self._offsets)
+      Nleadtimes = len(self._leadtimes)
       Nlocations = len(self._locations)
       Nquantiles = len(self._quantiles)
       Nthresholds = len(self._thresholds)
 
       # Put the dictionary data into a regular 3D array
       if len(obs) > 0:
-         self.obs = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
+         self.obs = np.zeros([Ntimes, Nleadtimes, Nlocations], 'float') * np.nan
       if len(fcst) > 0:
-         self.fcst = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
+         self.fcst = np.zeros([Ntimes, Nleadtimes, Nlocations], 'float') * np.nan
       if len(pit) > 0:
-         self.pit = np.zeros([Ntimes, Noffsets, Nlocations], 'float') * np.nan
-      self.threshold_scores = np.zeros([Ntimes, Noffsets, Nlocations, Nthresholds], 'float') * np.nan
-      self.quantile_scores = np.zeros([Ntimes, Noffsets, Nlocations, Nquantiles], 'float') * np.nan
+         self.pit = np.zeros([Ntimes, Nleadtimes, Nlocations], 'float') * np.nan
+      self.threshold_scores = np.zeros([Ntimes, Nleadtimes, Nlocations, Nthresholds], 'float') * np.nan
+      self.quantile_scores = np.zeros([Ntimes, Nleadtimes, Nlocations, Nquantiles], 'float') * np.nan
       for d in range(0, Ntimes):
          time = self._times[d]
-         for o in range(0, len(self._offsets)):
-            offset = self._offsets[o]
+         for o in range(0, len(self._leadtimes)):
+            leadtime = self._leadtimes[o]
             for s in range(0, len(self._locations)):
                location = self._locations[s]
                lat = location.lat
                lon = location.lon
                elev = location.elev
-               key = (time, offset, lat, lon, elev)
+               key = (time, leadtime, lat, lon, elev)
                if(key in obs):
                   self.obs[d][o][s] = obs[key]
                if(key in fcst):
@@ -414,12 +416,12 @@ class Text(Input):
                   self.pit[d][o][s] = pit[key]
                for q in range(0, len(self._quantiles)):
                   quantile = self._quantiles[q]
-                  key = (time, offset, lat, lon, elev, quantile)
+                  key = (time, leadtime, lat, lon, elev, quantile)
                   if(key in x):
                      self.quantile_scores[d, o, s, q] = x[key]
                for t in range(0, len(self._thresholds)):
                   threshold = self._thresholds[t]
-                  key = (time, offset, lat, lon, elev, threshold)
+                  key = (time, leadtime, lat, lon, elev, threshold)
                   if(key in cdf):
                      self.threshold_scores[d, o, s, t] = cdf[key]
       maxLocationId = np.nan
@@ -439,7 +441,7 @@ class Text(Input):
             counter = counter + 1
 
       self.times = np.array(self._times)
-      self.offsets = np.array(self._offsets)
+      self.leadtimes = np.array(self._leadtimes)
       self.thresholds = np.array(self._thresholds)
       self.quantiles = np.array(self._quantiles)
       self.locations = self._locations
@@ -491,7 +493,7 @@ class Comps(Input):
       # Pre-load these variables, to save time when queried repeatedly
       dates = verif.util.clean(self._file.variables["Date"])
       self.times = np.array([verif.util.date_to_unixtime(int(date)) for date in dates], int)
-      self.offsets = verif.util.clean(self._file.variables["Offset"])
+      self.leadtimes = verif.util.clean(self._file.variables["Offset"])
       self.thresholds = self._get_thresholds()
       self.quantiles = self._get_quantiles()
       self.locations = self._get_locations()
@@ -668,7 +670,7 @@ class Comps(Input):
 
 
 class Fake(Input):
-   def __init__(self, obs, fcst, times=None, offsets=None, locations=None, variable=None):
+   def __init__(self, obs, fcst, times=None, leadtimes=None, locations=None, variable=None):
       """
       A fake input 
 
@@ -710,14 +712,14 @@ class Fake(Input):
       else:
          self.times = times
 
-      if offsets is None:
+      if leadtimes is None:
          if self.obs.shape[1] == 1:
-            self.offsets = [0]
+            self.leadtimes = [0]
          else:
-            # Default to offsets of 0, 1, 2, ...
-            self.offsets = range(0, self.obs.shape[1])
+            # Default to leadtimes of 0, 1, 2, ...
+            self.leadtimes = range(0, self.obs.shape[1])
       else:
-         self.offsets = offsets
+         self.leadtimes = leadtimes
       if locations is None:
          # Default to locations with lat,lon of (0,0), (0,1), (0,2), ...
          self.locations = [verif.location.Location(i,0,i,0) for i in range(0, self.obs.shape[2])]

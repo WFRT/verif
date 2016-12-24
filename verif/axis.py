@@ -76,7 +76,7 @@ class Time(Axis):
    def label(self, variable):
       return "Date"
 
-class Offset(Axis):
+class Leadtime(Axis):
    """ Forecast lead-time """
 
    def label(self, variable):

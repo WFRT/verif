@@ -26,14 +26,14 @@ class TestData(unittest.TestCase):
       self.assertTrue(len(lons) == 1)
       self.assertTrue(lons[0] == 23)
 
-      offsets = data.offsets
-      self.assertEqual(2, offsets.shape[0])
-      self.assertEqual(0, offsets[0])
-      self.assertEqual(12, offsets[1])
+      leadtimes = data.leadtimes
+      self.assertEqual(2, leadtimes.shape[0])
+      self.assertEqual(0, leadtimes[0])
+      self.assertEqual(12, leadtimes[1])
 
       times = data.times
       self.assertEqual(3, times.shape[0])
-      # 20120101: Common offsets: 0 and 12, locations 41
+      # 20120101: Common leadtimes: 0 and 12, locations 41
       fields = [verif.field.Obs(), verif.field.Fcst()]
       axis = verif.axis.Time()
 
@@ -42,7 +42,7 @@ class TestData(unittest.TestCase):
       self.assertEqual(7, fcst[1])  # Offset 12
       self.assertEqual(-1, obs[0])
       self.assertEqual(2, obs[1])
-      # 20120102: (missing obs at offset 12)
+      # 20120102: (missing obs at leadtime 12)
       [obs, fcst] = data.get_scores(fields, 0, axis, 1)
       self.assertEqual(1, fcst.shape[0])
       self.assertEqual(6, fcst[0])
