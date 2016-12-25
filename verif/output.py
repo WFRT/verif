@@ -560,6 +560,11 @@ class Output(object):
             label="")
       verif.util.fill(x, lower, upper, color, alpha=0.3)
 
+   @classmethod
+   def get_class_name(cls):
+      name = cls.__name__
+      return name
+
 
 class Standard(Output):
    """

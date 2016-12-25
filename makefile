@@ -34,6 +34,6 @@ count:
 # 3) Move verif.sh into wherever bash completion scripts are kept (e.g. /etc/bash_completion.d or run the
 #    script in your ~/.bashrc
 verif.sh:
-	 verif | grep "^[ ]* -" | awk '{print $$1}' > verifOptions.txt
+	 verif | grep "^  -" | awk '{print $$1}' > verifOptions.txt
 	 python bashCompletion.py verifOptions.txt > $@
 	 rm verifOptions.txt

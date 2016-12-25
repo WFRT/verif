@@ -37,7 +37,7 @@ print "   COMPREPLY=( $( compgen -W '",
 for m in metricOutputs:
    name = m[0].lower()
    if(m[1].is_valid()):
-      desc = m[1].summary()
+      desc = m[1].get_class_name()
       print name + " ",
 print "' -- $cur ) )"
 print 'fi'
