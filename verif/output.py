@@ -107,6 +107,7 @@ class Output(object):
    default_bin_type = "above"
    require_threshold_type = None
    supports_threshold = True
+   supports_acc = False
    # It does not make sense to implement supports_aggregator here, since the
    # it gets complicated when an output uses a metric that may or may not allow
    # an aggregator
@@ -565,6 +566,7 @@ class Standard(Output):
    A standard plot of a metric from verif.metric
    """
    leg_loc = "best"
+   supports_acc = True
 
    def __init__(self, metric):
       """
