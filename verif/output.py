@@ -107,6 +107,9 @@ class Output(object):
    default_bin_type = "above"
    require_threshold_type = None
    supports_threshold = True
+   # It does not make sense to implement supports_aggregator here, since the
+   # it gets complicated when an output uses a metric that may or may not allow
+   # an aggregator
    supports_x = True
    leg_loc = "best"
    xlog = False

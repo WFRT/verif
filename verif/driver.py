@@ -59,7 +59,7 @@ def run(argv):
    left_padding = None
    Pad = None
    show_perfect = None
-   aggregator_name = "mean"
+   aggregator_name = None
    do_hist = False
    do_sort = False
    do_acc = False
@@ -368,6 +368,8 @@ def run(argv):
          verif.util.error("Unknown plot: %s" % metric)
 
       if aggregator_name is not None:
+         if not m.supports_aggregator:
+            verif.util.warning("-m %s does not support -agg" % metric)
          m.aggregator = verif.aggregator.get(aggregator_name)
 
       # Output type
@@ -503,7 +505,8 @@ def run(argv):
    pl.dpi = dpi
    if axis is not None:
       pl.axis = axis
-   pl.aggregator = verif.aggregator.get(aggregator_name)
+   if aggregator_name is not None:
+      pl.aggregator = verif.aggregator.get(aggregator_name)
    pl.show_margin = not no_margin
    if ylabel is not None:
       pl.ylabel = ylabel

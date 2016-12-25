@@ -67,7 +67,7 @@ class Metric(object):
       orientation (int): 1 for a positively oriented score (higher values are better),
          -1 for negative, and 0 for all others
       reference (str): A string with an academic reference
-      suports_aggregator: Does this metric use self.aggregator?
+      supports_aggregator: Does this metric use self.aggregator?
       type (verif.metric_type.MetricType): What type of metric is this?
 
    To implement a new metric:
