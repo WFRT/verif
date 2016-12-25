@@ -569,7 +569,7 @@ def show_description(data=None):
 
    # Data manipulation
    print verif.util.green("  Data manipulation:")
-   print format_argument("-acc", "Plot accumulated values. Only works for non-derived metrics")
+   print format_argument("-acc", "Plot accumulated values. Does not work for 'Special diagams.'")
    print format_argument("-agg type", get_aggregation_string())
    print format_argument("-b type", "One of 'below' (< x), 'below=' (<= x), '=within' (<= x < ), 'within' (< x <), 'within=' (< x <=), '=within=' (<= x <=), 'above' (> x), or 'above=' (>= x). For threshold plots (ets, hit, within, etc) 'below/above' computes frequency below/above the threshold, and 'within' computes the frequency between consecutive thresholds.")
    print format_argument("-c file", "File containing climatology data. Subtract all forecasts and obs with climatology values.")

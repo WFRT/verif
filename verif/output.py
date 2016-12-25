@@ -616,9 +616,9 @@ class Standard(Output):
          if y is None:
             y = np.zeros([len(yy),F], 'float')
          y[:,f] = yy
-         if self.show_acc:
-            y[:,f] = np.nan_to_num(y[:,f])
-            y = np.cumsum(y)
+      if self.show_acc:
+         y = np.nan_to_num(y)
+         y = np.cumsum(y,axis=0)
       return x, y, xname, ynames
 
    def _legend(self, data, names=None):
