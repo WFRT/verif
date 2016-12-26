@@ -1420,7 +1420,7 @@ class Meteo(Output):
 
 
 class PitHist(Output):
-   description = "Histogram of PIT values"
+   description = "Histogram of PIT values. Use -r to specify bins."
    supports_threshold = False
    supports_x = False
 
@@ -1440,15 +1440,18 @@ class PitHist(Output):
 
    def _plot_core(self, data):
       F = data.num_inputs
+      if self.thresholds is None:
+         edges = np.linspace(0, 1, self._num_bins + 1)
+      else:
+         edges = self.thresholds
       labels = data.get_legend()
       for f in range(0, F):
          verif.util.subplot(f, F)
          pit = data.get_scores(verif.field.Pit(), f, verif.axis.No())
 
-         edges = np.linspace(0, 1, self._num_bins + 1)
          N = np.histogram(pit, edges)[0]
          y = N * 1.0 / sum(N) * 100
-         width = 1.0 / self._num_bins
+         width = 1.0 / (len(edges)-1)
          mpl.bar(edges[0:-1], y, width=width, color=self._bar_color)
 
          # Plot expected mean line
