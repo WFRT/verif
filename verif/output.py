@@ -1430,7 +1430,7 @@ class PitHist(Output):
       self._bar_color = "gray"
 
    def _show_stats(self):
-      return not self.simple
+      return False
 
    def _show_expected_line(self):
       return not self.simple
