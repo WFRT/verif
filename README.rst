@@ -126,18 +126,16 @@ on what variables are available in the input files.
 ``-m bias``             Mean error
 ``-m cmae``             Cube-root mean absolute cubic error
 ``-m corr``             Pearson correlation between obs and forecast
-``-m crmse``            Centered root mean squared error
-``-m droc``             receiver operating characteristic for deterministic forecast
+``-m derror``           Error in distribution of deterministic values
 ``-m dmb``              Degree of mass balance (mean obs / mean fcst)
 ``-m ef``               Exceedance fraction: fraction that fcst > obs
 ``-m fcst``             Average forecast value
 ``-m kendallcorr``      Kendall correlation
+``-m leps``             Linear error in probability space
 ``-m mae``              Mean of forecasts
 ``-m mbias``            Multiplicative bias
 ``-m nsec``             Nash-Sutcliffe efficiency coefficient
-``-m num``              Number of valid forecasts
 ``-m obs``              Mean of observations
-``-m qq``               Quantile-quantile plot
 ``-m rankcorr``         Spearman rank correlation
 ``-m rmse``             Root mean squared error
 ``-m rmsf``             Root mean squared factor
@@ -151,16 +149,15 @@ on what variables are available in the input files.
 ``-m baserate``         Climatological frequency
 ``-m biasfreq``         Numer of forecasts / number of observations
 ``-m c``                Fraction of events that are misses
-``-m count``            Number of forecasts wabove a threshold
 ``-m d``                Fraction of events that are correct rejections
 ``-m diff``             Difference between false alarms and misses
-``-m derror``           Error in distribution of deterministic values
 ``-m dscore``           Generalized discrimination score
 ``-m edi``              Extremal dependency index
 ``-m eds``              Extreme dependency score
 ``-m ets``              Equitable threat score
 ``-m fa``               False alarm rate
 ``-m far``              False alarm ratio
+``-m fcstrate``         Fractions of forecasts (a + b)
 ``-m hit``              Hit rate
 ``-m hss``              Heidke skill score
 ``-m kss``              Hanssen-Kuiper skill score
@@ -169,8 +166,6 @@ on what variables are available in the input files.
 ``-m n``                Total cases (a + b + c + d)
 ``-m or``               Odds ratio
 ``-m pc``               Proportions correct
-``-m performance``      Diagram showing POD, FAR, bias, and threat score
-``-m quantilescore``    Quantile score
 ``-m sedi``             Symmetric extremal dependency index
 ``-m seds``             Symmetric extreme dependency score
 ``-m threat``           Threat score
@@ -182,30 +177,38 @@ on what variables are available in the input files.
 ``-m bsrel``            Reliability component of Brier score
 ``-m bsres``            Resolution component of Brier score
 ``-m bss``              Brier skill score
-``-m bsres``            Uncertainty component of Brier score
-``-m discrimination``   Discrimination diagram for a specified threshold
-``-m economicvalue``    Economic value for a specified threshold
-``-m invreliability``   Reliability diagram for a specified quantile
-``-m leps``             Linear error in probability space
-``-m marginal``         Marginal distribution for a specified threshold
+``-m bsunc``            Uncertainty component of Brier score
+``-m ign0``             Ignorance of the binary probability based on threshold
 ``-m marginalratio``    Ratio of marginal probability of obs to that of fcst
 ``-m pitdev``           Deviation of the PIT histogram
-``-m pithist``          Histogram of PIT values
-``-m reliability``      Reliability diagram for a specified threshold
-``-m roc``              Receiver operating characteristics plot for a specified threshold
+``-m quantilescore``    Quantile score
 ``-m spherical``        Pherical probabilistic scoring rule
 ----------------------  ---------------------------------------------------------------
 **Special plots**       **Description**
 ----------------------  ---------------------------------------------------------------
 ``-m against``          Plots the determinstic forecasts from each file against each other
+``-m change``           Forecast skill (MAE) as a function of change in obs from previous forecast run
 ``-m cond``             Plots forecasts as a function of obs
+``-m discrimination``   Discrimination diagram for a specified threshold
+``-m droc``             Receiver operating characteristic for deterministic forecast
+``-m droc0``            Like droc, except don't use different forecast thresholds
+``-m drocnorm``         Like droc, except trainsform axes using standard normal distribution
+``-m economicvalue``    Economic value for a specified threshold
 ``-m error``            Decomposition of RMSE into systematic and unsystematic components
 ``-m freq``             Show frequency distribution of obs and fcst
+``-m igncontrib``       Shows how much each probability issued contributes to total ignorance
+``-m impact``           Compares two forecast inputs and shows where the improvements come from
+``-m invreliability``   Reliability diagram for a specified quantile
+``-m marginal``         Marginal distribution for a specified threshold
 ``-m meteo``            Show forecasts and obs in a meteogram
 ``-m obsfcst``          A plot showing both obs and fcst
+``-m performance``      Diagram showing POD, FAR, bias, and threat score
+``-m pithist``          Histogram of PIT values
+``-m qq``               Quantile-quantile plot
+``-m reliability``      Reliability diagram for a specified threshold
+``-m roc``              Receiver operating characteristics plot for a specified threshold
 ``-m scatter``          A scatter plt of obs and fcst
 ``-m spreadskill``      Plots forecast spread vs forecast skilL
-``-m spreadskilldiff``  Difference between spread and skill
 ``-m taylor``           Taylor diagram showing correlation and fcst stdev
 ``-m timeseries``       Time series of obs and forecasts
 ======================  ===============================================================
