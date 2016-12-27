@@ -286,7 +286,7 @@ class Mae(ObsFcstBased):
 
 
 class Bias(ObsFcstBased):
-   description = "Bias"
+   description = "Bias (forecast - observation)"
    perfect_score = 0
    supports_aggregator = True
    orientation = 0
@@ -471,7 +471,7 @@ class Mbias(ObsFcstBased):
 class Corr(ObsFcstBased):
    min = 0  # Technically -1, but values below 0 are not as interesting
    max = 1
-   description = "Correlation between obesrvations and forecasts"
+   description = "Correlation between observations and forecasts"
    perfect_score = 1
    orientation = 1
 
@@ -492,7 +492,7 @@ class Corr(ObsFcstBased):
 class RankCorr(ObsFcstBased):
    min = 0  # Technically -1, but values below 0 are not as interesting
    max = 1
-   description = "Rank correlation between obesrvations and forecasts"
+   description = "Rank correlation between observations and forecasts"
    perfect_score = 1
    orientation = 1
 
@@ -511,7 +511,7 @@ class RankCorr(ObsFcstBased):
 class KendallCorr(ObsFcstBased):
    min = 0  # Technically -1, but values below 0 are not as interesting
    max = 1
-   description = "Kendall correlation between obesrvations and forecasts"
+   description = "Kendall correlation between observations and forecasts"
    perfect_score = 1
    orientation = 1
 
@@ -652,7 +652,7 @@ class MarginalRatio(Metric):
    type = verif.metric_type.Probabilistic()
    min = 0
    description = "Ratio of marginal probability of obs to marginal" \
-         " probability of fcst. Use -r."
+         " probability of fcst. Use -r to specify thresholds."
    perfect_score = 1
    require_threshold_type = "threshold"
    supports_threshold = True
@@ -690,7 +690,7 @@ class Within(Metric):
    """
    min = 0
    max = 100
-   description = "The percentage of forecasts within some error bound (use -r)"
+   description = "The percentage of forecasts within some error bound. Use -r to specify error bounds"
    default_bin_type = "below"
    require_threshold_type = "threshold"
    supports_threshold = True
@@ -976,8 +976,7 @@ class BsRes(Metric):
 class QuantileScore(Metric):
    type = verif.metric_type.Probabilistic()
    min = 0
-   description = "Quantile score. Requires quantiles to be stored"\
-                  "(e.g q10, q90...).  Use -x to set which quantiles to use."
+   description = "Quantile score. Use -q to set which quantiles to use."
    require_threshold_type = "quantile"
    supports_threshold = True
    perfect_score = 0
