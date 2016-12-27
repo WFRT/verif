@@ -150,9 +150,9 @@ class Metric(object):
       if(cls.orientation is not 0):
          s = s + "\n" + verif.util.green("Orientation: ")
          if(cls.orientation == 1):
-            s = s + "Positive"
+            s = s + "Positive (higher values are better)"
          elif(cls.orientation == -1):
-            s = s + "Negative"
+            s = s + "Negative (lower values are better)"
          else:
             s = s + "None"
       if(cls.perfect_score is not None):
@@ -276,6 +276,7 @@ class Mae(ObsFcstBased):
    min = 0
    perfect_score = 0
    supports_aggregator = True
+   orientation = -1
 
    def _compute_from_obs_fcst(self, obs, fcst):
       return self.aggregator(abs(obs - fcst))
@@ -533,6 +534,7 @@ class DError(ObsFcstBased):
    min = 0
    perfect_score = 0
    supports_aggregator = False
+   orientation = -1
 
    def _compute_from_obs_fcst(self, obs, fcst):
       sortedobs = np.sort(obs)
@@ -693,7 +695,7 @@ class Within(Metric):
    require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = 100
-   orientation = -1
+   orientation = 1
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
       [obs, fcst] = data.get_scores([verif.field.Obs(),
@@ -793,7 +795,7 @@ class Bs(Metric):
    require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = 0
-   orientation = 1
+   orientation = -1
    reference = "Glenn W. Brier, 1950: Verification of forecasts expressed in terms of probability. Mon. Wea. Rev., 78, 1-3."
 
    def __init__(self, numBins=10):
@@ -902,7 +904,7 @@ class BsRel(Metric):
    require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = 0
-   orientation = 1
+   orientation = -1
 
    def __init__(self, numBins=11):
       self._edges = np.linspace(0, 1.0001, numBins)
@@ -931,7 +933,7 @@ class BsUnc(Metric):
    require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = None
-   orientation = 1
+   orientation = 0
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
       [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
@@ -1016,7 +1018,8 @@ class Spherical(Metric):
    supports_threshold = True
    max = 1
    min = 0
-   orientation = -1
+   perfect_score = 1
+   orientation = 1
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
       [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
