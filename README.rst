@@ -34,7 +34,7 @@ Features
 * Special plots like Taylor diagrams (``-m taylor``), quantile-quantile plots (``-m qq``).
 * Plot scores as a function of date, lead time, station elevation/lat/longitude (e.g. ``-x date``)
 * Show scores on maps (``-type map``)
-* Subset the data by specifying a date range and lat/lon range (``-llrange 5,10,58 60``)
+* Subset the data by specifying a date range and lat/lon range (``-latrange 58,60``)
 * Export to text (``-type text``)
 * Options to adjust font sizes, label positions, tick marks, legends, etc (``-labfs 14``)
 * Anomaly statistics relative to a baseline like climatology (``-c climfile.txt``)
@@ -42,15 +42,24 @@ Features
 
 For a full list, run ``verif`` without arguments.
 
-Installation Instructions
--------------------------
+Installing using pip
+--------------------
 
-Download the source code of the latest version: https://github.com/WFRT/verif/releases/. Unzip
-the file and navigate into the extracted folder. ``verif`` requires python as well as the python
-packages numpy, scipy, and matplotlib. The python package basemap is optional, but provide a
-background map when verification scores are plotted on a map. NetCDF4/HDF5 is not required, but will make
-reading of NetCDF files faster. If this package is not found, the NetCDF capabilities from scipy will
-be used instead.
+The easiest is to install the lastest version of ``verif`` using ``pip``:
+
+.. code-block:: bash
+
+   sudo pip install verif
+
+Installing from source
+----------------------
+
+If ``pip`` is not available, then download the source code of the latest version:
+https://github.com/WFRT/verif/releases/. Unzip the file and navigate into the extracted folder.
+``verif`` requires python as well as the python packages numpy, scipy, and matplotlib. The python
+package basemap is optional, but provide a background map when verification scores are plotted on a
+map. NetCDF4/HDF5 is not required, but will make reading of NetCDF files faster. If this package is
+not found, the NetCDF capabilities from scipy will be used instead.
 
 **Ubuntu**
 
