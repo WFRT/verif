@@ -290,5 +290,5 @@ variables are understood by ``verif``:
 Copyright and license
 ---------------------
 
-Copyright © 2015-2016 UBC Weather Forecast Research Team. ``verif`` is licensed under the 3-clause
+Copyright © 2015-2017 UBC Weather Forecast Research Team. ``verif`` is licensed under the 3-clause
 BSD license. See LICENSE file.
