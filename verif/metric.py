@@ -352,20 +352,6 @@ class Rmsf(ObsFcstBased):
       return "RMSF"
 
 
-class Crmse(ObsFcstBased):
-   min = 0
-   description = "Centered root mean squared error (RMSE without bias)"
-   perfect_score = 0
-   orientation = -1
-
-   def _compute_from_obs_fcst(self, obs, fcst):
-      bias = np.mean(obs) - np.mean(fcst)
-      return np.mean((obs - fcst - bias) ** 2) ** 0.5
-
-   def name(self):
-      return "CRMSE"
-
-
 class Cmae(ObsFcstBased):
    min = 0
    description = "Cube-root mean absolute cubic error"
