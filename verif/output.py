@@ -56,7 +56,7 @@ class Output(object):
    Abstract class representing a plot
 
    usage:
-   output = verif.output.Qq()
+   output = verif.output.QQ()
    output.plot(data)
 
    Attributes:
@@ -1011,6 +1011,9 @@ class QQ(Output):
       mpl.xlabel("Sorted observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
       self._plot_perfect_score(lims, lims)
+      mpl.xlim(lims)
+      mpl.ylim(lims)
+      mpl.gca().set_aspect(1)
 
 
 class Scatter(Output):
@@ -1102,9 +1105,8 @@ class Scatter(Output):
       mpl.ylabel("Forecasts (" + data.variable.units + ")")
       mpl.xlabel("Observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
-      self._plot_perfect_score(lims, lims)
-      mpl.plot(lims, lims, "--", color=[0.3, 0.3, 0.3], lw=3, zorder=-100)
       mpl.gca().set_aspect(1)
+      self._plot_perfect_score(lims, lims)
 
 
 class Change(Output):
@@ -1187,6 +1189,8 @@ class Cond(Output):
       mpl.xlabel("Observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
       self._plot_perfect_score(lims, lims)
+      mpl.xlim(lims)
+      mpl.ylim(lims)
       mpl.gca().set_aspect(1)
 
 
@@ -2591,6 +2595,10 @@ class Impact(Output):
 
       # Draw diagonal
       mpl.plot([lower, upper], [lower, upper], "grey", lw=7, zorder=-10)
+      lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
+      self._plot_perfect_score(lims, lims)
+      mpl.xlim(lims)
+      mpl.ylim(lims)
       mpl.gca().set_aspect(1)
 
    def _legend(self, data, names=None):
