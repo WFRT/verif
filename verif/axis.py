@@ -115,12 +115,12 @@ class Elev(Axis):
       return "Elevation (m)"
 
 
-class LocationId(Axis):
+class Id(Axis):
    is_continuous = False
    is_location_like = True
 
    def label(self, variable):
-      return "Location"
+      return "Location id"
 
 
 class All(Axis):
