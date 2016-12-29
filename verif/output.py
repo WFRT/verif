@@ -1149,7 +1149,7 @@ class Change(Output):
 
 class Cond(Output):
    description = "Plots forecasts as a function of obs (use -r to specify bin-edges)"
-   default_axis = "threshold"
+   default_axis = verif.axis.Threshold()
    default_bin_type = "within="
    require_threshold_type = "deterministic"
    supports_threshold = True
