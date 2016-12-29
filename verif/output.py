@@ -663,9 +663,9 @@ class Standard(Output):
       # Show a bargraph with unconditional averages when no axis is specified
       if self.axis == verif.axis.No():
          w = 0.8
-         x = np.linspace(1 - w / 2, len(y) - w / 2, len(y))
-         mpl.bar(x, y, color='w', lw=self.lw)
-         mpl.xticks(range(1, len(y) + 1), labels)
+         x = np.linspace(1 - w / 2, F - w / 2, F)
+         mpl.bar(x, y[0, :], color='w', lw=self.lw)
+         mpl.xticks(range(1, F + 1), labels)
       else:
          for f in range(0, F):
             id = ids[f]

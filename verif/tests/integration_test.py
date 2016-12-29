@@ -80,6 +80,18 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg std")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg range")
 
+   def test_option_x(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x no")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x location")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x lat")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x lon")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x elev")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x leadtime")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x time")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x week")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x month")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x year")
+
    # def test_option_hist(self):
    #    self.run_with_image("verif examples/raw.txt examples/kf.txt -m obs -hist")
 
