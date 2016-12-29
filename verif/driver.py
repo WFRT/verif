@@ -44,6 +44,7 @@ def run(argv):
    marker_size = None
    line_width = None
    line_colors = None
+   line_styles = None
    tick_font_size = None
    lab_font_size = None
    leg_font_size = None
@@ -194,6 +195,8 @@ def run(argv):
                line_width = float(arg_next)
             elif(arg == "-lc"):
                line_colors = arg_next
+            elif(arg == "-ls"):
+               line_styles = arg_next
             elif(arg == "-tickfs"):
                tick_font_size = float(arg_next)
             elif(arg == "-labfs"):
@@ -444,6 +447,8 @@ def run(argv):
       pl.lw = line_width
    if(line_colors is not None):
       pl.line_colors = line_colors
+   if(line_styles is not None):
+      pl.line_styles = line_styles
    if(lab_font_size is not None):
       pl.labfs = lab_font_size
    if(leg_font_size is not None):
@@ -592,11 +597,12 @@ def show_description(data=None):
    print format_argument("-f file", "Save image to this filename")
    print format_argument("-fs size", "Set figure size width,height (in inches). Default 8x6.")
    print format_argument("-labfs size", "Font size for axis labels")
-   print format_argument("-lc colors", "Comma-separated list of line colors, such as red,[0.3,0,0],0.3")
+   print format_argument("-lc colors", "Comma-separated list of line colors, such as red,[0.3,0,0],0.3. Colors are repeated if there are more lines than colors.")
    print format_argument("-left value", "Left boundary location for saved figure [range 0-1]")
    print format_argument("-leg titles", "Comma-separated list of legend titles. Use '_' to represent space.")
    print format_argument("-legfs size", "Font size for legend. Set to 0 to hide legend.")
    print format_argument("-legloc loc", "Where should the legend be placed?  Locations such as 'best', 'upper_left', 'lower_right', 'center'. Use underscore when using two words.")
+   print format_argument("-ls styles", "Comma-separated list of line styles, such as -,-o,s,--*. Styles are repeated if there are more lines than styles.")
    print format_argument("-lw width", "How wide should lines be?")
    print format_argument("-maptype", "One of 'simple', 'sat', 'topo', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.")
    print format_argument("-ms size", "How big should markers be?")

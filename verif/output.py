@@ -136,7 +136,7 @@ class Output(object):
       self.leg_loc = "best"
       self.legfs = 16
       self.line_colors = None
-      self.ls = None
+      self.line_styles = None
       self.lw = 2
       self.map_type = None
       self.ms = 8
@@ -382,8 +382,8 @@ class Output(object):
          return self.colors[i % len(self.default_colors)]
 
    def _get_style(self, i, total, connectingLine=True, lineOnly=False):
-      if self.ls is not None:
-         listStyles = self.ls.split(",")
+      if self.line_styles is not None:
+         listStyles = self.line_styles.split(",")
          # loop through input linestyles (independent of colors)
          I = i % len(listStyles)
          return listStyles[I]
