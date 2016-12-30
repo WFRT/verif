@@ -92,8 +92,13 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x month")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x year")
 
-   # def test_option_hist(self):
-   #    self.run_with_image("verif examples/raw.txt examples/kf.txt -m obs -hist")
+   def test_option_lc(self):
+       for lc in ("g,r", "g", "g,r,b", "0,0.5,0.9", "[0,0,1],0.5,g"):
+          self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -lc %s" % lc)
+
+   def test_options(self):
+      for opt in ("acc", "nogrid", "nomargin", "hist", "sort", "sp", "simple", "xlog", "ylog"):
+         self.run_with_image("verif examples/raw.txt examples/kf.txt -m obs -%s" % opt)
 
    def test_invalidMetric(self):
       with self.assertRaises(SystemExit):
