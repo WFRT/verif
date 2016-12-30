@@ -802,7 +802,7 @@ class Bs(Metric):
       self._edges = np.linspace(0, 1.0001, numBins)
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
-      # Compute probabilities based on thresholds
+      """ Compute probabilities based on thresholds """
       p0 = 0
       p1 = 1
       if(interval.lower != -np.inf and interval.upper != np.inf):

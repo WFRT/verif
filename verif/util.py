@@ -12,7 +12,7 @@ import textwrap
 import verif.interval
 
 
-def convert_dates(dates):
+def dates_to_datetimes(dates):
    """ Converts dates in YYYYMMDD format into datetime values
 
    Arguments:
@@ -31,7 +31,7 @@ def convert_dates(dates):
    return datetimes
 
 
-def convert_times(times):
+def unixtimes_to_datetimes(times):
    """ Converts unixtimes into datetime values
 
    Arguments:
@@ -48,7 +48,7 @@ def convert_times(times):
    return times2
 
 
-def convert_to_yyyymmdd(dates):
+def datetimes_to_dates(dates):
    """ Converts datetime values into YYYYMMDD values
 
    Arguments:
