@@ -12,56 +12,44 @@ import textwrap
 import verif.interval
 
 
-def dates_to_datetimes(dates):
-   """ Converts dates in YYYYMMDD format into datetime values
+def date_to_datetime(date):
+   """ Converts date in YYYYMMDD format into datetime value
 
    Arguments:
-      dates (np.array): dates in YYYYMMDD format
+      date (int): date in YYYYMMDD format
 
    Returns:
-      np.array: datetime values
+      int: datetime value
    """
-   numDates = len(dates)
-   datetimes = np.zeros([numDates], 'float')
-   for i in range(0, numDates):
-      year = int(dates[i] / 10000)
-      month = int(dates[i] / 100 % 100)
-      day = int(dates[i] % 100)
-      datetimes[i] = date2num(datetime.datetime(year, month, day, 0))
-   return datetimes
+   year = int(date / 10000)
+   month = int(date / 100 % 100)
+   day = int(date % 100)
+   return date2num(datetime.datetime(year, month, day, 0))
 
 
-def unixtimes_to_datetimes(times):
-   """ Converts unixtimes into datetime values
+def unixtime_to_datetime(time):
+   """ Converts unixtime into datetime value
 
    Arguments:
-      times (np.array): uniximes in seconds since 1970
+      time (int): unixtime in seconds since 1970
 
    Returns:
-      np.array: datetime values
+      int: datetime value
    """
-   num_times = len(times)
-   times2 = np.zeros([num_times], 'float')
-   for i in range(0, num_times):
-      dt = datetime.datetime.utcfromtimestamp(times[i])
-      times2[i] = date2num(dt)
-   return times2
+   dt = datetime.datetime.utcfromtimestamp(time)
+   return date2num(dt)
 
 
-def datetimes_to_dates(dates):
-   """ Converts datetime values into YYYYMMDD values
+def datetime_to_date(date):
+   """ Converts datetime value into YYYYMMDD value
 
    Arguments:
-      dates (np.array): datetime values
+      date: datetime value
 
    Returns:
-      np.array: integers in YYYYMMDD
+      int: date in YYYYMMDD
    """
-   num_dates = len(dates)
-   dates2 = np.zeros([num_dates], 'int')
-   for i in range(0, num_dates):
-      dates2[i] = int(num2date(dates[i]).strftime("%Y%m%d"))
-   return dates2
+   return int(num2date(date).strftime("%Y%m%d"))
 
 
 def date_to_unixtime(date):

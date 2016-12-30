@@ -455,7 +455,7 @@ class Output(object):
             xlim = self.xlim
             # Convert date to datetime objects
             if self.axis.is_time_like:
-               xlim = verif.util.dates_to_datetimes(xlim)
+               xlim = [verif.util.date_to_datetime(lim) for lim in xlim]
             mpl.xlim(xlim)
          if self.ylim is not None:
             mpl.ylim(self.ylim)
@@ -599,7 +599,7 @@ class Standard(Output):
       if not axis == verif.axis.Threshold():
          x = data.get_axis_values(axis)
       if axis.is_time_like:
-         x = verif.util.unixtimes_to_datetimes(x)
+         x = [verif.util.unixtime_to_datetime(xx) for xx in x]
 
       xname = axis.name()
       ynames = data.get_legend()
@@ -938,10 +938,6 @@ class ObsFcst(Output):
 
    def _plot_core(self, data):
       F = data.num_inputs
-      x = data.get_axis_values(self.axis)
-      if self.axis.is_time_like:
-         x = verif.util.unixtimes_to_datetimes(x)
-
       isCont = self.axis.is_continuous
 
       [x,y,_,labels] = self._get_x_y(data, self.axis)
@@ -965,7 +961,7 @@ class ObsFcst(Output):
       F = data.num_inputs
       x = data.get_axis_values(self.axis)
       if self.axis.is_time_like:
-         x = verif.util.unixtimes_to_datetimes(x)
+         x = [verif.util.unixtime_to_datetime(xx) for xx in x]
 
       # Obs line
       mObs = verif.metric.FromField(verif.field.Obs(), aux=verif.field.Fcst())
@@ -1274,7 +1270,7 @@ class TimeSeries(Output):
       for d in range(0, obs.shape[0]):
          # Obs line
          times = data.get_axis_values(verif.axis.Time())
-         dates = verif.util.unixtimes_to_datetimes(times)
+         dates = [verif.util.unixtime_to_datetime(time) for time in times]
          x = dates[d] + data.leadtimes / 24.0
          y = verif.util.nanmean(obs[d, :, :], axis=1)
          if connect and d < obs.shape[0] - 1:
@@ -1336,7 +1332,7 @@ class Meteo(Output):
 
    def _plot_core(self, data):
       F = data.num_inputs
-      x = verif.util.unixtimes_to_datetimes(data.times[0] + data.leadtimes*3600)
+      x = [verif.util.unixtime_to_datetime(data.times[0] + lt*3600) for lt in data.leadtimes]
       isSingleTime = len(data.times) == 1
 
       # Plot obs line
@@ -1380,7 +1376,7 @@ class Meteo(Output):
       mpl.gca().xaxis_date()
 
       if self.xlim is not None:
-         mpl.xlim(verif.util.dates_to_datetimes(self.xlim))
+         mpl.xlim([verif.util.date_to_datetime(lim) for lim in self.xlim])
       else:
          if np.min(x) == np.max(x):
             mpl.xlim(x[0], x[0] + 1)

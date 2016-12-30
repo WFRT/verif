@@ -72,9 +72,9 @@ class TestParseNumbers(unittest.TestCase):
       self.assertEqual([20141230, 20141231, 20150101, 20150102, 20150103], verif.util.parse_numbers("20141230:20150103", True))
       self.assertEqual([20141230, 20150101, 20150103], verif.util.parse_numbers("20141230:2:20150104", True))
 
-   def test_datetimes_to_dates(self):
+   def test_datetime_to_date(self):
       times = np.array([1331856000, -2180131200])
-      times2 = verif.util.unixtimes_to_datetimes(times)
+      times2 = [verif.util.unixtime_to_datetime(time) for time in times]
       from matplotlib.dates import *
       import datetime
       self.assertEqual(date2num(datetime.datetime(2012, 3, 16, 0, 0)), times2[0])
@@ -124,7 +124,7 @@ class TestGetIntervals(unittest.TestCase):
 class TestConvert(unittest.TestCase):
    def test_convert_back_and_forth(self):
       dates = [20150101, 20141231]
-      new_dates = verif.util.datetimes_to_dates(verif.util.dates_to_datetimes(dates))
+      new_dates = [verif.util.datetime_to_date(verif.util.date_to_datetime(date)) for date in dates]
       self.assertItemsEqual(new_dates, dates)
 
 if __name__ == '__main__':
