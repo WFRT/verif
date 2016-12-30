@@ -604,7 +604,7 @@ def show_description(data=None):
    print format_argument("-legloc loc", "Where should the legend be placed?  Locations such as 'best', 'upper_left', 'lower_right', 'center'. Use underscore when using two words.")
    print format_argument("-ls styles", "Comma-separated list of line styles, such as -,-o,s,--*. Styles are repeated if there are more lines than styles.")
    print format_argument("-lw width", "How wide should lines be?")
-   print format_argument("-maptype", "One of 'simple', 'sat', 'topo', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.")
+   print format_argument("-maptype type", "One of 'simple', 'sat', 'topo', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.")
    print format_argument("-ms size", "How big should markers be?")
    print format_argument("-nogrid", "Turn the grid on the plot off")
    print format_argument("-nomargin", "Remove margins (whitespace) in the plot")
