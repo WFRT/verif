@@ -106,7 +106,7 @@ class TestDataClim(unittest.TestCase):
       and related functions
       """
       inputs = [verif.input.Text("verif/tests/files/file1.txt")]
-      clim = "verif/tests/files/file2.txt"
+      clim = verif.input.get_input("verif/tests/files/file2.txt")
       data = verif.data.Data(inputs, clim=clim)
       self.assertEqual(1, len(data.get_names()))
       self.assertEqual(1, len(data.get_short_names()))

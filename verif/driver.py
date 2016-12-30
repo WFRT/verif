@@ -160,10 +160,10 @@ def run(argv):
             elif(arg == "-t"):
                times = verif.util.parse_numbers(arg_next, True)
             elif(arg == "-c"):
-               clim_file = arg_next
+               clim_file = verif.input.get_input(arg_next)
                clim_type = "subtract"
             elif(arg == "-C"):
-               clim_file = arg_next
+               clim_file = verif.input.get_input(arg_next)
                clim_type = "divide"
             elif(arg == "-xlim"):
                xlim = verif.util.parse_numbers(arg_next)

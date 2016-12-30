@@ -46,7 +46,7 @@ class Data(object):
       leadtimes      A numpy array of leadtimes. Discard data for all other leadtimes
       locations      A list of verif.location. Discard data for all other locations
       locations_x    A list of verif.location to not remove
-      clim           Use this filename to compute anomaly. Should therefore
+      clim           Use this verif.input to compute anomaly. Should therefore
                      be a climatological forecast. Subtract/divide the
                      forecasts from this file from all forecasts and
                      observations from the other files.
@@ -74,7 +74,7 @@ class Data(object):
          self._inputs.append(input)
          self._get_score_cache.append(dict())
       if(clim is not None):
-         self._clim = verif.input.get_input(clim)
+         self._clim = clim
          self._get_score_cache.append(dict())
          if(not (clim_type == "subtract" or clim_type == "divide")):
             verif.util.error("Data: clim_type must be 'subtract' or 'divide")
