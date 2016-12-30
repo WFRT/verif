@@ -203,7 +203,7 @@ class Output(object):
       """
       [x, y, xlabel, ylabels] = self._get_x_y(data, self.axis)
 
-      lengths = [max(10, len(label)) for label in ylabels]
+      lengths = [max(11, len(label)+1) for label in ylabels]
 
       # Get column descriptions
       if self.axis == verif.axis.Threshold():
@@ -214,31 +214,27 @@ class Output(object):
 
       desc_lengths = dict()
       for w in descs.keys():
-         desc_lengths[w] = max(10, len(w))
+         desc_lengths[w] = max(11, len(w)+1)
 
       # Header line
       s = ""
       for w in descs.keys():
          # Axis descriptiors
-         fmt = "%-"+ str(desc_lengths[w]) + "s| "
-         s += fmt % w
+         s += "%-*s| "% (desc_lengths[w], w)
       for i in range(len(ylabels)):
          # Labels
-         fmt = "%-"+ str(lengths[i]) + "s| "
-         s += fmt % ylabels[i]
+         s += "%-*s| " % (lengths[i], ylabels[i])
       s += "\n"
 
       # Loop over rows
       for i in range(0, len(x)):
          for w in descs.keys():
             if isinstance(descs[w][i], basestring):
-               fmt = "%-"+ str(desc_lengths[w]) + "s| "
+               s += "%-*s| " % (desc_lengths[w], descs[w][i])
             else:
-               fmt = "%-"+ str(desc_lengths[w]) + "g| "
-            s += fmt % descs[w][i]
+               s += "%-*.4g| " % (desc_lengths[w], descs[w][i])
          for f in range(0, y.shape[1]):
-            fmt = "%-"+ str(lengths[f]) + "g| "
-            s += fmt % y[i,f]
+            s += "%-*.4g| " % (lengths[f], y[i,f])
          s += "\n"
 
       # Remove last newline
