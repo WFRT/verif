@@ -99,5 +99,18 @@ class TestDataRemovingLocations(unittest.TestCase):
       self.assertTrue(1 in [loc.id for loc in data.locations])
       self.assertTrue(2 in [loc.id for loc in data.locations])
 
+class TestDataClim(unittest.TestCase):
+   def test_names(self):
+      """
+      Checks that climatology files do not end up in get_names() 
+      and related functions
+      """
+      inputs = [verif.input.Text("verif/tests/files/file1.txt")]
+      clim = "verif/tests/files/file2.txt"
+      data = verif.data.Data(inputs, clim=clim)
+      self.assertEqual(1, len(data.get_names()))
+      self.assertEqual(1, len(data.get_short_names()))
+      self.assertEqual(1, len(data.get_full_names()))
+
 if __name__ == '__main__':
    unittest.main()

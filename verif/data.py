@@ -46,7 +46,7 @@ class Data(object):
       leadtimes      A numpy array of leadtimes. Discard data for all other leadtimes
       locations      A list of verif.location. Discard data for all other locations
       locations_x    A list of verif.location to not remove
-      clim           Use this NetCDF file to compute anomaly. Should therefore
+      clim           Use this filename to compute anomaly. Should therefore
                      be a climatological forecast. Subtract/divide the
                      forecasts from this file from all forecasts and
                      observations from the other files.
@@ -330,14 +330,21 @@ class Data(object):
 
    def get_full_names(self):
       names = [input.fullname for input in self._inputs]
+      if self._clim is not None:
+         names = names[0:-1]
       return names
 
    def get_names(self):
       names = [input.name for input in self._inputs]
+      if self._clim is not None:
+         names = names[0:-1]
       return names
 
    def get_short_names(self):
-      return [input.shortname for input in inputs]
+      names = [input.shortname for input in self._inputs]
+      if self._clim is not None:
+         names = names[0:-1]
+      return names
 
    def get_legend(self):
       if(self._legend is None):
