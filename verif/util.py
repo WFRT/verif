@@ -11,15 +11,28 @@ import textwrap
 
 import verif.interval
 
+"""
+There are 4 ways to represent time in verif:
+   1) unixtime (seconds since 1970). Used internally in verif.data and also
+      optionally in input files.
+   2) date (YYYYYMMDD). Used on the command-line to specify dates and also
+      optionally in input files.
+   3) datenum (Some kind of matplotlib way to represent date as integer). Times
+      must be in this format to make it easier to put automatic ticks on time axes
+   4) datetime (a full date object). Not really used in verif, except when a
+      formatted datestring is needed.
 
-def date_to_datetime(date):
-   """ Converts date in YYYYMMDD format into datetime value
+Below are functions that convert between the first 3
+"""
+
+def date_to_datenum(date):
+   """ Converts date in YYYYMMDD format into datenum
 
    Arguments:
       date (int): date in YYYYMMDD format
 
    Returns:
-      int: datetime value
+      int: datenum value
    """
    year = int(date / 10000)
    month = int(date / 100 % 100)
@@ -27,33 +40,40 @@ def date_to_datetime(date):
    return date2num(datetime.datetime(year, month, day, 0))
 
 
-def unixtime_to_datetime(time):
-   """ Converts unixtime into datetime value
+def unixtime_to_datenum(time):
+   """ Converts unixtime into datenum
 
    Arguments:
       time (int): unixtime in seconds since 1970
 
    Returns:
-      int: datetime value
+      int: datenum value
    """
    dt = datetime.datetime.utcfromtimestamp(time)
    return date2num(dt)
 
 
-def datetime_to_date(date):
-   """ Converts datetime value into YYYYMMDD value
+def datenum_to_date(datenum):
+   """ Converts datenum into YYYYMMDD value
 
    Arguments:
-      date: datetime value
+      date (int): datenum
 
    Returns:
       int: date in YYYYMMDD
    """
-   return int(num2date(date).strftime("%Y%m%d"))
+   return int(num2date(datenum).strftime("%Y%m%d"))
 
 
 def date_to_unixtime(date):
-   """ Convert YYYYMMDD to unixtime """
+   """ Convert YYYYMMDD to unixtime
+
+   Arguments:
+      date (int): YYYYMMDD
+
+   Returns:
+      int: unixtime
+   """
    year = date / 10000
    month = date / 100 % 100
    day = date % 100
@@ -67,7 +87,14 @@ def date_to_unixtime_slow(date):
 
 
 def unixtime_to_date(unixtime):
-   """ Convert unixtime to YYYYMMDD """
+   """ Convert unixtime to YYYYMMDD
+
+   Arguments:
+      unixtime (int): unixtime
+
+   Returns:
+      int: date in YYYYMMDD
+   """
    dt = datetime.datetime.utcfromtimestamp(int(unixtime))
    date = dt.year * 10000 + dt.month * 100 + dt.day
    return date

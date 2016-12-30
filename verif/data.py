@@ -369,7 +369,7 @@ class Data(object):
       if(axis.is_time_like):
          unixtimes = self.get_axis_values(axis)
          # Convert to date objects
-         dates = [matplotlib.dates.num2date(verif.util.unixtime_to_datetime(unixtime)) for unixtime in unixtimes]
+         dates = [matplotlib.dates.num2date(verif.util.unixtime_to_datenum(unixtime)) for unixtime in unixtimes]
          times = list()
          fmt = axis.fmt
 
