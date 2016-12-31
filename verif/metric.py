@@ -454,12 +454,14 @@ class Dmb(ObsFcstBased):
 
 
 class Mbias(ObsFcstBased):
-   description = "Multiplicative bias (obs/fcst)"
+   description = "Multiplicative bias (fcst/obs)"
    perfect_score = 1
    orientation = 0
 
    def _compute_from_obs_fcst(self, obs, fcst):
-      return (np.mean(obs) / np.mean(fcst))
+      if np.mean(obs) == 0:
+         return np.nan
+      return np.mean(fcst) / np.mean(obs)
 
    def name(self):
       return self.description
