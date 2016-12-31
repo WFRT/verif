@@ -54,14 +54,10 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
     ],
 
     # What does your project relate to?
-    keywords='meteorology verification weather',
+    keywords='meteorology verification weather prediction',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
