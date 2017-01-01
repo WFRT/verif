@@ -1,7 +1,8 @@
+import datetime
+import matplotlib.dates
+import numpy as np
 import unittest
 import verif.util
-import verif
-import numpy as np
 
 
 class TestParseNumbers(unittest.TestCase):
@@ -75,10 +76,8 @@ class TestParseNumbers(unittest.TestCase):
    def test_unixtime_to_datenum(self):
       unixtimes = np.array([1331856000, -2180131200])
       datenums = [verif.util.unixtime_to_datenum(unixtime) for unixtime in unixtimes]
-      from matplotlib.dates import *
-      import datetime
-      self.assertEqual(date2num(datetime.datetime(2012, 3, 16, 0, 0)), datenums[0])
-      self.assertEqual(date2num(datetime.datetime(1900, 12, 1, 0, 0)), datenums[1])
+      self.assertEqual(matplotlib.dates.date2num(datetime.datetime(2012, 3, 16, 0, 0)), datenums[0])
+      self.assertEqual(matplotlib.dates.date2num(datetime.datetime(1900, 12, 1, 0, 0)), datenums[1])
 
    def test_date_to_unixtime(self):
       import time
