@@ -1266,45 +1266,46 @@ class TimeSeries(Output):
       connect = min(data.leadtimes) + 24 > max(data.leadtimes)
       minLeadtime = min(data.leadtimes)
 
-      obs = data.get_scores(verif.field.Obs(), 0)
-      for d in range(0, obs.shape[0]):
-         # Obs line
-         times = data.get_axis_values(verif.axis.Time())
-         dates = [verif.util.unixtime_to_datenum(time) for time in times]
-         x = dates[d] + data.leadtimes / 24.0
-         y = verif.util.nanmean(obs[d, :, :], axis=1)
-         if connect and d < obs.shape[0] - 1:
-            obsmean = verif.util.nanmean(obs[d + 1, 0, :], axis=0)
-            x = np.insert(x, x.shape[0], dates[d + 1] + minLeadtime / 24.0)
-            y = np.insert(y, y.shape[0], obsmean)
-
-         if d == 0:
-            xmin = np.min(x)
-         elif d == obs.shape[0] - 1:
-            xmax = np.max(x)
-
-         lab = "obs" if d == 0 else ""
-         mpl.rcParams['ytick.major.pad'] = '20'
-         mpl.rcParams['xtick.major.pad'] = '20'
-         mpl.plot(x, y, ".-", color=[0.3, 0.3, 0.3], lw=5, label=lab)
-
-         # Forecast lines
-         labels = data.get_legend()
-         for f in range(0, F):
-            color = self._get_color(f, F)
-            style = self._get_style(f, F)
-
-            fcst = data.get_scores(verif.field.Fcst(), f)
+      times = data.times
+      dates = [verif.util.unixtime_to_datenum(time) for time in times]
+      # Draw observation line
+      if verif.field.Obs() in data.get_fields():
+         obs = data.get_scores(verif.field.Obs(), 0)
+         for d in range(0, obs.shape[0]):
             x = dates[d] + data.leadtimes / 24.0
-            y = verif.util.nanmean(fcst[d, :, :], axis=1)
+            y = verif.util.nanmean(obs[d, :, :], axis=1)
             if connect and d < obs.shape[0] - 1:
+               obsmean = verif.util.nanmean(obs[d + 1, 0, :], axis=0)
                x = np.insert(x, x.shape[0], dates[d + 1] + minLeadtime / 24.0)
-               y = np.insert(y, y.shape[0], verif.util.nanmean(fcst[d + 1, 0, :]))
-            lab = labels[f] if d == 0 else ""
+               y = np.insert(y, y.shape[0], obsmean)
+
+            if d == 0:
+               xmin = np.min(x)
+            elif d == obs.shape[0] - 1:
+               xmax = np.max(x)
+
+            lab = "obs" if d == 0 else ""
             mpl.rcParams['ytick.major.pad'] = '20'
             mpl.rcParams['xtick.major.pad'] = '20'
-            mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms,
-                  label=lab)
+            mpl.plot(x, y, ".-", color=[0.3, 0.3, 0.3], lw=5, label=lab)
+
+      # Draw forecast lines
+      if verif.field.Fcst() in data.get_fields():
+         labels = data.get_legend()
+         for f in range(0, F):
+            fcst = data.get_scores(verif.field.Fcst(), f)
+            color = self._get_color(f, F)
+            style = self._get_style(f, F)
+            for d in range(0, len(times)):
+               x = dates[d] + data.leadtimes / 24.0
+               y = verif.util.nanmean(fcst[d, :, :], axis=1)
+               if connect and d < fcst.shape[0] - 1:
+                  x = np.insert(x, x.shape[0], dates[d + 1] + minLeadtime / 24.0)
+                  y = np.insert(y, y.shape[0], verif.util.nanmean(fcst[d + 1, 0, :]))
+               lab = labels[f] if d == 0 else ""
+               mpl.rcParams['ytick.major.pad'] = '20'
+               mpl.rcParams['xtick.major.pad'] = '20'
+               mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=lab)
 
       mpl.xlabel(self.axis.label(data.variable))
       if self.ylabel is None:

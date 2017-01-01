@@ -162,6 +162,21 @@ class Data(object):
       self.weeks = self._get_weeks()
       self.num_inputs = self._get_num_inputs()
 
+   def get_fields(self):
+      """ Get a list of fields that all inputs have
+
+      Returns:
+         list(verif.field.Field): A list of fields
+      """
+      all_fields = set()
+      for f in range(self._get_num_inputs_with_clim()):
+         input = self._inputs[f]
+         if f == 0:
+            all_fields = input.get_fields()
+         else:
+            all_fields = set(all_fields) & set(input.get_fields())
+      return list(all_fields)
+
    def get_scores(self, fields, input_index, axis=verif.axis.All(), axis_index=None):
       """ Retrieves scores from all files
 

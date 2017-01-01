@@ -112,5 +112,26 @@ class TestDataClim(unittest.TestCase):
       self.assertEqual(1, len(data.get_short_names()))
       self.assertEqual(1, len(data.get_full_names()))
 
+class TestData(unittest.TestCase):
+   def test_get_fields1(self):
+      inputs = [verif.input.Text("verif/tests/files/file1.txt")]
+      data = verif.data.Data(inputs)
+      self.assertTrue(verif.field.Fcst() in data.get_fields())
+      self.assertTrue(verif.field.Obs() in data.get_fields())
+
+   def test_get_fields2(self):
+      inputs = [verif.input.Text("verif/tests/files/file1_no_fcst.txt")]
+      data = verif.data.Data(inputs)
+      self.assertFalse(verif.field.Fcst() in data.get_fields())
+      self.assertTrue(verif.field.Obs() in data.get_fields())
+
+   def test_get_fields3(self):
+      # Only Obs is common between the two files
+      inputs = [verif.input.Text("verif/tests/files/%s" % file) for file in ["file1.txt", "file1_no_fcst.txt"]]
+      data = verif.data.Data(inputs)
+      self.assertFalse(verif.field.Fcst() in data.get_fields())
+      self.assertTrue(verif.field.Obs() in data.get_fields())
+
+
 if __name__ == '__main__':
    unittest.main()
