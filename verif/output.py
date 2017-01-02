@@ -690,8 +690,8 @@ class Standard(Output):
                   alpha=alpha)
             if self.show_smoothing_line:
                from scipy import ndimage
-               I = np.argsort(x[:,id])
-               xx = np.sort(x[:,id])
+               I = np.argsort(x)
+               xx = np.sort(x)
                yy = y[:,id][I]
                I = np.where((np.isnan(xx) == 0) & (np.isnan(yy) == 0))[0]
                xx = xx[I]
