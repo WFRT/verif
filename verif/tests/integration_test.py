@@ -68,6 +68,7 @@ class IntegrationTest(unittest.TestCase):
 
    def test_option_leg(self):
       self.run_with_image("verif -leg 1,2 examples/raw.txt examples/kf.txt -m ets")
+      self.run_with_image("verif -leg 1,2 examples/raw.txt examples/kf.txt -m ets -x no")
       self.run_with_image("verif -leg 1dqwoijdioqwjdoiqjwdoijiqow,2dqwoijdioqwjdoiqjwdoijiqow examples/raw.txt examples/kf.txt -m ets")
       with self.assertRaises(SystemExit):
          self.run_with_image("verif -leg 1 examples/raw.txt examples/kf.txt -m ets")

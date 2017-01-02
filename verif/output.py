@@ -643,7 +643,7 @@ class Standard(Output):
       return x, y, xname, ynames
 
    def _legend(self, data, names=None):
-      if self.legfs > 0:
+      if self.legfs > 0 and self.axis != verif.axis.No():
          mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
 
    def _plot_core(self, data):
@@ -701,8 +701,6 @@ class Standard(Output):
                mpl.plot(xx, yy, "--", color=color, lw=self.lw, ms=self.ms)
 
          mpl.xlabel(self.axis.label(data.variable))
-         mpl.ylabel(self._metric.label(data.variable))
-         #mpl.ylabel(data.obsfield.label() + data.obsfield.units(data.variable))
 
          if self.axis.is_time_like:
             mpl.gca().xaxis_date()
@@ -710,8 +708,10 @@ class Standard(Output):
             #mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
             # NOTE: Don't call the locator on a date axis
             mpl.gca().xaxis.set_major_locator(data.get_axis_locator(self.axis))
-         perfect_score = self._metric.perfect_score
-         self._plot_perfect_score(mpl.xlim(), perfect_score)
+
+      mpl.ylabel(self._metric.label(data.variable))
+      perfect_score = self._metric.perfect_score
+      self._plot_perfect_score(mpl.xlim(), perfect_score)
 
       if not self.show_acc:
          self._set_y_axis_limits(self._metric)
