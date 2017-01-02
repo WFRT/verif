@@ -24,7 +24,7 @@ class IntegrationTest(unittest.TestCase):
 
    @staticmethod
    def is_valid_image(filename):
-      return IntegrationTest.file_size(filename) > 10000
+      return IntegrationTest.file_size(filename) > 3000
 
    # Runs command and appends -f test.png
    # Cleans up the image file afterwards
