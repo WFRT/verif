@@ -35,6 +35,7 @@ def run(argv):
    times = None
    leadtimes = None
    axis = None
+   aspect = None
    sdim = None
    figsize = None
    dpi = 100
@@ -183,6 +184,8 @@ def run(argv):
                sdim = arg_next
             elif(arg == "-agg"):
                aggregator_name = arg_next
+            elif(arg == "-aspect"):
+               aspect = float(arg_next)
             elif(arg == "-r"):
                thresholds = np.array(verif.util.parse_numbers(arg_next))
             elif(arg == "-q"):
@@ -511,6 +514,8 @@ def run(argv):
       pl.axis = axis
    if aggregator_name is not None:
       pl.aggregator = verif.aggregator.get(aggregator_name)
+   if aspect is not None:
+      pl.aspect = aspect
    pl.show_margin = not no_margin
    if ylabel is not None:
       pl.ylabel = ylabel
@@ -590,6 +595,7 @@ def show_description(data=None):
 
    # Plot options
    print verif.util.green("  Plotting options:")
+   print format_argument("-aspect ratio", "Force the aspect ratio of the plot. A value greater than 1 will stretch out the y-axis.")
    print format_argument("-bottom value", "Bottom boundary location for saved figure [range 0-1]")
    print format_argument("-clim limits", "Force colorbar limits to the two values lower,upper")
    print format_argument("-cmap colormap", "Use this colormap when possible (e.g. jet, inferno, RdBu)")

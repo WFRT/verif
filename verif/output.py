@@ -164,6 +164,7 @@ class Output(object):
       self.ylog = False
       self.yrot = None
       self.yticks = None
+      self.aspect = None
 
    @classmethod
    def name(cls):
@@ -452,6 +453,8 @@ class Output(object):
                label.set_fontsize(self.tick_font_size)
 
       for ax in mpl.gcf().get_axes():
+         if self.aspect is not None:
+            ax.set_aspect(self.aspect)
          if self.xlim is not None:
             xlim = self.xlim
             # Convert date to datetime objects
@@ -476,6 +479,8 @@ class Output(object):
       
       xlim, ylim, clim taken care of by map_core
       """
+      if self.aspect is not None:
+         mpl.gca().set_aspect(self.aspect)
       self._adjust_axes(data)
 
    def _adjust_axes(self, data):
