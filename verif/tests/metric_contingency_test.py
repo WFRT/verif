@@ -36,3 +36,7 @@ class ThreatTest(unittest.TestCase):
       f_interval = verif.interval.Interval(1.5, np.inf, True, True)
       value = metric.compute_from_obs_fcst(obs, fcst, interval, f_interval)
       self.assertEqual(value, 1.0/3)
+
+
+if __name__ == '__main__':
+   unittest.main()

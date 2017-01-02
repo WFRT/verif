@@ -2,8 +2,6 @@ import unittest
 import verif.driver
 import os
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
 np.seterr('raise')
 
 
@@ -108,3 +106,7 @@ class IntegrationTest(unittest.TestCase):
    def test_invalidFile(self):
       with self.assertRaises(SystemExit):
          self.run_with_image("verif examples/T_raw_1.nc -m mae")
+
+
+if __name__ == '__main__':
+   unittest.main()
