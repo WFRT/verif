@@ -191,7 +191,7 @@ class Output(object):
       """
       mpl.clf()
       self._plot_core(data)
-      self._adjust_axes(data)
+      self._adjust_plot_axes(data)
       self._legend(data)
       self._save_plot(data)
 
@@ -296,6 +296,7 @@ class Output(object):
    # Draws a map of the data
    def map(self, data):
       self._map_core(data)
+      self._adjust_map_axes(data)
       # self._legend(data)
       self._save_plot(data)
 
@@ -425,7 +426,8 @@ class Output(object):
          ylim[1] = currYlim[1]
       mpl.ylim(ylim)
 
-   def _adjust_axes(self, data):
+   def _adjust_plot_axes(self, data):
+      """ Make axes adjustments for plot """
       # Apply adjustements to all subplots
       for ax in mpl.gcf().get_axes():
          ax.set_title(ax.get_title(), fontsize=self.titlefs)
@@ -436,7 +438,6 @@ class Output(object):
             tick.label.set_fontsize(self.tickfs)
          ax.set_xlabel(ax.get_xlabel(), fontsize=self.labfs)
          ax.set_ylabel(ax.get_ylabel(), fontsize=self.labfs)
-         # mpl.rcParams['axes.labelsize'] = self.labfs
 
          # Tick lines
          for label in ax.get_xticklabels():
@@ -468,6 +469,17 @@ class Output(object):
          if self.grid:
             ax.grid('on')
 
+      self._adjust_axes(data)
+
+   def _adjust_map_axes(self, data):
+      """ Make axes adjustments for map
+      
+      xlim, ylim, clim taken care of by map_core
+      """
+      self._adjust_axes(data)
+
+   def _adjust_axes(self, data):
+      """ Generic axes adjustments """
       # Labels
       if self.xlabel is not None:
          mpl.xlabel(self.xlabel)
@@ -491,8 +503,7 @@ class Output(object):
             mpl.yticks(self.yticks)
 
       # Margins
-      mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top,
-            left=self.left, right=self.right)
+      mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
 
    def _plot_obs(self, x, y, isCont=True, zorder=0, label="obs"):
       if isCont:
