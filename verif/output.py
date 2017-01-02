@@ -74,6 +74,8 @@ class Output(object):
    left
    legfs
    leg_loc           Where should the legend be placed?
+   line_colors
+   line_styles
    xlog
    ylog
    lw                Line width
@@ -337,6 +339,20 @@ class Output(object):
 
    # Helper functions
    def _get_color(self, i, total):
+      """ Returns a color specification (e.g. 0.3,0.3,1) that can be used in
+      mpl to specify line color. Determined by looping through a database
+      (self.line_colors). Returns the color for the i'th line in a plot of
+      'total' number of lines.
+
+      _get_color together with _get_style can be used to specify unique
+      color/style combinations for many lines. Color is cycled first, then
+      style. I.e. the following order is default:
+      r-o, b-o, g-o, ..., r-, b-, g-, ...
+
+      Arguments:
+         i (int): Which line is this?
+         total (int): Total number of lines in plot
+      """
       if self.line_colors is not None:
          firstList = self.line_colors.split(",")
          numList = []
@@ -380,6 +396,17 @@ class Output(object):
          return self.colors[i % len(self.default_colors)]
 
    def _get_style(self, i, total, connectingLine=True, lineOnly=False):
+      """ Returns a string (e.g. -o) that can be used in mpl to specify line
+      style. Determined by looping through a database (self.line_styles).
+      Returns the style for the i'th line in a plot of 'total' number of lines.
+
+      Arguments:
+         i (int): Which line is this?
+         total (int): Total number of lines in plot
+         connectingLine: If True, add a connecting line (e.g. -o) between the
+            markers.  Otherwise only a marker will be used (e.g. o)
+         lineOnly: If True, don't include the marker (e.g. -)
+      """
       if self.line_styles is not None:
          listStyles = self.line_styles.split(",")
          # loop through input linestyles (independent of colors)
