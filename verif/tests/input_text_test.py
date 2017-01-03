@@ -26,6 +26,9 @@ class MyTest(unittest.TestCase):
       input = verif.input.Text("verif/tests/files/example.txt")
       locations = input.locations
       locations = np.sort(locations)
+      # Reset ids, to make it easier to verify what locations are available
+      for loc in locations:
+         loc.id = 0
       self.assertEqual(4, len(locations))
       self.assertTrue(verif.location.Location(0, 1, 1, 1) in locations)
       self.assertTrue(verif.location.Location(0, 0, 0, 1) in locations)
@@ -53,6 +56,9 @@ class MyTest(unittest.TestCase):
       self.assertEqual((1, 4, 4), obs.shape)
       self.assertEqual((1, 4, 4), fcst.shape)
       locations = input.locations
+      # Reset ids, to make it easier to verify what locations are available
+      for loc in locations:
+         loc.id = 0
       I0 = -1
       for i in range(0, len(locations)):
          if(locations[i] == verif.location.Location(0, 1, 1, 1)):

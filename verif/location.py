@@ -12,7 +12,7 @@ class Location(object):
       elev (float): elevation in meters
    """
 
-   radius_earth = 6.37e6
+   radius_earth = 6.371e6
 
    def __init__(self, id, lat, lon, elev):
       self.id = id
@@ -45,8 +45,14 @@ class Location(object):
       return dist
 
    def __eq__(self, other):
-      # TODO: Should the ids be checked?
-      return self.lat == other.lat and self.lon == other.lon and self.elev == other.elev
+      if np.isnan(self.id) and np.isnan(other.id):
+         same_id = True
+      else:
+         same_id = self.id == other.id 
+      return same_id and self.lat == other.lat and self.lon == other.lon and self.elev == other.elev
+
+   def __ne__(self, other):
+      return not self.__eq__(other)
 
    def __hash__(self):
       return hash((self.lat, self.lon, self.elev))
