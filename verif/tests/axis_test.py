@@ -15,5 +15,6 @@ class TestAxis(unittest.TestCase):
       self.assertTrue(verif.axis.No() != verif.axis.Location())
       self.assertTrue(verif.axis.No() != verif.axis.Time())
 
+
 if __name__ == '__main__':
    unittest.main()

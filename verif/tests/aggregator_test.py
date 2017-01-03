@@ -15,5 +15,24 @@ class TestAggregator(unittest.TestCase):
       self.assertEqual("mean", mean2.name())
       self.assertEqual(mean, mean2)
 
+   def test_equal(self):
+      self.assertEqual(verif.aggregator.Mean(), verif.aggregator.Mean())
+      self.assertTrue(verif.aggregator.Mean() == verif.aggregator.Mean())
+      self.assertFalse(verif.aggregator.Mean() != verif.aggregator.Mean())
+
+      self.assertEqual(verif.aggregator.Quantile(0.2), verif.aggregator.Quantile(0.2))
+      self.assertTrue(verif.aggregator.Quantile(0.2) == verif.aggregator.Quantile(0.2))
+      self.assertFalse(verif.aggregator.Quantile(0.2) != verif.aggregator.Quantile(0.2))
+
+   def test_unequal(self):
+      self.assertFalse(verif.aggregator.Mean() == verif.aggregator.Absmean())
+      self.assertFalse(verif.aggregator.Mean() == verif.aggregator.Quantile(0.2))
+      self.assertTrue(verif.aggregator.Mean() != verif.aggregator.Absmean())
+      self.assertTrue(verif.aggregator.Mean() != verif.aggregator.Quantile(0.2))
+
+      self.assertFalse(verif.aggregator.Quantile(0.2) == verif.aggregator.Quantile(0.3))
+      self.assertTrue(verif.aggregator.Quantile(0.2) != verif.aggregator.Quantile(0.3))
+
+
 if __name__ == '__main__':
    unittest.main()

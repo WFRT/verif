@@ -61,3 +61,6 @@ class Interval(object):
              self.upper == other.upper and\
              self.lower_eq == other.lower_eq and\
              self.upper_eq == other.upper_eq
+
+   def __ne__(self, other):
+      return not self.__eq__(other)
