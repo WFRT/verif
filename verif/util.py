@@ -267,7 +267,7 @@ def clean(data):
 
    """
    data = data[:].astype(float)
-   q = copy.deepcopy(data)
+   q = np.ma.filled(data, fill_value=-999)
    # Remove missing values. Convert to -999 and then back to nan to avoid
    # warning messages when doing <, >, and == comparisons with nan.
    q[np.isnan(q)] = -999
