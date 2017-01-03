@@ -91,6 +91,12 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x month")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x year")
 
+   def test_freq(self):
+      self.run_with_image("verif verif/tests/files/file1.txt -m freq")
+      # Check that no error occurs, even though fcst or obs is not available
+      self.run_with_image("verif verif/tests/files/file1_no_obs.txt -m freq")
+      self.run_with_image("verif verif/tests/files/file1_no_fcst.txt -m freq")
+
    def test_option_lc(self):
        for lc in ("g,r", "g", "g,r,b", "0,0.5,0.9", "[0,0,1],0.5,g"):
           self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -lc %s" % lc)

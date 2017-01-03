@@ -426,10 +426,16 @@ def run(argv):
 
       if type is not None:
          if type == "deterministic":
-            obs = data.get_scores(verif.field.Obs(), 0)
-            fcst = data.get_scores(verif.field.Fcst(), 0)
-            smin = min(np.nanmin(obs), np.nanmin(fcst))
-            smax = max(np.nanmax(obs), np.nanmax(fcst))
+            smin = np.inf
+            smax = -np.inf
+            if verif.field.Obs() in data.get_fields():
+               obs = data.get_scores(verif.field.Obs(), 0)
+               smin = min(np.nanmin(obs), smin)
+               smax = max(np.nanmax(obs), smax)
+            if verif.field.Fcst() in data.get_fields():
+               fcst = data.get_scores(verif.field.Fcst(), 0)
+               smin = min(np.nanmin(fcst), smin)
+               smax = max(np.nanmax(fcst), smax)
             thresholds = np.linspace(smin, smax, 10)
             verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
          elif type == "threshold":

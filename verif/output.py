@@ -2447,18 +2447,29 @@ class Freq(Output):
          style = self._get_style(f, F)
          y = np.zeros(N, 'float')
          clim = np.zeros(N, 'float')
-         [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No())
+         obs = None
+         fcst = None
+         if verif.field.Obs() in data.get_fields() and verif.field.Fcst() in data.get_fields():
+            [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No())
+         elif verif.field.Obs() in data.get_fields():
+            obs = data.get_scores(verif.field.Obs(), f, verif.axis.No())
+         elif verif.field.Fcst() in data.get_fields():
+            fcst = data.get_scores(verif.field.Fcst(), f, verif.axis.No())
+
          for i in range(N):
             interval = intervals[i]
-            obs0 = verif.util.apply_threshold(obs, self.bin_type, interval.lower, interval.upper)
-            fcst0 = verif.util.apply_threshold(fcst, self.bin_type, interval.lower, interval.upper)
-
-            clim[i] = np.nanmean(obs0)
-            y[i] = np.nanmean(fcst0)
+            if obs is not None:
+               obs0 = verif.util.apply_threshold(obs, self.bin_type, interval.lower, interval.upper)
+               clim[i] = np.nanmean(obs0)
+            if fcst is not None:
+               fcst0 = verif.util.apply_threshold(fcst, self.bin_type, interval.lower, interval.upper)
+               y[i] = np.nanmean(fcst0)
 
          label = labels[f]
-         mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=label)
-      self._plot_obs(x, clim)
+         if fcst is not None:
+            mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=label)
+      if obs is not None:
+         self._plot_obs(x, clim)
 
       mpl.ylim([0, 1])
       mpl.xlabel(verif.axis.Threshold().label(data.variable))
