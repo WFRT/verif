@@ -22,13 +22,13 @@ class Interval(object):
       self.upper_eq = upper_eq
 
    def within(self, x):
-      """ Is a value within the interval?
+      """ Is one or more values within the interval?
 
       Args:
-         x (float): a scalar value
+         x (float or np.array): value(s)
 
       Returns:
-         bool: True if the value is in the interval, False otherwise
+         bool or np.array(bool): True if the value(s) is in the interval, False otherwise.
       """
       is_above = (x > self.lower) | (self.lower_eq and x == self.lower)
       is_below = (x < self.upper) | (self.upper_eq and x == self.upper)

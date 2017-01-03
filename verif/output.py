@@ -936,7 +936,7 @@ class Hist(Output):
          y = np.zeros(N, float)
          # Compute how many are with each interval
          for i in range(0, N):
-            y[i] = np.sum(verif.util.apply_interval(values[f], intervals[i]))
+            y[i] = np.sum(intervals[i].within(values[f]))
          color = self._get_color(f, F)
          style = self._get_style(f, F)
          if self._show_percent:

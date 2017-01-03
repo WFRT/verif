@@ -1,5 +1,6 @@
 import unittest
 import verif.interval
+import numpy as np
 
 
 class MyTest(unittest.TestCase):
@@ -55,6 +56,13 @@ class MyTest(unittest.TestCase):
          self.assertFalse(Interval(0,0,True,False) == interval)
          self.assertTrue(Interval(0,0,True,False) != interval)
          self.assertTrue(Interval(0,0,True,False) != interval)
+
+   def test_array(self):
+      ar = np.array([1,3,2,0,15])
+      # [2,5]
+      interval = verif.interval.Interval(2,5,True,True)
+      np.testing.assert_array_equal(np.array([False, True, True, False, False]), interval.within(ar))
+      np.testing.assert_array_equal(np.array(True), interval.within(3))
 
 
 if __name__ == '__main__':
