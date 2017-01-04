@@ -8,12 +8,20 @@ verif (1.0.0) precise; urgency=low
     -m leps
     -m nsec
   * New options:
+    Added -ls
     Added -maptype
+    Added -xticklabels
     Added -xticks
+    Added -yticklabels
     Added -yticks
     Added -type csv
+    Added -aspect
+    Added -x week
+    Added -lx
+    Added -q
+    Added a new Netcdf-based input format
   * Changed metrics:
-    -m bias now means (obs - fcst)
+    -m bias now means (fcst - obs)
     -m ef no shows fraction, not percent
   * Changed options:
     Changed -x date to -x time
@@ -21,6 +29,8 @@ verif (1.0.0) precise; urgency=low
     Changed -x locationLat to -x lat
     Changed -x locationLon to -x lon
     Changed -x locationElev to -x elev
+    Changed -x locationId to -x id
+    Changed -x none to -x no
     Changed -ct to -agg
     Changed -d start end to -d start:end
     Changed -sat to -maptype sat
