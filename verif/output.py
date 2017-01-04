@@ -235,7 +235,9 @@ class Output(object):
             if isinstance(descs[w][i], basestring):
                s += "%-*s| " % (desc_lengths[w], descs[w][i])
             else:
-               s += "%-*.4g| " % (desc_lengths[w], descs[w][i])
+               # Don't use .4g because this will give unnecessary descimals for
+               # location ids
+               s += "%-*g| " % (desc_lengths[w], descs[w][i])
          for f in range(0, y.shape[1]):
             s += "%-*.4g| " % (lengths[f], y[i,f])
          s += "\n"
