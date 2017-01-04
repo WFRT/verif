@@ -22,7 +22,7 @@ class TestLocation(unittest.TestCase):
       self.assertEqual(0, loc1.get_distance(loc1))
       # Computed using: http://www.onlineconversion.com/map_greatcircle_distance.htm
       self.assertAlmostEqual(10996966.188406856, loc1.get_distance(loc2))
-      self.assertEqual(loc2.get_distance(loc1), loc1.get_distance(loc2))
+      self.assertAlmostEqual(loc2.get_distance(loc1), loc1.get_distance(loc2))
 
 
 if __name__ == '__main__':
