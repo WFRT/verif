@@ -486,3 +486,7 @@ def get_intervals(bin_type, thresholds):
          lower_eq = True
       intervals.append(verif.interval.Interval(lower, upper, lower_eq, upper_eq))
    return intervals
+
+
+def almost_equal(value1, value2, tol=1e-7):
+   return abs(value1 - value2) < tol

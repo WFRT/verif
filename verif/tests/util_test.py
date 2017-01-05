@@ -123,6 +123,25 @@ class TestGetIntervals(unittest.TestCase):
       self.assertEqual(verif.interval.Interval(0, np.inf, False, False), intervals[0])
 
 
+class TestAlmostEqual(unittest.TestCase):
+   def test_1(self):
+      for tol in [10**(-i) for i in range(1, 10)]:
+         self.assertTrue(verif.util.almost_equal(0, 0, tol))
+         self.assertTrue(verif.util.almost_equal(3, 3, tol))
+         self.assertTrue(verif.util.almost_equal(-2.3, -2.3, tol))
+         self.assertFalse(verif.util.almost_equal(-2.3, 2.3, tol))
+         self.assertFalse(verif.util.almost_equal(-2.3, 0, tol))
+         self.assertFalse(verif.util.almost_equal(0, 15.2, tol))
+
+      self.assertTrue(verif.util.almost_equal(3.12345678, 3.12345679, 1e-1))
+      self.assertTrue(verif.util.almost_equal(3.12345678, 3.12345679, 1e-5))
+      self.assertTrue(verif.util.almost_equal(3.12345678, 3.12345679, 1e-8))
+      self.assertFalse(verif.util.almost_equal(3.12345678, 3.12345679, 1e-9))
+      self.assertTrue(verif.util.almost_equal(3.123, 3.1241, 1e-1))
+      self.assertTrue(verif.util.almost_equal(3.123, 3.1241, 1e-2))
+      self.assertFalse(verif.util.almost_equal(3.123, 3.1241, 1e-3))
+
+
 class TestConvert(unittest.TestCase):
    def test_convert_back_and_forth(self):
       dates = [20150101, 20141231]

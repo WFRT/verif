@@ -49,7 +49,10 @@ class Location(object):
          same_id = True
       else:
          same_id = self.id == other.id
-      return same_id and self.lat == other.lat and self.lon == other.lon and self.elev == other.elev
+      same_lat = verif.util.almost_equal(self.lat, other.lat, 1e-5)
+      same_lon = verif.util.almost_equal(self.lon, other.lon, 1e-5)
+      same_elev = verif.util.almost_equal(self.elev, other.elev, 1e-5)
+      return same_id and same_lat and same_lon and same_elev
 
    def __ne__(self, other):
       return not self.__eq__(other)
