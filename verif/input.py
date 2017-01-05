@@ -50,9 +50,10 @@ class Input(object):
       thresholds (np.array): Available thresholds
       quantiles (np.array): Available quantiles
 
-      The following are 3D numpy arrays with dims (time, leadtime, location)
-      obs: Observations with dims
-      fcst: Forecasts with dims
+      The following are 3D numpy arrays with dims (time, leadtime, location). These are None if not
+      present.
+      obs: Observations
+      fcst: Forecasts
       pit: Verifying probability integral transform values (i.e. the CDF where
          the observation falls in)
 

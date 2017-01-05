@@ -270,7 +270,7 @@ variables are understood by ``verif``:
       float quantile(quantile);                           // Numbers between 0 and 1
       float lat(location);                                // Decimal degrees latitude
       float lon(location);                                // Decimal degrees longitude
-      float elev(location);                               // Elevation in meters
+      float altitude(location);                           // Altitude in meters
       float obs(time, lead_time, location);               // Observations
       float ens(time, lead_time, location, member);       // Ensemble forecast
       float fcst(time, lead_time, location);              // Deterministic forecast

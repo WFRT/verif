@@ -97,6 +97,7 @@ class InputTextTest(unittest.TestCase):
       self.assertEqual((1, 4, 4), obs.shape)
       self.assertEqual((1, 4, 4), fcst.shape)
       locations = input.locations
+      self.assertEqual(4, len(locations))
       # Reset ids, to make it easier to verify what locations are available
       for loc in locations:
          loc.id = 0
