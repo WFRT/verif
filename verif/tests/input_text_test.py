@@ -6,7 +6,7 @@ import verif.data
 import verif.location
 
 
-class MyTest(unittest.TestCase):
+class InputTextTest(unittest.TestCase):
    def test_get_leadtimes(self):
       input = verif.input.Text("verif/tests/files/example.txt")
       leadtimes = input.leadtimes
@@ -22,7 +22,7 @@ class MyTest(unittest.TestCase):
       self.assertEqual(1, times.shape[0])
       self.assertEqual(1325376000, times[0])
 
-   def test_get_locations(self):
+   def test_get_locations_no_id(self):
       input = verif.input.Text("verif/tests/files/example.txt")
       locations = input.locations
       locations = np.sort(locations)
@@ -34,6 +34,47 @@ class MyTest(unittest.TestCase):
       self.assertTrue(verif.location.Location(0, 0, 0, 1) in locations)
       self.assertTrue(verif.location.Location(0, 0, 0, 2) in locations)
       self.assertTrue(verif.location.Location(0, 2, 2, 1) in locations)
+
+   def test_get_locations(self):
+      input = verif.input.Text("verif/tests/files/file1.txt")
+      locations = input.locations
+      locations = np.sort(locations)
+      self.assertEqual(2, len(locations))
+      self.assertTrue(verif.location.Location(3, 50, 10, 12) in locations)
+      self.assertTrue(verif.location.Location(41, 42, 23, 341) in locations)
+
+   def test_get_locations_same_lat_lon(self):
+      input1 = verif.input.Text("verif/tests/files/file1.txt")
+      input2 = verif.input.Text("verif/tests/files/file1_same_lat_lon.txt")
+      locations1 = input1.locations
+      locations2 = input2.locations
+      self.assertEqual(len(locations1), len(locations2))
+
+      # Find the ordering of locations, such that obs, fcsts can be compared
+      # Create a list of indicies that map location1 into location 2
+      I = list()
+      for i in range(0, len(locations1)):
+         for j in range(0, len(locations2)):
+            if locations1[i].id == locations2[j].id:
+               I += [j]
+
+      self.assertEqual(len(locations1), len(I))
+      locations2 = np.sort(locations2)
+      self.assertEqual(2, len(locations2))
+      self.assertTrue(verif.location.Location(3, 50, 10, 12) in locations2)
+      self.assertTrue(verif.location.Location(41, 50, 10, 12) in locations2)
+
+      np.testing.assert_array_equal(input1.obs[:,:,I], input2.obs)
+      np.testing.assert_array_equal(input1.fcst[:,:,I], input2.fcst)
+      np.testing.assert_array_equal(input1.leadtimes, input2.leadtimes)
+      np.testing.assert_array_equal(input1.times, input2.times)
+
+   def test_offset_leadtime(self):
+      input1 = verif.input.Text("verif/tests/files/file1.txt")
+      input2 = verif.input.Text("verif/tests/files/file1_leadtime.txt")
+      np.testing.assert_array_equal(input1.obs, input2.obs)
+      np.testing.assert_array_equal(input1.fcst, input2.fcst)
+      np.testing.assert_array_equal(input1.leadtimes, input2.leadtimes)
 
    def test_conflictingLocations(self):
       data = verif.data.Data(inputs=[verif.input.Text("verif/tests/files/fileConflictingInfo.txt")])

@@ -282,24 +282,8 @@ class Text(Input):
                header = row
                for i in range(0, len(header)):
                   att = header[i]
-                  if(att == "date"):
-                     indices["date"] = i
-                  if(att == "unixtime"):
-                     indices["unixtime"] = i
-                  elif(att == "leadtime"):
+                  if(att == "offset"):
                      indices["leadtime"] = i
-                  elif(att == "offset"):
-                     indices["leadtime"] = i
-                  elif(att == "lat"):
-                     indices["lat"] = i
-                  elif(att == "lon"):
-                     indices["lon"] = i
-                  elif(att == "elev"):
-                     indices["elev"] = i
-                  elif(att == "obs"):
-                     indices["obs"] = i
-                  elif(att == "fcst"):
-                     indices["fcst"] = i
                   else:
                      indices[att] = i
             else:
@@ -357,7 +341,7 @@ class Text(Input):
                lat = locationInfo[id].lat
                lon = locationInfo[id].lon
                elev = locationInfo[id].elev
-               key = (time, leadtime, lat, lon, elev)
+               key = (time, leadtime, id, lat, lon, elev)
                if "obs" in indices:
                   obs[key] = self._clean(row[indices["obs"]])
                if "fcst" in indices:
@@ -369,12 +353,12 @@ class Text(Input):
                for field in quantileFields:
                   quantile = float(field[1:])
                   self._quantiles.add(quantile)
-                  key = (time, leadtime, lat, lon, elev, quantile)
+                  key = (time, leadtime, id, lat, lon, elev, quantile)
                   x[key] = self._clean(row[indices[field]])
                for field in thresholdFields:
                   threshold = float(field[1:])
                   self._thresholds.add(threshold)
-                  key = (time, leadtime, lat, lon, elev, threshold)
+                  key = (time, leadtime, id, lat, lon, elev, threshold)
                   cdf[key] = self._clean(row[indices[field]])
 
       file.close()
@@ -404,10 +388,11 @@ class Text(Input):
             leadtime = self._leadtimes[o]
             for s in range(0, len(self._locations)):
                location = self._locations[s]
+               id = location.id
                lat = location.lat
                lon = location.lon
                elev = location.elev
-               key = (time, leadtime, lat, lon, elev)
+               key = (time, leadtime, id, lat, lon, elev)
                if(key in obs):
                   self.obs[d][o][s] = obs[key]
                if(key in fcst):
@@ -416,12 +401,12 @@ class Text(Input):
                   self.pit[d][o][s] = pit[key]
                for q in range(0, len(self._quantiles)):
                   quantile = self._quantiles[q]
-                  key = (time, leadtime, lat, lon, elev, quantile)
+                  key = (time, leadtime, id, lat, lon, elev, quantile)
                   if(key in x):
                      self.quantile_scores[d, o, s, q] = x[key]
                for t in range(0, len(self._thresholds)):
                   threshold = self._thresholds[t]
-                  key = (time, leadtime, lat, lon, elev, threshold)
+                  key = (time, leadtime, id, lat, lon, elev, threshold)
                   if(key in cdf):
                      self.threshold_scores[d, o, s, t] = cdf[key]
       maxLocationId = np.nan
