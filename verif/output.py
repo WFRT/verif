@@ -993,7 +993,7 @@ class ObsFcst(Output):
       for f in range(0, F):
          color = self._get_color(f, F)
          style = self._get_style(f, F, isCont)
-         mpl.plot(x, y[:,f+1], style, color=color, label=labels[f+1], lw=self.lw, ms=self.ms)
+         mpl.plot(x, y[:, f + 1], style, color=color, label=labels[f+1], lw=self.lw, ms=self.ms)
 
       mpl.ylabel(data.get_variable_and_units())
       mpl.xlabel(self.axis.label(data.variable))
@@ -1016,13 +1016,13 @@ class ObsFcst(Output):
       mFcst = verif.metric.FromField(verif.field.Fcst(), aux=verif.field.Obs())
       mFcst.aggregator = self.aggregator
       labels = data.get_legend()
-      y = np.zeros([len(x),F+1], float)
-      y[:,0] = obs
+      y = np.zeros([len(x), F + 1], float)
+      y[:, 0] = obs
       for f in range(0, F):
-         y[:,f+1] = mFcst.compute(data, f, self.axis, None)
+         y[:, f + 1] = mFcst.compute(data, f, self.axis, None)
 
       labels = ["obs"] + labels
-      return x,y,axis.name(),labels
+      return x, y, axis.name(), labels
 
 
 class QQ(Output):
@@ -1208,11 +1208,11 @@ class Cond(Output):
          fo = np.zeros(len(intervals), 'float')
          xof = np.zeros(len(intervals), 'float')
          xfo = np.zeros(len(intervals), 'float')
-         mof = verif.metric.Conditional(verif.field.Obs(),verif.field.Fcst(), np.mean)  # F | O
-         mfo = verif.metric.Conditional(verif.field.Fcst(),verif.field.Obs(), np.mean)  # O | F
-         xmof = verif.metric.XConditional(verif.field.Obs(),verif.field.Fcst())  # F | O
-         xmfo = verif.metric.XConditional(verif.field.Fcst(),verif.field.Obs())  # O | F
-         mof0 = verif.metric.Conditional(verif.field.Obs(),verif.field.Fcst(), np.mean)  # F | O
+         mof = verif.metric.Conditional(verif.field.Obs(), verif.field.Fcst(), np.mean)  # F | O
+         mfo = verif.metric.Conditional(verif.field.Fcst(), verif.field.Obs(), np.mean)  # O | F
+         xmof = verif.metric.XConditional(verif.field.Obs(), verif.field.Fcst())  # F | O
+         xmfo = verif.metric.XConditional(verif.field.Fcst(), verif.field.Obs())  # O | F
+         mof0 = verif.metric.Conditional(verif.field.Obs(), verif.field.Fcst(), np.mean)  # F | O
          for i in range(0, len(intervals)):
             fo[i] = mfo.compute(data, f, verif.axis.No(), intervals[i])
             of[i] = mof.compute(data, f, verif.axis.No(), intervals[i])
@@ -1357,7 +1357,6 @@ class TimeSeries(Output):
          mpl.ylabel(data.get_variable_and_units())
       else:
          mpl.ylabel(self.ylabel)
-      #mpl.gca().xaxis.set_major_formatter(verif.axis.Time().formatter(data.variable))
       mpl.gca().xaxis_date()
 
       if self.tight:

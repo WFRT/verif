@@ -24,6 +24,7 @@ class MyTest(unittest.TestCase):
       mae = verif.metric.Mae()
       self.assertEqual("MAE", mae.name())
 
+
 class TestRmse(unittest.TestCase):
    def _get(self):
       inputs = [verif.input.get_input(file) for file in ["examples/raw.txt", "examples/kf.txt"]]
@@ -38,16 +39,16 @@ class TestRmse(unittest.TestCase):
                  verif.metric.Corr(),
                  verif.metric.Mbias(),
                  ]
-      obs = [[0,1.5,2],[0]] # Case1, Case 2, ...
-      fcst = [[3.1,1.1,-2.1],[1]]
-      expected = [[2.976575213,1], # Rmse
-                  [2.5333333333,1], # Mae
-                  [-0.466666666666,1], # Bias
-                  [-0.915724295,np.nan], # Corr
-                  [0.6,np.nan], # Mbias
+      obs = [[0, 1.5, 2], [0]]  # Case1, Case 2, ...
+      fcst = [[3.1, 1.1, -2.1], [1]]
+      expected = [[2.976575213, 1],  # Rmse
+                  [2.5333333333, 1],  # Mae
+                  [-0.466666666666, 1],  # Bias
+                  [-0.915724295, np.nan],  # Corr
+                  [0.6, np.nan],  # Mbias
                   ]
 
-      for m in range(0,len(metrics)):
+      for m in range(len(metrics)):
          metric = metrics[m]
          for i in range(0, len(obs)):
             value = metric.compute_from_obs_fcst(np.array(obs[i]), np.array(fcst[i]))

@@ -5,16 +5,16 @@ from verif.location import Location
 
 class TestLocation(unittest.TestCase):
    def test_equal(self):
-      self.assertEqual(Location(0,1,2,3), Location(0,1,2,3))
-      self.assertTrue(Location(0,1,2,3) == Location(0,1,2,3))
-      self.assertFalse(Location(0,1,2,3) != Location(0,1,2,3))
+      self.assertEqual(Location(0, 1, 2, 3), Location(0, 1, 2, 3))
+      self.assertTrue(Location(0, 1, 2, 3) == Location(0, 1, 2, 3))
+      self.assertFalse(Location(0, 1, 2, 3) != Location(0, 1, 2, 3))
 
    def test_unequal(self):
-      for location in [Location(0,1,2,2), Location(0,1,3,3), Location(0,2,2,3), Location(1,1,2,3)]:
-         self.assertFalse(Location(0,1,2,3) == location)
-         self.assertFalse(Location(0,1,2,3) == location)
-         self.assertTrue(Location(0,1,2,3) != location)
-         self.assertTrue(Location(0,1,2,3) != location)
+      for location in [Location(0, 1, 2, 2), Location(0, 1, 3, 3), Location(0, 2, 2, 3), Location(1, 1, 2, 3)]:
+         self.assertFalse(Location(0, 1, 2, 3) == location)
+         self.assertFalse(Location(0, 1, 2, 3) == location)
+         self.assertTrue(Location(0, 1, 2, 3) != location)
+         self.assertTrue(Location(0, 1, 2, 3) != location)
 
    def test_distance(self):
       loc1 = Location(0, lat=60, lon=10, elev=0)

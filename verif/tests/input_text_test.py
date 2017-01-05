@@ -64,8 +64,8 @@ class InputTextTest(unittest.TestCase):
       self.assertTrue(verif.location.Location(3, 50, 10, 12) in locations2)
       self.assertTrue(verif.location.Location(41, 50, 10, 12) in locations2)
 
-      np.testing.assert_array_equal(input1.obs[:,:,I], input2.obs)
-      np.testing.assert_array_equal(input1.fcst[:,:,I], input2.fcst)
+      np.testing.assert_array_equal(input1.obs[:, :, I], input2.obs)
+      np.testing.assert_array_equal(input1.fcst[:, :, I], input2.fcst)
       np.testing.assert_array_equal(input1.leadtimes, input2.leadtimes)
       np.testing.assert_array_equal(input1.times, input2.times)
 

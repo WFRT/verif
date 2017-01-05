@@ -5,7 +5,7 @@ import verif.driver
 
 class Interval(object):
    """ Represents mathematical intervals in the real number line
-   
+
    The following forms are supported, where [,] are inclusive and (,) are not:
    [lower, upper], (lower, upper], [lower, upper), or (lower, upper)
 

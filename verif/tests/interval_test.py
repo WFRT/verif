@@ -4,7 +4,8 @@ import numpy as np
 
 
 class MyTest(unittest.TestCase):
-   _tests = [-0.1,0,0.1,0.9,1,1.1]
+   _tests = [-0.1, 0, 0.1, 0.9, 1, 1.1]
+
    def compare(self, interval, expected):
       """ Run interval.within on all elements in _tests and compare the result with expected """
       for i in range(0, len(self._tests)):
@@ -44,23 +45,23 @@ class MyTest(unittest.TestCase):
 
    def test_equal(self):
       from verif.interval import Interval
-      self.assertEqual(Interval(0,0,True,False), Interval(0,0,True,False))
-      self.assertTrue(Interval(0,0,True,False) == Interval(0,0,True,False))
-      self.assertFalse(Interval(0,0,True,False) != Interval(0,0,True,False))
+      self.assertEqual(Interval(0, 0, True, False), Interval(0, 0, True, False))
+      self.assertTrue(Interval(0, 0, True, False) == Interval(0, 0, True, False))
+      self.assertFalse(Interval(0, 0, True, False) != Interval(0, 0, True, False))
 
    def test_unequal(self):
       from verif.interval import Interval
-      for interval in [Interval(0,0,True,True), Interval(0,0,False,False),
-            Interval(0,1,True,False), Interval(1,0,True,False)]:
-         self.assertFalse(Interval(0,0,True,False) == interval)
-         self.assertFalse(Interval(0,0,True,False) == interval)
-         self.assertTrue(Interval(0,0,True,False) != interval)
-         self.assertTrue(Interval(0,0,True,False) != interval)
+      for interval in [Interval(0, 0, True, True), Interval(0, 0, False, False),
+            Interval(0, 1, True, False), Interval(1, 0, True, False)]:
+         self.assertFalse(Interval(0, 0, True, False) == interval)
+         self.assertFalse(Interval(0, 0, True, False) == interval)
+         self.assertTrue(Interval(0, 0, True, False) != interval)
+         self.assertTrue(Interval(0, 0, True, False) != interval)
 
    def test_array(self):
-      ar = np.array([1,3,2,0,15])
+      ar = np.array([1, 3, 2, 0, 15])
       # [2,5]
-      interval = verif.interval.Interval(2,5,True,True)
+      interval = verif.interval.Interval(2, 5, True, True)
       np.testing.assert_array_equal(np.array([False, True, True, False, False]), interval.within(ar))
       np.testing.assert_array_equal(np.array(True), interval.within(3))
 

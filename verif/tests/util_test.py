@@ -4,13 +4,14 @@ import numpy as np
 import unittest
 import verif.util
 
+
 class TestApplyThreshold(unittest.TestCase):
    def test_1(self):
-      ar = np.array([1,3,2])
-      np.testing.assert_array_equal(np.array([0,1,0]), verif.util.apply_threshold(ar, "above", 2))
-      np.testing.assert_array_equal(np.array([0,1,1]), verif.util.apply_threshold(ar, "above=", 2))
-      np.testing.assert_array_equal(np.array([1,0,0]), verif.util.apply_threshold(ar, "below", 2))
-      np.testing.assert_array_equal(np.array([1,0,1]), verif.util.apply_threshold(ar, "below=", 2))
+      ar = np.array([1, 3, 2])
+      np.testing.assert_array_equal(np.array([0, 1, 0]), verif.util.apply_threshold(ar, "above", 2))
+      np.testing.assert_array_equal(np.array([0, 1, 1]), verif.util.apply_threshold(ar, "above=", 2))
+      np.testing.assert_array_equal(np.array([1, 0, 0]), verif.util.apply_threshold(ar, "below", 2))
+      np.testing.assert_array_equal(np.array([1, 0, 1]), verif.util.apply_threshold(ar, "below=", 2))
 
 
 class TestParseNumbers(unittest.TestCase):
@@ -45,9 +46,9 @@ class TestParseNumbers(unittest.TestCase):
          verif.util.parse_numbers("test")
 
    def test_decimal(self):
-      self.assertEqual([0.1,0.2,0.3,0.4,0.5,0.6,0.7], verif.util.parse_numbers("0.1:0.1:0.7"))
-      self.assertEqual([1e-4,2e-4,3e-4,4e-4,5e-4,6e-4,7e-4], verif.util.parse_numbers("0.0001:0.0001:0.0007"))
-      self.assertEqual([1e-6,3e-6], verif.util.parse_numbers("0.000001,0.000003"))
+      self.assertEqual([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7], verif.util.parse_numbers("0.1:0.1:0.7"))
+      self.assertEqual([1e-4, 2e-4, 3e-4, 4e-4, 5e-4, 6e-4, 7e-4], verif.util.parse_numbers("0.0001:0.0001:0.0007"))
+      self.assertEqual([1e-6, 3e-6], verif.util.parse_numbers("0.000001,0.000003"))
 
    def test_0_step(self):
       with self.assertRaises(SystemExit):
@@ -101,6 +102,7 @@ class TestParseNumbers(unittest.TestCase):
    def test_unixtime_to_date(self):
       self.assertEqual(20161001, verif.util.unixtime_to_date(1475280000))
 
+
 class TestGetDate(unittest.TestCase):
    def test_simple(self):
       self.assertEqual(20150207, verif.util.get_date(20150206, 1))
@@ -116,9 +118,9 @@ class TestGetDate(unittest.TestCase):
 
 class TestGetIntervals(unittest.TestCase):
    def test_get_intervals(self):
-      thresholds = [0,1,5]
+      thresholds = [0, 1, 5]
       intervals = verif.util.get_intervals("above", thresholds)
-      self.assertEqual(verif.interval.Interval(0,np.inf,False,False), intervals[0])
+      self.assertEqual(verif.interval.Interval(0, np.inf, False, False), intervals[0])
 
 
 class TestConvert(unittest.TestCase):

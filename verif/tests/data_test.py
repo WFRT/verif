@@ -62,7 +62,7 @@ class TestData(unittest.TestCase):
 
    def test_latrange(self):
       inputs = [verif.input.Text("verif/tests/files/file1.txt"), verif.input.Text("verif/tests/files/file3.txt")]
-      data = verif.data.Data(inputs, lat_range=[44, 60]) # Only 1 common station within the range
+      data = verif.data.Data(inputs, lat_range=[44, 60])  # Only 1 common station within the range
       self.assertEqual(1, len(data.locations))
       self.assertEqual(50, data.locations[0].lat)
       self.assertEqual(10, data.locations[0].lon)
@@ -70,7 +70,8 @@ class TestData(unittest.TestCase):
       self.assertEqual(2, len(data.locations))
       with self.assertRaises(SystemExit):
          data = verif.data.Data(inputs, lat_range=[55, 60])
-         
+
+
 class TestDataRemovingLocations(unittest.TestCase):
    def test_inside_lat_range(self):
       inputs = [verif.input.Text("verif/tests/files/file3locations.txt")]
@@ -88,21 +89,22 @@ class TestDataRemovingLocations(unittest.TestCase):
 
    def test_with_l(self):
       inputs = [verif.input.Text("verif/tests/files/file3locations.txt")]
-      data = verif.data.Data(inputs, locations=[1,2], locations_x=[2])
+      data = verif.data.Data(inputs, locations=[1, 2], locations_x=[2])
       self.assertEqual(1, len(data.locations))
       self.assertTrue(1 in [loc.id for loc in data.locations])
 
    def test_with_l(self):
       inputs = [verif.input.Text("verif/tests/files/file3locations.txt")]
-      data = verif.data.Data(inputs, locations=[1,2], locations_x=[3])
+      data = verif.data.Data(inputs, locations=[1, 2], locations_x=[3])
       self.assertEqual(2, len(data.locations))
       self.assertTrue(1 in [loc.id for loc in data.locations])
       self.assertTrue(2 in [loc.id for loc in data.locations])
 
+
 class TestDataClim(unittest.TestCase):
    def test_names(self):
       """
-      Checks that climatology files do not end up in get_names() 
+      Checks that climatology files do not end up in get_names()
       and related functions
       """
       inputs = [verif.input.Text("verif/tests/files/file1.txt")]
@@ -111,6 +113,7 @@ class TestDataClim(unittest.TestCase):
       self.assertEqual(1, len(data.get_names()))
       self.assertEqual(1, len(data.get_short_names()))
       self.assertEqual(1, len(data.get_full_names()))
+
 
 class TestData(unittest.TestCase):
    def test_get_fields1(self):

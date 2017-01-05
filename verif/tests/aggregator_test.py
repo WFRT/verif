@@ -6,7 +6,7 @@ import numpy as np
 class TestAggregator(unittest.TestCase):
    def test_simple(self):
       agg = verif.aggregator.Mean()
-      self.assertEqual(2, agg(np.array([1,2,3])))
+      self.assertEqual(2, agg(np.array([1, 2, 3])))
 
    def test_name(self):
       mean = verif.aggregator.Mean()

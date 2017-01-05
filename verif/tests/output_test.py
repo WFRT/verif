@@ -15,6 +15,7 @@ class TestOutput(unittest.TestCase):
       output = verif.output.Standard(metric)
       output.text(data)
 
+
 class TestStandard(unittest.TestCase):
    def _get(self):
       inputs = [verif.input.get_input(file) for file in ["examples/raw.txt", "examples/kf.txt"]]
@@ -24,25 +25,25 @@ class TestStandard(unittest.TestCase):
       return data, output
 
    def test_leadtime(self):
-      data,output = self._get()
-      x,y,_,_ = output._get_x_y(data, verif.axis.Leadtime())
+      data, output = self._get()
+      x, y, _, _ = output._get_x_y(data, verif.axis.Leadtime())
       lt = data.leadtimes
       np.testing.assert_array_equal(x, lt)
       self.assertEqual(2, y.shape[1])
       self.assertEqual(len(lt), y.shape[0])
 
    def test_location(self):
-      data,output = self._get()
+      data, output = self._get()
       for ax in [verif.axis.Location(), verif.axis.Id(), verif.axis.Lat(), verif.axis.Lon(), verif.axis.Elev()]:
-         x,y,_,_ = output._get_x_y(data, verif.axis.Location())
+         x, y, _, _ = output._get_x_y(data, verif.axis.Location())
          loc = data.locations
          self.assertEqual(len(loc), len(x))
          self.assertEqual(2, y.shape[1])
          self.assertEqual(len(loc), y.shape[0])
 
    def test_year(self):
-      data,output = self._get()
-      x,y,_,_ = output._get_x_y(data, verif.axis.Year())
+      data, output = self._get()
+      x, y, _, _ = output._get_x_y(data, verif.axis.Year())
       # There should only be one year in this dataset
       self.assertEqual(1, len(x))
       self.assertEqual(1, y.shape[0])
@@ -51,8 +52,8 @@ class TestStandard(unittest.TestCase):
       self.assertEqual(2, y.shape[1])
 
    def test_month(self):
-      data,output = self._get()
-      x,y,_,_ = output._get_x_y(data, verif.axis.Month())
+      data, output = self._get()
+      x, y, _, _ = output._get_x_y(data, verif.axis.Month())
       # There should be three months in this dataset
       self.assertEqual(3, len(x))
       self.assertEqual(3, y.shape[0])
@@ -63,8 +64,8 @@ class TestStandard(unittest.TestCase):
       self.assertEqual(2, y.shape[1])
 
    def test_time(self):
-      data,output = self._get()
-      x,y,_,_ = output._get_x_y(data, verif.axis.Time())
+      data, output = self._get()
+      x, y, _, _ = output._get_x_y(data, verif.axis.Time())
       # 20120101 to 20120301
       self.assertEqual(61, len(x))
       self.assertEqual(61, y.shape[0])
@@ -75,8 +76,8 @@ class TestStandard(unittest.TestCase):
 
    def test_no(self):
       # Collapse all data into one number
-      data,output = self._get()
-      x,y,_,_ = output._get_x_y(data, verif.axis.No())
+      data, output = self._get()
+      x, y, _, _ = output._get_x_y(data, verif.axis.No())
       self.assertEqual(1, len(x))
       self.assertEqual(1, y.shape[0])
       self.assertEqual(2, y.shape[1])

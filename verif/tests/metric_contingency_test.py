@@ -11,7 +11,7 @@ class ContingencyTest(unittest.TestCase):
 
       obs = np.random.randn(10000)
       fcst = np.random.randn(10000)
-      othreshold = verif.interval.Interval(0.1,np.inf, True, True)
+      othreshold = verif.interval.Interval(0.1, np.inf, True, True)
       fthresholds = [verif.interval.Interval(i, np.inf, True, True) for i in np.random.randn(1)]
 
       # Check that this runs
@@ -25,8 +25,8 @@ class ContingencyTest(unittest.TestCase):
 class ThreatTest(unittest.TestCase):
    def test_func(self):
       metric = verif.metric.Threat()
-      obs = np.array([0,1,2,3])
-      fcst = np.array([0,3,1,2])
+      obs = np.array([0, 1, 2, 3])
+      fcst = np.array([0, 3, 1, 2])
 
       # Hits: 1
       # FA: 1
