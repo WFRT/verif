@@ -89,7 +89,7 @@ class Metric(object):
    supports_threshold = False
    perfect_score = None
    aggregator = verif.aggregator.Mean()
-   supports_aggregator = False  
+   supports_aggregator = False
    type = verif.metric_type.Deterministic()
 
    def compute(self, data, input_index, axis, interval):
@@ -213,6 +213,7 @@ class ObsFcstBased(Metric):
           - no missing values
        """
       raise NotImplementedError()
+
 
 class FromField(Metric):
    def __init__(self, field, aux=None):
@@ -1113,11 +1114,11 @@ class Contingency(Metric):
             c = np.ma.sum((f_qinterval.within(fcst) == 0) & o_qinterval.within(obs))  # Miss
             d = np.ma.sum((f_qinterval.within(fcst) == 0) & (o_qinterval.within(obs) == 0))  # CR
          else:
-            a = np.ma.sum(f_interval.within(fcst) & interval.within(obs)) # Hit
-            b = np.ma.sum(f_interval.within(fcst) & (interval.within(obs)==0))  # FA
-            c = np.ma.sum((f_interval.within(fcst)==0) & interval.within(obs))  # Miss
-            d = np.ma.sum((f_interval.within(fcst)==0) & (interval.within(obs)==0))  # CR
-      return [a,b,c,d]
+            a = np.ma.sum(f_interval.within(fcst) & interval.within(obs))  # Hit
+            b = np.ma.sum(f_interval.within(fcst) & (interval.within(obs) == 0))  # FA
+            c = np.ma.sum((f_interval.within(fcst) == 0) & interval.within(obs))  # Miss
+            d = np.ma.sum((f_interval.within(fcst) == 0) & (interval.within(obs) == 0))  # CR
+      return [a, b, c, d]
 
    def compute_from_obs_fcst(self, obs, fcst, interval, f_interval=None):
       """ Computes the score
@@ -1132,7 +1133,7 @@ class Contingency(Metric):
       Returns:
          float: The score
       """
-      [a,b,c,d] = self._compute_abcd(obs, fcst, interval, f_interval)
+      [a, b, c, d] = self._compute_abcd(obs, fcst, interval, f_interval)
 
       value = self.compute_from_abcd(a, b, c, d)
       if(np.isinf(value)):
@@ -1156,7 +1157,7 @@ class Contingency(Metric):
       Returns:
          float: The score
       """
-      [a,b,c,d] = self._compute_abcd(obs, fcst, interval, f_interval)
+      [a, b, c, d] = self._compute_abcd(obs, fcst, interval, f_interval)
 
       # Resample
       n = a + b + c + d

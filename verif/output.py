@@ -210,7 +210,7 @@ class Output(object):
 
       # Get column descriptions
       if self.axis == verif.axis.Threshold():
-         descs = {"Threshold":self.thresholds}
+         descs = {"Threshold": self.thresholds}
       else:
          descs = data.get_axis_descriptions(self.axis)
       s = ','.join(descs.keys()) + ',' + ','.join(ylabels) + '\n'
@@ -223,7 +223,7 @@ class Output(object):
       s = ""
       for w in descs.keys():
          # Axis descriptiors
-         s += "%-*s| "% (desc_lengths[w], w)
+         s += "%-*s| " % (desc_lengths[w], w)
       for i in range(len(ylabels)):
          # Labels
          s += "%-*s| " % (lengths[i], ylabels[i])
@@ -239,7 +239,7 @@ class Output(object):
                # location ids
                s += "%-*g| " % (desc_lengths[w], descs[w][i])
          for f in range(0, y.shape[1]):
-            s += "%-*.4g| " % (lengths[f], y[i,f])
+            s += "%-*.4g| " % (lengths[f], y[i, f])
          s += "\n"
 
       # Remove last newline
@@ -263,7 +263,7 @@ class Output(object):
 
       # Get column descriptions
       if self.axis == verif.axis.Threshold():
-         descs = {"Threshold":self.thresholds}
+         descs = {"Threshold": self.thresholds}
       else:
          descs = data.get_axis_descriptions(self.axis)
       s = ','.join(descs.keys()) + ',' + ','.join(labels) + '\n'
@@ -273,7 +273,7 @@ class Output(object):
          line = ""
          line += ','.join(str(descs[k][i]) for k in descs)
          for f in range(0, y.shape[1]):
-            line = line + ',%g' % y[i,f]
+            line = line + ',%g' % y[i, f]
          s += line + "\n"
 
       # Remove last newline
@@ -329,7 +329,7 @@ class Output(object):
    def _plot_diagnoal(self, label="ideal", color="gray", zorder=-1000):
       axismin = min(min(mpl.ylim()), min(mpl.xlim()))
       axismax = max(max(mpl.ylim()), max(mpl.xlim()))
-      self._plot_perfect_score([axismin,axismax],  [axismin,axismax],
+      self._plot_perfect_score([axismin, axismax],  [axismin, axismax],
             label=label, color=color, zorder=zorder, always_show=1)
 
    # Implement these methods
@@ -505,7 +505,7 @@ class Output(object):
 
    def _adjust_map_axes(self, data):
       """ Make axes adjustments for map
-      
+
       xlim, ylim, clim taken care of by map_core
       """
       if self.aspect is not None:
@@ -664,11 +664,11 @@ class Standard(Output):
          if sum(np.isnan(yy)) == len(yy):
             verif.util.warning("No valid scores for " + ynames[f])
          if y is None:
-            y = np.zeros([len(yy),F], 'float')
-         y[:,f] = yy
+            y = np.zeros([len(yy), F], 'float')
+         y[:, f] = yy
       if self.show_acc:
          y = np.nan_to_num(y)
-         y = np.cumsum(y,axis=0)
+         y = np.cumsum(y, axis=0)
       return x, y, xname, ynames
 
    def _legend(self, data, names=None):
@@ -714,14 +714,14 @@ class Standard(Output):
             color = self._get_color(id, F)
             style = self._get_style(id, F, self.axis.is_continuous)
             alpha = (1 if self.axis.is_continuous else 0.55)
-            mpl.plot(x, y[:,id], style, color=color,
+            mpl.plot(x, y[:, id], style, color=color,
                   label=labels[f], lw=self.lw, ms=self.ms,
                   alpha=alpha)
             if self.show_smoothing_line:
                from scipy import ndimage
                I = np.argsort(x)
                xx = np.sort(x)
-               yy = y[:,id][I]
+               yy = y[:, id][I]
                I = np.where((np.isnan(xx) == 0) & (np.isnan(yy) == 0))[0]
                xx = xx[I]
                yy = yy[I]
@@ -734,7 +734,6 @@ class Standard(Output):
          if self.axis.is_time_like:
             mpl.gca().xaxis_date()
          else:
-            #mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
             # NOTE: Don't call the locator on a date axis
             mpl.gca().xaxis.set_major_locator(data.get_axis_locator(self.axis))
 
@@ -808,7 +807,7 @@ class Standard(Output):
          dy = 5
       else:
          dy = 10
-      [x, y,_,labels] = self._get_x_y(data, verif.axis.Location())
+      x, y, _, labels = self._get_x_y(data, verif.axis.Location())
 
       # Colorbar limits should be the same for all subplots
       clim = [verif.util.nanpercentile(y.flatten(), self._mapLowerPerc),
@@ -865,8 +864,8 @@ class Standard(Output):
 
          isMax = (y[:, f] == np.amax(y, 1)) &\
                  (y[:, f] > np.mean(y, 1) + minDiff)
-         isMin = (y[:,f] == np.amin(y, 1)) &\
-                 (y[:,f] < np.mean(y, 1) - minDiff)
+         isMin = (y[:, f] == np.amin(y, 1)) &\
+                 (y[:, f] < np.mean(y, 1) - minDiff)
          is_valid = (np.isnan(y[:, f]) == 0)
          s = self.ms*self.ms
          if self.show_rank:
@@ -928,7 +927,7 @@ class Hist(Output):
 
    def _plot_core(self, data):
       F = data.num_inputs
-      values = [data.get_scores(self._field, f, verif.axis.No()) for f in range(0,F)]
+      values = [data.get_scores(self._field, f, verif.axis.No()) for f in range(F)]
 
       labels = data.get_names()
       intervals = verif.util.get_intervals(self.bin_type, self.thresholds)
@@ -985,10 +984,10 @@ class ObsFcst(Output):
       F = data.num_inputs
       isCont = self.axis.is_continuous
 
-      [x,y,_,labels] = self._get_x_y(data, self.axis)
+      x, y, _, labels = self._get_x_y(data, self.axis)
 
       # Obs line
-      self._plot_obs(x, y[:,0], isCont)
+      self._plot_obs(x, y[:, 0], isCont)
 
       for f in range(0, F):
          color = self._get_color(f, F)

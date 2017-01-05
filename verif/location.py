@@ -48,7 +48,7 @@ class Location(object):
       if np.isnan(self.id) and np.isnan(other.id):
          same_id = True
       else:
-         same_id = self.id == other.id 
+         same_id = self.id == other.id
       return same_id and self.lat == other.lat and self.lon == other.lon and self.elev == other.elev
 
    def __ne__(self, other):

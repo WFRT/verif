@@ -141,7 +141,7 @@ class Data(object):
 
       # Find common indicies
       self._timesI = self._get_common_indices(self._inputs, verif.axis.Time(), times)
-      self._leadtimesI = self._get_common_indices(self._inputs,verif.axis.Leadtime(), leadtimes)
+      self._leadtimesI = self._get_common_indices(self._inputs, verif.axis.Leadtime(), leadtimes)
       self._locationsI = self._get_common_indices(self._inputs, verif.axis.Location(), use_locations)
       if(len(self._timesI[0]) == 0):
          verif.util.error("No valid times selected")
@@ -380,7 +380,7 @@ class Data(object):
          lats = [loc.lat for loc in self.locations]
          lons = [loc.lon for loc in self.locations]
          elevs = [loc.elev for loc in self.locations]
-         return {"id": ids, "lat":lats, "lon":lons, "elev":elevs}
+         return {"id": ids, "lat": lats, "lon": lons, "elev": elevs}
       if(axis.is_time_like):
          unixtimes = self.get_axis_values(axis)
          # Convert to date objects
@@ -389,9 +389,9 @@ class Data(object):
          fmt = axis.fmt
 
          times = [date.strftime(fmt) for date in dates]
-         return {axis.name():times}
+         return {axis.name(): times}
       else:
-         return {axis.name():self.get_axis_values(axis)}
+         return {axis.name(): self.get_axis_values(axis)}
 
    def _get_score(self, field, input_index):
       """ Load the field variable from input, but only include the common data
@@ -477,10 +477,10 @@ class Data(object):
       Inan = np.isnan(array)
       for o in range(0, O):
          threshold = 0.5
-         q = np.nansum(np.cumsum(array[:,o:,:], axis=1) <= threshold, axis=1)
+         q = np.nansum(np.cumsum(array[:, o:, :], axis=1) <= threshold, axis=1)
          I = q+o
          I[I >= O] = O-1
-         array[:,o,:] = leadtimes[I] - leadtimes[o]
+         array[:, o, :] = leadtimes[I] - leadtimes[o]
       array[Inan] = np.nan
       # array[array > 2] = 2
       return array
@@ -542,7 +542,7 @@ class Data(object):
       # Find common values among all inputs
       values = aux
       for input in inputs:
-         if(axis ==verif.axis.Time()):
+         if(axis == verif.axis.Time()):
             temp = input.times
          elif(axis == verif.axis.Leadtime()):
             temp = input.leadtimes

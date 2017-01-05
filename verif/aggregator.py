@@ -13,10 +13,10 @@ def get_all():
 
 def get(name):
    """ Returns an instance of an object with the given class name
-   
+
    Arguments:
       name (str): The name of the class. Use a number between 0 and 1 to get the
-         corresponding quantile aggregator. 
+         corresponding quantile aggregator
    """
    aggregators = get_all()
    a = None

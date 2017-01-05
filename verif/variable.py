@@ -20,7 +20,7 @@ def guess_x1(name):
    """
    prog = re.compile("RH")
    if(prog.match(name)):
-      return  100
+      return 100
    return None
 
 

@@ -25,6 +25,7 @@ There are 4 ways to represent time in verif:
 Below are functions that convert between the first 3
 """
 
+
 def date_to_datenum(date):
    """ Converts date in YYYYMMDD format into datenum
 
@@ -183,7 +184,7 @@ def parse_numbers(numbers, is_date=False):
          else:
             # Note: Values are rounded, to avoid problems with floating point
             # comparison for strings like 0.1:0.1:0.9
-            values = values + list(np.round(np.arange(start, end, step),7))
+            values = values + list(np.round(np.arange(start, end, step), 7))
       else:
          error("Could not translate '" + numbers + "' into numbers")
       if(is_date):
@@ -386,13 +387,13 @@ def apply_threshold(array, bin_type, threshold, upper_threshold=None):
    elif upper_threshold is None:
       error("Cannot apply thresholding with bin_type '%s'" % bin_type)
    elif bin_type == "within":
-      array = (array > threshold ) & (array < upper_threshold)
+      array = (array > threshold) & (array < upper_threshold)
    elif bin_type == "within=":
-      array = (array > threshold ) & (array <= upper_threshold)
+      array = (array > threshold) & (array <= upper_threshold)
    elif bin_type == "=within":
-      array = (array >= threshold ) & (array < upper_threshold)
+      array = (array >= threshold) & (array < upper_threshold)
    elif bin_type == "=within=":
-      array = (array >= threshold ) & (array <= upper_threshold)
+      array = (array >= threshold) & (array <= upper_threshold)
    return array
 
 
@@ -451,7 +452,7 @@ def get_intervals(bin_type, thresholds):
    intervals are formed by using each pair of consecutive thresholds. For
    bin_type below* the interval [-np.inf, threshold] is used and for bin_type
    above* the inveral [threshold, np.inf] is used.
-   
+
    Arguments:
    bin_type       one of below, below=, within, =within, within=, =within=,
                   above, above=

@@ -14,6 +14,7 @@ import verif.util
 import verif.variable
 import verif.field
 
+
 def get_input(filename):
    if not os.path.isfile(filename):
       verif.util.error("File '" + filename + "' does not exist")
@@ -492,7 +493,7 @@ class Comps(Input):
          file = netcdf(filename, 'r')
          required_dimensions = ["Offset", "Date", "Location"]
          for dim in required_dimensions:
-            valid = valid & (dim in file.dimensions )
+            valid = valid & (dim in file.dimensions)
          file.close()
          return valid
       except:
@@ -657,7 +658,7 @@ class Comps(Input):
 class Fake(Input):
    def __init__(self, obs, fcst, times=None, leadtimes=None, locations=None, variable=None):
       """
-      A fake input 
+      A fake input
 
       obs      A 1, 2, or 3D array of obsevations.
                If 3D assume the dimensions are (time,lead_time,location)
@@ -707,12 +708,12 @@ class Fake(Input):
          self.leadtimes = leadtimes
       if locations is None:
          # Default to locations with lat,lon of (0,0), (0,1), (0,2), ...
-         self.locations = [verif.location.Location(i,0,i,0) for i in range(0, self.obs.shape[2])]
+         self.locations = [verif.location.Location(i, 0, i, 0) for i in range(0, self.obs.shape[2])]
       else:
          self.locations = locations
       self.thresholds = []
       self.quantiles = []
-      if variable == None:
+      if variable is None:
          self.variable = verif.variable.Variable("fake", "fake units")
       else:
          self.variable = variable

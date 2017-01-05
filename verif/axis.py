@@ -73,11 +73,13 @@ class Time(Axis):
    """ Forecast initialization time """
    is_time_like = True
    fmt = "%Y-%m-%d"
+
    def formatter(self, variable):
       return matplotlib.dates.DateFormatter('\n%Y-%m-%d')
 
    def label(self, variable):
       return "Date"
+
 
 class Leadtime(Axis):
    """ Forecast lead-time """
@@ -182,7 +184,6 @@ class MonthOfYear(Axis):
 
    def label(self, variable):
       return "Month of year"
-
 
 
 class Threshold(Axis):
