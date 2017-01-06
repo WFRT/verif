@@ -703,6 +703,10 @@ class Within(Metric):
    def compute_single(self, data, input_index, axis, axis_index, interval):
       [obs, fcst] = data.get_scores([verif.field.Obs(),
          verif.field.Fcst()], input_index, axis, axis_index)
+
+      return self.compute_from_obs_fcst(obs, fcst, interval)
+
+   def compute_from_obs_fcst(self, obs, fcst, interval):
       diff = abs(obs - fcst)
       return np.mean(interval.within(diff)) * 100
 
@@ -728,6 +732,9 @@ class Conditional(Metric):
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
       [obs, fcst] = data.get_scores([self._x, self._y], input_index, axis, axis_index)
+      return self.compute_from_obs_fcst(obs, fcst, interval)
+
+   def compute_from_obs_fcst(self, obs, fcst, interval):
       I = np.where(interval.within(obs))[0]
       if(len(I) == 0):
          return np.nan
@@ -743,17 +750,20 @@ class XConditional(Metric):
    type = verif.metric_type.Deterministic()
    orientation = 0
 
-   def __init__(self, x=verif.field.Obs(), y=verif.field.Fcst()):
+   def __init__(self, x=verif.field.Obs(), y=verif.field.Fcst(), func=np.median):
       self._x = x
       self._y = y
+      self._func = func
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
-      [obs, fcst] = data.get_scores([self._x, self._y], input_index, axis,
-            axis_index)
+      [obs, fcst] = data.get_scores([self._x, self._y], input_index, axis, axis_index)
+      return self.compute_from_obs_fcst(obs, fcst, interval)
+
+   def compute_from_obs_fcst(self, obs, fcst, interval):
       I = np.where(interval.within(obs))[0]
       if(len(I) == 0):
          return np.nan
-      return np.median(obs[I])
+      return self._func(obs[I])
 
 
 class Count(Metric):
@@ -915,7 +925,7 @@ class BsRel(Metric):
    def compute_single(self, data, input_index, axis, axis_index, interval):
       [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
 
-      # Break p into bins, and comute reliability
+      # Break p into bins, and compute reliability
       bs = np.nan * np.zeros(len(p), 'float')
       for i in range(0, len(self._edges) - 1):
          I = np.where((p >= self._edges[i]) & (p < self._edges[i + 1]))[0]
