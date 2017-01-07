@@ -1,4 +1,4 @@
-date     offset   id    lat   lon   elev  obs
+date     leadtime location    lat   lon   altitude  obs
 20120101 0        3     50    10    12    3
 20120101 6        3     50    10    12    5
 20120101 12       3     50    10    12    6

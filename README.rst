@@ -32,7 +32,7 @@ Features
 * Threshold-based metrics such as the false alarm rate, ETS, EDI, Yule's Q (e.g. ``-m ets``)
 * Probabilistic metrics such as brier score, PIT-histogram, reliability diagrams (e.g. ``-m bs``)
 * Special plots like Taylor diagrams (``-m taylor``), quantile-quantile plots (``-m qq``).
-* Plot scores as a function of date, lead time, station elevation/lat/longitude (e.g. ``-x date``)
+* Plot scores as a function of date, lead time, station altitude/lat/longitude (e.g. ``-x date``)
 * Show scores on maps (``-type map``)
 * Subset the data by specifying a date range and lat/lon range (``-latrange 58,60``)
 * Export to text (``-type text``)
@@ -221,7 +221,7 @@ To verify your own forecasts, the easiest option is to put the data into the fol
 
    # variable: Temperature
    # units: $^oC$
-   date     leadtime id        lat     lon      elev     obs      fcst   p10   q0.1
+   date     leadtime location  lat     lon      altitude obs      fcst   p10   q0.1
    20150101 0        214       49.2    -122.1   92       3.4      2.1    0.914 -1.9
    20150101 1        214       49.2    -122.1   92       4.7      4.2    0.858 0.1
    20150101 0        180       50.3    -120.3   150      0.2      -1.2   0.992 -2.1
@@ -233,7 +233,7 @@ recognized:
 * date (in YYYYMMDD)
 * unixtime (in seconds since 1970-01-01 00:00:00 +00:00)
 * leadtime (forecast lead time in hours)
-* id (station identifier)
+* location (station identifier)
 * lat (in degrees)
 * lon (in degrees)
 * obs (observations)
@@ -242,13 +242,16 @@ recognized:
 * q<number> (temperature for a specific quantile e.g. q0.1 is the 0.1 quantile)
 
 Either 'date' or 'unixtime' can be supplied. obs and fcst are the only required columns. Note that
-the file will likely have many rows with repeated values of leadtime/location/lat/lon/elev. If
+the file will likely have many rows with repeated values of leadtime/location/lat/lon/altitude. If
 station and lead time information is missing, then ``verif`` assumes they are all for the same
 station and lead time. The columns can be in any order.
 
 Deterministic forecasts will only have "obs" and "fcst", however probabilistic forecasts can provide
 any number of cumulative probabilities. For probabilistic forecasts, "fcst" could represent the
 ensemble mean (or any other method to reduce the ensemble to a deterministic forecast).
+
+For compatibility reason, 'offset' can be used instead of 'leadtime', 'id instead of 'location', and
+'elev' instead of 'altitude'.
 
 NetCDF-based  input
 ---------------------

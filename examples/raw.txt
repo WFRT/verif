@@ -1,6 +1,6 @@
 # variable: T
 # units: $^oC$
-date offset id lat lon elev obs fcst p0 p11 pit
+date leadtime location lat lon altitude obs fcst p0 p11 pit
 20120101 0 415 49.35 -122.77 0 -6.52 -6.83 1.000 1.000 0.61
 20120101 1 415 49.35 -122.77 0 -5.73 -5.72 1.000 1.000 0.49
 20120101 2 415 49.35 -122.77 0 -5.01 -5.35 1.000 1.000 0.63

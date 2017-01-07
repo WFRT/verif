@@ -1,4 +1,4 @@
-date     offset   id    lat   lon   elev  obs   fcst
+date     leadtime location lat   lon   altitude  obs   fcst
 20120101 0        11    44    -12   124   9     4
 20120101 12       11    44    -12   124   5     5
 20120102 0        11    44    -12   124   2     0

@@ -80,7 +80,7 @@ class InputTextTest(unittest.TestCase):
       data = verif.data.Data(inputs=[verif.input.Text("verif/tests/files/fileConflictingInfo.txt")])
 
    def test_noId(self):
-      data = verif.data.Data(inputs=[verif.input.Text("verif/tests/files/fileNoId.txt")])
+      data = verif.data.Data(inputs=[verif.input.Text("verif/tests/files/fileNoLocation.txt")])
 
    def test_noElev(self):
       data = verif.data.Data(inputs=[verif.input.Text("verif/tests/files/fileNoElev.txt")])
@@ -121,6 +121,27 @@ class InputTextTest(unittest.TestCase):
       self.assertEqual(11, fcst[0, 0, I1])
       for i in range(1, obs.shape[1]):
          self.assertTrue(np.isnan(obs[0, i, I1]))
+
+   def test_compatibility(self):
+      input = verif.input.Text("verif/tests/files/file1_compatibility.txt")
+      locations = input.locations
+      locations = np.sort(locations)
+      self.assertEqual(2, len(locations))
+      self.assertTrue(verif.location.Location(3, 50, 10, 12) in locations)
+      self.assertTrue(verif.location.Location(41, 42, 23, 341) in locations)
+      np.testing.assert_array_equal(np.sort(input.leadtimes), [0, 6, 12])
+
+   def test_order(self):
+      # Check that the order of leadtimes in the file does not matter
+      input1 = verif.input.Text("verif/tests/files/file_order1.txt")
+      input2 = verif.input.Text("verif/tests/files/file_order2.txt")
+      data = verif.data.Data([input1, input2])
+      np.testing.assert_array_equal(np.sort(input1.leadtimes), np.sort(input2.leadtimes))
+      np.testing.assert_array_equal(np.sort(data.leadtimes), [0, 6, 12])
+      s1 = data.get_scores(verif.field.Fcst(), 0)
+      s2 = data.get_scores(verif.field.Fcst(), 1)
+      np.testing.assert_array_equal(s1, s2)
+
 
 if __name__ == '__main__':
    unittest.main()

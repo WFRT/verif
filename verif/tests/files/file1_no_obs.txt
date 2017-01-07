@@ -1,4 +1,4 @@
-date     offset   id    lat   lon   elev  fcst
+date     leadtime location    lat   lon   altitude  fcst
 20120101 0        3     50    10    12    6
 20120101 6        3     50    10    12    7
 20120101 12       3     50    10    12    7
