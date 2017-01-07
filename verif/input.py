@@ -118,15 +118,27 @@ class Netcdf(Input):
 
    @staticmethod
    def is_valid(filename):
+      # First check if the file is a valid Netcdf file
       try:
          file = netcdf(filename, 'r')
+         valid = True
+
+         # Check required dimensions
+         dims = [dim for dim in file.dimensions]
+         required_dims = ["time", "location", "leadtime"]
+         for required_dim in required_dims:
+            valid = valid and required_dim in dims
+
+         # Check required variables
+         required_vars = ["time", "location", "leadtime"]
+         vars = [var for var in file.variables]
+         for required_var in required_vars:
+            valid = valid and required_var in vars
+
+         file.close()
+         return valid
       except:
          return False
-      valid = False
-      if(hasattr(file, "Conventions") and file.Conventions == "verif_1.0.0"):
-         valid = True
-      file.close()
-      return valid
 
    @property
    def obs(self):

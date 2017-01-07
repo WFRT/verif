@@ -280,7 +280,7 @@ variables, and attributes are understood by ``verif``:
    // global attributes:
       : long_name = "Temperature";                     // Used to label axes in plots
       : standard_name = "air_temperature";             // NetCDF/CF standard name of the forecast variable
-      : verif_version = "1.0.0";                       // Will be used in the future if format changes
+      : verif_version = "1.0.0";                       // Not required, but will be parsed in the future if format changes
       }
 
 Copyright and license
