@@ -304,7 +304,7 @@ def run(argv):
             print m.help()
       return
    elif(len(argv) == 1 or len(ifiles) == 0 or metric is None):
-      show_description(data)
+      print show_description(data)
       return
 
    if(figsize is not None):
@@ -560,89 +560,89 @@ def get_aggregation_string():
 
 def show_description(data=None):
    desc = "Program to compute verification scores for weather forecasts"
-   print "usage: verif files -m metric [options]"
-   print ""
-   print textwrap.fill(desc, get_text_width())
-   print ""
-   print verif.util.green("Arguments:")
-   print format_argument("files", "One or more verification files in NetCDF or text format (see 'File Formats' below). The file format is autodetected.")
-   print format_argument("-m metric", "Which verification metric to use? See 'Metrics' below.")
-   print format_argument("--list-times", "Prints what times are available in the files")
-   print format_argument("--list-locations", "Prints what locations are available in the files")
-   print format_argument("--list-quantiles", "Prints what quantiles are available in the files")
-   print format_argument("--list-thresholds", "Prints what thresholds are available in the files")
-   print format_argument("--version", "Prints what version of verif this is")
+   s = "usage: verif files -m metric [options]\n"
+   s += "\n"
+   s += textwrap.fill(desc, get_text_width()) + "\n"
+   s += "\n"
+   s += verif.util.green("Arguments:") + "\n"
+   s += format_argument("files", "One or more verification files in NetCDF or text format (see 'File Formats' below). The file format is autodetected.") + "\n"
+   s += format_argument("-m metric", "Which verification metric to use? See 'Metrics' below.") + "\n"
+   s += format_argument("--list-times", "Prints what times are available in the files") + "\n"
+   s += format_argument("--list-locations", "Prints what locations are available in the files") + "\n"
+   s += format_argument("--list-quantiles", "Prints what quantiles are available in the files") + "\n"
+   s += format_argument("--list-thresholds", "Prints what thresholds are available in the files") + "\n"
+   s += format_argument("--version", "Prints what version of verif this is") + "\n"
    # Dimensions
-   print verif.util.green("  Dimensions and subset:")
-   print "  (Note: vectors can be entered using commas, or MATLAB syntax i.e 3:5 is 3,4,5 and 3:2:7 is 3,5,7)"
-   print format_argument("-d dates", "A vector of dates in YYYYMMDD format, e.g.  20130101:20130201.")
-   print format_argument("-elevrange range", "Limit the verification to locations within minelev,maxelev.")
-   print format_argument("-l locations", "Limit the verification to these location IDs.")
-   print format_argument("-lx locations", "Remove these locations from the verification. This happens after -l, -latrange, -lonrange, and -elevrange has been applied.")
-   print format_argument("-latrange range", "Limit the verification to locations within minlat,maxlat.")
-   print format_argument("-lonrange range", "Limit the verification to locations within minlon,maxlon.")
-   print format_argument("-o leadtimes", "Limit the verification to these leadtimes (in hours).")
-   print format_argument("-r thresholds", "Compute scores using these thresholds (only used by some metrics).")
-   print format_argument("-q quantiles", "Compute scores using these quantiles (only used by some metrics).")
-   print format_argument("-t times", "A vector of unix timestamps.")
-   print format_argument("-x dim", "Plot this dimension on the x-axis: date, leadtime, year, month, week, location, id, elev, lat, lon, threshold, or no. Not supported by all metrics. If not specified, then a default is used based on the metric. 'id' refers to the location id, whereas 'location' is the location index, which starts at 0 and increases sequantially. 'no' collapses all dimensions and computes one value.")
+   s += verif.util.green("  Dimensions and subset:") + "\n"
+   s += "  (Note: vectors can be entered using commas, or MATLAB syntax i.e 3:5 is 3,4,5 and 3:2:7 is 3,5,7)\n"
+   s += format_argument("-d dates", "A vector of dates in YYYYMMDD format, e.g.  20130101:20130201.") + "\n"
+   s += format_argument("-elevrange range", "Limit the verification to locations within minelev,maxelev.") + "\n"
+   s += format_argument("-l locations", "Limit the verification to these location IDs.") + "\n"
+   s += format_argument("-lx locations", "Remove these locations from the verification. This happens after -l, -latrange, -lonrange, and -elevrange has been applied.") + "\n"
+   s += format_argument("-latrange range", "Limit the verification to locations within minlat,maxlat.") + "\n"
+   s += format_argument("-lonrange range", "Limit the verification to locations within minlon,maxlon.") + "\n"
+   s += format_argument("-o leadtimes", "Limit the verification to these leadtimes (in hours).") + "\n"
+   s += format_argument("-r thresholds", "Compute scores using these thresholds (only used by some metrics).") + "\n"
+   s += format_argument("-q quantiles", "Compute scores using these quantiles (only used by some metrics).") + "\n"
+   s += format_argument("-t times", "A vector of unix timestamps.") + "\n"
+   s += format_argument("-x dim", "Plot this dimension on the x-axis: date, leadtime, year, month, week, location, id, elev, lat, lon, threshold, or no. Not supported by all metrics. If not specified, then a default is used based on the metric. 'id' refers to the location id, whereas 'location' is the location index, which starts at 0 and increases sequantially. 'no' collapses all dimensions and computes one value.") + "\n"
 
    # Data manipulation
-   print verif.util.green("  Data manipulation:")
-   print format_argument("-acc", "Accumulated values along the x-axis. Does not work for 'Special diagams.'")
-   print format_argument("-agg type", get_aggregation_string())
-   print format_argument("-b type", "One of 'below' (< x), 'below=' (<= x), '=within' (<= x < ), 'within' (< x <), 'within=' (< x <=), '=within=' (<= x <=), 'above' (> x), or 'above=' (>= x). For threshold plots (ets, hit, within, etc) 'below/above' computes frequency below/above the threshold, and 'within' computes the frequency between consecutive thresholds.")
-   print format_argument("-c file", "File containing climatology data. Subtract all forecasts and obs with climatology values.")
-   print format_argument("-C file", "File containing climatology data. Divide all forecasts and obs by climatology values.")
-   print format_argument("-fcst field", "What variable should be used as the forecast? One of 'obs', 'fcst' (default), 'obswindow', 'fcstwindow'. 'obswindow' and 'fcstwindow' are the number of hours forward in time that there is not precipitation.")
-   print format_argument("-hist", "Plot values as histogram. Only works for non-derived metrics")
-   print format_argument("-obs field", "What variable should be used as the observation? See -fcst.")
-   print format_argument("-sort", "Plot values sorted. Only works for non-derived metrics")
+   s += verif.util.green("  Data manipulation:") + "\n"
+   s += format_argument("-acc", "Accumulated values along the x-axis. Does not work for 'Special diagams.'") + "\n"
+   s += format_argument("-agg type", get_aggregation_string()) + "\n"
+   s += format_argument("-b type", "One of 'below' (< x), 'below=' (<= x), '=within' (<= x < ), 'within' (< x <), 'within=' (< x <=), '=within=' (<= x <=), 'above' (> x), or 'above=' (>= x). For threshold plots (ets, hit, within, etc) 'below/above' computes frequency below/above the threshold, and 'within' computes the frequency between consecutive thresholds.") + "\n"
+   s += format_argument("-c file", "File containing climatology data. Subtract all forecasts and obs with climatology values.") + "\n"
+   s += format_argument("-C file", "File containing climatology data. Divide all forecasts and obs by climatology values.") + "\n"
+   s += format_argument("-fcst field", "What variable should be used as the forecast? One of 'obs', 'fcst' (default), 'obswindow', 'fcstwindow'. 'obswindow' and 'fcstwindow' are the number of hours forward in time that there is not precipitation.") + "\n"
+   s += format_argument("-hist", "Plot values as histogram. Only works for non-derived metrics") + "\n"
+   s += format_argument("-obs field", "What variable should be used as the observation? See -fcst.") + "\n"
+   s += format_argument("-sort", "Plot values sorted. Only works for non-derived metrics") + "\n"
 
    # Plot options
-   print verif.util.green("  Plotting options:")
-   print format_argument("-aspect ratio", "Force the aspect ratio of the plot. A value greater than 1 will stretch out the y-axis.")
-   print format_argument("-bottom value", "Bottom boundary location for saved figure [range 0-1]")
-   print format_argument("-clim limits", "Force colorbar limits to the two values lower,upper")
-   print format_argument("-cmap colormap", "Use this colormap when possible (e.g. jet, inferno, RdBu)")
-   print format_argument("-dpi value", "Resolution of image in dots per inch (default 100)")
-   print format_argument("-f file", "Save image to this filename")
-   print format_argument("-fs size", "Set figure size width,height (in inches). Default 8x6.")
-   print format_argument("-labfs size", "Font size for axis labels")
-   print format_argument("-lc colors", "Comma-separated list of line colors, such as red,[0.3,0,0],0.3. Colors are repeated if there are more lines than colors.")
-   print format_argument("-left value", "Left boundary location for saved figure [range 0-1]")
-   print format_argument("-leg titles", "Comma-separated list of legend titles. Use '_' to represent space.")
-   print format_argument("-legfs size", "Font size for legend. Set to 0 to hide legend.")
-   print format_argument("-legloc loc", "Where should the legend be placed?  Locations such as 'best', 'upper_left', 'lower_right', 'center'. Use underscore when using two words.")
-   print format_argument("-ls styles", "Comma-separated list of line styles, such as -,-o,s,--*. Styles are repeated if there are more lines than styles.")
-   print format_argument("-lw width", "How wide should lines be?")
-   print format_argument("-maptype type", "One of 'simple', 'sat', 'topo', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.")
-   print format_argument("-ms size", "How big should markers be?")
-   print format_argument("-nogrid", "Turn the grid on the plot off")
-   print format_argument("-nomargin", "Remove margins (whitespace) in the plot")
-   print format_argument("-right value", "Right boundary location for saved figure [range 0-1]")
-   print format_argument("-simple", "Make a simpler plot, without extra lines, subplots, etc.")
-   print format_argument("-sp", "Show a line indicating the perfect score")
-   print format_argument("-tickfs size", "Font size for axis ticks")
-   print format_argument("-title text", "Custom title to chart top")
-   print format_argument("-titlefs size", "Font size for title.")
-   print format_argument("-top value", "Top boundary location for saved figure [range 0-1]")
-   print format_argument("-type type", "One of 'plot' (default), 'text', 'csv', 'map', or 'maprank'.")
-   print format_argument("-xlabel text", "Custom x-axis label")
-   print format_argument("-xlim limits", "Force x-axis limits to the two values lower,upper")
-   print format_argument("-xlog", "Use a logarithmic x-axis")
-   print format_argument("-xrot value", "Rotation angle for x-axis labels")
-   print format_argument("-xticks ticks", "A vector of values to put ticks on the x-axis")
-   print format_argument("-xticklabels labs", "A comma-separated list of labels for the x-axis ticks")
-   print format_argument("-ylabel text", "Custom y-axis label")
-   print format_argument("-ylim limits", "Force y-axis limits to the two values lower,upper")
-   print format_argument("-ylog", "Use a logarithmic y-axis")
-   print format_argument("-yrot value", "Rotation angle for y-axis labels")
-   print format_argument("-yticks ticks", "A vector of values to put ticks on the y-axis")
-   print format_argument("-xticklabels labs", "A comma-separated list of labels for the y-axis ticks")
-   print ""
-   print verif.util.green("Metrics (-m):")
-   print "  (For a full description of a metric, run verif -m <metric>)"
+   s += verif.util.green("  Plotting options:") + "\n"
+   s += format_argument("-aspect ratio", "Force the aspect ratio of the plot. A value greater than 1 will stretch out the y-axis.") + "\n"
+   s += format_argument("-bottom value", "Bottom boundary location for saved figure [range 0-1]") + "\n"
+   s += format_argument("-clim limits", "Force colorbar limits to the two values lower,upper") + "\n"
+   s += format_argument("-cmap colormap", "Use this colormap when possible (e.g. jet, inferno, RdBu)") + "\n"
+   s += format_argument("-dpi value", "Resolution of image in dots per inch (default 100)") + "\n"
+   s += format_argument("-f file", "Save image to this filename") + "\n"
+   s += format_argument("-fs size", "Set figure size width,height (in inches). Default 8x6.") + "\n"
+   s += format_argument("-labfs size", "Font size for axis labels") + "\n"
+   s += format_argument("-lc colors", "Comma-separated list of line colors, such as red,[0.3,0,0],0.3. Colors are repeated if there are more lines than colors.") + "\n"
+   s += format_argument("-left value", "Left boundary location for saved figure [range 0-1]") + "\n"
+   s += format_argument("-leg titles", "Comma-separated list of legend titles. Use '_' to represent space.") + "\n"
+   s += format_argument("-legfs size", "Font size for legend. Set to 0 to hide legend.") + "\n"
+   s += format_argument("-legloc loc", "Where should the legend be placed?  Locations such as 'best', 'upper_left', 'lower_right', 'center'. Use underscore when using two words.") + "\n"
+   s += format_argument("-ls styles", "Comma-separated list of line styles, such as -,-o,s,--*. Styles are repeated if there are more lines than styles.") + "\n"
+   s += format_argument("-lw width", "How wide should lines be?") + "\n"
+   s += format_argument("-maptype type", "One of 'simple', 'sat', 'topo', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.") + "\n"
+   s += format_argument("-ms size", "How big should markers be?") + "\n"
+   s += format_argument("-nogrid", "Turn the grid on the plot off") + "\n"
+   s += format_argument("-nomargin", "Remove margins (whitespace) in the plot") + "\n"
+   s += format_argument("-right value", "Right boundary location for saved figure [range 0-1]") + "\n"
+   s += format_argument("-simple", "Make a simpler plot, without extra lines, subplots, etc.") + "\n"
+   s += format_argument("-sp", "Show a line indicating the perfect score") + "\n"
+   s += format_argument("-tickfs size", "Font size for axis ticks") + "\n"
+   s += format_argument("-title text", "Custom title to chart top") + "\n"
+   s += format_argument("-titlefs size", "Font size for title.") + "\n"
+   s += format_argument("-top value", "Top boundary location for saved figure [range 0-1]") + "\n"
+   s += format_argument("-type type", "One of 'plot' (default), 'text', 'csv', 'map', or 'maprank'.") + "\n"
+   s += format_argument("-xlabel text", "Custom x-axis label") + "\n"
+   s += format_argument("-xlim limits", "Force x-axis limits to the two values lower,upper") + "\n"
+   s += format_argument("-xlog", "Use a logarithmic x-axis") + "\n"
+   s += format_argument("-xrot value", "Rotation angle for x-axis labels") + "\n"
+   s += format_argument("-xticks ticks", "A vector of values to put ticks on the x-axis") + "\n"
+   s += format_argument("-xticklabels labs", "A comma-separated list of labels for the x-axis ticks") + "\n"
+   s += format_argument("-ylabel text", "Custom y-axis label") + "\n"
+   s += format_argument("-ylim limits", "Force y-axis limits to the two values lower,upper") + "\n"
+   s += format_argument("-ylog", "Use a logarithmic y-axis") + "\n"
+   s += format_argument("-yrot value", "Rotation angle for y-axis labels") + "\n"
+   s += format_argument("-yticks ticks", "A vector of values to put ticks on the y-axis") + "\n"
+   s += format_argument("-xticklabels labs", "A comma-separated list of labels for the y-axis ticks") + "\n"
+   s += "\n"
+   s += verif.util.green("Metrics (-m):") + "\n"
+   s += "  (For a full description of a metric, run verif -m <metric>)\n"
    metric_types = [verif.metric_type.Deterministic(),
          verif.metric_type.Threshold(),
          verif.metric_type.Probabilistic(),
@@ -653,17 +653,19 @@ def show_description(data=None):
       metric_outputs = metrics + outputs
       metric_outputs.sort(key=lambda x: x[0].lower(), reverse=False)
       if len(metric_outputs) > 0:
-         print verif.util.green("  %s:" % metric_type.description)
+         s += verif.util.green("  %s:" % metric_type.description) + "\n"
          for m in metric_outputs:
             name = m[0].lower()
             if(m[1].is_valid()):
                desc = m[1].description
-               print format_argument(name, desc)
-   print ""
-   print ""
-   print verif.util.green("File formats:")
-   print format_argument("text", verif.input.Text.description)
-   print format_argument("netcdf", verif.input.Netcdf.description)
+               s += format_argument(name, desc) + "\n"
+   s += "\n"
+   s += "\n"
+   s += verif.util.green("File formats:") + "\n"
+   s += format_argument("text", verif.input.Text.description) + "\n"
+   s += format_argument("netcdf", verif.input.Netcdf.description) + "\n"
+
+   return s
 
 
 def format_argument(arg, description, arg_width=22, total_width=None, indent=2):

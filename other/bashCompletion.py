@@ -1,11 +1,24 @@
+import os
+import re
 import sys
+import verif.driver
 import verif.metric
 import verif.output
 
-if len(sys.argv) < 2:
-   print "Error: missing input file"
-   sys.exit()
-filename = sys.argv[1]
+"""
+This script creates a bash completion script by parsing command-line options from verif's
+description as well as reading all classed form verif.metric and verif.output
+"""
+
+description = verif.driver.show_description()
+lines = description.split('\n')
+reg = re.compile("^  -")
+lines = [line for line in lines if reg.match(line)]
+for i in range(0, len(lines)):
+   line = lines[i]
+   line = line.split(' ')
+   line = [q for q in line if q != '']
+   lines[i] = line[0]
 
 metrics = verif.metric.get_all()
 outputs = verif.output.get_all()
@@ -24,10 +37,8 @@ print 'prev="${COMP_WORDS[COMP_CWORD-1]}"'
 
 print 'if [ "$cur" = "" ] || [[ "$cur" =~ -* ]]; then'
 print "   COMPREPLY=( $( compgen -f -W '",
-file = open(filename, "r")
-for line in file.read().split('\n'):
+for line in lines:
    print line,
-file.close()
 print "' -- $cur ) )"
 print 'fi'
 
