@@ -148,5 +148,12 @@ class TestConvert(unittest.TestCase):
       new_dates = [verif.util.datenum_to_date(verif.util.date_to_datenum(date)) for date in dates]
       self.assertItemsEqual(new_dates, dates)
 
+
+class TestIsValidNc(unittest.TestCase):
+   def test_1(self):
+      self.assertTrue(verif.util.is_valid_nc("verif/tests/files/netcdf_valid1.nc"))
+      self.assertFalse(verif.util.is_valid_nc("verif/tests/files/file1.txt"))
+
+
 if __name__ == '__main__':
    unittest.main()

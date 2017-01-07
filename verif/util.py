@@ -8,6 +8,10 @@ import os
 import re
 import sys
 import textwrap
+try:
+   from netCDF4 import Dataset as netcdf
+except:
+   from scipy.io.netcdf import netcdf_file as netcdf
 
 import verif.interval
 
@@ -490,3 +494,13 @@ def get_intervals(bin_type, thresholds):
 
 def almost_equal(value1, value2, tol=1e-7):
    return abs(value1 - value2) < tol
+
+
+def is_valid_nc(filename):
+   """ Return True if the file is a valid NetCDF file """
+   try:
+      file = netcdf(filename, 'r')
+      file.close()
+      return True
+   except Exception:
+      return False
