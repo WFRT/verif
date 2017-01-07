@@ -1,4 +1,4 @@
-library(ncdf)
+library(ncdf4)
 require(gamlss)
 
 # Creates a verification file that can be read by verif (https://github.com/wfrt/verif)
@@ -44,19 +44,19 @@ gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
                     useMedian=TRUE,
                     debug=FALSE) {
    # Missing value indicator for NetCDF
-   MV  = 9.96921e+36 # default.missval.ncdf()
+   MV = 9.96921e+36
 
    # Dimensions
    times      <- sort(unique(xeval$TIME))
    leadtimes    <- intersect(sort(unique(xeval$LEADTIME)), sort(unique(xtrain$LEADTIME)))
    locations  <- sort(unique(xeval$ID))
-   dTime     <- dim.def.ncdf("time", "", times)
-   dLeadtime   <- dim.def.ncdf("leadtime", "", leadtimes)
-   dLocation <- dim.def.ncdf("location", "", locations)
+   dTime     <- ncdim_def("time", "", times)
+   dLeadtime   <- ncdim_def("leadtime", "", leadtimes)
+   dLocation <- ncdim_def("location", "", locations)
    if(length(thresholds) > 0)
-      dThreshold <- dim.def.ncdf("threshold", "", thresholds)
+      dThreshold <- ncdim_def("threshold", "", thresholds)
    if(length(quantiles) > 0)
-      dQuantile <- dim.def.ncdf("quantile", "", quantiles)
+      dQuantile <- ncdim_def("quantile", "", quantiles)
 
    # Remove missing stations (i.e. stations that are only in training set)
    I = which(xeval$ID %in% locations)
@@ -64,35 +64,35 @@ gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
 
    # Variables
    Iloc <- match(locations, xeval$ID)
-   vLat <- var.def.ncdf("lat", "degrees", dLocation, MV)
-   vLon <- var.def.ncdf("lon", "degrees", dLocation, MV)
-   vElev <- var.def.ncdf("altitude", "m", dLocation, MV)
-   vObs  <- var.def.ncdf("obs", "", list(dLocation, dLeadtime, dTime), MV)
-   vFcst <- var.def.ncdf("fcst", "", list(dLocation, dLeadtime, dTime), MV)
-   vPit  <- var.def.ncdf("pit", "", list(dLocation, dLeadtime, dTime), MV)
-   vIgn  <- var.def.ncdf("ign", "", list(dLocation, dLeadtime, dTime), MV)
-   vSpread <- var.def.ncdf("spread", "", list(dLocation, dLeadtime, dTime), MV)
+   vLat <- ncvar_def("lat", "degrees", dLocation, NULL)
+   vLon <- ncvar_def("lon", "degrees", dLocation, NULL)
+   vElev <- ncvar_def("altitude", "m", dLocation, NULL)
+   vObs  <- ncvar_def("obs", "", list(dLocation, dLeadtime, dTime), NULL)
+   vFcst <- ncvar_def("fcst", "", list(dLocation, dLeadtime, dTime), NULL)
+   vPit  <- ncvar_def("pit", "", list(dLocation, dLeadtime, dTime), NULL)
+   vIgn  <- ncvar_def("ign", "", list(dLocation, dLeadtime, dTime), NULL)
+   vSpread <- ncvar_def("spread", "", list(dLocation, dLeadtime, dTime), NULL)
    varList <- list(vLat, vLon, vElev, vObs, vFcst, vPit, vIgn, vSpread)
    if(length(thresholds) > 0) {
-      vThreshold <- var.def.ncdf("threshold", "", list(dThreshold), MV)
-      vCdf <- var.def.ncdf("cdf", "", list(dThreshold, dLocation, dLeadtime, dTime), MV)
+      vThreshold <- ncvar_def("threshold", "", list(dThreshold), NULL)
+      vCdf <- ncvar_def("cdf", "", list(dThreshold, dLocation, dLeadtime, dTime), NULL)
       varList <- c(varList, list(vCdf))
    }
    if(length(quantiles) > 0) {
-      vQuantile <- var.def.ncdf("quantile", "", list(dQuantile), MV)
-      vX <- var.def.ncdf("x", "", list(dQuantile, dLocation, dLeadtime, dTime), MV)
+      vQuantile <- ncvar_def("quantile", "", list(dQuantile), NULL)
+      vX <- ncvar_def("x", "", list(dQuantile, dLocation, dLeadtime, dTime), NULL)
       varList <- c(varList, list(vX))
    }
 
-   fid <- create.ncdf(filename, varList)
-   close.ncdf(fid)
+   fid <- nc_create(filename, varList)
+   nc_close(fid)
 
    # Set up data
 
-   fid <- open.ncdf(filename, write=TRUE)
-   put.var.ncdf(fid, vLat, xeval$LAT[Iloc])
-   put.var.ncdf(fid, vLon, xeval$LON[Iloc])
-   put.var.ncdf(fid, vElev, xeval$ELEV[Iloc])
+   fid <- nc_open(filename, write=TRUE)
+   ncvar_put(fid, vLat, xeval$LAT[Iloc])
+   ncvar_put(fid, vLon, xeval$LON[Iloc])
+   ncvar_put(fid, vElev, xeval$ELEV[Iloc])
 
    # Compute scores
    xfcst <- array(MV, dim(xeval)[1])
@@ -105,7 +105,8 @@ gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
       xq    <- array(0, c(length(xfcst), length(quantiles)))
    for(i in 1:length(leadtimes)) {
       lt = leadtimes[i]
-      print(paste("Leadtime:", lt))
+      if(debug)
+         print(paste("Leadtime:", lt))
       I = which(abs(xtrain$LEADTIME - lt) <= leadtimeRange)
       xt = xtrain[I,]
       I = which(xeval$LEADTIME == lt)
@@ -177,26 +178,26 @@ gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
          }
       }
    }
-   put.var.ncdf(fid, vObs, obs)
-   put.var.ncdf(fid, vFcst, fcst)
-   put.var.ncdf(fid, vPit, pit)
-   put.var.ncdf(fid, vSpread, spread)
+   ncvar_put(fid, vObs, obs)
+   ncvar_put(fid, vFcst, fcst)
+   ncvar_put(fid, vPit, pit)
+   ncvar_put(fid, vSpread, spread)
    if(length(which(is.na(ign))) == 0 && length(which(is.infinite(ign))) == 0)
-      put.var.ncdf(fid, vIgn, ign)
+      ncvar_put(fid, vIgn, ign)
 
    if(!is.null(name))
-      att.put.ncdf(fid, 0, "long_name", variable)
+      ncatt_put(fid, 0, "long_name", name)
    if(!is.null(units))
-      att.put.ncdf(fid, 0, "units", units)
-   att.put.ncdf(fid, 0, "verif_version", "verif_1.0.0")
+      ncatt_put(fid, 0, "units", units)
+   ncatt_put(fid, 0, "verif_version", "verif_1.0.0")
 
    if(length(thresholds) > 0) {
-      put.var.ncdf(fid, vCdf, p)
+      ncvar_put(fid, vCdf, p)
    }
    if(length(quantiles) > 0) {
-      put.var.ncdf(fid, vX, q)
+      ncvar_put(fid, vX, q)
    }
-   close.ncdf(fid)
+   nc_close(fid)
 }
 
 pG <- function(p, fit, x, par=NULL) {

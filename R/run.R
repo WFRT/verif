@@ -31,4 +31,4 @@ training = data[1:1800,]
 # with the training dataset, otherwise it cannot train each offset separately.
 evaluation = data[1801:dim(data)[1],]
 
-gamlss2verif(model, training, evaluation, "fit.nc", thresholds=c(0,5,10))
+gamlss2verif(model, training, evaluation, "fit.nc", thresholds=c(0,5,10), name="Temperature", units="^oC")
