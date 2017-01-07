@@ -255,32 +255,32 @@ variables, and attributes are understood by ``verif``:
    netcdf format {
    dimensions:
       time = UNLIMITED;
-      lead_time  = 48;
+      leadtime  = 48;
       location = 10;
       ensemble = 21;
       threshold = 11;
       quantile = 11;
    variables:
-      int time(time);                                     // Valid time of forecast initialization in
-                                                          // number of seconds since 1970-01-01 00:00:00 +00:00
-      float lead_time(lead_time);                         // Number of hours since forecast init
-      int location(location);                             // Id for each station location
+      int time(time);                                  // Valid time of forecast initialization in
+                                                       // number of seconds since 1970-01-01 00:00:00 +00:00
+      float leadtime(leadtime);                        // Number of hours since forecast init
+      int location(location);                          // Id for each station location
       float threshold(threshold);
-      float quantile(quantile);                           // Numbers between 0 and 1
-      float lat(location);                                // Decimal degrees latitude
-      float lon(location);                                // Decimal degrees longitude
-      float altitude(location);                           // Altitude in meters
-      float obs(time, lead_time, location);               // Observations
-      float fcst(time, lead_time, location);              // Deterministic forecast
-      float cdf(time, lead_time, location, threshold);    // Accumulated prob at threshold
-      float pdf(time, lead_time, location, threshold);    // Probability density at threshold
-      float x(time, lead_time, location, quantile);       // Threshold corresponding to quantile
-      float pit(time, lead_time, location);               // CDF for threshold=observation
+      float quantile(quantile);                        // Numbers between 0 and 1
+      float lat(location);                             // Decimal degrees latitude
+      float lon(location);                             // Decimal degrees longitude
+      float altitude(location);                        // Altitude in meters
+      float obs(time, leadtime, location);             // Observations
+      float fcst(time, leadtime, location);            // Deterministic forecast
+      float cdf(time, leadtime, location, threshold);  // Accumulated prob at threshold
+      float pdf(time, leadtime, location, threshold);  // Probability density at threshold
+      float x(time, leadtime, location, quantile);     // Threshold corresponding to quantile
+      float pit(time, leadtime, location);             // CDF for threshold=observation
 
    // global attributes:
-      : long_name = "Temperature";                        // Used to label axes in plots
-      : standard_name = "air_temperature";                // NetCDF/CF standard name of the forecast variable
-      : verif_version = "1.0.0";                          // Will be used in the future if format changes
+      : long_name = "Temperature";                     // Used to label axes in plots
+      : standard_name = "air_temperature";             // NetCDF/CF standard name of the forecast variable
+      : verif_version = "1.0.0";                       // Will be used in the future if format changes
       }
 
 Copyright and license

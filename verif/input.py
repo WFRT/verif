@@ -185,7 +185,7 @@ class Netcdf(Input):
       return locations
 
    def _get_leadtimes(self):
-      return verif.util.clean(self._file.variables["lead_time"])
+      return verif.util.clean(self._file.variables["leadtime"])
 
    def _get_thresholds(self):
       if "threshold" in self._file.variables:
@@ -670,8 +670,8 @@ class Fake(Input):
       A fake input
 
       obs      A 1, 2, or 3D array of obsevations.
-               If 3D assume the dimensions are (time,lead_time,location)
-               If 2D assume the dimensions are (time,lead_time)
+               If 3D assume the dimensions are (time,leadtime,location)
+               If 2D assume the dimensions are (time,leadtime)
                If 1D assume the dimensions are (time)
       """
       # Turn into numpy array
