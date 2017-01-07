@@ -5,6 +5,11 @@
 # Suite: precise
 .PHONY: other/verif.sh
 
+default: nothing
+
+nothing:
+	@ echo "This makefile does not build verif, use setup.py"
+
 VERSION=$(shell grep __version__ verif/version.py | cut -d"=" -f2 | sed s"/ //g" | sed s"/'//g")
 coverage:
 	#nosetests --with-coverage --cover-erase --cover-package=verif --cover-html --cover-branches
@@ -25,7 +30,6 @@ clean:
 	find . -name '*.pyc' -delete
 	rm -rf deb_dist
 	rm -rf verif.egg-info
-	rm -f verif.sh verifOptions.txt
 
 count:
 	@wc -l verif/*.py | tail -1
