@@ -11,5 +11,3 @@ test.csh
 testPlots/
 stdeb.cfg
 devel/
-verif.sh
-verifOptions.txt
