@@ -205,14 +205,14 @@ class Netcdf(Input):
       elif hasattr(self._file, "standard_name"):
          name = self._file.standard_name
       else:
-         name = "Unknown"
+         name = "Unknown variable"
 
       units = ""
       if hasattr(self._file, "units"):
          units = self._file.units
 
       if units == "":
-         units = "No units"
+         units = "Unknown units"
       elif units == "%":
          units = "%"
       else:
@@ -243,7 +243,7 @@ class Text(Input):
       self._filename = os.path.expanduser(filename)
       file = open(self._filename, 'rU')
       self._variable_units = "Unknown units"
-      self._variable_name = "Unknown"
+      self._variable_name = "Unknown variable"
 
       self._times = set()
       self._leadtimes = set()
@@ -594,10 +594,10 @@ class Comps(Input):
 
    def _get_variable(self):
       name = self._file.Variable
-      units = "No units"
+      units = "Unknown units"
       if(hasattr(self._file, "Units")):
          if(self._file.Units == ""):
-            units = "No units"
+            units = "Unknown units"
          elif(self._file.Units == "%"):
             units = "%"
          else:
