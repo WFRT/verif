@@ -1,8 +1,10 @@
-library(ncdf4)
+library(ncdf)
 require(gamlss)
 
 # Creates a verification file that can be read by verif (https://github.com/wfrt/verif)
 # by fitting a gamlss model for each leadtime.
+#
+# Arguments:
 # model: A named list containing the specification of a gamlss model:
 #    mu: a formula for mu, e.g. mu=OBS~MEAN
 #    sigma: a formula for sigma, e.g. sigma=MEAN
@@ -10,80 +12,76 @@ require(gamlss)
 #    tau: a formula for nu
 #    family: A gamlss model, e.g. NO, ZAGA, BCT, etc
 #    nu and tau may be omitted if the family does not require it
-#    Use "raw" instead of a list if you just want the raw forecast.
-# x: dataframe containing training data with the following columns:
-#    SITE: Station Id
-#    LAT: Station latitude
-#    LON: Station longitude
-#    ELEV: Station elevation (meters)
-#    OFFSET: Forecast leadtime (hours)
-#    DATE: Forecast initialization date (YYYYMMDD)
+#
+#    Use "raw" instead of a list if you just want the raw forecast and "clim" to create a
+#    file based on climatolocical observations.
+# xtrain: dataframe containing training data with the following columns:
+#    ID: Location Id
+#    LAT: Location latitude (degrees)
+#    LON: Location longitude (degrees)
+#    ELEV: Location elevation (meters)
+#    TIME: Forecast initialization time (unix-time)
+#    LEADTIME: Forecast leadtime (hours)
 #    OBS: Observation
 #    Whatever columns are needed by 'model'
 #    ENS1...ENSN: (Optional) Put each ensemble member in a separate column, needed when model="raw"
-# y: evaluation dataset with the same format as 'x'
+# xeval: evaluation dataset with the same format as 'x'
 # filename: where should the verification data be stored?
-# variable: Which variable is this (Precip,  T, or WindSpeed). Used to write units, etc
+# name: Name of the forecast variable (e.g. Precip,  T, or WindSpeed).
+# units: Units of the variable (e.g. mm, ^oC, or m/s)
 # quantiles: Which quantiles should be written?
 # thresholds: Which thresholds should probabilities be computed for?
-# offsetRange: Allow data from neighbouring offsets to create the training. Makes the calibration
+# leadtimeRange: Allow data from neighbouring leadtimes to create the training. Makes the calibration
 #            more robust at the expense (benefit?) of smoothening the coefficient across leadtimes.
-#            A value of 1 means use data with offsets +-1.
+#            A value of 1 means use data with leadtimes +-1.
 # useMedian: Should the median be used to create the deterministic forecast? Otherwise the mean
 #            but this might not work for anything other than NO and ZAGA.
-
-gamlss2verif <- function(model, x, xeval, filename, variable="Precip",
+# debug: If TRUE, show debug information
+gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
                     quantiles=c(0.01,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.99),
-                    thresholds=NA,
-                    offsetRange=0,
-                    useMedian=TRUE) {
-   MV  = -1e30
-   MVL = -999
-   # Which thresholds should CDFs be written for?
-   if(is.na(thresholds)) {
-      if(variable == "Precip" | variable == "WindSpeed") {
-         thresholds <- c(0,0.2,0.3,0.4,0.5,0.7,1,2,5,10,15,20)
-      }
-      else if(variable == "T"){
-         thresholds <- c(-60,-55,-50,-45,-40,-35,-30,-25,-20,-15,-10,-5,0,5,10,15,20)
-      }
-   }
+                    thresholds=NULL,
+                    leadtimeRange=0,
+                    useMedian=TRUE,
+                    debug=FALSE) {
+   # Missing value indicator for NetCDF
+   MV  = 9.96921e+36 # default.missval.ncdf()
 
    # Dimensions
-   date      <- sort(unique(xeval$DATE))
-   offset    <- intersect(sort(unique(xeval$OFFSET)), sort(unique(x$OFFSET)))
-   location  <- sort(unique(xeval$SITE))
-   dDate     <- dim.def.ncdf("Date", "", date)
-   dOffset   <- dim.def.ncdf("Offset", "", offset)
-   dLocation <- dim.def.ncdf("Location", "", location)
+   times      <- sort(unique(xeval$TIME))
+   leadtimes    <- intersect(sort(unique(xeval$LEADTIME)), sort(unique(xtrain$LEADTIME)))
+   locations  <- sort(unique(xeval$ID))
+   dTime     <- dim.def.ncdf("time", "", times)
+   dLeadtime   <- dim.def.ncdf("leadtime", "", leadtimes)
+   dLocation <- dim.def.ncdf("location", "", locations)
+   if(length(thresholds) > 0)
+      dThreshold <- dim.def.ncdf("threshold", "", thresholds)
+   if(length(quantiles) > 0)
+      dQuantile <- dim.def.ncdf("quantile", "", quantiles)
 
-   # Remove missing stations
-   I = which(xeval$SITE %in% location)
+   # Remove missing stations (i.e. stations that are only in training set)
+   I = which(xeval$ID %in% locations)
    xeval = xeval[I,]
 
    # Variables
-   Iloc <- match(location, xeval$SITE)
-   vLat <- var.def.ncdf("Lat", "degrees", dLocation, MV)
-   vLon <- var.def.ncdf("Lon", "degrees", dLocation, MV)
-   vElev <- var.def.ncdf("Elev", "m", dLocation, MV)
-
-   vObs  <- var.def.ncdf("obs", "", list(dLocation, dOffset, dDate), MV)
-   vFcst <- var.def.ncdf("fcst", "", list(dLocation, dOffset, dDate), MV)
-   vPit  <- var.def.ncdf("pit", "", list(dLocation, dOffset, dDate), MV)
-   vIgn  <- var.def.ncdf("ign", "", list(dLocation, dOffset, dDate), MV)
-   vSpread <- var.def.ncdf("spread", "", list(dLocation, dOffset, dDate), MV)
-
+   Iloc <- match(locations, xeval$ID)
+   vLat <- var.def.ncdf("lat", "degrees", dLocation, MV)
+   vLon <- var.def.ncdf("lon", "degrees", dLocation, MV)
+   vElev <- var.def.ncdf("altitude", "m", dLocation, MV)
+   vObs  <- var.def.ncdf("obs", "", list(dLocation, dLeadtime, dTime), MV)
+   vFcst <- var.def.ncdf("fcst", "", list(dLocation, dLeadtime, dTime), MV)
+   vPit  <- var.def.ncdf("pit", "", list(dLocation, dLeadtime, dTime), MV)
+   vIgn  <- var.def.ncdf("ign", "", list(dLocation, dLeadtime, dTime), MV)
+   vSpread <- var.def.ncdf("spread", "", list(dLocation, dLeadtime, dTime), MV)
    varList <- list(vLat, vLon, vElev, vObs, vFcst, vPit, vIgn, vSpread)
-   vcdf    <- NULL
-   for(c in 1:length(thresholds)) {
-      varname = getPVarName(thresholds[c])
-      v <- var.def.ncdf(varname, "", list(dLocation, dOffset, dDate), MV)
-      varList[length(varList)+1] <- list(v)
+   if(length(thresholds) > 0) {
+      vThreshold <- var.def.ncdf("threshold", "", list(dThreshold), MV)
+      vCdf <- var.def.ncdf("cdf", "", list(dThreshold, dLocation, dLeadtime, dTime), MV)
+      varList <- c(varList, list(vCdf))
    }
-   for(c in 1:length(quantiles)) {
-      varname = getQVarName(quantiles[c])
-      v <- var.def.ncdf(varname, "", list(dLocation, dOffset, dDate), MV)
-      varList[length(varList)+1] <- list(v)
+   if(length(quantiles) > 0) {
+      vQuantile <- var.def.ncdf("quantile", "", list(dQuantile), MV)
+      vX <- var.def.ncdf("x", "", list(dQuantile, dLocation, dLeadtime, dTime), MV)
+      varList <- c(varList, list(vX))
    }
 
    fid <- create.ncdf(filename, varList)
@@ -97,26 +95,30 @@ gamlss2verif <- function(model, x, xeval, filename, variable="Precip",
    put.var.ncdf(fid, vElev, xeval$ELEV[Iloc])
 
    # Compute scores
-   xfcst <- array(-999, dim(xeval)[1])
-   xpit  <- array(-999, dim(xeval)[1])
-   xspread  <- array(-999, dim(xeval)[1])
-   xign  <- array(-999, dim(xeval)[1])
-   xp    <- array(0, c(length(xfcst), length(thresholds)))
-   xq    <- array(0, c(length(xfcst), length(quantiles)))
-   for(i in 1:length(offset)) {
-      off = offset[i]
-      print(paste("Offset:", off))
-      I = which(abs(x$OFFSET - off) <= offsetRange)
-      xt = x[I,]
-      I = which(xeval$OFFSET == off)
+   xfcst <- array(MV, dim(xeval)[1])
+   xpit  <- array(MV, dim(xeval)[1])
+   xspread  <- array(MV, dim(xeval)[1])
+   xign  <- array(MV, dim(xeval)[1])
+   if(length(thresholds) > 0)
+      xp    <- array(0, c(length(xfcst), length(thresholds)))
+   if(length(quantiles) > 0)
+      xq    <- array(0, c(length(xfcst), length(quantiles)))
+   for(i in 1:length(leadtimes)) {
+      lt = leadtimes[i]
+      print(paste("Leadtime:", lt))
+      I = which(abs(xtrain$LEADTIME - lt) <= leadtimeRange)
+      xt = xtrain[I,]
+      I = which(xeval$LEADTIME == lt)
       xe = xeval[I,]
-      if(!identical(model, "raw")) {
+      if(!identical(model, "raw") && !identical(model, "clim")) {
          mu=model$mu
          sigma=model$sigma
          nu=model$nu
          tau=model$tau
          family=model$family
          fit = gamlss(mu, sigma.formula=sigma, nu.formula=nu, tau.formula=tau, family=family, data=xt)
+         if(debug)
+            print(fit)
       }
       else {
          fit = model
@@ -133,37 +135,45 @@ gamlss2verif <- function(model, x, xeval, filename, variable="Precip",
       xspread[I]  <- (qG(0.84, fit, xe, par)-qG(0.16, fit, xe, par))/2
       # We don't need to randomize PIT, because verif does that
       xign[I]  <- -log2(dG(xe$OBS, fit, xe, par))
-      for(c in 1:length(thresholds)) {
-         xp[I,c] <- pG(thresholds[c], fit, xe, par)
+      if(length(thresholds) > 0) {
+         for(c in 1:length(thresholds)) {
+            xp[I,c] <- pG(thresholds[c], fit, xe, par)
+         }
       }
-      for(c in 1:length(quantiles)) {
-         xq[I,c] <- qG(quantiles[c], fit, xe, par)
+      if(length(quantiles) > 0) {
+         for(c in 1:length(quantiles)) {
+            xq[I,c] <- qG(quantiles[c], fit, xe, par)
+         }
       }
    }
 
-   obs   <- array(MVL, c(length(location), length(offset), length(date)))
-   fcst  <- array(MVL, c(length(location), length(offset), length(date)))
-   pit   <- array(MVL, c(length(location), length(offset), length(date)))
-   spread <- array(MVL, c(length(location), length(offset), length(date)))
-   ign   <- array(MVL, c(length(location), length(offset), length(date)))
-   p     <- array(MVL, c(length(location), length(offset), length(date), length(thresholds)))
-   q     <- array(MVL, c(length(location), length(offset), length(date), length(quantiles)))
-   for(d in 1:length(date)) {
-      Id = which(xeval$DATE == date[d])
-      for(o in 1:length(offset)) {
-         Io = which(xeval$OFFSET == offset[o])
+   obs   <- array(MV, c(length(locations), length(leadtimes), length(times)))
+   fcst  <- array(MV, c(length(locations), length(leadtimes), length(times)))
+   pit   <- array(MV, c(length(locations), length(leadtimes), length(times)))
+   spread <- array(MV, c(length(locations), length(leadtimes), length(times)))
+   ign   <- array(MV, c(length(locations), length(leadtimes), length(times)))
+   p     <- array(MV, c(length(thresholds), length(locations), length(leadtimes), length(times)))
+   q     <- array(MV, c(length(quantiles), length(locations), length(leadtimes), length(times)))
+   for(d in 1:length(times)) {
+      Id = which(xeval$TIME == times[d])
+      for(o in 1:length(leadtimes)) {
+         Io = which(xeval$LEADTIME == leadtimes[o])
          I0 = intersect(Id, Io)
-         I  = match(xeval$SITE[I0], location)
+         I  = match(xeval$ID[I0], locations)
          obs[I,o,d]  = xeval$OBS[I0]
          fcst[I,o,d] = xfcst[I0]
          pit[I,o,d]  = xpit[I0]
          spread[I,o,d]  = xspread[I0]
          ign[I,o,d]  = xign[I0]
-         for(c in 1:length(thresholds)) {
-            p[I,o,d,c] = xp[I0,c]
+         if(length(thresholds) > 0) {
+            for(c in 1:length(thresholds)) {
+               p[c,I,o,d] = xp[I0,c]
+            }
          }
-         for(c in 1:length(quantiles)) {
-            q[I,o,d,c] = xq[I0,c]
+         if(length(quantiles) > 0) {
+            for(c in 1:length(quantiles)) {
+               q[c,I,o,d] = xq[I0,c]
+            }
          }
       }
    }
@@ -174,45 +184,19 @@ gamlss2verif <- function(model, x, xeval, filename, variable="Precip",
    if(length(which(is.na(ign))) == 0 && length(which(is.infinite(ign))) == 0)
       put.var.ncdf(fid, vIgn, ign)
 
-   att.put.ncdf(fid, 0, "Variable", variable)
-   if(variable == "Precip")
-      att.put.ncdf(fid, 0, "Units", "mm")
-   else if(variable == "WindSpeed")
-      att.put.ncdf(fid, 0, "Units", "m/s")
-   else if(variable == "T")
-      att.put.ncdf(fid, 0, "Units", "^oC")
+   if(!is.null(name))
+      att.put.ncdf(fid, 0, "long_name", variable)
+   if(!is.null(units))
+      att.put.ncdf(fid, 0, "units", units)
+   att.put.ncdf(fid, 0, "verif_version", "verif_1.0.0")
 
-   for(c in 1:length(thresholds)) {
-      varname = getPVarName(thresholds[c])
-      put.var.ncdf(fid, varname, p[,,,c])
+   if(length(thresholds) > 0) {
+      put.var.ncdf(fid, vCdf, p)
    }
-   for(c in 1:length(quantiles)) {
-      varname = getQVarName(quantiles[c])
-      put.var.ncdf(fid, varname, q[,,,c])
+   if(length(quantiles) > 0) {
+      put.var.ncdf(fid, vX, q)
    }
    close.ncdf(fid)
-}
-
-getPVarName <- function(thresholds) {
-   if(thresholds < 0) {
-      varname = paste("pm", -thresholds, sep="")
-   }
-   else if(thresholds < 1 & thresholds > 0) {
-      varname = paste("p0", thresholds*10, sep="")
-   }
-   else {
-      varname = paste("p", thresholds, sep="")
-   }
-   return(varname)
-}
-
-getQVarName <- function(quantiles) {
-   varname = paste("q", floor(quantiles*100), sep="")
-   return(varname)
-}
-scatter <- function(fit, x) {
-   fcst = pG(0*x$OBS+0.5, fit, x)
-   plot(x$P0, fcst)
 }
 
 pG <- function(p, fit, x, par=NULL) {
@@ -255,6 +239,9 @@ getValues <- function(q, fit, x, type, par=NULL) {
       if(fit == "raw") {
          values = matrix(NA, nrow=dim(x)[1], ncol=1)
          kens = grep("ENS", names(x))
+         if(length(kens) == 0) {
+            stop("No ensemble members (columns such as ENS1) found in data frame")
+         }
          if(type == "p") {
             values = apply(x[,kens] <= q, 1, mean)
          }
@@ -280,16 +267,16 @@ getValues <- function(q, fit, x, type, par=NULL) {
       else if(fit == "clim") {
          values = matrix(NA, nrow=dim(x)[1], ncol=1)
          if(type == "p") {
-            sites = unique(x$SITE)
+            sites = unique(x$ID)
             for(site in sites) {
-               I = which(x$SITE == site)
+               I = which(x$ID == site)
                values[I,1] = mean(x$OBS[I] <= q)
             }
          }
          else if(type == "q") {
-            sites = unique(x$SITE)
+            sites = unique(x$ID)
             for(site in sites) {
-               I = which(x$SITE == site)
+               I = which(x$ID == site)
                if(length(I) > 0) {
                   temp  = sort(x$OBS[I])
                   N     = length(temp)
@@ -304,9 +291,9 @@ getValues <- function(q, fit, x, type, par=NULL) {
             values[,1] = -999
          }
          else if(type == "m") {
-            sites = unique(x$SITE)
+            sites = unique(x$ID)
             for(site in sites) {
-               I = which(x$SITE == site)
+               I = which(x$ID == site)
                values[I,1] = mean(x$OBS[I])
             }
          }
@@ -340,7 +327,7 @@ getValues <- function(q, fit, x, type, par=NULL) {
          }
          return(values)
       }
-      # qZAGA is really slow, use optimized function
+      # qZAGA is really slow, use optimized function provided below
       if(type == "q" & family == "ZAGA") {
          string = "qzaga"
       }
