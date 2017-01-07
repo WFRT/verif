@@ -34,7 +34,7 @@ class TestStandard(unittest.TestCase):
 
    def test_location(self):
       data, output = self._get()
-      for ax in [verif.axis.Location(), verif.axis.Id(), verif.axis.Lat(), verif.axis.Lon(), verif.axis.Elev()]:
+      for ax in [verif.axis.Location(), verif.axis.Lat(), verif.axis.Lon(), verif.axis.Elev()]:
          x, y, _, _ = output._get_x_y(data, verif.axis.Location())
          loc = data.locations
          self.assertEqual(len(loc), len(x))

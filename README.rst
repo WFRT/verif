@@ -221,25 +221,30 @@ To verify your own forecasts, the easiest option is to put the data into the fol
 
    # variable: Temperature
    # units: $^oC$
-   date     offset id      lat     lon      elev     obs      fcst   p10
-   20150101 0      214     49.2    -122.1   92       3.4      2.1    0.914
-   20150101 1      214     49.2    -122.1   92       4.7      4.2    0.858
-   20150101 0      180     50.3    -120.3   150      0.2      -1.2   0.992
+   date     leadtime id        lat     lon      elev     obs      fcst   p10   q0.1
+   20150101 0        214       49.2    -122.1   92       3.4      2.1    0.914 -1.9
+   20150101 1        214       49.2    -122.1   92       4.7      4.2    0.858 0.1
+   20150101 0        180       50.3    -120.3   150      0.2      -1.2   0.992 -2.1
 
 Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After
 that is a header line that must describe the data columns below. The following attributes are
 recognized:
 
 * date (in YYYYMMDD)
-* offset (forecast lead time in hours)
+* unixtime (in seconds since 1970-01-01 00:00:00 +00:00)
+* leadtime (forecast lead time in hours)
 * id (station identifier)
 * lat (in degrees)
 * lon (in degrees)
 * obs (observations)
 * fcst (deterministic forecast)
-* p<number> (cumulative probability at a threshold of 10)
+* p<number> (cumulative probability for a specific threshold, e.g. p10 is the CDF at 10 degrees)
+* q<number> (temperature for a specific quantile e.g. q0.1 is the 0.1 quantile)
 
-obs and fcst are the only required columns. Note that the file will likely have many rows with repeated values of offsetid/lat/lon/elev. If station and lead time information is missing, then ``verif`` assumes they are all for the same station and lead time. The columns can be in any order.
+Either 'date' or 'unixtime' can be supplied. obs and fcst are the only required columns. Note that
+the file will likely have many rows with repeated values of leadtime/location/lat/lon/elev. If
+station and lead time information is missing, then ``verif`` assumes they are all for the same
+station and lead time. The columns can be in any order.
 
 Deterministic forecasts will only have "obs" and "fcst", however probabilistic forecasts can provide
 any number of cumulative probabilities. For probabilistic forecasts, "fcst" could represent the

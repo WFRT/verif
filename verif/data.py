@@ -277,8 +277,7 @@ class Data(object):
       verif.axis.Month()      Unixtimes of the begining of each month
       verif.axis.Year()       Unixtimes of the beginning of each year
       verif.axis.Leadtime()   Lead times in hours
-      verif.axis.Location()   Index into location array
-      verif.axis.Id()         Location id
+      verif.axis.Location()   Location id
       verif.axis.Lat()        Latitudes of locations
       verif.axis.Lon()        Longitudes of locations
       verif.axis.Elev()       Elevations of locations
@@ -303,8 +302,6 @@ class Data(object):
          return [0]
       elif(axis.is_location_like):
          if(axis == verif.axis.Location()):
-            data = range(0, len(self.locations))
-         elif(axis == verif.axis.Id()):
             data = np.array([loc.id for loc in self.locations])
          elif(axis == verif.axis.Elev()):
             data = np.array([loc.elev for loc in self.locations])

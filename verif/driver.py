@@ -585,7 +585,7 @@ def show_description(data=None):
    s += format_argument("-r thresholds", "Compute scores using these thresholds (only used by some metrics).") + "\n"
    s += format_argument("-q quantiles", "Compute scores using these quantiles (only used by some metrics).") + "\n"
    s += format_argument("-t times", "A vector of unix timestamps.") + "\n"
-   s += format_argument("-x dim", "Plot this dimension on the x-axis: date, leadtime, year, month, week, location, id, elev, lat, lon, threshold, or no. Not supported by all metrics. If not specified, then a default is used based on the metric. 'id' refers to the location id, whereas 'location' is the location index, which starts at 0 and increases sequantially. 'no' collapses all dimensions and computes one value.") + "\n"
+   s += format_argument("-x dim", "Plot this dimension on the x-axis: date, leadtime, year, month, week, location, elev, lat, lon, threshold, or no. Not supported by all metrics. If not specified, then a default is used based on the metric. 'location' refers to the location id. 'no' collapses all dimensions and computes one value.") + "\n"
 
    # Data manipulation
    s += verif.util.green("  Data manipulation:") + "\n"

@@ -120,14 +120,6 @@ class Elev(Axis):
       return "Elevation (m)"
 
 
-class Id(Axis):
-   is_continuous = False
-   is_location_like = True
-
-   def label(self, variable):
-      return "Location id"
-
-
 class All(Axis):
    """ No aggregation done """
    is_continuous = False
