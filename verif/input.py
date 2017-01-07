@@ -200,18 +200,26 @@ class Netcdf(Input):
          return np.array([])
 
    def _get_variable(self):
-      if hasattr(self._file, "standard_name"):
+      if hasattr(self._file, "long_name"):
+         name = self._file.long_name
+      elif hasattr(self._file, "standard_name"):
          name = self._file.standard_name
       else:
          name = "Unknown"
-      units = "No units"
-      if hasattr(self._file, "Units"):
-         if(self._file.Units == ""):
-            units = "No units"
-         elif self._file.Units == "%":
-            units = "%"
-         else:
-            units = "$" + self._file.Units + "$"
+
+      units = ""
+      if hasattr(self._file, "units"):
+         units = self._file.units
+
+      if units == "":
+         units = "No units"
+      elif units == "%":
+         units = "%"
+      else:
+         # Wrap units in $$ so that the latex interpreter can be used when
+         # displaying units
+         units = "$" + units + "$"
+
       x0 = verif.variable.guess_x0(name)
       x1 = verif.variable.guess_x1(name)
       return verif.variable.Variable(name, units, x0=x0, x1=x1)

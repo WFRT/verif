@@ -247,23 +247,22 @@ ensemble mean (or any other method to reduce the ensemble to a deterministic for
 
 NetCDF-based  input
 ---------------------
-For larger datasets, the files in NetCDF are much quicker to read. The following dimensions and
-variables are understood by ``verif``:
+For larger datasets, the files in NetCDF are much quicker to read. The following dimensions,
+variables, and attributes are understood by ``verif``:
 
 .. code-block:: bash
 
    netcdf format {
-   dimensions :
+   dimensions:
       time = UNLIMITED;
-         time:standard_name = "time" ;
-         time:units = "seconds since 1970-01-01 00:00:00 +00:00" ;
       lead_time  = 48;
       location = 10;
       ensemble = 21;
       threshold = 11;
       quantile = 11;
    variables:
-      int time(time);                                     // Valid time of forecast initialization
+      int time(time);                                     // Valid time of forecast initialization in
+                                                          // number of seconds since 1970-01-01 00:00:00 +00:00
       float lead_time(lead_time);                         // Number of hours since forecast init
       int location(location);                             // Id for each station location
       float threshold(threshold);
@@ -272,19 +271,16 @@ variables are understood by ``verif``:
       float lon(location);                                // Decimal degrees longitude
       float altitude(location);                           // Altitude in meters
       float obs(time, lead_time, location);               // Observations
-      float ens(time, lead_time, location, member);       // Ensemble forecast
       float fcst(time, lead_time, location);              // Deterministic forecast
       float cdf(time, lead_time, location, threshold);    // Accumulated prob at threshold
       float pdf(time, lead_time, location, threshold);    // Probability density at threshold
       float x(time, lead_time, location, quantile);       // Threshold corresponding to quantile
       float pit(time, lead_time, location);               // CDF for threshold=observation
 
-   global attributes:
-      : name = "raw";                                    // Used as configuration name
-      : standard_name = "air_temperature";               // NetCDF/CF standard name of the forecast variable
-      : long_name = "Temperature";                       // Used to label plots
-      : Units = "^oC";                                   // Used to label axes
-      : Conventions = "verif_1.0.0";
+   // global attributes:
+      : long_name = "Temperature";                        // Used to label axes in plots
+      : standard_name = "air_temperature";                // NetCDF/CF standard name of the forecast variable
+      : verif_version = "1.0.0";                          // Will be used in the future if format changes
       }
 
 Copyright and license
