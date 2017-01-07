@@ -732,6 +732,12 @@ class Standard(Output):
          mpl.xlabel(self.axis.label(data.variable))
 
          if self.axis.is_time_like:
+            # Note that if the above plotted lines all have nan y'values, then
+            # xaxis_date() will cause an error, since the x-axis limits are set
+            # such that the plot is around 0. Override the x-limits so that the
+            # user at least does not get a cryptic error message.
+            if np.sum(np.isnan(y)==0) == 0:
+               mpl.xlim([min(x), max(x)])
             mpl.gca().xaxis_date()
          else:
             # NOTE: Don't call the locator on a date axis
