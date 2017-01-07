@@ -176,7 +176,7 @@ class Netcdf(Input):
    def _get_locations(self):
       lat = verif.util.clean(self._file.variables["lat"])
       lon = verif.util.clean(self._file.variables["lon"])
-      id = verif.util.clean(self._file.variables["id"])
+      id = verif.util.clean(self._file.variables["location"])
       elev = verif.util.clean(self._file.variables["altitude"])
       locations = list()
       for i in range(0, lat.shape[0]):

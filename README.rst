@@ -265,7 +265,7 @@ variables are understood by ``verif``:
    variables:
       int time(time);                                     // Valid time of forecast initialization
       float lead_time(lead_time);                         // Number of hours since forecast init
-      int id(location);                                   // Id for each station location
+      int location(location);                             // Id for each station location
       float threshold(threshold);
       float quantile(quantile);                           // Numbers between 0 and 1
       float lat(location);                                // Decimal degrees latitude
@@ -281,7 +281,7 @@ variables are understood by ``verif``:
 
    global attributes:
       : name = "raw";                                    // Used as configuration name
-      : standard_name = "air_temperature";               // Name of the forecast variabl
+      : standard_name = "air_temperature";               // NetCDF/CF standard name of the forecast variable
       : long_name = "Temperature";                       // Used to label plots
       : Units = "^oC";                                   // Used to label axes
       : Conventions = "verif_1.0.0";
