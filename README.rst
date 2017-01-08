@@ -6,19 +6,19 @@ Forecast verification software
 .. image:: https://coveralls.io/repos/WFRT/verif/badge.svg?branch=master&service=github
   :target: https://coveralls.io/github/WFRT/verif?branch=master
 
-``verif`` is a command-line tool that lets you verify the quality of weather forecasts for point
+Verif is a command-line tool that lets you verify the quality of weather forecasts for point
 locations. It can also compare forecasts from different forecasting systems (that have different
 models, post-processing methods, etc).
 
 The program reads files with observations and forecasts in a specific format (see "Input files"
 below). The input files contain information about dates, forecast lead times, and locations such
 that statistics can be aggregated across different dimensions. To ensure a fair comparison among
-files, ``verif`` will discard data points where one or more forecast systems have missing forecasts.
-Since ``verif`` is a command-line tool, it can be used in scripts to automatically create
+files, Verif will discard data points where one or more forecast systems have missing forecasts.
+Since Verif is a command-line tool, it can be used in scripts to automatically create
 verification figures.
 
-``verif`` version 1.0 has been released (see "Installation Instruction" below). We welcome suggestions
-for improvements. ``verif`` is developed by Thomas Nipen, David Siuta, and Tim Chui.
+Verif version 1.0 has been released (see "Installation Instruction" below). We welcome suggestions
+for improvements. Verif is developed by Thomas Nipen, David Siuta, and Tim Chui.
 
 .. image:: image.jpg
     :alt: Example plots
@@ -40,12 +40,12 @@ Features
 * Anomaly statistics relative to a baseline like climatology (``-c climfile.txt``)
 * Output to png, jpeg, eps, etc and specify dimensions and resolution (``-f image.png -dpi 300``)
 
-For a full list, run ``verif`` without arguments.
+For a full list, run Verif without arguments.
 
 Installing using pip
 --------------------
 
-The easiest is to install the lastest version of ``verif`` using ``pip``:
+The easiest is to install the lastest version of Verif using pip:
 
 .. code-block:: bash
 
@@ -56,7 +56,7 @@ Installing from source
 
 If ``pip`` is not available, then download the source code of the latest version:
 https://github.com/WFRT/verif/releases/. Unzip the file and navigate into the extracted folder.
-``verif`` requires python as well as the python packages numpy, scipy, and matplotlib. The python
+Verif requires python as well as the python packages numpy, scipy, and matplotlib. The python
 package basemap is optional, but provide a background map when verification scores are plotted on a
 map. NetCDF4/HDF5 is not required, but will make reading of NetCDF files faster. If this package is
 not found, the NetCDF capabilities from scipy will be used instead.
@@ -69,7 +69,7 @@ Install the required pacakges:
 
   sudo apt-get install python-numpy python-scipy python-matplotlib python-setuptools
 
-Then install ``verif`` by executing the following inside the extracted folder:
+Then install Verif by executing the following inside the extracted folder:
 
 .. code-block:: bash
 
@@ -88,14 +88,14 @@ variable.
 
 **Mac OSX**
 
-Install python, numpy, scipy, and matplotlib, then install ``verif`` by executing the following
+Install python, numpy, scipy, and matplotlib, then install Verif by executing the following
 inside the extracted folder:
 
 .. code-block:: bash
 
   sudo python setup.py install
 
-``verif`` will then be installed ``/usr/local/share/python/`` or where ever your python modules are
+Verif will then be installed ``/usr/local/share/python/`` or where ever your python modules are
 installed (Look for "Installing verif script to <some directory>" when installing). Add the folder
 to your PATH environment variable.
 
@@ -243,7 +243,7 @@ recognized:
 
 Either 'date' or 'unixtime' can be supplied. obs and fcst are the only required columns. Note that
 the file will likely have many rows with repeated values of leadtime/location/lat/lon/altitude. If
-station and lead time information is missing, then ``verif`` assumes they are all for the same
+station and lead time information is missing, then Verif assumes they are all for the same
 station and lead time. The columns can be in any order.
 
 Deterministic forecasts will only have "obs" and "fcst", however probabilistic forecasts can provide
@@ -256,7 +256,7 @@ For compatibility reason, 'offset' can be used instead of 'leadtime', 'id instea
 NetCDF-based  input
 ---------------------
 For larger datasets, the files in NetCDF are much quicker to read. The following dimensions,
-variables, and attributes are understood by ``verif``:
+variables, and attributes are understood by Verif:
 
 .. code-block:: bash
 
@@ -294,5 +294,5 @@ variables, and attributes are understood by ``verif``:
 Copyright and license
 ---------------------
 
-Copyright © 2015-2017 UBC Weather Forecast Research Team. ``verif`` is licensed under the 3-clause
+Copyright © 2015-2017 UBC Weather Forecast Research Team. Verif is licensed under the 3-clause
 BSD license. See LICENSE file.
