@@ -165,6 +165,7 @@ class Output(object):
       self.ylim = None
       self.ylog = False
       self.yrot = None
+      self.yticklabels = None
       self.yticks = None
       self.aspect = None
 
@@ -526,15 +527,13 @@ class Output(object):
 
       # Ticks
       if self.xticks is not None:
-         if self.xticklabels is not None:
-            mpl.xticks(self.xticks, self.xticklabels)
-         else:
-            mpl.xticks(self.xticks)
+         mpl.xticks(self.xticks)
+      if self.xticklabels is not None:
+         mpl.xticks(mpl.xticks()[0], self.xticklabels)
       if self.yticks is not None:
-         if self.yticklabels is not None:
-            mpl.yticks(self.yticks, self.yticklabels)
-         else:
-            mpl.yticks(self.yticks)
+         mpl.yticks(self.yticks)
+      if self.yticklabels is not None:
+         mpl.yticks(mpl.yticks()[0], self.yticklabels)
 
       # Margins
       mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)

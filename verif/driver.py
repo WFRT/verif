@@ -36,7 +36,6 @@ def run(argv):
    leadtimes = None
    axis = None
    aspect = None
-   sdim = None
    figsize = None
    dpi = 100
    no_margin = False
@@ -180,8 +179,6 @@ def run(argv):
                yticks = verif.util.parse_numbers(arg_next)
             elif(arg == "-yticklabels"):
                yticklabels = (arg_next).split(',')
-            elif(arg == "-s"):
-               sdim = arg_next
             elif(arg == "-agg"):
                aggregator_name = arg_next
             elif(arg == "-aspect"):
@@ -272,7 +269,7 @@ def run(argv):
 
    if(list_thresholds or list_quantiles or list_locations or list_times):
       if(len(ifiles) == 0):
-         verif.util.error("Files are required in order to list thresholds or quantiles")
+         verif.util.error("Files are required in order to list thresholds, quantiles, or times")
       if(list_thresholds):
          print "Thresholds:",
          for threshold in data.thresholds:
@@ -603,8 +600,8 @@ def show_description(data=None):
    s += verif.util.green("  Plotting options:") + "\n"
    s += format_argument("-aspect ratio", "Force the aspect ratio of the plot. A value greater than 1 will stretch out the y-axis.") + "\n"
    s += format_argument("-bottom value", "Bottom boundary location for saved figure [range 0-1]") + "\n"
-   s += format_argument("-clim limits", "Force colorbar limits to the two values lower,upper") + "\n"
-   s += format_argument("-cmap colormap", "Use this colormap when possible (e.g. jet, inferno, RdBu)") + "\n"
+   s += format_argument("-clim limits", "Force colorbar limits to the two values lower,upper. Only used in combination with -type map.") + "\n"
+   s += format_argument("-cmap colormap", "Use this colormap when possible (e.g. jet, inferno, RdBu). Only used in combination with -type map.") + "\n"
    s += format_argument("-dpi value", "Resolution of image in dots per inch (default 100)") + "\n"
    s += format_argument("-f file", "Save image to this filename") + "\n"
    s += format_argument("-fs size", "Set figure size width,height (in inches). Default 8x6.") + "\n"
@@ -620,13 +617,13 @@ def show_description(data=None):
    s += format_argument("-ms size", "How big should markers be?") + "\n"
    s += format_argument("-nogrid", "Turn the grid on the plot off") + "\n"
    s += format_argument("-nomargin", "Remove margins (whitespace) in the plot") + "\n"
-   s += format_argument("-right value", "Right boundary location for saved figure [range 0-1]") + "\n"
+   s += format_argument("-right value", "Right boundary location for saved figure [range 0-1]. Must be greater than -left.") + "\n"
    s += format_argument("-simple", "Make a simpler plot, without extra lines, subplots, etc.") + "\n"
    s += format_argument("-sp", "Show a line indicating the perfect score") + "\n"
    s += format_argument("-tickfs size", "Font size for axis ticks") + "\n"
    s += format_argument("-title text", "Custom title to chart top") + "\n"
    s += format_argument("-titlefs size", "Font size for title.") + "\n"
-   s += format_argument("-top value", "Top boundary location for saved figure [range 0-1]") + "\n"
+   s += format_argument("-top value", "Top boundary location for saved figure [range 0-1].  Must be greater than -bottom.") + "\n"
    s += format_argument("-type type", "One of 'plot' (default), 'text', 'csv', 'map', or 'maprank'.") + "\n"
    s += format_argument("-xlabel text", "Custom x-axis label") + "\n"
    s += format_argument("-xlim limits", "Force x-axis limits to the two values lower,upper") + "\n"
@@ -639,7 +636,7 @@ def show_description(data=None):
    s += format_argument("-ylog", "Use a logarithmic y-axis") + "\n"
    s += format_argument("-yrot value", "Rotation angle for y-axis labels") + "\n"
    s += format_argument("-yticks ticks", "A vector of values to put ticks on the y-axis") + "\n"
-   s += format_argument("-xticklabels labs", "A comma-separated list of labels for the y-axis ticks") + "\n"
+   s += format_argument("-yticklabels labs", "A comma-separated list of labels for the y-axis ticks") + "\n"
    s += "\n"
    s += verif.util.green("Metrics (-m):") + "\n"
    s += "  (For a full description of a metric, run verif -m <metric>)\n"

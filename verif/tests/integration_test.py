@@ -2,51 +2,77 @@ import unittest
 import verif.driver
 import os
 import numpy as np
+import tempfile
 np.seterr('raise')
 
 
 class IntegrationTest(unittest.TestCase):
-   # Runs a verif command line
+   """
+   These tests run verif on the command-line, but do not test the validity of the
+   output graphics, only that they do or do not create errors.
+   """
+
    @staticmethod
    def run_command(command):
+      """ Runs a verif command line """
       argv = command.split()
       verif.driver.run(argv)
 
    @staticmethod
    def remove(file):
+      """ Removes a file """
       os.remove(file)
 
-   # In bytes
    @staticmethod
    def file_size(filename):
+      """ Returns the number of bytes of a file """
       statinfo = os.stat(filename)
       return statinfo.st_size
 
    @staticmethod
-   def is_valid_image(filename):
-      return IntegrationTest.file_size(filename) > 3000
+   def is_valid_file(filename, min_size=3000):
+      """ Checks if a file is larger in size than min_size bytes """
+      return IntegrationTest.file_size(filename) > min_size
 
-   # Runs command and appends -f test.png
-   # Cleans up the image file afterwards
    def run_with_image(self, command):
-      imageFile = "test.png"
+      """
+      Runs the verif command and appends -f <somefile>.png so that it will write output
+      to a temporary png file. Removes the file afterwards.
+      """
+      fd, imageFile = tempfile.mkstemp(suffix=".png")
       command = command + " -f " + imageFile
       self.run_command(command)
-      self.assertTrue(self.is_valid_image(imageFile))
+      self.assertTrue(self.is_valid_file(imageFile), 3000)
+      os.close(fd)
       self.remove(imageFile)
+
+   def run_with_text(self, command):
+      """
+      Runs the verif command and appends -f <somefile>.txt so that it will write output
+      to a temporary txt file. Removes the file afterwards.
+      """
+      fd, textFile = tempfile.mkstemp(suffix=".txt")
+      command = command + " -f " + textFile
+      self.run_command(command)
+      self.assertTrue(self.is_valid_file(textFile, 10))
+      os.close(fd)
+      self.remove(textFile)
 
    def test_valid(self):
       self.run_command("verif")
       self.run_command("verif --version")
       self.run_command("verif examples/raw.txt examples/kf.txt --list-thresholds")
       self.run_command("verif examples/raw.txt examples/kf.txt --list-quantiles")
-      self.run_command("verif examples/raw.txt examples/kf.txt --list-thresholds --list-quantiles")
+      self.run_command("verif examples/raw.txt examples/kf.txt --list-times")
+      self.run_command("verif examples/raw.txt examples/kf.txt --list-thresholds --list-quantiles --list-times")
 
    def test_invalid(self):
       with self.assertRaises(SystemExit):
          self.run_with_image("verif --list-thresholds")
       with self.assertRaises(SystemExit):
          self.run_with_image("verif --list-quantiles")
+      with self.assertRaises(SystemExit):
+         self.run_with_image("verif --list-times")
 
    def test_README(self):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae")
@@ -91,6 +117,72 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x month")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x year")
 
+   def test_plotting_options(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 0.1")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 2.1")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -bottom 0.1")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -bottom 0.5")
+      # -clim and -cmap are tested with -type map
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -dpi 50")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -dpi 300")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -fs 10,2")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -labfs 0")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -labfs 11")
+      # -lc tests are in separate functions
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -left 0.8")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -legfs 0")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -legfs 10")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -legloc right")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -legloc lower_left")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ls -,-o")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ls *")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ls -,-s,:")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -lw 0")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -lw 1")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -lw 1.3")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -lw 2")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ms 0")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ms 1")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ms 1.3")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ms 2")
+      # For some reason this fails without -left 0.1, although it works fine when verif is
+      # invoked on the command line:
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -left 0.1 -right 0.8")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -tickfs 0")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -tickfs 10")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -title title")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -titlefs 0")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -titlefs 10")
+      # Same as for -right above
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -bottom 0.1 -top 0.4")
+      # -type is tested separately
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xlabel test")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xlim 0,1")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xrot 90")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xticks 0:4")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xticks 0:4 -xticklabels 0,test,1")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xticklabels 0,test,1")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xticklabels ''")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ylabel test")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ylim 0,1")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yrot 90")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticks 0:4")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticks 0:4 -yticklabels 0,test,1")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticklabels 0,test,1")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticklabels ''")
+
+   def test_map_type(self):
+      pass
+
+   def test_type(self):
+      self.run_with_text("verif examples/raw.txt examples/kf.txt -m mae -type text")
+      self.run_with_text("verif examples/raw.txt examples/kf.txt -m mae -type csv")
+      # These cause a FutureWarning in mpl, but not much we can do about that
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type map -clim 0,11")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type map -cmap RdBu")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type map")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type maprank")
+
    def test_freq(self):
       self.run_with_image("verif verif/tests/files/file1.txt -m freq")
       # Check that no error occurs, even though fcst or obs is not available
@@ -101,7 +193,7 @@ class IntegrationTest(unittest.TestCase):
        for lc in ("g,r", "g", "g,r,b", "0,0.5,0.9", "[0,0,1],0.5,g"):
           self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -lc %s" % lc)
 
-   def test_options(self):
+   def test_boolean_options(self):
       for opt in ("acc", "nogrid", "nomargin", "hist", "sort", "sp", "simple", "xlog", "ylog"):
          self.run_with_image("verif examples/raw.txt examples/kf.txt -m obs -%s" % opt)
 
