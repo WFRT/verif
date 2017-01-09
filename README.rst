@@ -42,32 +42,32 @@ Features
 
 For a full list, run Verif without arguments.
 
-Installing using pip
+Installing on Ubuntu
 --------------------
 
+**Prerequisites**
+
+Verif requires NetCDF as well as the python packages numpy, scipy, and matplotlib. The python
+package mpltoolkits.basemap is optional, but provides a background map when verification scores are
+plotted on a map. Install the packages as follows:
+
+.. code-block:: bash
+
+  sudo apt-get install netcdf-bin libnetcdf-dev libhdf5-serial-dev
+  sudo apt-get install python-setuptools python-numpy python-scipy python-matplotlib python-mpltoolkits.basemap
+
+**Installing using pip**
 The easiest is to install the lastest version of Verif using pip:
 
 .. code-block:: bash
 
    sudo pip install verif
 
-Installing from source
-----------------------
+Verif should then be accessible type typing ``verif`` on the command-line.
 
-If ``pip`` is not available, then download the source code of the latest version:
+**Installing from source**
+Alternatively, to install from source, download the source code of the latest version:
 https://github.com/WFRT/verif/releases/. Unzip the file and navigate into the extracted folder.
-Verif requires python as well as the python packages numpy, scipy, and matplotlib. The python
-package basemap is optional, but provide a background map when verification scores are plotted on a
-map. NetCDF4/HDF5 is not required, but will make reading of NetCDF files faster. If this package is
-not found, the NetCDF capabilities from scipy will be used instead.
-
-**Ubuntu**
-
-Install the required pacakges:
-
-.. code-block:: bash
-
-  sudo apt-get install python-numpy python-scipy python-matplotlib python-setuptools
 
 Then install Verif by executing the following inside the extracted folder:
 
@@ -75,7 +75,7 @@ Then install Verif by executing the following inside the extracted folder:
 
   sudo python setup.py install
 
-This will create the executable ``/usr/local/bin/verif``.  Add this to your PATH environment
+This will create the executable ``/usr/local/bin/verif``. Add this to your PATH environment
 variable if necessary (i.e add ``export PATH=/usr/local/bin/:$PATH`` to ``~/.bashrc``). If you do
 not have sudo privileges do:
 
@@ -86,18 +86,19 @@ not have sudo privileges do:
 This will create the executable ``~/.local/bin/verif``. Add the folder to your PATH environment
 variable.
 
-**Mac OSX**
+Installing on Mac OSX
+---------------------
 
-Install python, numpy, scipy, and matplotlib, then install Verif by executing the following
-inside the extracted folder:
+Install NetCDF, numpy, scipy, and matplotlib, and basemap (optionally). Then install Verif by
+executing the following inside the extracted folder:
 
 .. code-block:: bash
 
   sudo python setup.py install
 
-Verif will then be installed ``/usr/local/share/python/`` or where ever your python modules are
+Verif will then be installed into ``/usr/local/share/python/`` or where ever your python modules are
 installed (Look for "Installing verif script to <some directory>" when installing). Add the folder
-to your PATH environment variable.
+to your PATH environment variable, if it is not already added.
 
 Examples
 --------
