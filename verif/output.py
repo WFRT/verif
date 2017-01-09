@@ -725,7 +725,7 @@ class Standard(Output):
                   label=labels[f], lw=self.lw, ms=self.ms,
                   alpha=alpha)
             if self.show_smoothing_line:
-               from scipy import ndimage
+               import scipy.ndimage
                I = np.argsort(x)
                xx = np.sort(x)
                yy = y[:, id][I]
@@ -733,7 +733,7 @@ class Standard(Output):
                xx = xx[I]
                yy = yy[I]
                N = 21
-               yy = ndimage.convolve(yy, 1.0/N*np.ones(N), mode="mirror")
+               yy = scipy.ndimage.convolve(yy, 1.0/N*np.ones(N), mode="mirror")
                mpl.plot(xx, yy, "--", color=color, lw=self.lw, ms=self.ms)
 
          mpl.xlabel(self.axis.label(data.variable))
@@ -769,7 +769,7 @@ class Standard(Output):
       # Use the Basemap package if it is available
       hasBasemap = True
       try:
-         from mpl_toolkits.basemap import Basemap
+         import mpl_toolkits.basemap
       except ImportError:
          verif.util.warning("Cannot load Basemap package")
          hasBasemap = False
@@ -841,12 +841,12 @@ class Standard(Output):
          verif.util.subplot(f, F)
          if self.map_type is not None and hasBasemap:
             if self.map_type == "simple":
-               map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
+               map = mpl_toolkits.basemap.Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
                      urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
                      resolution=res)
             else:
                # arcgisimage requires basemap to have an epsg option passed
-               map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
+               map = mpl_toolkits.basemap.Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
                      urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
                      resolution=res, epsg=4269)
             map.drawcoastlines(linewidth=0.25)

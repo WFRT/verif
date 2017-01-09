@@ -1044,11 +1044,6 @@ class Contingency(Metric):
       """
       raise NotImplementedError()
 
-   @staticmethod
-   def get_axis_formatter(self, data):
-      from matplotlib.ticker import ScalarFormatter
-      return ScalarFormatter()
-
    def label(self, variable):
       return self.name()
 
