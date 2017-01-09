@@ -3,7 +3,7 @@
 # contents, where # "precise" is your linux version:
 # [DEFAULT]
 # Suite: precise
-.PHONY: other/verif.sh
+.PHONY: other/verif.sh dist
 
 default: nothing
 
@@ -17,6 +17,14 @@ coverage:
 
 test:
 	nosetests
+
+# Creating distribution for pip
+dist:
+	echo $(VERSION)
+	rm -rf dist
+	python setup.py sdist
+	python setup.py bdist_wheel
+	@ echo "Next, run 'twine upload dist/*'"
 
 deb_dist: makefile
 	echo $(VERSION)

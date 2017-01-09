@@ -40,11 +40,12 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
-        'Intended Audience :: Developers',
-        'Topic :: Software Development :: Build Tools',
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering :: Atmospheric Science',
+        'Topic :: Scientific/Engineering :: Information Analysis',
 
         # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: BSD License',
@@ -61,13 +62,13 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
+    packages=find_packages(exclude=['contrib', 'docs', '*tests*']),
 
     # List run-time dependencies here.  These will be installed by pip when
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy', 'matplotlib', 'scipy'],
+    install_requires=['numpy>=1.7', 'matplotlib', 'scipy', 'netCDF4'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -75,11 +76,11 @@ setup(
     # $ pip install -e .[dev,test]
     extras_require={
     #    'dev': ['check-manifest'],
-        'test': ['coverage'],
+        'test': ['coverage', 'pep8'],
     #    'test': ['pytest'],
     },
 
-    test_suite="tests",
+    test_suite="verif.tests",
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
