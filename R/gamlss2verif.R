@@ -72,8 +72,7 @@ gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
    vFcst <- ncvar_def("fcst", "", list(dLocation, dLeadtime, dTime), NULL)
    vPit  <- ncvar_def("pit", "", list(dLocation, dLeadtime, dTime), NULL)
    vIgn  <- ncvar_def("ign", "", list(dLocation, dLeadtime, dTime), NULL)
-   vSpread <- ncvar_def("spread", "", list(dLocation, dLeadtime, dTime), NULL)
-   varList <- list(vLat, vLon, vElev, vObs, vFcst, vPit, vIgn, vSpread)
+   varList <- list(vLat, vLon, vElev, vObs, vFcst, vPit, vIgn)
    if(length(thresholds) > 0) {
       vThreshold <- ncvar_def("threshold", "", list(dThreshold), NULL)
       vCdf <- ncvar_def("cdf", "", list(dThreshold, dLocation, dLeadtime, dTime), NULL)
@@ -98,7 +97,6 @@ gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
    # Compute scores
    xfcst <- array(MV, dim(xeval)[1])
    xpit  <- array(MV, dim(xeval)[1])
-   xspread  <- array(MV, dim(xeval)[1])
    xign  <- array(MV, dim(xeval)[1])
    if(length(thresholds) > 0)
       xp    <- array(0, c(length(xfcst), length(thresholds)))
@@ -134,7 +132,6 @@ gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
       else
          xfcst[I] <- mG(fit, xe, par)  # Mean, doesn't seem to work for many distributions
       xpit[I]  <- pG(xe$obs, fit, xe, par)
-      xspread[I]  <- (qG(0.84, fit, xe, par)-qG(0.16, fit, xe, par))/2
       # We don't need to randomize PIT, because verif does that
       xign[I]  <- -log2(dG(xe$obs, fit, xe, par))
       if(length(thresholds) > 0) {
@@ -152,7 +149,6 @@ gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
    obs   <- array(MV, c(length(locations), length(leadtimes), length(times)))
    fcst  <- array(MV, c(length(locations), length(leadtimes), length(times)))
    pit   <- array(MV, c(length(locations), length(leadtimes), length(times)))
-   spread <- array(MV, c(length(locations), length(leadtimes), length(times)))
    ign   <- array(MV, c(length(locations), length(leadtimes), length(times)))
    p     <- array(MV, c(length(thresholds), length(locations), length(leadtimes), length(times)))
    q     <- array(MV, c(length(quantiles), length(locations), length(leadtimes), length(times)))
@@ -165,7 +161,6 @@ gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
          obs[I,o,d]  = xeval$obs[I0]
          fcst[I,o,d] = xfcst[I0]
          pit[I,o,d]  = xpit[I0]
-         spread[I,o,d]  = xspread[I0]
          ign[I,o,d]  = xign[I0]
          if(length(thresholds) > 0) {
             for(c in 1:length(thresholds)) {
@@ -182,7 +177,6 @@ gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
    ncvar_put(fid, vObs, obs)
    ncvar_put(fid, vFcst, fcst)
    ncvar_put(fid, vPit, pit)
-   ncvar_put(fid, vSpread, spread)
    if(length(which(is.na(ign))) == 0 && length(which(is.infinite(ign))) == 0)
       ncvar_put(fid, vIgn, ign)
 
