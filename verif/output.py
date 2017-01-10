@@ -1499,10 +1499,17 @@ class PitHist(Output):
          edges = np.linspace(0, 1, self._num_bins + 1)
       else:
          edges = self.thresholds
+      num_bins = len(edges)-1
       labels = data.get_legend()
       for f in range(0, F):
          verif.util.subplot(f, F)
-         pit = data.get_scores(verif.field.Pit(), f, verif.axis.No())
+         x0 = data.variable.x0
+         x1 = data.variable.x1
+         if(x0 is None and x1 is None):
+            [pit] = data.get_scores([verif.field.Pit()], f, verif.axis.No())
+         else:
+            [obs, pit] = data.get_scores([verif.field.Obs(), verif.field.Pit()], f, verif.axis.No())
+            pit = verif.field.Pit.randomize(obs, pit, x0, x1)
 
          N = np.histogram(pit, edges)[0]
          y = N * 1.0 / sum(N) * 100
@@ -1510,34 +1517,32 @@ class PitHist(Output):
          mpl.bar(edges[0:-1], y, width=width, color=self._bar_color)
 
          # Plot expected mean line
-         mpl.plot([0, 1], [100.0 / self._num_bins, 100.0 / self._num_bins], 'k--')
+         mpl.plot([0, 1], [100.0 / num_bins, 100.0 / num_bins], 'k--')
 
          # Axes and labels
          mpl.title(labels[f])
-         ytop = 200.0 / self._num_bins
+         ytop = 200.0 / num_bins
          mpl.ylim([0, ytop])
          mpl.xlim([0, 1])
          if f == 0:
             mpl.ylabel("Frequency (%)")
-         else:
-            mpl.gca().set_yticks([])
 
          # Draw red confidence band
          if self._show_expected_line():
             # Multiply by 100 to get to percent
-            std = verif.metric.PitDev.deviation_std(pit, self._num_bins) * 100
+            std = verif.metric.PitDev.deviation_std(pit, num_bins) * 100
 
-            mpl.plot([0, 1], [100.0 / self._num_bins - 2 * std, 100.0 / self._num_bins - 2 * std], "r-")
-            mpl.plot([0, 1], [100.0 / self._num_bins + 2 * std, 100.0 / self._num_bins + 2 * std], "r-")
-            lower = [100.0 / self._num_bins - 2 * std, 100.0 / self._num_bins - 2 * std]
-            upper = [100.0 / self._num_bins + 2 * std, 100.0 / self._num_bins + 2 * std]
+            mpl.plot([0, 1], [100.0 / num_bins - 2 * std, 100.0 / num_bins - 2 * std], "r-")
+            mpl.plot([0, 1], [100.0 / num_bins + 2 * std, 100.0 / num_bins + 2 * std], "r-")
+            lower = [100.0 / num_bins - 2 * std, 100.0 / num_bins - 2 * std]
+            upper = [100.0 / num_bins + 2 * std, 100.0 / num_bins + 2 * std]
             verif.util.fill([0, 1], lower, upper, "r", zorder=100, alpha=0.5)
 
          # Compute calibration deviation
          if self._show_stats():
-            D = verif.metric.PitDev.deviation(pit, self._num_bins)
-            D0 = verif.metric.PitDev.expected_deviation(pit, self._num_bins)
-            ign = verif.metric.PitDev.ignorance_potential(pit, self._num_bins)
+            D = verif.metric.PitDev.deviation(pit, num_bins)
+            D0 = verif.metric.PitDev.expected_deviation(pit, num_bins)
+            ign = verif.metric.PitDev.ignorance_potential(pit, num_bins)
             mpl.text(0, mpl.ylim()[1], "Dev: %2.4f\nExp: %2.4f\nIgn: %2.4f"
                   % (D, D0, ign), verticalalignment="top")
 

@@ -622,7 +622,9 @@ class Data(object):
       units = self._obs_field.units(variable)
       name = self._obs_field.label(variable)
       formatter = self._obs_field.formatter(variable)
-      variable = verif.variable.Variable(name, units, formatter)
+      x0 = variable.x0
+      x1 = variable.x1
+      variable = verif.variable.Variable(name, units, formatter, x0, x1)
 
       return variable
 

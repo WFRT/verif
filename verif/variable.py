@@ -7,7 +7,10 @@ def guess_x0(name):
    Attempt to automatically detect the value of the lower discrete mass
    (e.g. 0 mm for precipitation)
    """
-   prog = re.compile("Precip.*")
+   prog = re.compile(".*precip.*")
+   if(prog.match(name.lower())):
+      return 0
+   prog = re.compile("RH")
    if(prog.match(name)):
       return 0
    return None

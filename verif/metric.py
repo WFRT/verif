@@ -548,61 +548,26 @@ class DError(ObsFcstBased):
       return "Distribution Error"
 
 
-# Returns all PIT values
-class Pit(Metric):
-   type = verif.metric_type.Probabilistic()
-   min = 0
-   max = 1
-   orientation = 0
-
-   def __init__(self, field=verif.field.Pit()):
-      self._field = field
-
-   def label(self, variable):
-      return "PIT"
-
-   def compute(self, data, input_index, axis, interval):
-      x0 = data.variable.x0
-      x1 = data.variable.x1
-      if(x0 is None and x1 is None):
-         [pit] = data.get_scores([self._field], input_index)
-      else:
-         [obs, pit] = data.get_scores([verif.field.Obs(), self._field],
-               input_index)
-         if(x0 is not None):
-            I = np.where(obs == x0)[0]
-            pit[I] = np.random.rand(len(I)) * pit[I]
-         if(x1 is not None):
-            I = np.where(obs == x1)[0]
-            pit[I] = 1 - np.random.rand(len(I)) * (1 - pit[I])
-         # I = np.where((fcst > 2) & (fcst < 2000))[0]
-         # I = np.where((fcst > 20))[0]
-         # pit = pit[I]
-      return pit
-
-   def name(self):
-      return "PIT"
-
-
-# Returns all PIT values
 class PitDev(Metric):
    type = verif.metric_type.Probabilistic()
    min = 0
    # max = 1
    perfect_score = 1
-   description = "Deviation of the PIT histogram"
+   description = "PIT histogram deviation factor (actual deviation / expected deviation)"
    orientation = -1
 
-   def __init__(self, numBins=11):
-      self._metric = Pit()
+   def __init__(self, numBins=11, field=verif.field.Pit()):
       self._bins = np.linspace(0, 1, numBins)
-
-   def label(self, variable):
-      return "PIT histogram deviation"
+      self._field = field
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
-      pit = self._metric.compute(data, input_index, axis, axis_index, interval)
-      pit = pit[np.isnan(pit) == 0]
+      x0 = data.variable.x0
+      x1 = data.variable.x1
+      if x0 is None and x1 is None:
+         pit = data.get_scores(self._field, input_index, axis, axis_index)
+      else:
+         [pit, obs] = data.get_scores([self._field, verif.field.Obs()], input_index, axis, axis_index)
+         pit = verif.field.Pit.randomize(obs, pit, x0, x1)
 
       nb = len(self._bins) - 1
       D = self.deviation(pit, nb)
@@ -612,6 +577,10 @@ class PitDev(Metric):
 
    def name(self):
       return "PIT deviation factor"
+
+   def label(self, variable):
+      # Use this to avoid units in label
+      return self.name()
 
    @staticmethod
    def expected_deviation(values, numBins):
