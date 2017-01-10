@@ -327,11 +327,19 @@ class Output(object):
             y = y * np.ones(len(x), 'float')
          mpl.plot(x, y, '-', lw=5, color=color, label=label, zorder=zorder)
 
-   def _plot_diagnoal(self, label="ideal", color="gray", zorder=-1000):
+   def _plot_perfect_diagonal(self, label="ideal", color="gray", zorder=-1000, always_show=0):
+      """ Plots a diagonal line representing the perfect score """
       axismin = min(min(mpl.ylim()), min(mpl.xlim()))
       axismax = max(max(mpl.ylim()), max(mpl.xlim()))
+      if self.xlim is not None:
+         axismin = min(axismin, self.xlim[0])
+         axismax = max(axismax, self.xlim[1])
+      if self.ylim is not None:
+         axismin = max(axismin, self.ylim[0])
+         axismax = min(axismax, self.ylim[1])
+
       self._plot_perfect_score([axismin, axismax],  [axismin, axismax],
-            label=label, color=color, zorder=zorder, always_show=1)
+            label=label, color=color, zorder=zorder, always_show=always_show)
 
    # Implement these methods
    def _plot_core(self, data):
@@ -1051,9 +1059,9 @@ class QQ(Output):
       mpl.ylabel("Sorted forecasts (" + data.variable.units + ")")
       mpl.xlabel("Sorted observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
-      self._plot_perfect_score(lims, lims)
       mpl.xlim(lims)
       mpl.ylim(lims)
+      self._plot_perfect_diagonal()
       mpl.gca().set_aspect(1)
 
 
@@ -1146,8 +1154,10 @@ class Scatter(Output):
       mpl.ylabel("Forecasts (" + data.variable.units + ")")
       mpl.xlabel("Observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
+      mpl.xlim(lims)
+      mpl.ylim(lims)
+      self._plot_perfect_diagonal()
       mpl.gca().set_aspect(1)
-      self._plot_perfect_score(lims, lims)
 
 
 class Change(Output):
@@ -1229,9 +1239,9 @@ class Cond(Output):
       mpl.ylabel("Forecasts (" + data.variable.units + ")")
       mpl.xlabel("Observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
-      self._plot_perfect_score(lims, lims)
       mpl.xlim(lims)
       mpl.ylim(lims)
+      self._plot_perfect_diagonal()
       mpl.gca().set_aspect(1)
 
 
@@ -2646,11 +2656,10 @@ class Impact(Output):
       mpl.ylabel("%s (%s)" % (labels[1], units), color="b")
 
       # Draw diagonal
-      mpl.plot([lower, upper], [lower, upper], "grey", lw=7, zorder=-10)
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
-      self._plot_perfect_score(lims, lims)
       mpl.xlim(lims)
       mpl.ylim(lims)
+      self._plot_perfect_diagonal(always_show=1)
       mpl.gca().set_aspect(1)
 
    def _legend(self, data, names=None):
