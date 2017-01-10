@@ -2602,6 +2602,9 @@ class Impact(Output):
       if F != 2:
          verif.util.error("Improvement plot requires exactly 2 files")
 
+      if self.thresholds is None or len(self.thresholds) < 2:
+         verif.util.error("Reliability plot needs at least two thresholds (use -r)")
+
       labels = data.get_legend()
       edges = self.thresholds
 
