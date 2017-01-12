@@ -54,18 +54,29 @@ plotted on a map. Install the packages as follows:
 .. code-block:: bash
 
   sudo apt-get install netcdf-bin libnetcdf-dev libhdf5-serial-dev
-  sudo apt-get install python-setuptools python-numpy python-scipy python-matplotlib python-mpltoolkits.basemap
+  sudo apt-get install python-setuptools python-pip
+  sudo apt-get install python-numpy python-scipy python-matplotlib python-mpltoolkits.basemap
 
 **Installing using pip**
-The easiest is to install the lastest version of Verif using pip:
+
+After this, the easiest is to install the lastest version of Verif using pip:
 
 .. code-block:: bash
 
    sudo pip install verif
 
-Verif should then be accessible type typing ``verif`` on the command-line.
+Verif should then be accessible by typing ``verif`` on the command-line. If you do not have
+sudo-rights, then install verif as follows:
+
+.. code-block:: bash
+
+   pip install verif --user
+
+This will create the executable ``~/.local/bin/verif``. Add this to your PATH environment
+variable if necessary (i.e add ``export PATH=$PATH:~/.local/bin`` to ``~/.bashrc``).
 
 **Installing from source**
+
 Alternatively, to install from source, download the source code of the latest version:
 https://github.com/WFRT/verif/releases/. Unzip the file and navigate into the extracted folder.
 
@@ -73,47 +84,46 @@ Then install Verif by executing the following inside the extracted folder:
 
 .. code-block:: bash
 
+  sudo pip install -r requirements.txt
   sudo python setup.py install
 
-This will create the executable ``/usr/local/bin/verif``. Add this to your PATH environment
-variable if necessary (i.e add ``export PATH=/usr/local/bin/:$PATH`` to ``~/.bashrc``). If you do
-not have sudo privileges do:
+This will create the executable ``/usr/local/bin/verif``. Add ``/usr/local/bin`` to your PATH environment
+variable if necessary. If you do not have sudo privileges do:
 
 .. code-block:: bash
 
-  sudo python setup.py install --user
+  pip install -r requirements.txt --user
+  python setup.py install --user
 
-This will create the executable ``~/.local/bin/verif``. Add the folder to your PATH environment
+This will create the executable ``~/.local/bin/verif``. Add ``~/.local/bin`` to your PATH environment
 variable.
 
 Installing on Mac OSX
 ---------------------
 
-Install NetCDF, numpy, scipy, and matplotlib, and basemap (optionally). Then install Verif by
-executing the following inside the extracted folder:
+Follow the proceedure as for Ubuntu (either installing with pip or from source). If installing from
+source, then look for the line "Installing verif script to <some directory>", as this will indicate
+what folder Verif is installed into. Add the folder to your PATH environment variable if necessary.
 
-.. code-block:: bash
-
-  sudo python setup.py install
-
-Verif will then be installed into ``/usr/local/share/python/`` or where ever your python modules are
-installed (Look for "Installing verif script to <some directory>" when installing). Add the folder
-to your PATH environment variable, if it is not already added.
-
-Examples
+Example
 --------
-Fake data for testing the program is found in ``./examples/``. There is one "raw" forecast file and
-one bias-corrected forecast file (where a Kalman filter has been applied). Here are some example
-commands to test out:
+A sample dataset for testing the program is found in ``./examples/``. There is one "raw" forecast file and
+one "calibrated" forecast file (where statistical methods have been applied). For more information
+about the dataset check out https://github.com/WFRT/verif/wiki. Here are some example commands to
+test out:
 
 .. code-block:: bash
 
-   verif examples/raw.txt examples/kf.txt -m mae
-   verif examples/raw.txt examples/kf.txt -m ets
-   verif examples/raw.txt examples/kf.txt -m taylor
-   verif examples/raw.txt examples/kf.txt -m error
-   verif examples/raw.txt examples/kf.txt -m reliability -r 0
-   verif examples/raw.txt examples/kf.txt -m pithist
+   # Shows mean absolute error as a function of lead-time
+   verif examples/raw.txt examples/cal.txt -m mae
+   # Shows average observed and forecasted values as a function on time
+   verif examples/raw.txt examples/cal.txt -m obsfcst -x time
+   # Shows equitable threat score as a function of threshold
+   verif examples/raw.txt examples/cal.txt -m ets
+   # Shows a reliability diagram for a threshold of 0.5 mm
+   verif examples/raw.txt examples/cal.txt -m reliability -r 0.5
+   # Shows Brier skill score as a function of threshold
+   verif examples/raw.txt examples/cal.txt -m bss -x threshold
 
 Available metrics
 -----------------
