@@ -105,17 +105,13 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg std")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg range")
 
-   def test_option_x(self):
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x no")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x location")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x lat")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x lon")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x elev")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x leadtime")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x time")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x week")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x month")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x year")
+   def test_standard_option_x(self):
+      for axis in ["leadtime", "time", "location", "lat", "lon", "elev", "week", "month", "year", "no"]:
+         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x %s" % axis)
+
+   def test_obsfcst_option_x(self):
+      for axis in ["leadtime", "time", "location", "lat", "lon", "elev", "week", "month", "year", "no"]:
+         self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -x %s" % axis)
 
    def test_plotting_options(self):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 0.1")

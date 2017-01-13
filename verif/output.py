@@ -1001,20 +1001,26 @@ class ObsFcst(Output):
 
       x, y, _, labels = self._get_x_y(data, self.axis)
 
-      # Obs line
-      self._plot_obs(x, y[:, 0], isCont)
-
-      for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F, isCont)
-         mpl.plot(x, y[:, f + 1], style, color=color, label=labels[f+1], lw=self.lw, ms=self.ms)
+      # Show a bargraph with unconditional averages when no axis is specified
+      if self.axis == verif.axis.No():
+         w = 0.8
+         x = np.linspace(1 - w / 2, len(labels) - w / 2, len(labels))
+         mpl.bar(x, y[0, :], color='w', lw=self.lw)
+         mpl.xticks(range(1, len(labels) + 1), labels)
+      else:
+         # Obs line
+         self._plot_obs(x, y[:, 0], isCont)
+         for f in range(0, F):
+            color = self._get_color(f, F)
+            style = self._get_style(f, F, isCont)
+            mpl.plot(x, y[:, f + 1], style, color=color, label=labels[f+1], lw=self.lw, ms=self.ms)
+         mpl.xlabel(self.axis.label(data.variable))
+         if self.axis.is_time_like:
+            mpl.gca().xaxis_date()
+         else:
+            mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
 
       mpl.ylabel(data.get_variable_and_units())
-      mpl.xlabel(self.axis.label(data.variable))
-      if self.axis.is_time_like:
-         mpl.gca().xaxis_date()
-      else:
-         mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
 
    def _get_x_y(self, data, axis):
       F = data.num_inputs
