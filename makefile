@@ -26,12 +26,6 @@ dist:
 	python setup.py bdist_wheel
 	@ echo "Next, run 'twine upload dist/*'"
 
-deb_dist: makefile
-	echo $(VERSION)
-	rm -rf deb_dist
-	python setup.py --command-packages=stdeb.command bdist_deb
-	cd deb_dist/verif-$(VERSION)/ || exit; debuild -S -sa
-
 clean:
 	python setup.py clean
 	rm -rf build/
