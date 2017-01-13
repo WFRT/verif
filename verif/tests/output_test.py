@@ -18,7 +18,7 @@ class TestOutput(unittest.TestCase):
 
 class TestStandard(unittest.TestCase):
    def _get(self):
-      inputs = [verif.input.get_input(file) for file in ["examples/raw.txt", "examples/kf.txt"]]
+      inputs = [verif.input.get_input(file) for file in ["verif/tests/files/raw.txt", "verif/tests/files/kf.txt"]]
       data = verif.data.Data(inputs=inputs)
       metric = verif.metric.Mae()
       output = verif.output.Standard(metric)

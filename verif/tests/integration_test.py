@@ -61,10 +61,10 @@ class IntegrationTest(unittest.TestCase):
    def test_valid(self):
       self.run_command("verif")
       self.run_command("verif --version")
-      self.run_command("verif examples/raw.txt examples/kf.txt --list-thresholds")
-      self.run_command("verif examples/raw.txt examples/kf.txt --list-quantiles")
-      self.run_command("verif examples/raw.txt examples/kf.txt --list-times")
-      self.run_command("verif examples/raw.txt examples/kf.txt --list-thresholds --list-quantiles --list-times")
+      self.run_command("verif examples/raw.nc examples/cal.nc --list-thresholds")
+      self.run_command("verif examples/raw.nc examples/cal.nc --list-quantiles")
+      self.run_command("verif examples/raw.nc examples/cal.nc --list-times")
+      self.run_command("verif examples/raw.nc examples/cal.nc --list-thresholds --list-quantiles --list-times")
 
    def test_invalid(self):
       with self.assertRaises(SystemExit):
@@ -75,113 +75,113 @@ class IntegrationTest(unittest.TestCase):
          self.run_with_image("verif --list-times")
 
    def test_README(self):
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m ets")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m taylor")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m error")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m reliability -r 0")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithist")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m ets")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m taylor")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m error")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m reliability -r 0")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m pithist")
 
    def test_option_b(self):
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m ets -b below")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m ets -b within")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m ets -b above")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m ets -b below")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m ets -b within")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m ets -b above")
 
    def test_option_c(self):
-      self.run_with_image("verif examples/raw.txt -c examples/kf.txt -m ets")
+      self.run_with_image("verif examples/raw.nc -c examples/cal.nc -m ets")
 
    def test_option_leg(self):
-      self.run_with_image("verif -leg 1,2 examples/raw.txt examples/kf.txt -m ets")
-      self.run_with_image("verif -leg 1,2 examples/raw.txt examples/kf.txt -m ets -x no")
-      self.run_with_image("verif -leg 1dqwoijdioqwjdoiqjwdoijiqow,2dqwoijdioqwjdoiqjwdoijiqow examples/raw.txt examples/kf.txt -m ets")
+      self.run_with_image("verif -leg 1,2 examples/raw.nc examples/cal.nc -m ets")
+      self.run_with_image("verif -leg 1,2 examples/raw.nc examples/cal.nc -m ets -x no")
+      self.run_with_image("verif -leg 1dqwoijdioqwjdoiqjwdoijiqow,2dqwoijdioqwjdoiqjwdoijiqow examples/raw.nc examples/cal.nc -m ets")
       with self.assertRaises(SystemExit):
-         self.run_with_image("verif -leg 1 examples/raw.txt examples/kf.txt -m ets")
+         self.run_with_image("verif -leg 1 examples/raw.nc examples/cal.nc -m ets")
 
    def test_option_ct(self):
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg min")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg mean")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg median")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg max")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg std")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg range")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -agg min")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -agg mean")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -agg median")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -agg max")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -agg std")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -agg range")
 
    def test_option_x(self):
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x no")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x location")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x lat")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x lon")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x elev")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x leadtime")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x time")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x week")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x month")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x year")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -x no")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -x location")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -x lat")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -x lon")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -x elev")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -x leadtime")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -x time")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -x week")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -x month")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -x year")
 
    def test_plotting_options(self):
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 0.1")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 2.1")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -bottom 0.1")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -bottom 0.5")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -aspect 0.1")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -aspect 2.1")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -bottom 0.1")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -bottom 0.5")
       # -clim and -cmap are tested with -type map
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -dpi 50")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -dpi 300")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -fs 10,2")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -labfs 0")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -labfs 11")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -dpi 50")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -dpi 300")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -fs 10,2")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -labfs 0")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -labfs 11")
       # -lc tests are in separate functions
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -left 0.8")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -legfs 0")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -legfs 10")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -legloc right")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -legloc lower_left")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ls -,-o")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ls *")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ls -,-s,:")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -lw 0")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -lw 1")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -lw 1.3")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -lw 2")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ms 0")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ms 1")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ms 1.3")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ms 2")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -left 0.8")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -legfs 0")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -legfs 10")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -legloc right")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -legloc lower_left")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -ls -,-o")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -ls *")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -ls -,-s,:")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -lw 0")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -lw 1")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -lw 1.3")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -lw 2")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -ms 0")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -ms 1")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -ms 1.3")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -ms 2")
       # For some reason this fails without -left 0.1, although it works fine when verif is
       # invoked on the command line:
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -left 0.1 -right 0.8")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -tickfs 0")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -tickfs 10")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -title title")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -titlefs 0")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -titlefs 10")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -left 0.1 -right 0.8")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -tickfs 0")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -tickfs 10")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -title title")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -titlefs 0")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -titlefs 10")
       # Same as for -right above
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -bottom 0.1 -top 0.4")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -bottom 0.1 -top 0.4")
       # -type is tested separately
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xlabel test")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xlim 0,1")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xrot 90")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xticks 0:4")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xticks 0:4 -xticklabels 0,test,1")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xticklabels 0,test,1")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -xticklabels ''")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ylabel test")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -ylim 0,1")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yrot 90")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticks 0:4")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticks 0:4 -yticklabels 0,test,1")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticklabels 0,test,1")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticklabels ''")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -xlabel test")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -xlim 0,1")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -xrot 90")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -xticks 0:4")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -xticks 0:4 -xticklabels 0,test,1")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -xticklabels 0,test,1")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -xticklabels ''")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -ylabel test")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -ylim 0,1")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -yrot 90")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -yticks 0:4")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -yticks 0:4 -yticklabels 0,test,1")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -yticklabels 0,test,1")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -yticklabels ''")
 
    def test_map_type(self):
       pass
 
    def test_type(self):
-      self.run_with_text("verif examples/raw.txt examples/kf.txt -m mae -type text")
-      self.run_with_text("verif examples/raw.txt examples/kf.txt -m mae -type csv")
+      self.run_with_text("verif examples/raw.nc examples/cal.nc -m mae -type text")
+      self.run_with_text("verif examples/raw.nc examples/cal.nc -m mae -type csv")
       # These cause a FutureWarning in mpl, but not much we can do about that
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type map -clim 0,11")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type map -cmap RdBu")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type map")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type maprank")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -type map -clim 0,11")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -type map -cmap RdBu")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -type map")
+      self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -type maprank")
 
    def test_freq(self):
       self.run_with_image("verif verif/tests/files/file1.txt -m freq")
@@ -191,11 +191,11 @@ class IntegrationTest(unittest.TestCase):
 
    def test_option_lc(self):
        for lc in ("g,r", "g", "g,r,b", "0,0.5,0.9", "[0,0,1],0.5,g"):
-          self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -lc %s" % lc)
+          self.run_with_image("verif examples/raw.nc examples/cal.nc -m mae -lc %s" % lc)
 
    def test_boolean_options(self):
       for opt in ("acc", "nogrid", "nomargin", "hist", "sort", "sp", "simple", "xlog", "ylog"):
-         self.run_with_image("verif examples/raw.txt examples/kf.txt -m obs -%s" % opt)
+         self.run_with_image("verif examples/raw.nc examples/cal.nc -m obs -%s" % opt)
 
    def test_invalidMetric(self):
       with self.assertRaises(SystemExit):

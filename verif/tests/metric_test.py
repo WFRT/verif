@@ -5,7 +5,7 @@ import numpy as np
 
 
 def get():
-   inputs = [verif.input.get_input(file) for file in ["examples/raw.txt", "examples/kf.txt"]]
+   inputs = [verif.input.get_input(file) for file in ["verif/tests/files/raw.txt", "verif/tests/files/kf.txt"]]
    data = verif.data.Data(inputs=inputs)
    return data
 
