@@ -138,9 +138,11 @@ To verify your own forecasts, the easiest option is to put the data into the fol
    20150101 1        214       49.2    -122.1   92       4.7      4.2    0.858 0.1
    20150101 0        180       50.3    -120.3   150      0.2      -1.2   0.992 -2.1
 
-Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After
-that is a header line that must describe the data columns below. The following attributes are
-recognized:
+Any lines starting with '#' can be metadata, currently variable:, units:, x0:, and x1: are
+recognized. These are used in labeling axes. x0 can be specified if the variable has a discrete
+probability mass at the lower boundary (e.g. 0 for precipitation). Use x1 for the upper boundary
+(e.g. 100 % for relative humidity). After that is a header line that must describe the data columns
+below. The following attributes are recognized:
 
 * date (in YYYYMMDD)
 * unixtime (in seconds since 1970-01-01 00:00:00 +00:00)
@@ -198,8 +200,10 @@ variables, and attributes are understood by Verif:
       float pit(time, leadtime, location);             // CDF for threshold=observation
 
    // global attributes:
-      : long_name = "Temperature";                     // Used to label axes in plots
-      : standard_name = "air_temperature";             // NetCDF/CF standard name of the forecast variable
+      : long_name = "Precipitation";                   // Used to label axes in plots
+      : standard_name = "precipitation_amount";        // NetCDF/CF standard name of the forecast variable
+      : x0 = 0;                                        // Discrete mass at lower boundary (e.g. 0 mm for precipitation). Omit otherwise.
+      : x1 = 100;                                      // Discrete mass at upper boundary (e.g. 100% for relative humidity). Omit otherwise.
       : verif_version = "1.0.0";                       // Not required, but will be parsed in the future if format changes
       }
 
