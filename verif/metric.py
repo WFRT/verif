@@ -561,14 +561,7 @@ class PitDev(Metric):
       self._field = field
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
-      x0 = data.variable.x0
-      x1 = data.variable.x1
-      if x0 is None and x1 is None:
-         pit = data.get_scores(self._field, input_index, axis, axis_index)
-      else:
-         [pit, obs] = data.get_scores([self._field, verif.field.Obs()], input_index, axis, axis_index)
-         pit = verif.field.Pit.randomize(obs, pit, x0, x1)
-
+      pit = data.get_scores(self._field, input_index, axis, axis_index)
       nb = len(self._bins) - 1
       D = self.deviation(pit, nb)
       D0 = self.expected_deviation(pit, nb)

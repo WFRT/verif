@@ -1505,13 +1505,7 @@ class PitHist(Output):
       labels = data.get_legend()
       for f in range(0, F):
          verif.util.subplot(f, F)
-         x0 = data.variable.x0
-         x1 = data.variable.x1
-         if(x0 is None and x1 is None):
-            [pit] = data.get_scores([verif.field.Pit()], f, verif.axis.No())
-         else:
-            [obs, pit] = data.get_scores([verif.field.Obs(), verif.field.Pit()], f, verif.axis.No())
-            pit = verif.field.Pit.randomize(obs, pit, x0, x1)
+         [pit] = data.get_scores([verif.field.Pit()], f, verif.axis.No())
 
          N = np.histogram(pit, edges)[0]
          y = N * 1.0 / sum(N) * 100
