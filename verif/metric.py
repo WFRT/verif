@@ -548,6 +548,24 @@ class DError(ObsFcstBased):
       return "Distribution Error"
 
 
+class Pit(Metric):
+   """ Retrives the PIT-value corresponding to the observation """
+   type = verif.metric_type.Probabilistic()
+   description = "Verifying PIT-value (CDF at observation)"
+   supports_aggregator = True
+   orientation = 0
+
+   def compute_single(self, data, input_index, axis, axis_index, interval):
+      pit = data.get_scores(verif.field.Pit(), input_index, axis, axis_index)
+      return self.aggregator(pit)
+
+   def name(self):
+      return self.aggregator.name().title() + " of verifying PIT"
+
+   def label(self, variable):
+      return self.aggregator.name().title() + " of verifying PIT"
+
+
 class PitDev(Metric):
    type = verif.metric_type.Probabilistic()
    min = 0
