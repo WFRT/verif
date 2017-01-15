@@ -30,6 +30,8 @@ require(gamlss)
 # filename: where should the verification data be stored?
 # name: Name of the forecast variable (e.g. Precip,  T, or WindSpeed).
 # units: Units of the variable (e.g. mm, ^oC, or m/s)
+# x0: Discrete probability mass at lower boundary (e.g. 0 for precipitation)
+# x1: Discrete probability mass for upper boundary (e.g. 100 % for relative humidity)
 # quantiles: Which quantiles should be written?
 # thresholds: Which thresholds should probabilities be computed for?
 # leadtimeRange: Allow data from neighbouring leadtimes to create the training. Makes the calibration
@@ -37,12 +39,14 @@ require(gamlss)
 #            A value of 1 means use data with leadtimes +-1.
 # useMedian: Should the median be used to create the deterministic forecast? Otherwise the mean
 #            but this might not work for anything other than NO and ZAGA.
+# addIgn: Should ignorance be computed?
 # debug: If TRUE, show debug information
-gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
+gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL, x0=NULL, x1=NULL,
                     quantiles=c(0.01,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.99),
                     thresholds=NULL,
                     leadtimeRange=0,
                     useMedian=TRUE,
+                    addIgn=FALSE,
                     debug=FALSE) {
    # Missing value indicator for NetCDF
    MV = 9.96921e+36
@@ -71,8 +75,11 @@ gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
    vObs  <- ncvar_def("obs", "", list(dLocation, dLeadtime, dTime), NULL)
    vFcst <- ncvar_def("fcst", "", list(dLocation, dLeadtime, dTime), NULL)
    vPit  <- ncvar_def("pit", "", list(dLocation, dLeadtime, dTime), NULL)
-   vIgn  <- ncvar_def("ign", "", list(dLocation, dLeadtime, dTime), NULL)
-   varList <- list(vLat, vLon, vElev, vObs, vFcst, vPit, vIgn)
+   varList <- list(vLat, vLon, vElev, vObs, vFcst, vPit)
+   if(addIgn) {
+      vIgn  <- ncvar_def("ign", "", list(dLocation, dLeadtime, dTime), NULL)
+      varList <- list(varList, vIgn)
+   }
    if(length(thresholds) > 0) {
       vThreshold <- ncvar_def("threshold", "", list(dThreshold), NULL)
       vCdf <- ncvar_def("cdf", "", list(dThreshold, dLocation, dLeadtime, dTime), NULL)
@@ -133,7 +140,8 @@ gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
          xfcst[I] <- mG(fit, xe, par)  # Mean, doesn't seem to work for many distributions
       xpit[I]  <- pG(xe$obs, fit, xe, par)
       # We don't need to randomize PIT, because verif does that
-      xign[I]  <- -log2(dG(xe$obs, fit, xe, par))
+      if(addIgn)
+         xign[I]  <- -log2(dG(xe$obs, fit, xe, par))
       if(length(thresholds) > 0) {
          for(c in 1:length(thresholds)) {
             xp[I,c] <- pG(thresholds[c], fit, xe, par)
@@ -177,13 +185,17 @@ gamlss2verif <- function(model, xtrain, xeval, filename, name=NULL, units=NULL,
    ncvar_put(fid, vObs, obs)
    ncvar_put(fid, vFcst, fcst)
    ncvar_put(fid, vPit, pit)
-   if(length(which(is.na(ign))) == 0 && length(which(is.infinite(ign))) == 0)
+   if(addIgn && length(which(is.na(ign))) == 0 && length(which(is.infinite(ign))) == 0)
       ncvar_put(fid, vIgn, ign)
 
    if(!is.null(name))
       ncatt_put(fid, 0, "long_name", name)
    if(!is.null(units))
       ncatt_put(fid, 0, "units", units)
+   if(!is.null(x0))
+      ncatt_put(fid, 0, "x0", x0)
+   if(!is.null(x1))
+      ncatt_put(fid, 0, "x1", x1)
    ncatt_put(fid, 0, "verif_version", "verif_1.0.0")
 
    if(length(thresholds) > 0) {
