@@ -929,6 +929,7 @@ class Standard(Output):
 class Hist(Output):
    require_threshold_type = "deterministic"
    supports_threshold = True
+   supports_x = False
    default_bin_type = "within="
 
    def __init__(self, field):
@@ -967,6 +968,7 @@ class Hist(Output):
 
 class Sort(Output):
    supports_threshold = False
+   supports_x = False
 
    def __init__(self, field):
       Output.__init__(self)
