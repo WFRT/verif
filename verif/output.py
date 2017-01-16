@@ -551,7 +551,7 @@ class Output(object):
       # Margins
       mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
 
-   def _plot_obs(self, x, y, isCont=True, zorder=0, label="obs"):
+   def _plot_obs(self, x, y, isCont=True, zorder=0, label="Observed"):
       if isCont:
          mpl.plot(x, y, ".-", color="gray", lw=5, label=label, zorder=zorder)
       else:
@@ -1406,18 +1406,20 @@ class Meteo(Output):
 
    def _plot_core(self, data):
       F = data.num_inputs
+      if F != 1:
+         verif.util.error("Cannot use Meteo plot with more than 1 input file")
       x = [verif.util.unixtime_to_datenum(data.times[0] + lt*3600) for lt in data.leadtimes]
       isSingleTime = len(data.times) == 1
 
       # Plot obs line
       obs = data.get_scores(verif.field.Obs(), 0)
       obs = verif.util.nanmean(verif.util.nanmean(obs, axis=0), axis=1)
-      mpl.plot(x, obs, "o-", color=self._obs_col, lw=2, ms=8, label="Observations")
+      mpl.plot(x, obs, "o-", color=self._obs_col, lw=2, ms=8, label="Observed")
 
       # Plot deterministic forecast
       fcst = data.get_scores(verif.field.Fcst(), 0)
       fcst = verif.util.nanmean(verif.util.nanmean(fcst, axis=0), axis=1)
-      mpl.plot(x, fcst, "o-", color=self._fcst_col, lw=2, ms=8, label="Fcst")
+      mpl.plot(x, fcst, "o-", color=self._fcst_col, lw=2, ms=8, label="Forecast")
 
       # Plot quantiles
       if self.quantiles is None:
@@ -2075,8 +2077,8 @@ class DRoc0(DRoc):
 
 
 class Against(Output):
-   description = "Plots the forecasts for each pair of configurations against each other. "\
-   "Colours indicate which configuration had the best forecast (but only if the difference is "\
+   description = "Plots the forecasts for each pair of input files against each other. "\
+   "Colours indicate which input file had the best forecast (but only if the difference is "\
    "more than 10% of the standard deviation of the observation)."
    default_axis = verif.axis.No()
    supports_threshold = False
@@ -2087,7 +2089,7 @@ class Against(Output):
    def _plot_core(self, data):
       F = data.num_inputs
       if F < 2:
-         verif.util.error("Cannot use Against plot with less than 2 configurations")
+         verif.util.error("Cannot use Against plot with less than 2 input files")
 
       labels = data.get_legend()
       for f0 in range(0, F):
@@ -2208,7 +2210,7 @@ class Taylor(Output):
       # Draw obs point/lines
       orange = [1, 0.8, 0.4]
       self._draw_circle(stdobs, style='-', lw=5, color=orange)
-      mpl.plot(stdobs, 0, 's-', color=orange, label="Obs", mew=2, ms=self.ms, clip_on=False)
+      mpl.plot(stdobs, 0, 's-', color=orange, label="Observed", mew=2, ms=self.ms, clip_on=False)
 
       # Draw diagonals
       corrs = [-1, -0.99, -0.95, -0.9, -0.8, -0.5, 0, 0.5, 0.8, 0.9, 0.95,
@@ -2601,7 +2603,7 @@ class InvReliability(Output):
 
 class Impact(Output):
    description = ""\
-   "Colours indicate which configuration had the best forecast (but only if the difference is "\
+   "Colours indicate which input file had the best forecast (but only if the difference is "\
    "more than 10% of the standard deviation of the observation)."
    default_axis = verif.axis.No()
    supports_threshold = False
