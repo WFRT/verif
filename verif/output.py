@@ -535,10 +535,15 @@ class Output(object):
 
       # Ticks
       if self.xticks is not None:
-         mpl.xticks(self.xticks)
+         # Convert date to datetime objects
+         xticks = self.xticks
+         if self.axis.is_time_like:
+            xticks = [verif.util.date_to_datenum(tick) for tick in xticks]
+         mpl.xticks(xticks)
       if self.xticklabels is not None:
          mpl.xticks(mpl.xticks()[0], self.xticklabels)
       if self.yticks is not None:
+         # Don't need to convert dates like for xticks, since these are never dates
          mpl.yticks(self.yticks)
       if self.yticklabels is not None:
          mpl.yticks(mpl.yticks()[0], self.yticklabels)
