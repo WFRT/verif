@@ -918,8 +918,8 @@ class Standard(Output):
                 names.append("missing")
             mpl.figlegend(lines, names, "lower center", ncol=4)
          elif data.num_inputs == 2:
-            lines = [lmin, lsimilar, lmax]
-            names = [labels[0] + " is lower", "similar", labels[1] + " is lower"]
+            lines = [lmax, lsimilar, lmin]
+            names = [labels[0] + " is higher", "similar", labels[1] + " is higher"]
             if lmissing is not None:
                 lines.append(lmissing)
                 names.append("missing")
