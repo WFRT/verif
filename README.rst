@@ -17,8 +17,8 @@ files, Verif will discard data points where one or more forecast systems have mi
 Since Verif is a command-line tool, it can be used in scripts to automatically create
 verification figures.
 
-Verif version 1.0 has been released (see "Installation Instruction" below). We welcome suggestions
-for improvements. Verif is developed by Thomas Nipen, David Siuta, and Tim Chui.
+A beta release of Verif version 1.0 has been released (see "Installation Instruction" below). We
+welcome suggestions for improvements. Verif is developed by Thomas Nipen, David Siuta, and Tim Chui.
 
 .. image:: image.jpg
     :alt: Example plots
