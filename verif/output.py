@@ -2122,7 +2122,7 @@ class Against(Output):
                mpl.plot(lims, lims, '--', color=[0.3, 0.3, 0.3], lw=3, zorder=100)
                if F == 2:
                   break
-      mpl.gca().set_aspect(1)
+            mpl.gca().set_aspect(1)
 
    def _legend(self, data, names=None):
       pass

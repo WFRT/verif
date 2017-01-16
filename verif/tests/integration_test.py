@@ -167,6 +167,11 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticklabels 0,test,1")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticklabels ''")
 
+   def test_against(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m against")
+      # Ensure at least 3 files to test the subplots
+      self.run_with_image("verif examples/raw.txt examples/kf.txt examples/raw.txt -m against")
+
    def test_map_type(self):
       pass
 
