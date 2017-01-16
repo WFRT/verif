@@ -591,7 +591,7 @@ def show_description(data=None):
    s += format_argument("-b type", "One of 'below' (< x), 'below=' (<= x), '=within' (<= x < ), 'within' (< x <), 'within=' (< x <=), '=within=' (<= x <=), 'above' (> x), or 'above=' (>= x). For threshold plots (ets, hit, within, etc) 'below/above' computes frequency below/above the threshold, and 'within' computes the frequency between consecutive thresholds.") + "\n"
    s += format_argument("-c file", "File containing climatology data. Subtract all forecasts and obs with climatology values.") + "\n"
    s += format_argument("-C file", "File containing climatology data. Divide all forecasts and obs by climatology values.") + "\n"
-   s += format_argument("-fcst field", "What variable should be used as the forecast? One of 'obs', 'fcst' (default), 'obswindow', 'fcstwindow'. 'obswindow' and 'fcstwindow' are the number of hours forward in time that there is not precipitation.") + "\n"
+   s += format_argument("-fcst field", "What variable should be used as the forecast? One of 'obs', 'fcst' (default), 'obswindow', 'fcstwindow', and 'pit'. 'obswindow' and 'fcstwindow' are the number of hours forward in time that there is not precipitation. 'pit' is the CDF of the distribution at the verifying observation.") + "\n"
    s += format_argument("-hist", "Plot values as histogram. Only works for any field that can be specified with -fcst.") + "\n"
    s += format_argument("-obs field", "What variable should be used as the observation? See -fcst.") + "\n"
    s += format_argument("-sort", "Plot values sorted. Only works for any field than can be specified with -fcst.") + "\n"
