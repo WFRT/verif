@@ -33,6 +33,9 @@ clean:
 	rm -rf deb_dist
 	rm -rf verif.egg-info
 
+lint:
+	python verif/tests/pep8_test.py
+
 count:
 	@wc -l verif/*.py | tail -1
 
