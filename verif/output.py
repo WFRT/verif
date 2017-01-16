@@ -1398,7 +1398,7 @@ class TimeSeries(Output):
 
 
 class Meteo(Output):
-   description = "Plot a meteogram, with deterministic forecast, all quantile lines available (use -q to select a subset of quantiles), and observations. If multiple dates and locations are used, then the average is made."
+   description = "Plot a meteogram, with deterministic forecast, all quantile lines available (use -q to select a subset of quantiles), and observations. This makes most sense to use for a single location and forecast initialization time. If multiple dates and locations are used, then the average is used."
    supports_threshold = False
    supports_x = False
    _obs_col = [1, 0, 0]

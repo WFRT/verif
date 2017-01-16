@@ -657,7 +657,6 @@ def show_description(data=None):
                desc = m[1].description
                s += format_argument(name, desc) + "\n"
    s += "\n"
-   s += "\n"
    s += verif.util.green("File formats:") + "\n"
    s += format_argument("text", verif.input.Text.description) + "\n"
    s += format_argument("netcdf", verif.input.Netcdf.description) + "\n"
