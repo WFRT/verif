@@ -881,13 +881,15 @@ class Standard(Output):
                  (y[:, f] < np.mean(y, 1) - minDiff)
          is_valid = (np.isnan(y[:, f]) == 0)
          s = self.ms*self.ms
+         c0 = self._get_color(0, 2)
+         c1 = self._get_color(1, 2)
          if self.show_rank:
             lmissing = None
             if self.show_missing and len(I) > 0:
                lmissing = map.scatter(x0[I], y0[I], s=s, c="k", marker="x")
             lsimilar = map.scatter(x0[is_valid], y0[is_valid], s=s, c="w")
-            lmax = map.scatter(x0[isMax], y0[isMax], s=s, c="r")
-            lmin = map.scatter(x0[isMin], y0[isMin], s=s, c="b")
+            lmin = map.scatter(x0[isMin], y0[isMin], s=s, c=c1)
+            lmax = map.scatter(x0[isMax], y0[isMax], s=s, c=c0)
          else:
             map.scatter(x0, y0, c=y[:, f], s=s, cmap=cmap)
             cb = map.colorbar()
