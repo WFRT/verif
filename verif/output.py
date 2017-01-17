@@ -845,21 +845,15 @@ class Standard(Output):
       for f in range(0, F):
          verif.util.subplot(f, F)
          if self.map_type is not None and hasBasemap:
-            if self.map_type == "simple":
-               map = mpl_toolkits.basemap.Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
-                     urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
-                     resolution=res, fix_aspect=False)
-            else:
-               # arcgisimage requires basemap to have an epsg option passed
-               map = mpl_toolkits.basemap.Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
-                     urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
-                     resolution=res, epsg=4269, fix_aspect=False)
+            map = mpl_toolkits.basemap.Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
+                  urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='cyl',
+                  resolution=res, fix_aspect=False)
             map.drawcoastlines(linewidth=0.25)
             map.drawcountries(linewidth=0.25)
             map.drawmapboundary()
             map.drawparallels(np.arange(-90., 120., dy), labels=[1, 0, 0, 0])
             map.drawmeridians(np.arange(-180., 420., dx), labels=[0, 0, 0, 1])
-            map.fillcontinents(color='coral', lake_color='aqua', zorder=-1)
+            map.fillcontinents(color=[0.7,0.7,0.7], zorder=-1)
             x0, y0 = map(lons, lats)
             if self.map_type != "simple":
                if self.map_type == "sat":
@@ -868,7 +862,8 @@ class Standard(Output):
                   service = 'World_Topo_Map'
                else:
                   service = self.map_type
-               map.arcgisimage(service=service, xpixels=2000, verbose=True)
+               Npixels = 1000
+               map.arcgisimage(service=service, xpixels=Npixels, verbose=True)
          else:
             # Use matplotlibs plotting functions, if we do not use Basemap
             map = mpl
