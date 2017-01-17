@@ -848,12 +848,12 @@ class Standard(Output):
             if self.map_type == "simple":
                map = mpl_toolkits.basemap.Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
                      urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
-                     resolution=res)
+                     resolution=res, fix_aspect=False)
             else:
                # arcgisimage requires basemap to have an epsg option passed
                map = mpl_toolkits.basemap.Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
                      urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
-                     resolution=res, epsg=4269)
+                     resolution=res, epsg=4269, fix_aspect=False)
             map.drawcoastlines(linewidth=0.25)
             map.drawcountries(linewidth=0.25)
             map.drawmapboundary()
