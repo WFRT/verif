@@ -1564,6 +1564,11 @@ class Discrimination(Output):
       self._num_bins = 10
 
    def _plot_core(self, data):
+      if self.thresholds is None or len(self.thresholds) != 1:
+         verif.util.error("Discrimination diagram requires exactly one threshold")
+      if re.compile(".*within.*").match(self.bin_type):
+         verif.util.error("A 'within' bin type cannot be used in this diagram")
+      threshold = self.thresholds[0]
       labels = data.get_legend()
 
       F = data.num_inputs
@@ -1573,12 +1578,6 @@ class Discrimination(Output):
 
       # Determine the number of bins to use # (at least 11, at most 25)
       edges = np.linspace(0, 1, self._num_bins + 1)
-
-      if len(self.thresholds) != 1:
-         verif.util.error("Discrimination diagram requires exactly one threshold")
-      if re.compile(".*within.*").match(self.bin_type):
-         verif.util.error("A 'within' bin type cannot be used in this diagram")
-      threshold = self.thresholds[0]
 
       var = verif.field.Threshold(threshold)
 
