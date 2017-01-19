@@ -2674,7 +2674,7 @@ class Impact(Output):
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
       mpl.xlim(lims)
       mpl.ylim(lims)
-      self._plot_perfect_diagonal(always_show=1)
+      self._plot_perfect_diagonal(always_show=1, label="")
       mpl.gca().set_aspect(1)
 
    def _legend(self, data, names=None):
