@@ -2183,6 +2183,8 @@ class Taylor(Output):
       if maxstd < 1.25 * stdobs:
          maxstd = 1.25 * stdobs
       maxstd = int(np.ceil(maxstd))
+      if self.xlim is not None:
+         maxstd = self.xlim[1]
       # Allow for some padding outside the outer ring
       mpl.xlim([-maxstd * 1.05, maxstd * 1.05])
       mpl.ylim([0, maxstd * 1.05])
@@ -2190,9 +2192,24 @@ class Taylor(Output):
       mpl.xticks(xticks[xticks >= 0])
       mpl.xlim([-maxstd * 1.05, maxstd * 1.05])
       mpl.ylim([0, maxstd * 1.05])
+
+      # Correlation
       mpl.text(np.sin(np.pi / 4) * maxstd, np.cos(np.pi / 4) * maxstd,
             "Correlation", rotation=-45, fontsize=self.labfs,
             horizontalalignment="center", verticalalignment="bottom")
+      corrs = [-1, -0.99, -0.95, -0.9, -0.8, -0.5, 0, 0.5, 0.8, 0.9, 0.95, 0.99]
+      for i in range(0, len(corrs)):
+         ang = np.arccos(corrs[i])  # Mathematical angle
+         x = np.cos(ang) * maxstd
+         y = np.sin(ang) * maxstd
+         if self.xlim is None or x >= self.xlim[0]:
+            mpl.plot([0, x], [0, y], 'k--')
+            mpl.text(x, y, str(corrs[i]), verticalalignment="bottom", fontsize=self.labfs)
+
+      # Draw vertical bouning line if lower xlim is 0
+      if self.xlim is not None and self.xlim[0] == 0:
+         mpl.plot([0,0], [0, maxstd], 'k-')
+
       mpl.gca().yaxis.set_visible(False)
       # Remove box around plot
       mpl.gca().spines['bottom'].set_visible(False)
@@ -2207,16 +2224,6 @@ class Taylor(Output):
       self._draw_circle(stdobs, style='-', lw=5, color=orange)
       mpl.plot(stdobs, 0, 's-', color=orange, label="Observed", mew=2, ms=self.ms, clip_on=False)
 
-      # Draw diagonals
-      corrs = [-1, -0.99, -0.95, -0.9, -0.8, -0.5, 0, 0.5, 0.8, 0.9, 0.95,
-            0.99]
-      for i in range(0, len(corrs)):
-         ang = np.arccos(corrs[i])  # Mathematical angle
-         x = np.cos(ang) * maxstd
-         y = np.sin(ang) * maxstd
-         mpl.plot([0, x], [0, y], 'k--')
-         mpl.text(x, y, str(corrs[i]), verticalalignment="bottom", fontsize=self.labfs)
-
       # Draw CRMSE rings
       xticks = mpl.xticks()[0]
       self._draw_circle(0, style="-", color="gray", lw=3, label=crmseLabel)
@@ -2225,7 +2232,7 @@ class Taylor(Output):
       for R in Rs:
          if R > 0:
             self._draw_circle(R, xcenter=stdobs, ycenter=0, maxradius=maxstd, style="-", color="gray", lw=3)
-            x = np.sin(-np.pi / 4) * R + stdobs
+            x = stdobs
             y = np.cos(np.pi / 4) * R
             if x ** 2 + y ** 2 < maxstd ** 2:
                mpl.text(x, y, str(R), horizontalalignment="right",
