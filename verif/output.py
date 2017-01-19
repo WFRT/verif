@@ -2650,7 +2650,8 @@ class Impact(Output):
             num[e] = len(I)
       I0 = np.where(contrib < 0)[0]
       I1 = np.where(contrib > 0)[0]
-      S = 400/np.max(contrib**2)
+      # Compute size (scatter wants area) of marker. Scale using self.ms.
+      S = 400/np.max(contrib**2) * (self.ms / 8.0)**2
       mpl.scatter(XX[I0], YY[I0], s=abs(contrib[I0]**2)*S,
             color="red", label="%s is better" % labels[0])
       mpl.scatter(XX[I1], YY[I1], s=abs(contrib[I1]**2)*S,

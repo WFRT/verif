@@ -172,6 +172,10 @@ class IntegrationTest(unittest.TestCase):
       # Ensure at least 3 files to test the subplots
       self.run_with_image("verif examples/raw.txt examples/kf.txt examples/raw.txt -m against")
 
+   def test_impact(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m impact")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m impact -ms 6")
+
    def test_map_type(self):
       pass
 
