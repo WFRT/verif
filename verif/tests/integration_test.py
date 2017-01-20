@@ -180,6 +180,10 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m taylor -xlim 0,2")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m taylor -xlim 0,0.2")
 
+   def test_discrimination(self):
+      self.run_with_image("verif examples/raw.txt -m discrimination -r 0")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m discrimination -r 0")
+
    def test_map_type(self):
       pass
 

@@ -1571,16 +1571,11 @@ class Discrimination(Output):
       threshold = self.thresholds[0]
       labels = data.get_legend()
 
-      F = data.num_inputs
-
-      mpl.bar(np.nan, np.nan, color="w", ec="k", lw=self.lw, label="Observed")
-      mpl.bar(np.nan, np.nan, color="k", ec="k", lw=self.lw, label="Not observed")
-
-      # Determine the number of bins to use # (at least 11, at most 25)
       edges = np.linspace(0, 1, self._num_bins + 1)
 
       var = verif.field.Threshold(threshold)
 
+      F = data.num_inputs
       y1 = np.nan * np.zeros([F, len(edges) - 1], 'float')
       y0 = np.nan * np.zeros([F, len(edges) - 1], 'float')
       n = np.zeros([F, len(edges) - 1], 'float')
@@ -1600,7 +1595,6 @@ class Discrimination(Output):
             y0[f, i] = np.mean((p[I0] >= edges[i]) & (p[I0] < edges[i + 1]))
             y1[f, i] = np.mean((p[I1] >= edges[i]) & (p[I1] < edges[i + 1]))
 
-         label = labels[f]
          # Figure out where to put the bars. Each file will have pairs of
          # bars, so try to space them nicely.
          width = 1.0 / self._num_bins
@@ -1611,8 +1605,10 @@ class Discrimination(Output):
          clusterwidth = width * 0.8 / F
          barwidth = clusterwidth / 2
          shift = barwidth
-         mpl.bar(clustercenter-shift, y1[f, :], barwidth, color=color, ec=color, lw=self.lw, label=label)
-         mpl.bar(clustercenter, y0[f, :], barwidth, color="w", ec=color, lw=self.lw)
+         label0 = labels[f] + " not observed"
+         label1 = labels[f] + " observed"
+         mpl.bar(clustercenter, y0[f, :], barwidth, color="w", ec=color, lw=self.lw, label=label0)
+         mpl.bar(clustercenter-shift, y1[f, :], barwidth, color=color, ec=color, lw=self.lw, label=label1)
       mpl.plot([clim, clim], [0, 1], "k-")
 
       mpl.xlim([0, 1])
