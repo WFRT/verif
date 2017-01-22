@@ -18,10 +18,10 @@ start_unixtime = as.numeric(as.POSIXct(as.character(start_date), format="%Y%m%d"
 end_unixtime = as.numeric(as.POSIXct(as.character(end_date), format="%Y%m%d", origin=19700101))
 unixtimes = rep(seq(start_unixtime, end_unixtime, by=86400), each=10)
 Ndays = length(unixtimes)
-data = data.frame(LAT=59.9423, LON=10.72, ELEV=94, ID=18700,
-                  TIME=unixtimes, LEADTIME=rep(1:10, Ndays),
-                  OBS=obs, MEAN=ensmean, SPREAD=ensspread)
-model = list(mu=OBS~MEAN, sigma=~SPREAD, family=NO)
+data = data.frame(lat=59.9423, lon=10.72, altitude=94, location=18700,
+                  time=unixtimes, leadtime=rep(seq(3,30,3), Ndays),
+                  obs=obs, mean=ensmean, spread=ensspread)
+model = list(mu=obs~mean, sigma=~spread, family=NO)
 
 # Crate a training dataset. Normally this could be done by selecting a certain date range for the
 # training, and a different date range for the evaluation.
