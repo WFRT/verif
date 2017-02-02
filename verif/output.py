@@ -853,7 +853,7 @@ class Standard(Output):
             map.drawmapboundary()
             map.drawparallels(np.arange(-90., 120., dy), labels=[1, 0, 0, 0])
             map.drawmeridians(np.arange(-180., 420., dx), labels=[0, 0, 0, 1])
-            map.fillcontinents(color=[0.7,0.7,0.7], zorder=-1)
+            map.fillcontinents(color=[0.7, 0.7, 0.7], zorder=-1)
             x0, y0 = map(lons, lats)
             if self.map_type != "simple":
                if self.map_type == "sat":
@@ -2203,7 +2203,7 @@ class Taylor(Output):
 
       # Draw vertical bouning line if lower xlim is 0
       if self.xlim is not None and self.xlim[0] == 0:
-         mpl.plot([0,0], [0, maxstd], 'k-')
+         mpl.plot([0, 0], [0, maxstd], 'k-')
 
       mpl.gca().yaxis.set_visible(False)
       # Remove box around plot
