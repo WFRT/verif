@@ -83,6 +83,27 @@ def run(argv):
    obs_field = verif.field.Obs()
    fcst_field = verif.field.Fcst()
 
+   # Parse config files
+   i = 1
+   extra = []
+   while(i < len(argv)):
+      arg = argv[i]
+      if(arg == "--config"):
+         if i == len(argv) - 1:
+            verif.util.error("Missing filename after --config")
+         i = i + 1
+         filename = argv[i]
+         try:
+            fid = open(filename, 'r')
+            for line in fid:
+               extra += line.split()
+         except:
+            if not os.path.isfile(filename):
+               verif.util.error("Could not read %s" % filename)
+      i = i + 1
+
+   argv = argv + extra
+
    # Read command line arguments
    i = 1
    while(i < len(argv)):
@@ -231,6 +252,8 @@ def run(argv):
                fcst_field = verif.field.get(arg_next)
             elif(arg == "-m"):
                metric = arg_next
+            elif(arg == "--config"):
+               pass
             else:
                verif.util.error("Flag '" + argv[i] + "' not recognized")
             i = i + 1
@@ -564,6 +587,7 @@ def show_description(data=None):
    s += verif.util.green("Arguments:") + "\n"
    s += format_argument("files", "One or more verification files in NetCDF or text format (see 'File Formats' below). The file format is autodetected.") + "\n"
    s += format_argument("-m metric", "Which verification metric to use? See 'Metrics' below.") + "\n"
+   s += format_argument("--config file", "Read further arguments from this file. This flag can appear multiple times.") + "\n"
    s += format_argument("--list-times", "Prints what times are available in the files") + "\n"
    s += format_argument("--list-locations", "Prints what locations are available in the files") + "\n"
    s += format_argument("--list-quantiles", "Prints what quantiles are available in the files") + "\n"
