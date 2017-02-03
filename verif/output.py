@@ -195,7 +195,7 @@ class Output(object):
       """
       mpl.clf()
       self._plot_core(data)
-      self._adjust_plot_axes(data)
+      self._adjust_axes(data)
       self._legend(data)
       self._save_plot(data)
 
@@ -301,9 +301,9 @@ class Output(object):
 
    # Draws a map of the data
    def map(self, data):
+      mpl.clf()
       self._map_core(data)
-      self._adjust_map_axes(data)
-      # self._legend(data)
+      self._adjust_axes(data)
       self._save_plot(data)
 
    def _plot_perfect_score(self, x, y, label="ideal", color="gray", zorder=-1000, always_show=0):
@@ -465,88 +465,81 @@ class Output(object):
          ylim[1] = currYlim[1]
       mpl.ylim(ylim)
 
-   def _adjust_plot_axes(self, data):
-      """ Make axes adjustments for plot """
-      # Apply adjustements to all subplots
-      for ax in mpl.gcf().get_axes():
-         ax.set_title(ax.get_title(), fontsize=self.titlefs)
-         # Tick font sizes
-         for tick in ax.xaxis.get_major_ticks():
-            tick.label.set_fontsize(self.tickfs)
-         for tick in ax.yaxis.get_major_ticks():
-            tick.label.set_fontsize(self.tickfs)
-         ax.set_xlabel(ax.get_xlabel(), fontsize=self.labfs)
-         ax.set_ylabel(ax.get_ylabel(), fontsize=self.labfs)
-
-         # Tick lines
-         for label in ax.get_xticklabels():
-            if self.xrot is not None:
-               label.set_rotation(self.xrot)
-            if self.tick_font_size is not None:
-               label.set_fontsize(self.tick_font_size)
-         for label in ax.get_yticklabels():
-            if self.xrot is not None:
-               label.set_rotation(self.yrot)
-            if self.tick_font_size is not None:
-               label.set_fontsize(self.tick_font_size)
-
-      for ax in mpl.gcf().get_axes():
-         if self.aspect is not None:
-            ax.set_aspect(self.aspect)
-         if self.xlim is not None:
-            xlim = self.xlim
-            # Convert date to datetime objects
-            if self.axis.is_time_like:
-               xlim = [verif.util.date_to_datenum(lim) for lim in xlim]
-            mpl.xlim(xlim)
-         if self.ylim is not None:
-            mpl.ylim(self.ylim)
-         if self.clim is not None:
-            mpl.clim(self.clim)
-         if self.xlog:
-            ax.set_xscale('log')
-         if self.ylog:
-            ax.set_yscale('log')
-         if self.grid:
-            ax.grid('on')
-
-      self._adjust_axes(data)
-
-   def _adjust_map_axes(self, data):
-      """ Make axes adjustments for map
-
-      xlim, ylim, clim taken care of by map_core
+   def _adjust_axis(self, ax):
       """
-      if self.aspect is not None:
-         mpl.gca().set_aspect(self.aspect)
-      self._adjust_axes(data)
-
-   def _adjust_axes(self, data):
-      """ Generic axes adjustments """
-      # Labels
+      Make axis adjustments to a single axis
+      """
+      # Axis labels and title
       if self.xlabel is not None:
-         mpl.xlabel(self.xlabel)
+         ax.set_xlabel(self.xlabel)
+      ax.set_xlabel(ax.get_xlabel(), fontsize=self.labfs)
       if self.ylabel is not None:
-         mpl.ylabel(self.ylabel)
+         ax.set_ylabel(self.ylabel)
+      ax.set_ylabel(ax.get_ylabel(), fontsize=self.labfs)
       if self.title is not None:
-         mpl.title(self.title)
-      q = mpl.gca().get_title()
-      mpl.gca().set_title(q, fontsize=self.titlefs)
+         ax.set_title(self.title)
+      ax.set_title(ax.get_title(), fontsize=self.titlefs)
 
-      # Ticks
+      if self.aspect is not None:
+         ax.set_aspect(self.aspect)
+
+      if self.xlim is not None:
+         xlim = self.xlim
+         # Convert date to datetime objects
+         if self.axis.is_time_like:
+            xlim = [verif.util.date_to_datenum(lim) for lim in xlim]
+         ax.set_xlim(xlim)
+      if self.ylim is not None:
+         ax.set_ylim(self.ylim)
+      if self.xlog:
+         ax.set_xscale('log')
+      if self.ylog:
+         ax.set_yscale('log')
+      if self.grid:
+         ax.grid('on')
+
+      # Tick font sizes
+      for tick in ax.xaxis.get_major_ticks():
+         tick.label.set_fontsize(self.tickfs)
+      for tick in ax.yaxis.get_major_ticks():
+         tick.label.set_fontsize(self.tickfs)
+
+      # Tick lines
+      for label in ax.get_xticklabels():
+         if self.xrot is not None:
+            label.set_rotation(self.xrot)
+         if self.tick_font_size is not None:
+            label.set_fontsize(self.tick_font_size)
+      for label in ax.get_yticklabels():
+         if self.xrot is not None:
+            label.set_rotation(self.yrot)
+         if self.tick_font_size is not None:
+            label.set_fontsize(self.tick_font_size)
+
+      # X-ticks values
       if self.xticks is not None:
          # Convert date to datetime objects
          xticks = self.xticks
          if self.axis.is_time_like:
             xticks = [verif.util.date_to_datenum(tick) for tick in xticks]
-         mpl.xticks(xticks)
+         ax.set_xticks(xticks)
       if self.xticklabels is not None:
-         mpl.xticks(mpl.xticks()[0], self.xticklabels)
+         ax.set_xticklabels(self.xticklabels)
+
+      # Y-ticks values
       if self.yticks is not None:
          # Don't need to convert dates like for xticks, since these are never dates
-         mpl.yticks(self.yticks)
+         ax.set_yticks(self.yticks)
       if self.yticklabels is not None:
-         mpl.yticks(mpl.yticks()[0], self.yticklabels)
+         ax.set_yticklabels(self.yticklabels)
+
+   def _adjust_axes(self, data):
+      """
+      Adjust the labels, ticks, etc for axes on the plot. By default, only
+      gca() is adjusted. To adjust all subplots, then this function should be
+      overridden by the class (see PiHist for an example).
+      """
+      self._adjust_axis(mpl.gca())
 
       # Margins
       mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
@@ -855,6 +848,14 @@ class Standard(Output):
             map.drawmeridians(np.arange(-180., 420., dx), labels=[0, 0, 0, 1])
             map.fillcontinents(color=[0.7, 0.7, 0.7], zorder=-1)
             x0, y0 = map(lons, lats)
+
+            # Only show labels if specified
+            if self.xlabel is not None:
+               mpl.xlabel(self.xlabel, fontsize=self.labfs)
+            if self.ylabel is not None:
+               mpl.ylabel(self.ylabel, fontsize=self.labfs)
+
+            # Draw background map
             if self.map_type != "simple":
                if self.map_type == "sat":
                   service = 'ESRI_Imagery_World_2D'
@@ -871,6 +872,12 @@ class Standard(Output):
             y0 = lats
             mpl.xlim([llcrnrlon, urcrnrlon])
             mpl.ylim([llcrnrlat, urcrnrlat])
+
+            # Default to show labels
+            xlabel = ("Longitude" if self.xlabel is None else self.xlabel)
+            ylabel = ("Latitude" if self.ylabel is None else self.ylabel)
+            mpl.xlabel(xlabel, fontsize=self.labfs)
+            mpl.ylabel(ylabel, fontsize=self.labfs)
          I = np.where(np.isnan(y[:, f]))[0]
          if self.show_missing:
             map.plot(x0[I], y0[I], 'kx')
@@ -893,7 +900,7 @@ class Standard(Output):
          else:
             map.scatter(x0, y0, c=y[:, f], s=s, cmap=cmap)
             cb = map.colorbar()
-            cb.set_label(self._metric.label(data.variable))
+            cb.set_label(self._metric.label(data.variable), fontsize=self.labfs)
             cb.set_clim(clim)
             mpl.clim(clim)
          if self._mapLabelLocations:
@@ -909,6 +916,7 @@ class Standard(Output):
             mpl.title(names[f])
          elif F == 1 and self.show_rank:
             mpl.title(self._metric.name())
+         self._adjust_axis(mpl.gca())
 
       # Legend
       if self.show_rank:
@@ -1554,6 +1562,14 @@ class PitHist(Output):
 
          mpl.xlabel("Cumulative probability")
 
+   def _adjust_axes(self, data):
+      # Apply adjustements to all subplots
+      for ax in mpl.gcf().get_axes():
+         self._adjust_axis(ax)
+
+      # Margins
+      mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
+
 
 class Discrimination(Output):
    description = "Discrimination diagram for a certain threshold (-r)"
@@ -1819,6 +1835,14 @@ class IgnContrib(Output):
 
       # Switch back to top subpplot, so the legend works
       mpl.subplot(2, 1, 1)
+
+   def _adjust_axes(self, data):
+      # Apply adjustements to all subplots
+      for ax in mpl.gcf().get_axes():
+         self._adjust_axis(ax)
+
+      # Margins
+      mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
 
 
 class EconomicValue(Output):
@@ -2125,6 +2149,14 @@ class Against(Output):
 
    def _legend(self, data, names=None):
       pass
+
+   def _adjust_axes(self, data):
+      # Apply adjustements to all subplots
+      for ax in mpl.gcf().get_axes():
+         self._adjust_axis(ax)
+
+      # Margins
+      mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
 
 
 class Taylor(Output):
