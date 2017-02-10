@@ -28,6 +28,7 @@ install:
 script:
    - pip install coveralls pep8
    - nosetests -v --with-coverage --cover-erase --cover-package=verif
+   - verif examples/raw.txt examples/kf.txt -m mae -f test.png
 
 after_success:
    - coveralls
