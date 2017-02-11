@@ -142,6 +142,14 @@ class InputTextTest(unittest.TestCase):
       s2 = data.get_scores(verif.field.Fcst(), 1)
       np.testing.assert_array_equal(s1, s2)
 
+   def test_attributes(self):
+      input = verif.input.Text("verif/tests/files/file1_x0_x1.txt")
+      data = verif.data.Data([input])
+      self.assertEqual(0, data.variable.x0)
+      self.assertEqual(10, data.variable.x1)
+      self.assertEqual("Weird variable", data.variable.name)
+      self.assertEqual("Some units", data.variable.units)
+
 
 if __name__ == '__main__':
    unittest.main()

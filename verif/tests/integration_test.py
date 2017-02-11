@@ -105,17 +105,13 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg std")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg range")
 
-   def test_option_x(self):
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x no")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x location")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x lat")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x lon")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x elev")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x leadtime")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x time")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x week")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x month")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x year")
+   def test_standard_option_x(self):
+      for axis in ["leadtime", "time", "location", "lat", "lon", "elev", "week", "month", "year", "no"]:
+         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x %s" % axis)
+
+   def test_obsfcst_option_x(self):
+      for axis in ["leadtime", "time", "location", "lat", "lon", "elev", "week", "month", "year", "no"]:
+         self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -x %s" % axis)
 
    def test_plotting_options(self):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 0.1")
@@ -170,6 +166,27 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticks 0:4 -yticklabels 0,test,1")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticklabels 0,test,1")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticklabels ''")
+
+   def test_against(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m against")
+      # Ensure at least 3 files to test the subplots
+      self.run_with_image("verif examples/raw.txt examples/kf.txt examples/raw.txt -m against")
+
+   def test_impact(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m impact")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m impact -ms 6")
+
+   def test_taylor(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m taylor -xlim 0,2")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m taylor -xlim 0,0.2")
+
+   def test_discrimination(self):
+      self.run_with_image("verif examples/raw.txt -m discrimination -r 0")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m discrimination -r 0")
+
+   def test_config(self):
+      self.run_with_image("verif examples/raw.txt --config verif/tests/files/config1.txt")
+      self.run_with_image("verif examples/raw.txt -m mae --config verif/tests/files/configEmpty.txt")
 
    def test_map_type(self):
       pass

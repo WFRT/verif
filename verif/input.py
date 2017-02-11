@@ -236,8 +236,14 @@ class Netcdf(Input):
          # displaying units
          units = "$" + units + "$"
 
-      x0 = verif.variable.guess_x0(name)
-      x1 = verif.variable.guess_x1(name)
+      # Determine lower and upper discrete masses
+      x0 = None
+      x1 = None
+      if hasattr(self._file, "x0"):
+         x0 = self._file.x0
+      if hasattr(self._file, "x1"):
+         x1 = self._file.x1
+
       return verif.variable.Variable(name, units, x0=x0, x1=x1)
 
 
@@ -260,6 +266,8 @@ class Text(Input):
       file = open(self._filename, 'rU')
       self._variable_units = "Unknown units"
       self._variable_name = "Unknown variable"
+      self._variable_x0 = None
+      self._variable_x1 = None
 
       self._times = set()
       self._leadtimes = set()
@@ -298,7 +306,11 @@ class Text(Input):
             if(curr[0] == "variable:"):
                self._variable_name = ' '.join(curr[1:])
             elif(curr[0] == "units:"):
-               self._variable_units = curr[1]
+               self._variable_units = ' '.join(curr[1:])
+            elif(curr[0] == "x0:"):
+               self._variable_x0 = float(curr[1])
+            elif(curr[0] == "x1:"):
+               self._variable_x1 = float(curr[1])
             else:
                verif.util.warning("Ignoring line '" + rowstr.strip() + "' in file '" + self._filename + "'")
          else:
@@ -468,9 +480,7 @@ class Text(Input):
       return os.path.isfile(filename)
 
    def _get_variable(self):
-      x0 = verif.variable.guess_x0(self._variable_name)
-      x1 = verif.variable.guess_x1(self._variable_name)
-      return verif.variable.Variable(self._variable_name, self._variable_units, x0=x0, x1=x1)
+      return verif.variable.Variable(self._variable_name, self._variable_units, x0=self._variable_x0, x1=self._variable_x1)
 
    # Parse string into float, changing -999 into np.nan
    def _clean(self, value):

@@ -1,4 +1,3 @@
-from scipy import io
 import numpy as np
 import re
 import sys
@@ -425,6 +424,16 @@ class Data(object):
 
             elif field == verif.field.Pit():
                temp = input.pit
+               x0 = self.variable.x0
+               x1 = self.variable.x1
+               if x0 is not None or x1 is not None:
+                  # w = ""
+                  # if x0 is not None:
+                  #    w += " obs=%g" % x0
+                  # if x1 is not None:
+                  #    w += " obs=%g" % x1
+                  # verif.util.warning("Randomizing PIT values where %s" + w)
+                  temp = verif.field.Pit.randomize(input.obs, temp, x0, x1)
 
             elif field.__class__ is verif.field.Ensemble:
                temp = input.ensemble[:, :, :, field.member]
@@ -622,7 +631,9 @@ class Data(object):
       units = self._obs_field.units(variable)
       name = self._obs_field.label(variable)
       formatter = self._obs_field.formatter(variable)
-      variable = verif.variable.Variable(name, units, formatter)
+      x0 = variable.x0
+      x1 = variable.x1
+      variable = verif.variable.Variable(name, units, formatter, x0, x1)
 
       return variable
 

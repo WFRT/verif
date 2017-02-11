@@ -1,4 +1,4 @@
-from matplotlib.dates import *
+import matplotlib.dates
 import calendar
 import copy
 import datetime
@@ -42,7 +42,7 @@ def date_to_datenum(date):
    year = int(date / 10000)
    month = int(date / 100 % 100)
    day = int(date % 100)
-   return date2num(datetime.datetime(year, month, day, 0))
+   return matplotlib.dates.date2num(datetime.datetime(year, month, day, 0))
 
 
 def unixtime_to_datenum(time):
@@ -55,7 +55,7 @@ def unixtime_to_datenum(time):
       int: datenum value
    """
    dt = datetime.datetime.utcfromtimestamp(time)
-   return date2num(dt)
+   return matplotlib.dates.date2num(dt)
 
 
 def datenum_to_date(datenum):
@@ -67,7 +67,7 @@ def datenum_to_date(datenum):
    Returns:
       int: date in YYYYMMDD
    """
-   return int(num2date(datenum).strftime("%Y%m%d"))
+   return int(matplotlib.dates.num2date(datenum).strftime("%Y%m%d"))
 
 
 def date_to_unixtime(date):

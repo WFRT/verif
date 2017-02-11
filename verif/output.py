@@ -195,7 +195,7 @@ class Output(object):
       """
       mpl.clf()
       self._plot_core(data)
-      self._adjust_plot_axes(data)
+      self._adjust_axes(data)
       self._legend(data)
       self._save_plot(data)
 
@@ -301,9 +301,9 @@ class Output(object):
 
    # Draws a map of the data
    def map(self, data):
+      mpl.clf()
       self._map_core(data)
-      self._adjust_map_axes(data)
-      # self._legend(data)
+      self._adjust_axes(data)
       self._save_plot(data)
 
    def _plot_perfect_score(self, x, y, label="ideal", color="gray", zorder=-1000, always_show=0):
@@ -327,11 +327,19 @@ class Output(object):
             y = y * np.ones(len(x), 'float')
          mpl.plot(x, y, '-', lw=5, color=color, label=label, zorder=zorder)
 
-   def _plot_diagnoal(self, label="ideal", color="gray", zorder=-1000):
+   def _plot_perfect_diagonal(self, label="ideal", color="gray", zorder=-1000, always_show=0):
+      """ Plots a diagonal line representing the perfect score """
       axismin = min(min(mpl.ylim()), min(mpl.xlim()))
       axismax = max(max(mpl.ylim()), max(mpl.xlim()))
+      if self.xlim is not None:
+         axismin = min(axismin, self.xlim[0])
+         axismax = max(axismax, self.xlim[1])
+      if self.ylim is not None:
+         axismin = max(axismin, self.ylim[0])
+         axismax = min(axismax, self.ylim[1])
+
       self._plot_perfect_score([axismin, axismax],  [axismin, axismax],
-            label=label, color=color, zorder=zorder, always_show=1)
+            label=label, color=color, zorder=zorder, always_show=always_show)
 
    # Implement these methods
    def _plot_core(self, data):
@@ -457,88 +465,86 @@ class Output(object):
          ylim[1] = currYlim[1]
       mpl.ylim(ylim)
 
-   def _adjust_plot_axes(self, data):
-      """ Make axes adjustments for plot """
-      # Apply adjustements to all subplots
-      for ax in mpl.gcf().get_axes():
-         ax.set_title(ax.get_title(), fontsize=self.titlefs)
-         # Tick font sizes
-         for tick in ax.xaxis.get_major_ticks():
-            tick.label.set_fontsize(self.tickfs)
-         for tick in ax.yaxis.get_major_ticks():
-            tick.label.set_fontsize(self.tickfs)
-         ax.set_xlabel(ax.get_xlabel(), fontsize=self.labfs)
-         ax.set_ylabel(ax.get_ylabel(), fontsize=self.labfs)
-
-         # Tick lines
-         for label in ax.get_xticklabels():
-            if self.xrot is not None:
-               label.set_rotation(self.xrot)
-            if self.tick_font_size is not None:
-               label.set_fontsize(self.tick_font_size)
-         for label in ax.get_yticklabels():
-            if self.xrot is not None:
-               label.set_rotation(self.yrot)
-            if self.tick_font_size is not None:
-               label.set_fontsize(self.tick_font_size)
-
-      for ax in mpl.gcf().get_axes():
-         if self.aspect is not None:
-            ax.set_aspect(self.aspect)
-         if self.xlim is not None:
-            xlim = self.xlim
-            # Convert date to datetime objects
-            if self.axis.is_time_like:
-               xlim = [verif.util.date_to_datenum(lim) for lim in xlim]
-            mpl.xlim(xlim)
-         if self.ylim is not None:
-            mpl.ylim(self.ylim)
-         if self.clim is not None:
-            mpl.clim(self.clim)
-         if self.xlog:
-            ax.set_xscale('log')
-         if self.ylog:
-            ax.set_yscale('log')
-         if self.grid:
-            ax.grid('on')
-
-      self._adjust_axes(data)
-
-   def _adjust_map_axes(self, data):
-      """ Make axes adjustments for map
-
-      xlim, ylim, clim taken care of by map_core
+   def _adjust_axis(self, ax):
       """
+      Make axis adjustments to a single axis
+      """
+      # Axis labels and title
+      if self.xlabel is not None:
+         ax.set_xlabel(self.xlabel)
+      ax.set_xlabel(ax.get_xlabel(), fontsize=self.labfs)
+      if self.ylabel is not None:
+         ax.set_ylabel(self.ylabel)
+      ax.set_ylabel(ax.get_ylabel(), fontsize=self.labfs)
+      if self.title is not None:
+         ax.set_title(self.title)
+      ax.set_title(ax.get_title(), fontsize=self.titlefs)
+
       if self.aspect is not None:
-         mpl.gca().set_aspect(self.aspect)
-      self._adjust_axes(data)
+         ax.set_aspect(self.aspect)
+
+      if self.xlim is not None:
+         xlim = self.xlim
+         # Convert date to datetime objects
+         if self.axis.is_time_like:
+            xlim = [verif.util.date_to_datenum(lim) for lim in xlim]
+         ax.set_xlim(xlim)
+      if self.ylim is not None:
+         ax.set_ylim(self.ylim)
+      if self.xlog:
+         ax.set_xscale('log')
+      if self.ylog:
+         ax.set_yscale('log')
+      if self.grid:
+         ax.grid('on')
+
+      # Tick font sizes
+      for tick in ax.xaxis.get_major_ticks():
+         tick.label.set_fontsize(self.tickfs)
+      for tick in ax.yaxis.get_major_ticks():
+         tick.label.set_fontsize(self.tickfs)
+
+      # Tick lines
+      for label in ax.get_xticklabels():
+         if self.xrot is not None:
+            label.set_rotation(self.xrot)
+         if self.tick_font_size is not None:
+            label.set_fontsize(self.tick_font_size)
+      for label in ax.get_yticklabels():
+         if self.xrot is not None:
+            label.set_rotation(self.yrot)
+         if self.tick_font_size is not None:
+            label.set_fontsize(self.tick_font_size)
+
+      # X-ticks values
+      if self.xticks is not None:
+         # Convert date to datetime objects
+         xticks = self.xticks
+         if self.axis.is_time_like:
+            xticks = [verif.util.date_to_datenum(tick) for tick in xticks]
+         ax.set_xticks(xticks)
+      if self.xticklabels is not None:
+         ax.set_xticklabels(self.xticklabels)
+
+      # Y-ticks values
+      if self.yticks is not None:
+         # Don't need to convert dates like for xticks, since these are never dates
+         ax.set_yticks(self.yticks)
+      if self.yticklabels is not None:
+         ax.set_yticklabels(self.yticklabels)
 
    def _adjust_axes(self, data):
-      """ Generic axes adjustments """
-      # Labels
-      if self.xlabel is not None:
-         mpl.xlabel(self.xlabel)
-      if self.ylabel is not None:
-         mpl.ylabel(self.ylabel)
-      if self.title is not None:
-         mpl.title(self.title)
-      q = mpl.gca().get_title()
-      mpl.gca().set_title(q, fontsize=self.titlefs)
-
-      # Ticks
-      if self.xticks is not None:
-         mpl.xticks(self.xticks)
-      if self.xticklabels is not None:
-         mpl.xticks(mpl.xticks()[0], self.xticklabels)
-      if self.yticks is not None:
-         mpl.yticks(self.yticks)
-      if self.yticklabels is not None:
-         mpl.yticks(mpl.yticks()[0], self.yticklabels)
+      """
+      Adjust the labels, ticks, etc for axes on the plot. By default, only
+      gca() is adjusted. To adjust all subplots, then this function should be
+      overridden by the class (see PiHist for an example).
+      """
+      self._adjust_axis(mpl.gca())
 
       # Margins
       mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
 
-   def _plot_obs(self, x, y, isCont=True, zorder=0, label="obs"):
+   def _plot_obs(self, x, y, isCont=True, zorder=0, label="Observed"):
       if isCont:
          mpl.plot(x, y, ".-", color="gray", lw=5, label=label, zorder=zorder)
       else:
@@ -717,7 +723,7 @@ class Standard(Output):
                   label=labels[f], lw=self.lw, ms=self.ms,
                   alpha=alpha)
             if self.show_smoothing_line:
-               from scipy import ndimage
+               import scipy.ndimage
                I = np.argsort(x)
                xx = np.sort(x)
                yy = y[:, id][I]
@@ -725,7 +731,7 @@ class Standard(Output):
                xx = xx[I]
                yy = yy[I]
                N = 21
-               yy = ndimage.convolve(yy, 1.0/N*np.ones(N), mode="mirror")
+               yy = scipy.ndimage.convolve(yy, 1.0/N*np.ones(N), mode="mirror")
                mpl.plot(xx, yy, "--", color=color, lw=self.lw, ms=self.ms)
 
          mpl.xlabel(self.axis.label(data.variable))
@@ -761,7 +767,7 @@ class Standard(Output):
       # Use the Basemap package if it is available
       hasBasemap = True
       try:
-         from mpl_toolkits.basemap import Basemap
+         import mpl_toolkits.basemap
       except ImportError:
          verif.util.warning("Cannot load Basemap package")
          hasBasemap = False
@@ -832,22 +838,24 @@ class Standard(Output):
       for f in range(0, F):
          verif.util.subplot(f, F)
          if self.map_type is not None and hasBasemap:
-            if self.map_type == "simple":
-               map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
-                     urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
-                     resolution=res)
-            else:
-               # arcgisimage requires basemap to have an epsg option passed
-               map = Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
-                     urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='mill',
-                     resolution=res, epsg=4269)
+            map = mpl_toolkits.basemap.Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
+                  urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='cyl',
+                  resolution=res, fix_aspect=False)
             map.drawcoastlines(linewidth=0.25)
             map.drawcountries(linewidth=0.25)
             map.drawmapboundary()
             map.drawparallels(np.arange(-90., 120., dy), labels=[1, 0, 0, 0])
             map.drawmeridians(np.arange(-180., 420., dx), labels=[0, 0, 0, 1])
-            map.fillcontinents(color='coral', lake_color='aqua', zorder=-1)
+            map.fillcontinents(color=[0.7, 0.7, 0.7], zorder=-1)
             x0, y0 = map(lons, lats)
+
+            # Only show labels if specified
+            if self.xlabel is not None:
+               mpl.xlabel(self.xlabel, fontsize=self.labfs)
+            if self.ylabel is not None:
+               mpl.ylabel(self.ylabel, fontsize=self.labfs)
+
+            # Draw background map
             if self.map_type != "simple":
                if self.map_type == "sat":
                   service = 'ESRI_Imagery_World_2D'
@@ -855,7 +863,8 @@ class Standard(Output):
                   service = 'World_Topo_Map'
                else:
                   service = self.map_type
-               map.arcgisimage(service=service, xpixels=2000, verbose=True)
+               Npixels = 1000
+               map.arcgisimage(service=service, xpixels=Npixels, verbose=True)
          else:
             # Use matplotlibs plotting functions, if we do not use Basemap
             map = mpl
@@ -863,6 +872,12 @@ class Standard(Output):
             y0 = lats
             mpl.xlim([llcrnrlon, urcrnrlon])
             mpl.ylim([llcrnrlat, urcrnrlat])
+
+            # Default to show labels
+            xlabel = ("Longitude" if self.xlabel is None else self.xlabel)
+            ylabel = ("Latitude" if self.ylabel is None else self.ylabel)
+            mpl.xlabel(xlabel, fontsize=self.labfs)
+            mpl.ylabel(ylabel, fontsize=self.labfs)
          I = np.where(np.isnan(y[:, f]))[0]
          if self.show_missing:
             map.plot(x0[I], y0[I], 'kx')
@@ -873,17 +888,19 @@ class Standard(Output):
                  (y[:, f] < np.mean(y, 1) - minDiff)
          is_valid = (np.isnan(y[:, f]) == 0)
          s = self.ms*self.ms
+         c0 = self._get_color(0, 2)
+         c1 = self._get_color(1, 2)
          if self.show_rank:
             lmissing = None
             if self.show_missing and len(I) > 0:
                lmissing = map.scatter(x0[I], y0[I], s=s, c="k", marker="x")
             lsimilar = map.scatter(x0[is_valid], y0[is_valid], s=s, c="w")
-            lmax = map.scatter(x0[isMax], y0[isMax], s=s, c="r")
-            lmin = map.scatter(x0[isMin], y0[isMin], s=s, c="b")
+            lmin = map.scatter(x0[isMin], y0[isMin], s=s, c=c1)
+            lmax = map.scatter(x0[isMax], y0[isMax], s=s, c=c0)
          else:
             map.scatter(x0, y0, c=y[:, f], s=s, cmap=cmap)
             cb = map.colorbar()
-            cb.set_label(self._metric.label(data.variable))
+            cb.set_label(self._metric.label(data.variable), fontsize=self.labfs)
             cb.set_clim(clim)
             mpl.clim(clim)
          if self._mapLabelLocations:
@@ -899,6 +916,7 @@ class Standard(Output):
             mpl.title(names[f])
          elif F == 1 and self.show_rank:
             mpl.title(self._metric.name())
+         self._adjust_axis(mpl.gca())
 
       # Legend
       if self.show_rank:
@@ -910,8 +928,8 @@ class Standard(Output):
                 names.append("missing")
             mpl.figlegend(lines, names, "lower center", ncol=4)
          elif data.num_inputs == 2:
-            lines = [lmin, lsimilar, lmax]
-            names = [labels[0] + " is lower", "similar", labels[1] + " is lower"]
+            lines = [lmax, lsimilar, lmin]
+            names = [labels[0] + " is higher", "similar", labels[1] + " is higher"]
             if lmissing is not None:
                 lines.append(lmissing)
                 names.append("missing")
@@ -921,6 +939,7 @@ class Standard(Output):
 class Hist(Output):
    require_threshold_type = "deterministic"
    supports_threshold = True
+   supports_x = False
    default_bin_type = "within="
 
    def __init__(self, field):
@@ -959,6 +978,7 @@ class Hist(Output):
 
 class Sort(Output):
    supports_threshold = False
+   supports_x = False
 
    def __init__(self, field):
       Output.__init__(self)
@@ -991,20 +1011,26 @@ class ObsFcst(Output):
 
       x, y, _, labels = self._get_x_y(data, self.axis)
 
-      # Obs line
-      self._plot_obs(x, y[:, 0], isCont)
-
-      for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F, isCont)
-         mpl.plot(x, y[:, f + 1], style, color=color, label=labels[f+1], lw=self.lw, ms=self.ms)
+      # Show a bargraph with unconditional averages when no axis is specified
+      if self.axis == verif.axis.No():
+         w = 0.8
+         x = np.linspace(1 - w / 2, len(labels) - w / 2, len(labels))
+         mpl.bar(x, y[0, :], color='w', lw=self.lw)
+         mpl.xticks(range(1, len(labels) + 1), labels)
+      else:
+         # Obs line
+         self._plot_obs(x, y[:, 0], isCont)
+         for f in range(0, F):
+            color = self._get_color(f, F)
+            style = self._get_style(f, F, isCont)
+            mpl.plot(x, y[:, f + 1], style, color=color, label=labels[f+1], lw=self.lw, ms=self.ms)
+         mpl.xlabel(self.axis.label(data.variable))
+         if self.axis.is_time_like:
+            mpl.gca().xaxis_date()
+         else:
+            mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
 
       mpl.ylabel(data.get_variable_and_units())
-      mpl.xlabel(self.axis.label(data.variable))
-      if self.axis.is_time_like:
-         mpl.gca().xaxis_date()
-      else:
-         mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
 
    def _get_x_y(self, data, axis):
       F = data.num_inputs
@@ -1051,9 +1077,9 @@ class QQ(Output):
       mpl.ylabel("Sorted forecasts (" + data.variable.units + ")")
       mpl.xlabel("Sorted observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
-      self._plot_perfect_score(lims, lims)
       mpl.xlim(lims)
       mpl.ylim(lims)
+      self._plot_perfect_diagonal()
       mpl.gca().set_aspect(1)
 
 
@@ -1146,8 +1172,10 @@ class Scatter(Output):
       mpl.ylabel("Forecasts (" + data.variable.units + ")")
       mpl.xlabel("Observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
+      mpl.xlim(lims)
+      mpl.ylim(lims)
+      self._plot_perfect_diagonal()
       mpl.gca().set_aspect(1)
-      self._plot_perfect_score(lims, lims)
 
 
 class Change(Output):
@@ -1229,9 +1257,9 @@ class Cond(Output):
       mpl.ylabel("Forecasts (" + data.variable.units + ")")
       mpl.xlabel("Observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
-      self._plot_perfect_score(lims, lims)
       mpl.xlim(lims)
       mpl.ylim(lims)
+      self._plot_perfect_diagonal()
       mpl.gca().set_aspect(1)
 
 
@@ -1373,7 +1401,7 @@ class TimeSeries(Output):
 
 
 class Meteo(Output):
-   description = "Plot a meteogram, with deterministic forecast, all quantile lines available (use -q to select a subset of quantiles), and observations. If multiple dates and locations are used, then the average is made."
+   description = "Plot a meteogram, with deterministic forecast, all quantile lines available (use -q to select a subset of quantiles), and observations. This makes most sense to use for a single location and forecast initialization time. If multiple dates and locations are used, then the average is used."
    supports_threshold = False
    supports_x = False
    _obs_col = [1, 0, 0]
@@ -1381,18 +1409,20 @@ class Meteo(Output):
 
    def _plot_core(self, data):
       F = data.num_inputs
+      if F != 1:
+         verif.util.error("Cannot use Meteo plot with more than 1 input file")
       x = [verif.util.unixtime_to_datenum(data.times[0] + lt*3600) for lt in data.leadtimes]
       isSingleTime = len(data.times) == 1
 
       # Plot obs line
       obs = data.get_scores(verif.field.Obs(), 0)
       obs = verif.util.nanmean(verif.util.nanmean(obs, axis=0), axis=1)
-      mpl.plot(x, obs, "o-", color=self._obs_col, lw=2, ms=8, label="Observations")
+      mpl.plot(x, obs, "o-", color=self._obs_col, lw=2, ms=8, label="Observed")
 
       # Plot deterministic forecast
       fcst = data.get_scores(verif.field.Fcst(), 0)
       fcst = verif.util.nanmean(verif.util.nanmean(fcst, axis=0), axis=1)
-      mpl.plot(x, fcst, "o-", color=self._fcst_col, lw=2, ms=8, label="Fcst")
+      mpl.plot(x, fcst, "o-", color=self._fcst_col, lw=2, ms=8, label="Forecast")
 
       # Plot quantiles
       if self.quantiles is None:
@@ -1489,10 +1519,11 @@ class PitHist(Output):
          edges = np.linspace(0, 1, self._num_bins + 1)
       else:
          edges = self.thresholds
+      num_bins = len(edges)-1
       labels = data.get_legend()
       for f in range(0, F):
          verif.util.subplot(f, F)
-         pit = data.get_scores(verif.field.Pit(), f, verif.axis.No())
+         [pit] = data.get_scores([verif.field.Pit()], f, verif.axis.No())
 
          N = np.histogram(pit, edges)[0]
          y = N * 1.0 / sum(N) * 100
@@ -1500,38 +1531,44 @@ class PitHist(Output):
          mpl.bar(edges[0:-1], y, width=width, color=self._bar_color)
 
          # Plot expected mean line
-         mpl.plot([0, 1], [100.0 / self._num_bins, 100.0 / self._num_bins], 'k--')
+         mpl.plot([0, 1], [100.0 / num_bins, 100.0 / num_bins], 'k--')
 
          # Axes and labels
          mpl.title(labels[f])
-         ytop = 200.0 / self._num_bins
+         ytop = 200.0 / num_bins
          mpl.ylim([0, ytop])
          mpl.xlim([0, 1])
          if f == 0:
             mpl.ylabel("Frequency (%)")
-         else:
-            mpl.gca().set_yticks([])
 
          # Draw red confidence band
          if self._show_expected_line():
             # Multiply by 100 to get to percent
-            std = verif.metric.PitDev.deviation_std(pit, self._num_bins) * 100
+            std = verif.metric.PitDev.deviation_std(pit, num_bins) * 100
 
-            mpl.plot([0, 1], [100.0 / self._num_bins - 2 * std, 100.0 / self._num_bins - 2 * std], "r-")
-            mpl.plot([0, 1], [100.0 / self._num_bins + 2 * std, 100.0 / self._num_bins + 2 * std], "r-")
-            lower = [100.0 / self._num_bins - 2 * std, 100.0 / self._num_bins - 2 * std]
-            upper = [100.0 / self._num_bins + 2 * std, 100.0 / self._num_bins + 2 * std]
+            mpl.plot([0, 1], [100.0 / num_bins - 2 * std, 100.0 / num_bins - 2 * std], "r-")
+            mpl.plot([0, 1], [100.0 / num_bins + 2 * std, 100.0 / num_bins + 2 * std], "r-")
+            lower = [100.0 / num_bins - 2 * std, 100.0 / num_bins - 2 * std]
+            upper = [100.0 / num_bins + 2 * std, 100.0 / num_bins + 2 * std]
             verif.util.fill([0, 1], lower, upper, "r", zorder=100, alpha=0.5)
 
          # Compute calibration deviation
          if self._show_stats():
-            D = verif.metric.PitDev.deviation(pit, self._num_bins)
-            D0 = verif.metric.PitDev.expected_deviation(pit, self._num_bins)
-            ign = verif.metric.PitDev.ignorance_potential(pit, self._num_bins)
+            D = verif.metric.PitDev.deviation(pit, num_bins)
+            D0 = verif.metric.PitDev.expected_deviation(pit, num_bins)
+            ign = verif.metric.PitDev.ignorance_potential(pit, num_bins)
             mpl.text(0, mpl.ylim()[1], "Dev: %2.4f\nExp: %2.4f\nIgn: %2.4f"
                   % (D, D0, ign), verticalalignment="top")
 
          mpl.xlabel("Cumulative probability")
+
+   def _adjust_axes(self, data):
+      # Apply adjustements to all subplots
+      for ax in mpl.gcf().get_axes():
+         self._adjust_axis(ax)
+
+      # Margins
+      mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
 
 
 class Discrimination(Output):
@@ -1543,24 +1580,18 @@ class Discrimination(Output):
       self._num_bins = 10
 
    def _plot_core(self, data):
-      labels = data.get_legend()
-
-      F = data.num_inputs
-
-      mpl.bar(np.nan, np.nan, color="w", ec="k", lw=self.lw, label="Observed")
-      mpl.bar(np.nan, np.nan, color="k", ec="k", lw=self.lw, label="Not observed")
-
-      # Determine the number of bins to use # (at least 11, at most 25)
-      edges = np.linspace(0, 1, self._num_bins + 1)
-
-      if len(self.thresholds) != 1:
+      if self.thresholds is None or len(self.thresholds) != 1:
          verif.util.error("Discrimination diagram requires exactly one threshold")
       if re.compile(".*within.*").match(self.bin_type):
          verif.util.error("A 'within' bin type cannot be used in this diagram")
       threshold = self.thresholds[0]
+      labels = data.get_legend()
+
+      edges = np.linspace(0, 1, self._num_bins + 1)
 
       var = verif.field.Threshold(threshold)
 
+      F = data.num_inputs
       y1 = np.nan * np.zeros([F, len(edges) - 1], 'float')
       y0 = np.nan * np.zeros([F, len(edges) - 1], 'float')
       n = np.zeros([F, len(edges) - 1], 'float')
@@ -1580,7 +1611,6 @@ class Discrimination(Output):
             y0[f, i] = np.mean((p[I0] >= edges[i]) & (p[I0] < edges[i + 1]))
             y1[f, i] = np.mean((p[I1] >= edges[i]) & (p[I1] < edges[i + 1]))
 
-         label = labels[f]
          # Figure out where to put the bars. Each file will have pairs of
          # bars, so try to space them nicely.
          width = 1.0 / self._num_bins
@@ -1591,8 +1621,10 @@ class Discrimination(Output):
          clusterwidth = width * 0.8 / F
          barwidth = clusterwidth / 2
          shift = barwidth
-         mpl.bar(clustercenter-shift, y1[f, :], barwidth, color=color, ec=color, lw=self.lw, label=label)
-         mpl.bar(clustercenter, y0[f, :], barwidth, color="w", ec=color, lw=self.lw)
+         label0 = labels[f] + " not observed"
+         label1 = labels[f] + " observed"
+         mpl.bar(clustercenter, y0[f, :], barwidth, color="w", ec=color, lw=self.lw, label=label0)
+         mpl.bar(clustercenter-shift, y1[f, :], barwidth, color=color, ec=color, lw=self.lw, label=label1)
       mpl.plot([clim, clim], [0, 1], "k-")
 
       mpl.xlim([0, 1])
@@ -1803,6 +1835,14 @@ class IgnContrib(Output):
 
       # Switch back to top subpplot, so the legend works
       mpl.subplot(2, 1, 1)
+
+   def _adjust_axes(self, data):
+      # Apply adjustements to all subplots
+      for ax in mpl.gcf().get_axes():
+         self._adjust_axis(ax)
+
+      # Margins
+      mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
 
 
 class EconomicValue(Output):
@@ -2051,8 +2091,8 @@ class DRoc0(DRoc):
 
 
 class Against(Output):
-   description = "Plots the forecasts for each pair of configurations against each other. "\
-   "Colours indicate which configuration had the best forecast (but only if the difference is "\
+   description = "Plots the forecasts for each pair of input files against each other. "\
+   "Colours indicate which input file had the best forecast (but only if the difference is "\
    "more than 10% of the standard deviation of the observation)."
    default_axis = verif.axis.No()
    supports_threshold = False
@@ -2063,7 +2103,7 @@ class Against(Output):
    def _plot_core(self, data):
       F = data.num_inputs
       if F < 2:
-         verif.util.error("Cannot use Against plot with less than 2 configurations")
+         verif.util.error("Cannot use Against plot with less than 2 input files")
 
       labels = data.get_legend()
       for f0 in range(0, F):
@@ -2105,10 +2145,18 @@ class Against(Output):
                mpl.plot(lims, lims, '--', color=[0.3, 0.3, 0.3], lw=3, zorder=100)
                if F == 2:
                   break
-      mpl.gca().set_aspect(1)
+            mpl.gca().set_aspect(1)
 
    def _legend(self, data, names=None):
       pass
+
+   def _adjust_axes(self, data):
+      # Apply adjustements to all subplots
+      for ax in mpl.gcf().get_axes():
+         self._adjust_axis(ax)
+
+      # Margins
+      mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
 
 
 class Taylor(Output):
@@ -2162,6 +2210,8 @@ class Taylor(Output):
       if maxstd < 1.25 * stdobs:
          maxstd = 1.25 * stdobs
       maxstd = int(np.ceil(maxstd))
+      if self.xlim is not None:
+         maxstd = self.xlim[1]
       # Allow for some padding outside the outer ring
       mpl.xlim([-maxstd * 1.05, maxstd * 1.05])
       mpl.ylim([0, maxstd * 1.05])
@@ -2169,9 +2219,24 @@ class Taylor(Output):
       mpl.xticks(xticks[xticks >= 0])
       mpl.xlim([-maxstd * 1.05, maxstd * 1.05])
       mpl.ylim([0, maxstd * 1.05])
+
+      # Correlation
       mpl.text(np.sin(np.pi / 4) * maxstd, np.cos(np.pi / 4) * maxstd,
             "Correlation", rotation=-45, fontsize=self.labfs,
             horizontalalignment="center", verticalalignment="bottom")
+      corrs = [-1, -0.99, -0.95, -0.9, -0.8, -0.5, 0, 0.5, 0.8, 0.9, 0.95, 0.99]
+      for i in range(0, len(corrs)):
+         ang = np.arccos(corrs[i])  # Mathematical angle
+         x = np.cos(ang) * maxstd
+         y = np.sin(ang) * maxstd
+         if self.xlim is None or x >= self.xlim[0]:
+            mpl.plot([0, x], [0, y], 'k--')
+            mpl.text(x, y, str(corrs[i]), verticalalignment="bottom", fontsize=self.labfs)
+
+      # Draw vertical bouning line if lower xlim is 0
+      if self.xlim is not None and self.xlim[0] == 0:
+         mpl.plot([0, 0], [0, maxstd], 'k-')
+
       mpl.gca().yaxis.set_visible(False)
       # Remove box around plot
       mpl.gca().spines['bottom'].set_visible(False)
@@ -2184,17 +2249,7 @@ class Taylor(Output):
       # Draw obs point/lines
       orange = [1, 0.8, 0.4]
       self._draw_circle(stdobs, style='-', lw=5, color=orange)
-      mpl.plot(stdobs, 0, 's-', color=orange, label="Obs", mew=2, ms=self.ms, clip_on=False)
-
-      # Draw diagonals
-      corrs = [-1, -0.99, -0.95, -0.9, -0.8, -0.5, 0, 0.5, 0.8, 0.9, 0.95,
-            0.99]
-      for i in range(0, len(corrs)):
-         ang = np.arccos(corrs[i])  # Mathematical angle
-         x = np.cos(ang) * maxstd
-         y = np.sin(ang) * maxstd
-         mpl.plot([0, x], [0, y], 'k--')
-         mpl.text(x, y, str(corrs[i]), verticalalignment="bottom", fontsize=self.labfs)
+      mpl.plot(stdobs, 0, 's-', color=orange, label="Observed", mew=2, ms=self.ms, clip_on=False)
 
       # Draw CRMSE rings
       xticks = mpl.xticks()[0]
@@ -2204,7 +2259,7 @@ class Taylor(Output):
       for R in Rs:
          if R > 0:
             self._draw_circle(R, xcenter=stdobs, ycenter=0, maxradius=maxstd, style="-", color="gray", lw=3)
-            x = np.sin(-np.pi / 4) * R + stdobs
+            x = stdobs
             y = np.cos(np.pi / 4) * R
             if x ** 2 + y ** 2 < maxstd ** 2:
                mpl.text(x, y, str(R), horizontalalignment="right",
@@ -2577,7 +2632,7 @@ class InvReliability(Output):
 
 class Impact(Output):
    description = ""\
-   "Colours indicate which configuration had the best forecast (but only if the difference is "\
+   "Colours indicate which input file had the best forecast (but only if the difference is "\
    "more than 10% of the standard deviation of the observation)."
    default_axis = verif.axis.No()
    supports_threshold = False
@@ -2591,6 +2646,9 @@ class Impact(Output):
       units = data.variable.units
       if F != 2:
          verif.util.error("Improvement plot requires exactly 2 files")
+
+      if self.thresholds is None or len(self.thresholds) < 2:
+         verif.util.error("Reliability plot needs at least two thresholds (use -r)")
 
       labels = data.get_legend()
       edges = self.thresholds
@@ -2626,7 +2684,8 @@ class Impact(Output):
             num[e] = len(I)
       I0 = np.where(contrib < 0)[0]
       I1 = np.where(contrib > 0)[0]
-      S = 400/np.max(contrib**2)
+      # Compute size (scatter wants area) of marker. Scale using self.ms.
+      S = 400/np.max(contrib**2) * (self.ms / 8.0)**2
       mpl.scatter(XX[I0], YY[I0], s=abs(contrib[I0]**2)*S,
             color="red", label="%s is better" % labels[0])
       mpl.scatter(XX[I1], YY[I1], s=abs(contrib[I1]**2)*S,
@@ -2646,11 +2705,10 @@ class Impact(Output):
       mpl.ylabel("%s (%s)" % (labels[1], units), color="b")
 
       # Draw diagonal
-      mpl.plot([lower, upper], [lower, upper], "grey", lw=7, zorder=-10)
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
-      self._plot_perfect_score(lims, lims)
       mpl.xlim(lims)
       mpl.ylim(lims)
+      self._plot_perfect_diagonal(always_show=1, label="")
       mpl.gca().set_aspect(1)
 
    def _legend(self, data, names=None):

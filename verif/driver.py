@@ -83,6 +83,27 @@ def run(argv):
    obs_field = verif.field.Obs()
    fcst_field = verif.field.Fcst()
 
+   # Parse config files
+   i = 1
+   extra = []
+   while(i < len(argv)):
+      arg = argv[i]
+      if(arg == "--config"):
+         if i == len(argv) - 1:
+            verif.util.error("Missing filename after --config")
+         i = i + 1
+         filename = argv[i]
+         try:
+            fid = open(filename, 'r')
+            for line in fid:
+               extra += line.split()
+         except:
+            if not os.path.isfile(filename):
+               verif.util.error("Could not read %s" % filename)
+      i = i + 1
+
+   argv = argv + extra
+
    # Read command line arguments
    i = 1
    while(i < len(argv)):
@@ -231,6 +252,8 @@ def run(argv):
                fcst_field = verif.field.get(arg_next)
             elif(arg == "-m"):
                metric = arg_next
+            elif(arg == "--config"):
+               pass
             else:
                verif.util.error("Flag '" + argv[i] + "' not recognized")
             i = i + 1
@@ -564,6 +587,7 @@ def show_description(data=None):
    s += verif.util.green("Arguments:") + "\n"
    s += format_argument("files", "One or more verification files in NetCDF or text format (see 'File Formats' below). The file format is autodetected.") + "\n"
    s += format_argument("-m metric", "Which verification metric to use? See 'Metrics' below.") + "\n"
+   s += format_argument("--config file", "Read further arguments from this file. This flag can appear multiple times.") + "\n"
    s += format_argument("--list-times", "Prints what times are available in the files") + "\n"
    s += format_argument("--list-locations", "Prints what locations are available in the files") + "\n"
    s += format_argument("--list-quantiles", "Prints what quantiles are available in the files") + "\n"
@@ -591,10 +615,10 @@ def show_description(data=None):
    s += format_argument("-b type", "One of 'below' (< x), 'below=' (<= x), '=within' (<= x < ), 'within' (< x <), 'within=' (< x <=), '=within=' (<= x <=), 'above' (> x), or 'above=' (>= x). For threshold plots (ets, hit, within, etc) 'below/above' computes frequency below/above the threshold, and 'within' computes the frequency between consecutive thresholds.") + "\n"
    s += format_argument("-c file", "File containing climatology data. Subtract all forecasts and obs with climatology values.") + "\n"
    s += format_argument("-C file", "File containing climatology data. Divide all forecasts and obs by climatology values.") + "\n"
-   s += format_argument("-fcst field", "What variable should be used as the forecast? One of 'obs', 'fcst' (default), 'obswindow', 'fcstwindow'. 'obswindow' and 'fcstwindow' are the number of hours forward in time that there is not precipitation.") + "\n"
-   s += format_argument("-hist", "Plot values as histogram. Only works for non-derived metrics") + "\n"
+   s += format_argument("-fcst field", "What variable should be used as the forecast? One of 'obs', 'fcst' (default), 'obswindow', 'fcstwindow', and 'pit'. 'obswindow' and 'fcstwindow' are the number of hours forward in time that there is not precipitation. 'pit' is the CDF of the distribution at the verifying observation.") + "\n"
+   s += format_argument("-hist", "Plot values as histogram. Only works for any field that can be specified with -fcst.") + "\n"
    s += format_argument("-obs field", "What variable should be used as the observation? See -fcst.") + "\n"
-   s += format_argument("-sort", "Plot values sorted. Only works for non-derived metrics") + "\n"
+   s += format_argument("-sort", "Plot values sorted. Only works for any field than can be specified with -fcst.") + "\n"
 
    # Plot options
    s += verif.util.green("  Plotting options:") + "\n"
@@ -656,7 +680,6 @@ def show_description(data=None):
             if(m[1].is_valid()):
                desc = m[1].description
                s += format_argument(name, desc) + "\n"
-   s += "\n"
    s += "\n"
    s += verif.util.green("File formats:") + "\n"
    s += format_argument("text", verif.input.Text.description) + "\n"

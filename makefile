@@ -26,18 +26,15 @@ dist:
 	python setup.py bdist_wheel
 	@ echo "Next, run 'twine upload dist/*'"
 
-deb_dist: makefile
-	echo $(VERSION)
-	rm -rf deb_dist
-	python setup.py --command-packages=stdeb.command bdist_deb
-	cd deb_dist/verif-$(VERSION)/ || exit; debuild -S -sa
-
 clean:
 	python setup.py clean
 	rm -rf build/
 	find . -name '*.pyc' -delete
 	rm -rf deb_dist
 	rm -rf verif.egg-info
+
+lint:
+	python verif/tests/pep8_test.py
 
 count:
 	@wc -l verif/*.py | tail -1
