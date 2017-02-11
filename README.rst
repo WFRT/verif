@@ -54,6 +54,7 @@ plotted on a map. Install the packages as follows:
 
 .. code-block:: bash
 
+  sudo apt-get update
   sudo apt-get install netcdf-bin libnetcdf-dev libhdf5-serial-dev
   sudo apt-get install python-setuptools python-pip
   sudo apt-get install python-numpy python-scipy python-matplotlib python-mpltoolkits.basemap

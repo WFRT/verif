@@ -7,19 +7,17 @@ Make sure
 
 Uploading to pip
 ================
-Run:
+Build package:
 make dist
+
+Upload:
+twine upload dist/* -r testpypi     # To test
 
 or
 
-python setup.py sdist
-python setup.py bdist_wheel
-
-then
-
-twine upload dist/* -r testpypi     # To test
 twine upload dist/*                 # To upload
 
-Add the tag
+Add the tag:
+git tag <tag name>
 git push
 git push --tags
