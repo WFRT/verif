@@ -31,7 +31,7 @@ class TestPep8(unittest.TestCase):
       # style.options.max_line_length = 100  # because it isn't 1928 anymore
 
       errors = 0
-      for dir in ['verif/', 'tests/']:
+      for dir in ['verif/', 'verif/tests/']:
          for root, _, files in os.walk(dir):
             if ignore(root):
                continue
