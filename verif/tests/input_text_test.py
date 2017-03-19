@@ -150,6 +150,10 @@ class InputTextTest(unittest.TestCase):
       self.assertEqual("Weird variable", data.variable.name)
       self.assertEqual("Some units", data.variable.units)
 
+   def test_missing_header(self):
+      with self.assertRaises(SystemExit) as context:
+         input = verif.input.Text("verif/tests/files/file1_no_header.txt")
+
 
 if __name__ == '__main__':
    unittest.main()
