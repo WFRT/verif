@@ -1083,6 +1083,46 @@ class QQ(Output):
       mpl.gca().set_aspect(1)
 
 
+class AutoTest(Output):
+   supports_threshold = False
+   supports_x = False
+   description = "Plots error auto-correlation as a function of location separation"
+
+   def __init__(self):
+      Output.__init__(self)
+
+   def _plot_core(self, data):
+      labels = data.get_legend()
+      F = data.num_inputs
+      N = len(data.locations)
+      dist = np.zeros([N,N])
+      for i in range(N):
+         for j in range(N):
+            dist[i,j] = data.locations[i].get_distance(data.locations[j])
+      for f in range(0, F):
+         corr = np.nan*np.zeros([N,N])
+         [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
+         error = obs - fcst
+         min_dist = 0
+         max_dist = 1e9
+         if self.xlim is not None:
+            min_dist = self.xlim[0]
+            max_dist = self.xlim[1]
+         for i in range(N):
+            for j in range(N):
+               if i != j and dist[i,j] >= min_dist and dist[i,j] <= max_dist:
+                  x = error[:, :, i].flatten()
+                  y = error[:, :, j].flatten()
+                  I = np.where((np.isnan(x) == 0) & (np.isnan(y) == 0))[0]
+                  corr[i,j] = np.ma.corrcoef(x[I], y[I])[1, 0]
+         color = self._get_color(f, F)
+         style = self._get_style(f, F, False)
+         mpl.plot(dist.flatten(), corr.flatten(), style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
+
+      mpl.xlabel("Distance (m)")
+      mpl.ylabel("Correlation")
+
+
 class Scatter(Output):
    description = "Scatter plot of forecasts vs obs and lines showing quantiles of obs given forecast (use -r to specify)"
    supports_threshold = False
