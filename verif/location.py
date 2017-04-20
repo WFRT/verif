@@ -33,6 +33,8 @@ class Location(object):
       lon1 = self.lon
       lat2 = other.lat
       lon2 = other.lon
+      if lat1 == lat2 and lon1 == lon2:
+          return 0
 
       lat1r = verif.util.deg2rad(lat1)
       lat2r = verif.util.deg2rad(lat2)
@@ -41,7 +43,10 @@ class Location(object):
       ratio = np.cos(lat1r) * np.cos(lon1r) * np.cos(lat2r) * np.cos(lon2r) +\
               np.cos(lat1r) * np.sin(lon1r) * np.cos(lat2r) * np.sin(lon2r) +\
               np.sin(lat1r) * np.sin(lat2r)
+      if ratio > 1:
+          ratio = 1
       dist = np.arccos(ratio) * self.radius_earth
+
       return dist
 
    def __eq__(self, other):
