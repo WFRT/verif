@@ -1114,7 +1114,7 @@ class AutoTest(Output):
                   x = error[:, :, i].flatten()
                   y = error[:, :, j].flatten()
                   I = np.where((np.isnan(x) == 0) & (np.isnan(y) == 0))[0]
-                  corr[i,j] = np.ma.corrcoef(x[I], y[I])[1, 0]
+                  corr[i,j] = np.corrcoef(x[I], y[I])[1, 0]
          color = self._get_color(f, F)
          style = self._get_style(f, F, False)
          mpl.plot(dist.flatten(), corr.flatten(), style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
