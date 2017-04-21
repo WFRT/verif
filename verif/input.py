@@ -60,18 +60,26 @@ class Input(object):
       fcst: Forecasts
       pit: Verifying probability integral transform values (i.e. the CDF where
          the observation falls in)
+      other_fields: A list of strings of other field names
 
       ensemble: A 4D numpy array of ensemble data with dims (time,leadtime,location,member)
       threshold_scores: A 4D numpy array with CDF values for each threshold
          with dims (time,leadtime,location, threshold)
       quantile_scores: A 4D numpy array with values at certain quantiles with
          dims (time,leadtime,location, quantile)
-      other_scores: A dictionary with 3D numpy arrays, just like obs and fcst,
-         but where the keys are names of extra fields (e.g. crps)
 
    Subclasses must populate all attributes
    """
    description = None  # Overwrite this
+
+   def other_score(self, name):
+      """
+      Fetch an other field with this name
+
+      Returns:
+         np.array: 3D array with the same size as self.obs
+      """
+      raise NotImplementedError()
 
    def get_fields(self):
       """ Get the available fields in this input
@@ -86,7 +94,7 @@ class Input(object):
          fields.append(verif.field.Fcst())
       if self.pit is not None:
          fields.append(verif.field.Pit())
-      for name in self.other_scores:
+      for name in self.other_fields:
          fields.append(verif.field.Other(name))
       thresholds = [verif.field.Threshold(threshold) for threshold in self.thresholds]
       quantiles = [verif.field.Quantile(quantile) for quantile in self.quantiles]
@@ -127,6 +135,8 @@ class Netcdf(Input):
       self.thresholds = self._get_thresholds()
       self.quantiles = self._get_quantiles()
       self.variable = self._get_variable()
+      regular_names = self.get_regular_names() + ["threshold", "cdf", "quantile", "x"]
+      self.other_fields = [var for var in self._file.variables if var not in regular_names]
 
    @staticmethod
    def is_valid(filename):
@@ -194,14 +204,8 @@ class Netcdf(Input):
       else:
          return None
 
-   @property
-   def other_scores(self):
-      scores = dict()
-      regular_names = self.get_regular_names() + ["threshold", "cdf", "quantile", "x"]
-      vars = [var for var in self._file.variables if var not in regular_names]
-      for var in vars:
-         scores[var] =  verif.util.clean(self._file.variables[var])
-      return scores
+   def other_score(self, name):
+      return verif.util.clean(self._file.variables[name])
 
    def _get_times(self):
       return verif.util.clean(self._file.variables["time"])
@@ -458,9 +462,9 @@ class Text(Input):
          self.pit = np.zeros([Ntimes, Nleadtimes, Nlocations], 'float') * np.nan
       self.threshold_scores = np.zeros([Ntimes, Nleadtimes, Nlocations, Nthresholds], 'float') * np.nan
       self.quantile_scores = np.zeros([Ntimes, Nleadtimes, Nlocations, Nquantiles], 'float') * np.nan
-      self.other_scores = dict()
+      self._other_scores = dict()
       for field in other.keys():
-         self.other_scores[field] = np.zeros([Ntimes, Nleadtimes, Nlocations], 'float') * np.nan
+         self._other_scores[field] = np.zeros([Ntimes, Nleadtimes, Nlocations], 'float') * np.nan
 
       for d in range(0, Ntimes):
          unixtime = self._times[d]
@@ -491,7 +495,7 @@ class Text(Input):
                      self.threshold_scores[d, o, s, t] = cdf[key]
                for field in other.keys():
                   if(key in other[field]):
-                     self.other_scores[field][d, o, s] = other[field][key]
+                     self._other_scores[field][d, o, s] = other[field][key]
 
       maxLocationId = np.nan
       for location in self._locations:
@@ -515,6 +519,13 @@ class Text(Input):
       self.quantiles = np.array(self._quantiles)
       self.locations = self._locations
       self.variable = self._get_variable()
+
+   @property
+   def other_fields(self):
+      return self._other_scores.keys()
+
+   def other_score(self, name):
+      return self._other_scores[name]
 
    @staticmethod
    def is_valid(filename):
@@ -545,14 +556,14 @@ class Text(Input):
       return thresholds
 
    def _get_other_fields(self, fields):
-      quantiles = list()
+      other_fields = list()
       for att in fields:
          if att not in self.get_regular_names():
             if len(att) > 1 and (att[0] == "q" or att[0] == "p"):
                if verif.util.is_number(att[1:]):
                   continue
-            quantiles.append(att)
-      return quantiles
+            other_fields.append(att)
+      return other_fields
 
 
 class Comps(Input):
@@ -575,6 +586,19 @@ class Comps(Input):
       self.quantiles = self._get_quantiles()
       self.locations = self._get_locations()
       self.variable = self._get_variable()
+      self.other_fields = self._get_other_fields()
+
+   def _get_other_fields(self):
+      regular_names = self.get_regular_names() + ["Location", "Lat", "Lon", "Elev", "Offset", "Date"]
+      fields = self._file.variables
+      other_fields = list()
+      for att in fields:
+         if att not in regular_names:
+            if len(att) > 1 and (att[0] == "q" or att[0] == "p"):
+               if verif.util.is_number(att[1:]):
+                  continue
+            other_fields.append(att)
+      return other_fields
 
    @staticmethod
    def is_valid(filename):
@@ -645,14 +669,8 @@ class Comps(Input):
 
       return values
 
-   @property
-   def other_scores(self):
-      scores = dict()
-      regular_names = ["Location", "Lat", "Lon", "Elev", "Offset", "Date"]
-      vars = [var for var in self._file.variables if var not in regular_names]
-      for var in vars:
-         scores[var] =  verif.util.clean(self._file.variables[var])
-      return scores
+   def other_score(self, name):
+      return verif.util.clean(self._file.variables[name])
 
    def _get_locations(self):
       lat = verif.util.clean(self._file.variables["Lat"])
@@ -818,4 +836,4 @@ class Fake(Input):
       else:
          self.variable = variable
       self.pit = None
-      self.other_scores = dict()
+      self.other_fields = list()
