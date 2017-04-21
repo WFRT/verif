@@ -393,7 +393,7 @@ def run(argv):
       # Attempt at automating
       m = verif.metric.get(metric)
       if(m is None):
-         verif.util.error("Unknown plot: %s" % metric)
+         m = verif.metric.FromField(verif.field.Other(metric))
 
       if aggregator_name is not None:
          if not m.supports_aggregator:

@@ -66,6 +66,8 @@ class Input(object):
          with dims (time,leadtime,location, threshold)
       quantile_scores: A 4D numpy array with values at certain quantiles with
          dims (time,leadtime,location, quantile)
+      other_scores: A dictionary with 3D numpy arrays, just like obs and fcst,
+         but where the keys are names of extra fields (e.g. crps)
 
    Subclasses must populate all attributes
    """
@@ -84,6 +86,8 @@ class Input(object):
          fields.append(verif.field.Fcst())
       if self.pit is not None:
          fields.append(verif.field.Pit())
+      for name in self.other_scores:
+         fields.append(verif.field.Other(name))
       thresholds = [verif.field.Threshold(threshold) for threshold in self.thresholds]
       quantiles = [verif.field.Quantile(quantile) for quantile in self.quantiles]
       return fields + thresholds + quantiles
@@ -101,6 +105,10 @@ class Input(object):
       I = self.name.rfind('.')
       name = self.name[:I]
       return name
+
+   def get_regular_names(self):
+      """ Standard names of fields in dataset """
+      return ["obs", "fcst", "id", "location", "lat", "lon", "elev", "altitude", "time", "date", "unixtime", "leadtime", "offset"]
 
 
 class Netcdf(Input):
@@ -185,6 +193,15 @@ class Netcdf(Input):
          return verif.util.clean(self._file.variables["x"])
       else:
          return None
+
+   @property
+   def other_scores(self):
+      scores = dict()
+      regular_names = self.get_regular_names() + ["threshold", "cdf", "quantile", "x"]
+      vars = [var for var in self._file.variables if var not in regular_names]
+      for var in vars:
+         scores[var] =  verif.util.clean(self._file.variables[var])
+      return scores
 
    def _get_times(self):
       return verif.util.clean(self._file.variables["time"])
@@ -282,6 +299,7 @@ class Text(Input):
       fcst = dict()
       cdf = dict()
       pit = dict()
+      other = dict()
       x = dict()
       indices = dict()
       header = None
@@ -333,6 +351,9 @@ class Text(Input):
                      indices["leadtime"] = i
                   else:
                      indices[att] = i
+               quantileFields = self._get_quantile_fields(header)
+               thresholdFields = self._get_threshold_fields(header)
+               otherFields = self._get_other_fields(header)
             else:
                if(len(row) is not len(header)):
                   verif.util.error("Incorrect number of columns (expecting %d) in row '%s'"
@@ -398,8 +419,6 @@ class Text(Input):
                   obs[key] = self._clean(row[indices["obs"]])
                if "fcst" in indices:
                   fcst[key] = self._clean(row[indices["fcst"]])
-               quantileFields = self._get_quantile_fields(header)
-               thresholdFields = self._get_threshold_fields(header)
                if "pit" in indices:
                   pit[key] = self._clean(row[indices["pit"]])
                for field in quantileFields:
@@ -412,6 +431,11 @@ class Text(Input):
                   self._thresholds.add(threshold)
                   key = (unixtime, leadtime, id, lat, lon, elev, threshold)
                   cdf[key] = self._clean(row[indices[field]])
+               for field in otherFields:
+                  key = (unixtime, leadtime, id, lat, lon, elev)
+                  if field not in other:
+                     other[field] = dict()
+                  other[field][key] = self._clean(row[indices[field]])
 
       file.close()
       self._times = list(self._times)
@@ -434,6 +458,10 @@ class Text(Input):
          self.pit = np.zeros([Ntimes, Nleadtimes, Nlocations], 'float') * np.nan
       self.threshold_scores = np.zeros([Ntimes, Nleadtimes, Nlocations, Nthresholds], 'float') * np.nan
       self.quantile_scores = np.zeros([Ntimes, Nleadtimes, Nlocations, Nquantiles], 'float') * np.nan
+      self.other_scores = dict()
+      for field in other.keys():
+         self.other_scores[field] = np.zeros([Ntimes, Nleadtimes, Nlocations], 'float') * np.nan
+
       for d in range(0, Ntimes):
          unixtime = self._times[d]
          for o in range(0, len(self._leadtimes)):
@@ -461,6 +489,10 @@ class Text(Input):
                   key = (unixtime, leadtime, id, lat, lon, elev, threshold)
                   if(key in cdf):
                      self.threshold_scores[d, o, s, t] = cdf[key]
+               for field in other.keys():
+                  if(key in other[field]):
+                     self.other_scores[field][d, o, s] = other[field][key]
+
       maxLocationId = np.nan
       for location in self._locations:
          if(np.isnan(maxLocationId)):
@@ -511,6 +543,16 @@ class Text(Input):
          if(att[0] == "p" and att != "pit"):
             thresholds.append(att)
       return thresholds
+
+   def _get_other_fields(self, fields):
+      quantiles = list()
+      for att in fields:
+         if att not in self.get_regular_names():
+            if len(att) > 1 and (att[0] == "q" or att[0] == "p"):
+               if verif.util.is_number(att[1:]):
+                  continue
+            quantiles.append(att)
+      return quantiles
 
 
 class Comps(Input):
@@ -602,6 +644,15 @@ class Comps(Input):
          values[:, :, :, q] = temp
 
       return values
+
+   @property
+   def other_scores(self):
+      scores = dict()
+      regular_names = ["Location", "Lat", "Lon", "Elev", "Offset", "Date"]
+      vars = [var for var in self._file.variables if var not in regular_names]
+      for var in vars:
+         scores[var] =  verif.util.clean(self._file.variables[var])
+      return scores
 
    def _get_locations(self):
       lat = verif.util.clean(self._file.variables["Lat"])
@@ -767,3 +818,4 @@ class Fake(Input):
       else:
          self.variable = variable
       self.pit = None
+      self.other_scores = dict()

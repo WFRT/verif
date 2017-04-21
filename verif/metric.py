@@ -216,6 +216,8 @@ class ObsFcstBased(Metric):
 
 
 class FromField(Metric):
+   supports_aggregator = True
+
    def __init__(self, field, aux=None):
       """ Compute scores from a field
 
@@ -236,7 +238,7 @@ class FromField(Metric):
       return self.aggregator(values)
 
    def name(self):
-      return self.aggregator.name().title() + " of " + self._field
+      return self.aggregator.name().title() + " of " + self._field.name()
 
 
 class Obs(Metric):

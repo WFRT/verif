@@ -131,7 +131,7 @@ class Other(Field):
       self._name = name
 
    def name(self):
-      return "Other(%s)" % self._name
+      return "%s" % self._name
 
    def units(self, variable):
       return "unknown"

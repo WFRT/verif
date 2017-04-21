@@ -457,7 +457,7 @@ class Data(object):
                temp = self._calculate_window(temp, input.leadtimes)
 
             else:
-               verif.util.error("Not implemented")
+               temp = input.other_scores[field.name()]
             Itimes = self._get_time_indices(i)
             Ileadtimes = self._get_leadtime_indices(i)
             Ilocations = self._get_location_indices(i)
