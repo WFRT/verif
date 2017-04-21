@@ -1103,17 +1103,17 @@ class AutoCorr(Output):
       # Compute distances
       if self.axis.is_location_like:
          N = len(data.locations)
-         dist = np.zeros([N,N])
+         dist = np.zeros([N, N])
          for i in range(N):
             for j in range(N):
                if self.axis == verif.axis.Location():
-                  dist[i,j] = data.locations[i].get_distance(data.locations[j])/1000
+                  dist[i, j] = data.locations[i].get_distance(data.locations[j])/1000
                elif self.axis == verif.axis.Lat():
-                  dist[i,j] = np.abs(data.locations[i].lat - data.locations[j].lat)
+                  dist[i, j] = np.abs(data.locations[i].lat - data.locations[j].lat)
                elif self.axis == verif.axis.Lon():
-                  dist[i,j] = np.abs(data.locations[i].lon - data.locations[j].lon)
+                  dist[i, j] = np.abs(data.locations[i].lon - data.locations[j].lon)
                elif self.axis == verif.axis.Elev():
-                  dist[i,j] = np.abs(data.locations[i].elev - data.locations[j].elev)
+                  dist[i, j] = np.abs(data.locations[i].elev - data.locations[j].elev)
                else:
                   verif.util.error("Unknown location-like axis '%s'" % self.axis.name())
          if self.axis == verif.axis.Location():
@@ -1126,23 +1126,23 @@ class AutoCorr(Output):
             xlabel = "Elevation difference (m)"
       elif self.axis == verif.axis.Leadtime():
          N = len(data.leadtimes)
-         dist = np.zeros([N,N])
+         dist = np.zeros([N, N])
          for i in range(N):
             for j in range(N):
-               dist[i,j] = np.abs(data.leadtimes[i] - data.leadtimes[j])
+               dist[i, j] = np.abs(data.leadtimes[i] - data.leadtimes[j])
          xlabel = "Leadtime difference (hours)"
       elif self.axis == verif.axis.Time():
          N = len(data.times)
-         dist = np.zeros([N,N])
+         dist = np.zeros([N, N])
          for i in range(N):
             for j in range(N):
-               dist[i,j] = np.abs(data.times[i] - data.times[j])/3600
+               dist[i, j] = np.abs(data.times[i] - data.times[j])/3600
          xlabel = "Time difference (hours)"
       else:
          verif.util.error("Axis '%s' not supported in AutCorr output" % self.axis.name())
 
       for f in range(0, F):
-         corr = np.nan*np.zeros([N,N])
+         corr = np.nan*np.zeros([N, N])
          [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
          error = obs - fcst
          min_dist = 0
@@ -1152,7 +1152,7 @@ class AutoCorr(Output):
             max_dist = self.xlim[1]
          for i in range(N):
             for j in range(N):
-               if dist[i,j] >= min_dist and dist[i,j] <= max_dist:
+               if dist[i, j] >= min_dist and dist[i, j] <= max_dist:
                   if self.axis.is_location_like:
                      x = error[:, :, i].flatten()
                      y = error[:, :, j].flatten()
@@ -1163,7 +1163,7 @@ class AutoCorr(Output):
                      x = error[i, :, :].flatten()
                      y = error[j, :, :].flatten()
                   I = np.where((np.isnan(x) == 0) & (np.isnan(y) == 0))[0]
-                  corr[i,j] = np.corrcoef(x[I], y[I])[1, 0]
+                  corr[i, j] = np.corrcoef(x[I], y[I])[1, 0]
          color = self._get_color(f, F)
          style = self._get_style(f, F, False)
          x = dist.flatten()
