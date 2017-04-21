@@ -1091,6 +1091,10 @@ class AutoTest(Output):
    def __init__(self):
       Output.__init__(self)
 
+   @property
+   def _show_smoothing_line(self):
+      return not self.simple
+
    def _plot_core(self, data):
       labels = data.get_legend()
       F = data.num_inputs
@@ -1117,7 +1121,40 @@ class AutoTest(Output):
                   corr[i,j] = np.corrcoef(x[I], y[I])[1, 0]
          color = self._get_color(f, F)
          style = self._get_style(f, F, False)
+         x = dist.flatten()
+         y = corr.flatten()
          mpl.plot(dist.flatten(), corr.flatten(), style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
+         if self._show_smoothing_line:
+            if self.thresholds is None:
+               percentiles = np.linspace(0,100,51)
+               edges = np.array([np.percentile(np.unique(np.sort(x)), p) for p in percentiles])
+            else:
+               edges = self.thresholds
+            quantiles = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
+            for q in range(len(quantiles)):
+               quantile = quantiles[q]
+               xx, yy = verif.util.bin(x, y, edges, lambda f: np.percentile(f, quantile*100))
+
+               style = 'k-'
+               lw = 2
+               if q == 0 or q == len(quantiles)-1:
+                  style = 'ko--'
+               elif q == (len(quantiles)-1)/2:
+                  style = 'ko-'
+                  lw = 4
+               # Write labels for the quantile lines, but only do it for one file
+               label = ""
+               if f == 0:
+                  if q == 0 or q == len(quantiles) - 1:
+                     label = "%d%%" % (quantiles[q] * 100)
+                  # Instead of writing all labels, only summarize the middle ones
+                  elif q == 1 and len(quantiles) > 3:
+                     label = "%d%%-%d%%" % (quantiles[1] * 100, (quantiles[len(quantiles) - 2] * 100))
+                  elif q == 1 and len(quantiles) == 3:
+                     label = "%d%%" % (quantiles[1] * 100)
+               mpl.plot(xx, yy, style, lw=lw, ms=self.ms,
+                     zorder=100, label=label)
+            self._plot_obs(x, 0*x, label="")
 
       mpl.xlabel("Distance (m)")
       mpl.ylabel("Correlation")
