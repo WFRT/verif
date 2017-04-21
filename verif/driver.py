@@ -346,8 +346,8 @@ def run(argv):
       pl = verif.output.Meteo()
    elif(metric == "qq"):
       pl = verif.output.QQ()
-   elif(metric == "autotest"):
-      pl = verif.output.AutoTest()
+   elif(metric == "autocorr"):
+      pl = verif.output.AutoCorr()
    elif(metric == "cond"):
       pl = verif.output.Cond()
    elif(metric == "against"):

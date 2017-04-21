@@ -1083,10 +1083,11 @@ class QQ(Output):
       mpl.gca().set_aspect(1)
 
 
-class AutoTest(Output):
+class AutoCorr(Output):
    supports_threshold = False
-   supports_x = False
-   description = "Plots error auto-correlation as a function of location separation"
+   supports_x = True
+   default_axis = verif.axis.Location()
+   description = "Plots error auto-correlation as a function of distance. Use -x to specify axis to find auto-correlations for: -x location gives correlation between all pairs of locations; -x time gives between all pairs of forecast initializations; Similarly for -x leadtime, -x lat, -x lon, -x elev."
 
    def __init__(self):
       Output.__init__(self)
@@ -1098,11 +1099,48 @@ class AutoTest(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
       F = data.num_inputs
-      N = len(data.locations)
-      dist = np.zeros([N,N])
-      for i in range(N):
-         for j in range(N):
-            dist[i,j] = data.locations[i].get_distance(data.locations[j])
+
+      # Compute distances
+      if self.axis.is_location_like:
+         N = len(data.locations)
+         dist = np.zeros([N,N])
+         for i in range(N):
+            for j in range(N):
+               if self.axis == verif.axis.Location():
+                  dist[i,j] = data.locations[i].get_distance(data.locations[j])/1000
+               elif self.axis == verif.axis.Lat():
+                  dist[i,j] = np.abs(data.locations[i].lat - data.locations[j].lat)
+               elif self.axis == verif.axis.Lon():
+                  dist[i,j] = np.abs(data.locations[i].lon - data.locations[j].lon)
+               elif self.axis == verif.axis.Elev():
+                  dist[i,j] = np.abs(data.locations[i].elev - data.locations[j].elev)
+               else:
+                  verif.util.error("Unknown location-like axis '%s'" % self.axis.name())
+         if self.axis == verif.axis.Location():
+            xlabel = "Distance (km)"
+         elif self.axis == verif.axis.Lat():
+            xlabel = "Latitude difference (degrees)"
+         elif self.axis == verif.axis.Lon():
+            xlabel = "Longitude difference (degrees)"
+         elif self.axis == verif.axis.Elev():
+            xlabel = "Elevation difference (m)"
+      elif self.axis == verif.axis.Leadtime():
+         N = len(data.leadtimes)
+         dist = np.zeros([N,N])
+         for i in range(N):
+            for j in range(N):
+               dist[i,j] = np.abs(data.leadtimes[i] - data.leadtimes[j])
+         xlabel = "Leadtime difference (hours)"
+      elif self.axis == verif.axis.Time():
+         N = len(data.times)
+         dist = np.zeros([N,N])
+         for i in range(N):
+            for j in range(N):
+               dist[i,j] = np.abs(data.times[i] - data.times[j])/3600
+         xlabel = "Time difference (hours)"
+      else:
+         verif.util.error("Axis '%s' not supported in AutCorr output" % self.axis.name())
+
       for f in range(0, F):
          corr = np.nan*np.zeros([N,N])
          [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
@@ -1114,9 +1152,16 @@ class AutoTest(Output):
             max_dist = self.xlim[1]
          for i in range(N):
             for j in range(N):
-               if i != j and dist[i,j] >= min_dist and dist[i,j] <= max_dist:
-                  x = error[:, :, i].flatten()
-                  y = error[:, :, j].flatten()
+               if dist[i,j] >= min_dist and dist[i,j] <= max_dist:
+                  if self.axis.is_location_like:
+                     x = error[:, :, i].flatten()
+                     y = error[:, :, j].flatten()
+                  elif self.axis == verif.axis.Leadtime():
+                     x = error[:, i, :].flatten()
+                     y = error[:, j, :].flatten()
+                  else:
+                     x = error[i, :, :].flatten()
+                     y = error[j, :, :].flatten()
                   I = np.where((np.isnan(x) == 0) & (np.isnan(y) == 0))[0]
                   corr[i,j] = np.corrcoef(x[I], y[I])[1, 0]
          color = self._get_color(f, F)
@@ -1126,14 +1171,14 @@ class AutoTest(Output):
          mpl.plot(dist.flatten(), corr.flatten(), style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
          if self._show_smoothing_line:
             if self.thresholds is None:
-               percentiles = np.linspace(0,100,51)
+               percentiles = np.linspace(0, 100, 21)
                edges = np.array([np.percentile(np.unique(np.sort(x)), p) for p in percentiles])
             else:
                edges = self.thresholds
             quantiles = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
             for q in range(len(quantiles)):
                quantile = quantiles[q]
-               xx, yy = verif.util.bin(x, y, edges, lambda f: np.percentile(f, quantile*100))
+               xx, yy = verif.util.bin(x, y, edges, lambda f: verif.util.nanpercentile(f, quantile*100))
 
                style = 'k-'
                lw = 2
@@ -1156,8 +1201,8 @@ class AutoTest(Output):
                      zorder=100, label=label)
             self._plot_obs(x, 0*x, label="")
 
-      mpl.xlabel("Distance (m)")
-      mpl.ylabel("Correlation")
+      mpl.xlabel(xlabel)
+      mpl.ylabel("Error correlation")
 
 
 class Scatter(Output):
@@ -1245,7 +1290,7 @@ class Scatter(Output):
                      label = "%d%%" % (quantiles[1] * 100)
                mpl.plot(values[q, :], bins, style, lw=lw, alpha=0.5, label=label)
             for i in range(0, len(bins)):
-               mpl.plot([values[0, i], values[-1, i]], [bins[i], bins[i]], 'k-')
+               mpl.plot([values[1, i], values[-2, i]], [bins[i], bins[i]], 'k-')
       mpl.ylabel("Forecasts (" + data.variable.units + ")")
       mpl.xlabel("Observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())

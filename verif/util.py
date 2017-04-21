@@ -58,6 +58,33 @@ def unixtime_to_datenum(time):
    return matplotlib.dates.date2num(dt)
 
 
+def bin(x, y, edges, func=np.nanmean):
+   """ Bin the x-values using edges and return the average values
+
+   Arguments:
+      x (np.array): x-axis values
+      y (np.array): y-axis values
+      edges (np.array): bins with these edges
+      func: what function to use when binning
+
+
+   Returns:
+      xx (np.array): average values of x in each bin. Length is one less than
+         edges
+      yy (np.array): average values of y in each bin
+   """
+   xx = np.nan*np.zeros(len(edges)-1)
+   yy = np.nan*np.zeros(len(edges)-1)
+
+   for i in range(len(edges)-1):
+      I = np.where((x >= edges[i]) & (x < edges[i+1]))[0]
+      if len(I) > 0:
+         xx[i] = np.nanmean(x[I])
+         yy[i] = func(y[I])
+
+   return xx, yy
+
+
 def datenum_to_date(datenum):
    """ Converts datenum into YYYYMMDD value
 
