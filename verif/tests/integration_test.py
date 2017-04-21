@@ -184,6 +184,17 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt -m discrimination -r 0")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m discrimination -r 0")
 
+   def test_autocorr(self):
+      self.run_with_image("verif examples/raw.txt -m autocorr")
+      self.run_with_image("verif examples/raw.txt -m autocorr -x location")
+      self.run_with_image("verif examples/raw.txt -m autocorr -x lat")
+      self.run_with_image("verif examples/raw.txt -m autocorr -x lon")
+      self.run_with_image("verif examples/raw.txt -m autocorr -x elev")
+      self.run_with_image("verif examples/raw.txt -m autocorr -x time")
+      self.run_with_image("verif examples/raw.txt -m autocorr -x leadtime")
+      self.run_with_image("verif examples/raw.txt -m autocorr -r 0:100:1000")
+      self.run_with_image("verif examples/raw.txt -m autocorr -r 0:100:1000 -xlim 0,100")
+
    def test_config(self):
       self.run_with_image("verif examples/raw.txt --config verif/tests/files/config1.txt")
       self.run_with_image("verif examples/raw.txt -m mae --config verif/tests/files/configEmpty.txt")
