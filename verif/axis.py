@@ -88,6 +88,13 @@ class Leadtime(Axis):
       return "Lead time (h)"
 
 
+class Leadtimeday(Axis):
+   """ Forecast lead-time aggregated over a day"""
+
+   def label(self, variable):
+      return "Lead time (day)"
+
+
 class Location(Axis):
    is_continuous = False
    is_location_like = True

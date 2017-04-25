@@ -31,6 +31,7 @@ class Data(object):
    months         Available months (derived from times)
    years          Available years (derived from times)
    weeks          Available weeks (derived from times)
+   leadtimedays   Available leadtimedays (derived from leadtimes)
    """
    def __init__(self, inputs, times=None, leadtimes=None, locations=None, locations_x=None,
          lat_range=None, lon_range=None, elev_range=None, clim=None, clim_type="subtract",
@@ -159,6 +160,7 @@ class Data(object):
       self.months = self._get_months()
       self.years = self._get_years()
       self.weeks = self._get_weeks()
+      self.leadtimedays = self._get_leadtimedays()
       self.num_inputs = self._get_num_inputs()
 
    def get_fields(self):
@@ -272,14 +274,15 @@ class Data(object):
 
    def get_axis_values(self, axis):
       """ What are the values along an axis?
-      verif.axis.Time()       Unixtimes
-      verif.axis.Month()      Unixtimes of the begining of each month
-      verif.axis.Year()       Unixtimes of the beginning of each year
-      verif.axis.Leadtime()   Lead times in hours
-      verif.axis.Location()   Location id
-      verif.axis.Lat()        Latitudes of locations
-      verif.axis.Lon()        Longitudes of locations
-      verif.axis.Elev()       Elevations of locations
+      verif.axis.Time()          Unixtimes
+      verif.axis.Month()         Unixtimes of the begining of each month
+      verif.axis.Year()          Unixtimes of the beginning of each year
+      verif.axis.Leadtime()      Lead times in hours
+      verif.axis.Leadtimeday()   Lead time day in days
+      verif.axis.Location()      Location id
+      verif.axis.Lat()           Latitudes of locations
+      verif.axis.Lon()           Longitudes of locations
+      verif.axis.Elev()          Elevations of locations
 
       Arguments:
       axis        of type verif.axis.Axis
@@ -295,6 +298,8 @@ class Data(object):
          return self.months
       elif(axis == verif.axis.Week()):
          return self.weeks
+      elif(axis == verif.axis.Leadtimeday()):
+         return self.leadtimedays
       elif(axis == verif.axis.Leadtime()):
          return self.leadtimes
       elif(axis == verif.axis.No()):
@@ -525,6 +530,16 @@ class Data(object):
       I = self._leadtimesI[0]
       return np.array([leadtimes[i] for i in I], float)
 
+   def _get_leadtimedays(self):
+      dts = [datetime.datetime.utcfromtimestamp(i) for i in self.leadtimes]
+      for i in range(0, len(dts)):
+         # Reset datetime such that it is for the first day of the week
+         # That is subtract the day of the week from the date
+         weekday = dts[i].weekday()
+         dts[i] = dts[i] - datetime.timedelta(days=weekday)
+      leadtimedays = np.unique(np.array([int(x/24) for x in self.leadtimes]))
+      return leadtimedays
+
    def _get_locations(self):
       locations = self._inputs[0].locations
       I = self._locationsI[0]
@@ -673,6 +688,13 @@ class Data(object):
          output = array[I, :, :].flatten()
       elif(axis == verif.axis.Leadtime()):
          output = array[:, axis_index, :].flatten()
+      elif(axis == verif.axis.Leadtimeday()):
+         if(axis_index == self.leadtimedays.shape[0]-1):
+            I = np.where((self.leadtimes >= self.leadtimedays[axis_index]*24))
+         else:
+            I = np.where((self.leadtimes >= self.leadtimedays[axis_index]*24) &
+                         (self.leadtimes < self.leadtimedays[axis_index + 1]*24))
+         output = array[:, I, :].flatten()
       elif(axis.is_location_like):
          output = array[:, :, axis_index].flatten()
       elif(axis == verif.axis.No() or axis == verif.axis.Threshold()):

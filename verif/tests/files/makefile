@@ -1,0 +1,2 @@
+%.nc: %.txt
+	ncgen -o $@ $<

@@ -106,11 +106,11 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg range")
 
    def test_standard_option_x(self):
-      for axis in ["leadtime", "time", "location", "lat", "lon", "elev", "week", "month", "year", "no"]:
+      for axis in ["leadtime", "time", "location", "lat", "lon", "elev", "week", "month", "year", "leadtimeday", "no"]:
          self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x %s" % axis)
 
    def test_obsfcst_option_x(self):
-      for axis in ["leadtime", "time", "location", "lat", "lon", "elev", "week", "month", "year", "no"]:
+      for axis in ["leadtime", "time", "location", "lat", "lon", "elev", "week", "month", "year", "leadtimeday", "no"]:
          self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -x %s" % axis)
 
    def test_plotting_options(self):
