@@ -205,15 +205,16 @@ class Output(object):
       Prints to screen, unless self.filename is defined, in which case it
       writes to file.
       """
-      [x, y, xlabel, ylabels] = self._get_x_y(data, self.axis)
+      x, y, xlabel, ylabels, descs = self._get_x_y(data, self.axis)
 
       lengths = [max(11, len(label)+1) for label in ylabels]
 
       # Get column descriptions
-      if self.axis == verif.axis.Threshold():
-         descs = {"Threshold": self.thresholds}
-      else:
-         descs = data.get_axis_descriptions(self.axis)
+      if descs is None:
+         if self.axis == verif.axis.Threshold():
+            descs = {"Threshold": self.thresholds}
+         else:
+            descs = data.get_axis_descriptions(self.axis)
       s = ','.join(descs.keys()) + ',' + ','.join(ylabels) + '\n'
 
       desc_lengths = dict()
@@ -260,13 +261,14 @@ class Output(object):
       Prints to screen, unless self.filename is defined, in which case it
       writes to file.
       """
-      x, y, _, labels = self._get_x_y(data, self.axis)
+      x, y, _, labels, descs = self._get_x_y(data, self.axis)
 
       # Get column descriptions
-      if self.axis == verif.axis.Threshold():
-         descs = {"Threshold": self.thresholds}
-      else:
-         descs = data.get_axis_descriptions(self.axis)
+      if descs is None:
+         if self.axis == verif.axis.Threshold():
+            descs = {"Threshold": self.thresholds}
+         else:
+            descs = data.get_axis_descriptions(self.axis)
       s = ','.join(descs.keys()) + ',' + ','.join(labels) + '\n'
 
       # Loop over rows
@@ -294,8 +296,11 @@ class Output(object):
       Returns:
          x (np.array): X-axis values
          y (np.array): 2D array with Y-axis values, one column for each line
-         xname:
-         ynames:
+         xname: x-axis label
+         ynames: labels for each column
+         descs: Text description for each row. Use None if this can be
+            automatically detected from axis. I.e. only return non-None if the
+            x-axis is not standard.
       """
       verif.util.error("This output does not provide text output")
 
@@ -674,7 +679,7 @@ class Standard(Output):
       if self.show_acc:
          y = np.nan_to_num(y)
          y = np.cumsum(y, axis=0)
-      return x, y, xname, ynames
+      return x, y, xname, ynames, None
 
    def _legend(self, data, names=None):
       if self.legfs > 0 and self.axis != verif.axis.No():
@@ -687,7 +692,7 @@ class Standard(Output):
       labels = np.array(data.get_legend())
 
       F = data.num_inputs
-      [x, y, _, labels] = self._get_x_y(data, self.axis)
+      x, y, _, labels, _ = self._get_x_y(data, self.axis)
 
       # Sort legend entries such that the appear in the same order as the
       # y-values of the lines
@@ -818,7 +823,7 @@ class Standard(Output):
          dy = 5
       else:
          dy = 10
-      x, y, _, labels = self._get_x_y(data, verif.axis.Location())
+      x, y, _, labels, _ = self._get_x_y(data, verif.axis.Location())
 
       # Colorbar limits should be the same for all subplots
       clim = [verif.util.nanpercentile(y.flatten(), self._mapLowerPerc),
@@ -1009,7 +1014,7 @@ class ObsFcst(Output):
       F = data.num_inputs
       isCont = self.axis.is_continuous
 
-      x, y, _, labels = self._get_x_y(data, self.axis)
+      x, y, _, labels, _ = self._get_x_y(data, self.axis)
 
       # Show a bargraph with unconditional averages when no axis is specified
       if self.axis == verif.axis.No():
@@ -1052,7 +1057,7 @@ class ObsFcst(Output):
          y[:, f + 1] = mFcst.compute(data, f, self.axis, None)
 
       labels = ["obs"] + labels
-      return x, y, axis.name(), labels
+      return x, y, axis.name(), labels, None
 
 
 class QQ(Output):

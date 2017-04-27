@@ -26,7 +26,7 @@ class TestStandard(unittest.TestCase):
 
    def test_leadtime(self):
       data, output = self._get()
-      x, y, _, _ = output._get_x_y(data, verif.axis.Leadtime())
+      x, y, _, _, _ = output._get_x_y(data, verif.axis.Leadtime())
       lt = data.leadtimes
       np.testing.assert_array_equal(x, lt)
       self.assertEqual(2, y.shape[1])
@@ -35,7 +35,7 @@ class TestStandard(unittest.TestCase):
    def test_location(self):
       data, output = self._get()
       for ax in [verif.axis.Location(), verif.axis.Lat(), verif.axis.Lon(), verif.axis.Elev()]:
-         x, y, _, _ = output._get_x_y(data, verif.axis.Location())
+         x, y, _, _, _ = output._get_x_y(data, verif.axis.Location())
          loc = data.locations
          self.assertEqual(len(loc), len(x))
          self.assertEqual(2, y.shape[1])
@@ -43,7 +43,7 @@ class TestStandard(unittest.TestCase):
 
    def test_year(self):
       data, output = self._get()
-      x, y, _, _ = output._get_x_y(data, verif.axis.Year())
+      x, y, _, _, _ = output._get_x_y(data, verif.axis.Year())
       # There should only be one year in this dataset
       self.assertEqual(1, len(x))
       self.assertEqual(1, y.shape[0])
@@ -53,7 +53,7 @@ class TestStandard(unittest.TestCase):
 
    def test_month(self):
       data, output = self._get()
-      x, y, _, _ = output._get_x_y(data, verif.axis.Month())
+      x, y, _, _, _ = output._get_x_y(data, verif.axis.Month())
       # There should be three months in this dataset
       self.assertEqual(3, len(x))
       self.assertEqual(3, y.shape[0])
@@ -65,7 +65,7 @@ class TestStandard(unittest.TestCase):
 
    def test_time(self):
       data, output = self._get()
-      x, y, _, _ = output._get_x_y(data, verif.axis.Time())
+      x, y, _, _, _ = output._get_x_y(data, verif.axis.Time())
       # 20120101 to 20120301
       self.assertEqual(61, len(x))
       self.assertEqual(61, y.shape[0])
@@ -77,7 +77,7 @@ class TestStandard(unittest.TestCase):
    def test_no(self):
       # Collapse all data into one number
       data, output = self._get()
-      x, y, _, _ = output._get_x_y(data, verif.axis.No())
+      x, y, _, _, _ = output._get_x_y(data, verif.axis.No())
       self.assertEqual(1, len(x))
       self.assertEqual(1, y.shape[0])
       self.assertEqual(2, y.shape[1])
