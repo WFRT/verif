@@ -101,6 +101,7 @@ setup(
     entry_points={
         'console_scripts': [
             'verif=verif:main',
+            'xverif=verif:xmain',
         ],
     },
 )

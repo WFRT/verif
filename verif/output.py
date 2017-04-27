@@ -190,14 +190,14 @@ class Output(object):
          s = s + "\n" + verif.util.green("Reference: ") + cls.reference
       return s
 
-   def plot(self, data):
+   def plot(self, data, fig):
       """ Call this to create a plot
       """
-      mpl.clf()
-      self._plot_core(data)
-      self._adjust_axes(data)
-      self._legend(data)
-      self._save_plot(data)
+      #mpl.clf()
+      self._plot_core(data, fig)
+      #self._adjust_axes(data)
+      #self._legend(data)
+      #self._save_plot(data)
 
    def text(self, data):
       """ Call this to create nicely formatted text output
@@ -650,6 +650,8 @@ class Standard(Output):
          x = data.get_axis_values(axis)
       if axis.is_time_like:
          x = [verif.util.unixtime_to_datenum(xx) for xx in x]
+         x = [datetime.datetime.fromordinal(int(q)) + datetime.timedelta(days=q%1) -
+               datetime.timedelta(days = 366) for q in x]
 
       xname = axis.name()
       ynames = data.get_legend()
@@ -680,7 +682,9 @@ class Standard(Output):
       if self.legfs > 0 and self.axis != verif.axis.No():
          mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
 
-   def _plot_core(self, data):
+   def _plot_core(self, data, fig):
+      import bokeh.plotting
+      #bokeh.plotting.output_file("test.html")
 
       # We have to derive the legend list here, because we might want to
       # specify the order
@@ -719,9 +723,11 @@ class Standard(Output):
             color = self._get_color(id, F)
             style = self._get_style(id, F, self.axis.is_continuous)
             alpha = (1 if self.axis.is_continuous else 0.55)
-            mpl.plot(x, y[:, id], style, color=color,
-                  label=labels[f], lw=self.lw, ms=self.ms,
-                  alpha=alpha)
+            print "Adding line %s" % color
+            fig.line(x, y[:, id], legend=labels[f], line_color=color)
+            #mpl.plot(x, y[:, id], style, color=color,
+            #      label=labels[f], lw=self.lw, ms=self.ms,
+            #      alpha=alpha)
             if self.show_smoothing_line:
                import scipy.ndimage
                I = np.argsort(x)
@@ -734,8 +740,10 @@ class Standard(Output):
                yy = scipy.ndimage.convolve(yy, 1.0/N*np.ones(N), mode="mirror")
                mpl.plot(xx, yy, "--", color=color, lw=self.lw, ms=self.ms)
 
-         mpl.xlabel(self.axis.label(data.variable))
+         #mpl.xlabel(self.axis.label(data.variable))
+         fig.xaxis.axis_label = self.axis.label(data.variable)
 
+         """
          if self.axis.is_time_like:
             # Note that if the above plotted lines all have nan y'values, then
             # xaxis_date() will cause an error, since the x-axis limits are set
@@ -747,9 +755,13 @@ class Standard(Output):
          else:
             # NOTE: Don't call the locator on a date axis
             mpl.gca().xaxis.set_major_locator(data.get_axis_locator(self.axis))
+         """
+      #bokeh.plotting.show(fig)
 
-      mpl.ylabel(self._metric.label(data.variable))
+      #mpl.ylabel(self._metric.label(data.variable))
+      fig.yaxis.axis_label = self._metric.label(data.variable)
       perfect_score = self._metric.perfect_score
+      """
       self._plot_perfect_score(mpl.xlim(), perfect_score)
 
       if not self.show_acc:
@@ -762,6 +774,7 @@ class Standard(Output):
          # make new ticks, to start from the first day of the desired interval
          mpl.gca().set_xticks(tickRange)
          mpl.autoscale(enable=True, axis=u'x', tight=True)  # make xaxis tight
+      """
 
    def _map_core(self, data):
       # Use the Basemap package if it is available
