@@ -348,6 +348,8 @@ def run(argv):
       pl = verif.output.QQ()
    elif(metric == "autocorr"):
       pl = verif.output.AutoCorr()
+   elif(metric == "fss"):
+      pl = verif.output.Fss()
    elif(metric == "cond"):
       pl = verif.output.Cond()
    elif(metric == "against"):

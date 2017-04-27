@@ -176,6 +176,9 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m impact")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m impact -ms 6")
 
+   def test_fss(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m fss -r 5")
+
    def test_taylor(self):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m taylor -xlim 0,2")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m taylor -xlim 0,0.2")

@@ -1210,6 +1210,79 @@ class AutoCorr(Output):
       mpl.ylabel("Error correlation")
 
 
+class Fss(Output):
+   supports_threshold = True
+   supports_x = False
+   description = "Fractional skill score"
+
+   def __init__(self):
+      Output.__init__(self)
+      self._min_num = 3
+      self.scales = np.array([2, 4, 8, 16, 32, 64, 128])
+
+   def _get_x_y(self, data, axis=None):
+      if self.thresholds is None or len(self.thresholds) != 1:
+         verif.util.error("Reliability plot needs a single threshold (use -r)")
+      if re.compile(".*within.*").match(self.bin_type):
+         verif.util.error("A 'within' bin type cannot be used in this diagram")
+
+      dist = verif.util.get_distance_matrix(data.locations)
+      L = len(data.locations)
+      threshold = self.thresholds[0]
+      labels = data.get_legend()
+
+      F = data.num_inputs
+      y = np.nan*np.zeros([len(self.scales), F])
+      for f in range(0, F):
+         """
+         The fractional skill score is computed for different spatial scales.
+         For each scale, find a set of locations that are spaced close enough
+         together and compute the fraction of observations and forecasts with
+         precip. From these fractions compute the Brier Score.
+         """
+         [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
+         obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
+         fcst = verif.util.apply_threshold(fcst, self.bin_type, threshold)
+
+         for i in range(len(self.scales)):
+            scale = self.scales[i]
+            bs = list()
+            sum_obs = 0
+            count = 0
+            for l in range(L):
+               I = np.where(dist[l, :] < scale*1000)[0]
+               if len(I) > self._min_num:
+                  ffcst = np.mean(fcst[:, :, I], axis=2).flatten()
+                  fobs = np.mean(obs[:, :, I], axis=2).flatten()
+                  curr_bs = np.mean((ffcst - fobs)**2)
+                  bs += [curr_bs]
+                  sum_obs += np.mean(fobs)
+                  count += 1
+
+            if count > 0:
+               mean_obs = sum_obs / count
+               unc = mean_obs * (1 - mean_obs)
+
+               # Compute Brier score
+               y[i, f] = (unc - np.mean(np.array(bs))) / unc
+
+      xname = "Spatial scale (km)"
+      return self.scales, y, xname, labels, {xname: [str(s) for s in self.scales]}
+
+   def _plot_core(self, data):
+      F = data.num_inputs
+
+      x, y, xname, labels, _ = self._get_x_y(data)
+      for f in range(0, F):
+         color = self._get_color(f, F)
+         style = self._get_style(f, F)
+         mpl.plot(x, y[:, f], style, lw=self.lw, ms=self.ms, label=labels[f])
+
+      mpl.ylim(bottom=0, top=1)
+      mpl.xlabel(xname)
+      mpl.ylabel("Fractional skill score")
+
+
 class Scatter(Output):
    description = "Scatter plot of forecasts vs obs and lines showing quantiles of obs given forecast (use -r to specify)"
    supports_threshold = False

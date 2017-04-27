@@ -531,3 +531,21 @@ def is_valid_nc(filename):
       return True
    except Exception:
       return False
+
+
+def get_distance_matrix(locations):
+   """ Computes distance matrix betweeen locations
+
+   Arguments:
+      locations (list): List of verif.location.Location)
+
+   Returns:
+      np.array: 2D array with the distance between each pair of locations in meters
+   """
+
+   N = len(locations)
+   dist = np.zeros([N, N])
+   for i in range(N):
+      for j in range(N):
+         dist[i, j] = locations[i].get_distance(locations[j])
+   return dist
