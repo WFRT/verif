@@ -190,14 +190,14 @@ class Output(object):
          s = s + "\n" + verif.util.green("Reference: ") + cls.reference
       return s
 
-   def plot(self, data, fig):
+   def plot(self, data):
       """ Call this to create a plot
       """
-      #mpl.clf()
-      self._plot_core(data, fig)
-      #self._adjust_axes(data)
-      #self._legend(data)
-      #self._save_plot(data)
+      mpl.clf()
+      self._plot_core(data)
+      self._adjust_axes(data)
+      self._legend(data)
+      self._save_plot(data)
 
    def text(self, data):
       """ Call this to create nicely formatted text output
@@ -442,12 +442,12 @@ class Output(object):
       if not self.show_margin:
          verif.util.remove_margin()
 
-      if self.filename is not None:
-         mpl.savefig(self.filename, bbox_inches='tight', dpi=self.dpi)
-      else:
-         fig = mpl.gcf()
-         fig.canvas.set_window_title(data.get_names()[0])
-         mpl.show()
+      #if self.filename is not None:
+      #   mpl.savefig(self.filename, bbox_inches='tight', dpi=self.dpi)
+      #else:
+      #   fig = mpl.gcf()
+      #   fig.canvas.set_window_title(data.get_names()[0])
+      #   mpl.show()
 
    def _legend(self, data, names=None):
       if self.legfs > 0:
@@ -682,7 +682,7 @@ class Standard(Output):
       if self.legfs > 0 and self.axis != verif.axis.No():
          mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
 
-   def _plot_core(self, data, fig):
+   def _plot_core(self, data):
       import bokeh.plotting
       #bokeh.plotting.output_file("test.html")
 
@@ -724,10 +724,10 @@ class Standard(Output):
             style = self._get_style(id, F, self.axis.is_continuous)
             alpha = (1 if self.axis.is_continuous else 0.55)
             print "Adding line %s" % color
-            fig.line(x, y[:, id], legend=labels[f], line_color=color)
-            #mpl.plot(x, y[:, id], style, color=color,
-            #      label=labels[f], lw=self.lw, ms=self.ms,
-            #      alpha=alpha)
+            #fig.line(x, y[:, id], legend=labels[f], line_color=color)
+            mpl.plot(x, y[:, id], style, color=color,
+                  label=labels[f], lw=self.lw, ms=self.ms,
+                  alpha=alpha)
             if self.show_smoothing_line:
                import scipy.ndimage
                I = np.argsort(x)
@@ -740,8 +740,8 @@ class Standard(Output):
                yy = scipy.ndimage.convolve(yy, 1.0/N*np.ones(N), mode="mirror")
                mpl.plot(xx, yy, "--", color=color, lw=self.lw, ms=self.ms)
 
-         #mpl.xlabel(self.axis.label(data.variable))
-         fig.xaxis.axis_label = self.axis.label(data.variable)
+         mpl.xlabel(self.axis.label(data.variable))
+         #fig.xaxis.axis_label = self.axis.label(data.variable)
 
          """
          if self.axis.is_time_like:
@@ -758,8 +758,8 @@ class Standard(Output):
          """
       #bokeh.plotting.show(fig)
 
-      #mpl.ylabel(self._metric.label(data.variable))
-      fig.yaxis.axis_label = self._metric.label(data.variable)
+      mpl.ylabel(self._metric.label(data.variable))
+      #fig.yaxis.axis_label = self._metric.label(data.variable)
       perfect_score = self._metric.perfect_score
       """
       self._plot_perfect_score(mpl.xlim(), perfect_score)
@@ -911,11 +911,16 @@ class Standard(Output):
             lmin = map.scatter(x0[isMin], y0[isMin], s=s, c=c1)
             lmax = map.scatter(x0[isMax], y0[isMax], s=s, c=c0)
          else:
-            map.scatter(x0, y0, c=y[:, f], s=s, cmap=cmap)
-            cb = map.colorbar()
-            cb.set_label(self._metric.label(data.variable), fontsize=self.labfs)
-            cb.set_clim(clim)
-            mpl.clim(clim)
+            #map.scatter(x0, y0, c=y[:, f], s=s, cmap=cmap)
+            print x0.shape
+            print y0.shape
+            print y.shape
+            print s
+            mpl.plot(x0, y0, c=y[:, f])#, s=s, cmap=cmap)
+            #cb = map.colorbar()
+            #cb.set_label(self._metric.label(data.variable), fontsize=self.labfs)
+            #cb.set_clim(clim)
+            #mpl.clim(clim)
          if self._mapLabelLocations:
             for i in range(0, len(x0)):
                value = y[i, f]
@@ -929,7 +934,7 @@ class Standard(Output):
             mpl.title(names[f])
          elif F == 1 and self.show_rank:
             mpl.title(self._metric.name())
-         self._adjust_axis(mpl.gca())
+         #self._adjust_axis(mpl.gca())
 
       # Legend
       if self.show_rank:
