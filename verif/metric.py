@@ -288,6 +288,20 @@ class Mae(ObsFcstBased):
       return "MAE"
 
 
+class Error(ObsFcstBased):
+   description = "Error"
+   min = 0
+   perfect_score = 0
+   supports_aggregator = True
+   orientation = -1
+
+   def _compute_from_obs_fcst(self, obs, fcst):
+      return self.aggregator(obs - fcst)
+
+   def name(self):
+      return self.aggregator.name().capitalize() + " of error"
+
+
 class Bias(ObsFcstBased):
    description = "Bias (forecast - observation)"
    perfect_score = 0
