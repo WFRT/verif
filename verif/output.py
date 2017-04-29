@@ -199,6 +199,11 @@ class Output(object):
       self._legend(data)
       self._save_plot(data)
 
+   def bokeh(self, data, fig):
+      """ Call this to create a bokeh plot
+      """
+      self._bokeh_core(data, fig)
+
    def text(self, data):
       """ Call this to create nicely formatted text output
 
@@ -344,6 +349,9 @@ class Output(object):
    # Implement these methods
    def _plot_core(self, data):
       verif.util.error("This type does not plot")
+
+   def _bokeh_core(self, data, fig):
+      verif.util.error("This type does not plot bokeh")
 
    def _map_core(self, data):
       verif.util.error("This type does not produce maps")
@@ -741,7 +749,6 @@ class Standard(Output):
                mpl.plot(xx, yy, "--", color=color, lw=self.lw, ms=self.ms)
 
          mpl.xlabel(self.axis.label(data.variable))
-         #fig.xaxis.axis_label = self.axis.label(data.variable)
 
          """
          if self.axis.is_time_like:
@@ -756,10 +763,98 @@ class Standard(Output):
             # NOTE: Don't call the locator on a date axis
             mpl.gca().xaxis.set_major_locator(data.get_axis_locator(self.axis))
          """
-      #bokeh.plotting.show(fig)
 
       mpl.ylabel(self._metric.label(data.variable))
-      #fig.yaxis.axis_label = self._metric.label(data.variable)
+      perfect_score = self._metric.perfect_score
+      """
+      self._plot_perfect_score(mpl.xlim(), perfect_score)
+
+      if not self.show_acc:
+         self._set_y_axis_limits(self._metric)
+
+      if self.tight:
+         oldTicks = mpl.gca().get_xticks()
+         diff = oldTicks[1] - oldTicks[0]  # keep auto tick interval
+         tickRange = np.arange(round(np.min(x)), round(np.max(x)) + diff, diff)
+         # make new ticks, to start from the first day of the desired interval
+         mpl.gca().set_xticks(tickRange)
+         mpl.autoscale(enable=True, axis=u'x', tight=True)  # make xaxis tight
+      """
+
+   def _bokeh_core(self, data, fig):
+      import bokeh.plotting
+
+      # We have to derive the legend list here, because we might want to
+      # specify the order
+      labels = np.array(data.get_legend())
+
+      F = data.num_inputs
+      [x, y, _, labels] = self._get_x_y(data, self.axis)
+
+      # Sort legend entries such that the appear in the same order as the
+      # y-values of the lines
+      if self.leg_sort:
+         if not self.show_acc:
+            # averaging for non-acc plots
+            averages = (verif.util.nanmean(y, axis=1))
+            ids = averages.argsort()[::-1]
+
+         else:
+            ends = y[:, -1]  # take last points for acc plots
+            ids = ends.argsort()[::-1]
+
+         labels = [labels[i] for i in ids]
+
+      else:
+         ids = range(0, F)
+
+      # Show a bargraph with unconditional averages when no axis is specified
+      if self.axis == verif.axis.No():
+         w = 0.8
+         x = np.linspace(1 - w / 2, F - w / 2, F)
+         bokeh.plotting.bar(x, y[0, :], color='w', lw=self.lw)
+         ###mpl.xticks(range(1, F + 1), labels)
+      else:
+         for f in range(0, F):
+            id = ids[f]
+            # colors and styles to follow labels
+            color = self._get_color(id, F)
+            style = self._get_style(id, F, self.axis.is_continuous)
+            alpha = (1 if self.axis.is_continuous else 0.55)
+            fig.line(x, y[:, id], legend=labels[f], line_color=color, line_width=self.lw)
+            fig.circle(x, y[:, id], fill_color=color, line_color=color, line_width=0, size=self.ms)
+            ###mpl.plot(x, y[:, id], style, color=color,
+            ###      label=labels[f], lw=self.lw, ms=self.ms,
+            ###      alpha=alpha)
+            if self.show_smoothing_line:
+               import scipy.ndimage
+               I = np.argsort(x)
+               xx = np.sort(x)
+               yy = y[:, id][I]
+               I = np.where((np.isnan(xx) == 0) & (np.isnan(yy) == 0))[0]
+               xx = xx[I]
+               yy = yy[I]
+               N = 21
+               yy = scipy.ndimage.convolve(yy, 1.0/N*np.ones(N), mode="mirror")
+               fig.plot(xx, yy, "--", color=color, lw=self.lw, ms=self.ms)
+
+         fig.xaxis.axis_label = self.axis.label(data.variable)
+
+         """
+         if self.axis.is_time_like:
+            # Note that if the above plotted lines all have nan y'values, then
+            # xaxis_date() will cause an error, since the x-axis limits are set
+            # such that the plot is around 0. Override the x-limits so that the
+            # user at least does not get a cryptic error message.
+            if np.sum(np.isnan(y) == 0) == 0:
+               mpl.xlim([min(x), max(x)])
+            mpl.gca().xaxis_date()
+         else:
+            # NOTE: Don't call the locator on a date axis
+            mpl.gca().xaxis.set_major_locator(data.get_axis_locator(self.axis))
+         """
+
+      fig.yaxis.axis_label = self._metric.label(data.variable)
       perfect_score = self._metric.perfect_score
       """
       self._plot_perfect_score(mpl.xlim(), perfect_score)

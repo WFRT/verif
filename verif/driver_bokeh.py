@@ -24,7 +24,9 @@ def main():
    print('Opening Bokeh application on http://localhost:5006/')
 
    io_loop = IOLoop.current()
-   s = verif.bokeh_server.BokehServer(sys.argv[1:])
+   filenames = [arg for arg in sys.argv[1:] if arg not in ["--mpl"]]
+   use_mpl = "--mpl" in sys.argv
+   s = verif.bokeh_server.BokehServer(filenames, use_mpl)
 
    bokeh_app = Application(FunctionHandler(s.modify_doc))
    server = Server({'/': bokeh_app}, io_loop=io_loop,

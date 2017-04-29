@@ -38,7 +38,7 @@ def datetime_to_date(datetime):
 
 
 class BokehServer(object):
-   def __init__(self, filenames):
+   def __init__(self, filenames, use_mpl=False):
       self.axis = verif.axis.Leadtime()
       self.metric = "mae"
       self.inputs = list()
@@ -59,6 +59,7 @@ class BokehServer(object):
       self.simple = True
       self.show_perfect = False
       self.legfs = 10
+      self.use_mpl = use_mpl
 
       self.valid_axes = [x[0].lower() for x in verif.axis.get_all()]
       axes = ["leadtime",
@@ -136,6 +137,7 @@ class BokehServer(object):
 
    def create_figure(self):
       # create a plot and style its properties
+      self.figure = figure(toolbar_location=None)
       type = "linear"
       if self.axis.is_time_like:
          type = "datetime"
@@ -163,9 +165,12 @@ class BokehServer(object):
       #if self.axis == verif.axis.Location():
       #   self.plot.map(self.data)
       #else:
-      self.plot.plot(self.data)
-      self.p_fig = bokeh.mpl.to_bokeh()
-      self.layout.children[1] = self.p_fig
+      if self.use_mpl:
+         self.plot.plot(self.data)
+         self.figure = bokeh.mpl.to_bokeh()
+      else:
+         self.plot.bokeh(self.data, self.figure)
+      self.layout.children[1] = self.figure
       self.update_control_panel()
 
    def select_metric_callback(self, attr, old, new):
