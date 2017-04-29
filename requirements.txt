@@ -4,3 +4,5 @@ matplotlib<2
 coveralls
 pep8
 netCDF4
+bokeh
+tornado==4.3
