@@ -121,11 +121,19 @@ class Meanabs(Aggregator):
    def __call__(self, array):
       return np.mean(np.abs(array))
 
+   @classmethod
+   def name(cls):
+      return "mean absolute"
+
 
 class Absmean(Aggregator):
    """ Absolute value of the mean of the array """
    def __call__(self, array):
       return np.abs(np.mean(array))
+
+   @classmethod
+   def name(cls):
+      return "absolute mean"
 
 
 class Quantile(Aggregator):
