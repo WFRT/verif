@@ -723,8 +723,8 @@ class Standard(Output):
             color = self._get_color(id, F)
             style = self._get_style(id, F, self.axis.is_continuous)
             alpha = (1 if self.axis.is_continuous else 0.55)
-            print "Adding line %s" % color
-            #fig.line(x, y[:, id], legend=labels[f], line_color=color)
+            # print "Adding line %s" % color
+            # fig.line(x, y[:, id], legend=labels[f], line_color=color)
             mpl.plot(x, y[:, id], style, color=color,
                   label=labels[f], lw=self.lw, ms=self.ms,
                   alpha=alpha)

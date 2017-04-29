@@ -56,21 +56,28 @@ class BokehServer(object):
       self.update_data()
       self.xlog = False
       self.ylog = False
-      self.simple = False
+      self.simple = True
       self.show_perfect = False
+      self.legfs = 10
 
       self.valid_axes = [x[0].lower() for x in verif.axis.get_all()]
-      self.valid_axes = ["leadtime",
+      axes = ["leadtime",
             "time", "leadtimeday", "week", "month", "year",
             "location", "lat", "lon", "elev",
             "no"]
-      self.valid_aggregators = [x.name() for x in verif.aggregator.get_all() if x.name != "Quantile"]
-      self.valid_thresholds = self.data.thresholds
+      self.valid_axes = [(x, x.capitalize()) for x in axes]
+      self.valid_aggregators = [(x.name(), x.name().capitalize()) for x in verif.aggregator.get_all() if x.name != "Quantile"]
+      self.valid_thresholds = [0] # self.data.thresholds
       self.aggregator = verif.aggregator.Mean()
-      self.threshold = self.valid_thresholds[0]
-      self.valid_metrics = ["mae", "rmse", "corr", "taylor", "performance", "cond", "reliability"]
-      p_fig = figure(toolbar_location=None)
-      self.layout = bokeh.layouts.Column(children=[p_fig])
+      self.threshold = 0#self.valid_thresholds[0]
+      metrics = ["mae", "rmse", "corr", "error"]
+      plots = ["obsfcst","taylor", "performance", "cond", "reliability"]
+      # self.valid_metrics = ["mae", "rmse", "corr", "taylor", "performance", "cond", "reliability"]
+      self.valid_metrics = [(x, verif.metric.get(x).description) for x in metrics]
+      self.valid_metrics += [(x, x.capitalize() + " diagram") for x in plots]
+      self.figure = figure(toolbar_location=None)
+      self.control_panel = bokeh.layouts.Column(children=[])
+      self.layout = row(self.control_panel, self.figure)
       self.create_figure()
 
    def update_data(self):
@@ -81,26 +88,29 @@ class BokehServer(object):
       self.data = verif.data.Data(self.inputs, times=self.times,
             elev_range=self.altitudes)
 
-   def update(self, doc):
-      self.create_figure()
+   def modify_doc(self, doc):
+      doc.add_root(self.layout)
 
-      control_panel = self.create_control_panel()
-      self.ddoc = row(control_panel, self.layout)
-      doc.add_root(self.ddoc)
-
-   def create_control_panel(self):
+   def update_control_panel(self):
       # Create the GUI
-      select_metric = bokeh.models.widgets.Select(title="Metric:", value="mae", options=self.valid_metrics)
+      widgets = list()
+      select_metric = bokeh.models.widgets.Select(title="Metric:", options=self.valid_metrics)
       select_metric.on_change("value", self.select_metric_callback)
+      widgets.append(select_metric)
 
-      select_axis = bokeh.models.widgets.Select(title="Axis:", value="leadtime", options=self.valid_axes)
-      select_axis.on_change("value", self.select_axis_callback)
+      if self.plot.supports_x:
+         select_axis = bokeh.models.widgets.Select(title="Axis:", value="leadtime", options=self.valid_axes)
+         select_axis.on_change("value", self.select_axis_callback)
+         widgets.append(select_axis)
 
+      #if self.plot._metric.supports_aggregator:
       select_aggregator = bokeh.models.widgets.Select(title="Aggregator:", value="mean", options=self.valid_aggregators)
       select_aggregator.on_change("value", self.select_aggregator_callback)
+      widgets.append(select_aggregator)
 
       select_threshold = bokeh.models.widgets.Select(title="Threshold:", options=["%s" % s for s in self.valid_thresholds])
       select_threshold.on_change("value", self.select_threshold_callback)
+      widgets.append(select_threshold)
 
       start_date = unixtime_to_datetime(self.data.times[0])
       end_date = unixtime_to_datetime(self.data.times[-1])
@@ -114,15 +124,15 @@ class BokehServer(object):
       select_elevs = bokeh.models.widgets.Slider(title="Altitudes:",
             start=0, step=10, end=1000, callback_policy="mouseup") # , callback_throttle=1e6)
       select_elevs.on_change("value", self.select_altitude_callback)
+      widgets.append(select_elevs)
 
-      checkbox_group = bokeh.models.widgets.CheckboxButtonGroup( labels=["show perfect", "simple"])
+      checkbox_group = bokeh.models.widgets.CheckboxButtonGroup( labels=["show perfect", "simple", "legend"], active=[1,2])
       checkbox_group.on_click(self.select_log_axis_callback)
+      widgets.append(checkbox_group)
 
       button = bokeh.models.widgets.Button(label="<", button_type="success")
       button.on_click(self.hide_control_panel)
-
-      #control_panel = column(button, select_metric, select_axis, select_times)
-      return column(select_metric, select_axis, select_threshold, select_elevs, checkbox_group)
+      self.layout.children[0] = column(widgets)
 
    def create_figure(self):
       # create a plot and style its properties
@@ -130,27 +140,33 @@ class BokehServer(object):
       if self.axis.is_time_like:
          type = "datetime"
 
-      # plot = verif.output.Standard(metrics[i % len(metrics)])
+      # self.plot = verif.output.Standard(metrics[i % len(metrics)])
       if self.metric in [x[0].lower() for x in verif.metric.get_all()]:
-         plot = verif.output.Standard(verif.metric.get(self.metric))
+         metric = verif.metric.get(self.metric)
+         metric.aggregator = self.aggregator
+         self.plot = verif.output.Standard(metric)
       else:
-         plot = verif.output.get(self.metric)
-      plot.axis = self.axis
-      plot.thresholds = [self.threshold] # np.linspace(0,10,11)#[3]
-      plot.aggregator = self.aggregator
-      plot.default_colors=["red","blue"]
-      plot.figsize = [12,12]
-      plot.simple = self.simple
-      plot.show_perfect = self.show_perfect
-      #plot.xlog = self.xlog
-      #plot.ylog = self.ylog
+         self.plot = verif.output.get(self.metric)
+      #button = bokeh.models.widgets.Button(label="<", button_type="success")
+      #self.control_panel.children = [button]
+      #print len(self.control_panel.children)
+      self.plot.axis = self.axis
+      self.plot.thresholds = [self.threshold] # np.linspace(0,10,11)#[3]
+      self.plot.aggregator = self.aggregator
+      self.plot.default_colors=["red","blue","orange"]
+      self.plot.figsize = [12,8]
+      self.plot.simple = self.simple
+      self.plot.show_perfect = self.show_perfect
+      self.plot.legfs = self.legfs
+      #self.plot.xlog = self.xlog
+      #self.plot.ylog = self.ylog
       #if self.axis == verif.axis.Location():
-      #   plot.map(self.data)
+      #   self.plot.map(self.data)
       #else:
-      plot.plot(self.data)
+      self.plot.plot(self.data)
       self.p_fig = bokeh.mpl.to_bokeh()
-      #self.layout = bokeh.layouts.Column(children=[self.p_fig])
-      self.layout.children = [self.p_fig]
+      self.layout.children[1] = self.p_fig
+      self.update_control_panel()
 
    def select_metric_callback(self, attr, old, new):
       self.metric = new
@@ -163,6 +179,11 @@ class BokehServer(object):
    def select_log_axis_callback(self, attr):
       self.show_perfect = 0 in attr
       self.simple = 1 in attr
+      self.legfs = (2 in attr) * 10
+      if 2 in attr:
+         self.legfs = 10
+      else:
+         self.legfs = 0
       self.create_figure()
 
    def select_altitude_callback(self, attr, old, new):

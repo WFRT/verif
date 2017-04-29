@@ -26,12 +26,7 @@ def main():
    io_loop = IOLoop.current()
    s = verif.bokeh_server.BokehServer(sys.argv[1:])
 
-   #bokeh_app = Application(FunctionHandler(verif.bokeh_server.update))
-   def q(doc):
-      print 1
-      s.update(doc)
-
-   bokeh_app = Application(FunctionHandler(s.update))
+   bokeh_app = Application(FunctionHandler(s.modify_doc))
    server = Server({'/': bokeh_app}, io_loop=io_loop,
          allow_websocket_origin=["pc4423.pc.met.no:5006", "localhost:5006"])
    server.start()
