@@ -76,7 +76,7 @@ class BokehServer(object):
       # self.valid_metrics = ["mae", "rmse", "corr", "taylor", "performance", "cond", "reliability"]
       self.valid_metrics = [(x, verif.metric.get(x).description) for x in metrics]
       self.valid_metrics += [(x, x.capitalize() + " diagram") for x in plots]
-      self.figure = figure(toolbar_location=None)
+      self.figure = figure(toolbar_location="below")
       self.control_panel = bokeh.layouts.Column(children=[])
       self.layout = row(self.control_panel, self.figure)
       self.create_figure()
@@ -137,7 +137,7 @@ class BokehServer(object):
 
    def create_figure(self):
       # create a plot and style its properties
-      self.figure = figure(toolbar_location=None)
+      self.figure = figure(toolbar_location="below")
       type = "linear"
       if self.axis.is_time_like:
          type = "datetime"
