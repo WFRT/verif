@@ -208,3 +208,24 @@ class BokehServer(object):
 
    def update0(self, value):
       self.create_figure()
+
+
+def main():
+   print('Opening Bokeh application on http://localhost:5006/')
+
+   io_loop = IOLoop.current()
+   filenames = [arg for arg in sys.argv[1:] if arg not in ["--mpl"]]
+   use_mpl = "--mpl" in sys.argv
+   s = verif.bokeh_server.BokehServer(filenames, use_mpl)
+
+   bokeh_app = Application(FunctionHandler(s.modify_doc))
+   server = Server({'/': bokeh_app}, io_loop=io_loop,
+         allow_websocket_origin=["pc4423.pc.met.no:5006", "localhost:5006"])
+   server.start()
+
+   #io_loop.add_callback(server.show, "/")
+   io_loop.start()
+
+
+if __name__ == '__main__':
+   main()

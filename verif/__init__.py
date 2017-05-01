@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 import verif.driver
-import verif.driver_bokeh
+import verif.bokeh_server
 
 
 def main():
@@ -9,7 +9,7 @@ def main():
 
 
 def xmain():
-   verif.driver_bokeh.main()
+   verif.bokeh_server.main()
 
 if __name__ == '__main__':
    main()
