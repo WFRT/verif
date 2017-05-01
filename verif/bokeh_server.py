@@ -53,8 +53,8 @@ class BokehServer(object):
       self.valid_thresholds = [0] # self.data.thresholds
       self.aggregator = verif.aggregator.Mean()
       self.threshold = 0#self.valid_thresholds[0]
-      metrics = ["mae", "rmse", "corr", "error", "ets"]
-      plots = ["obsfcst","taylor", "performance", "cond", "reliability"]
+      metrics = ["mae", "rmse", "corr", "error", "ets", "bs"]
+      plots = ["obsfcst", "qq", "taylor", "performance", "cond", "reliability"]
       # self.valid_metrics = ["mae", "rmse", "corr", "taylor", "performance", "cond", "reliability"]
       self.valid_metrics = [(x, verif.metric.get(x).description) for x in metrics]
       self.valid_metrics += [(x, x.capitalize() + " diagram") for x in plots]
@@ -72,8 +72,7 @@ class BokehServer(object):
       self.select_aggregator.on_change("value", self.update)
       self.widgets.append(self.select_aggregator)
 
-      self.select_threshold = bokeh.models.widgets.Select(title="Threshold:",
-            value="0", options=["%s" % s for s in self.valid_thresholds])
+      self.select_threshold = bokeh.models.widgets.Select(title="Threshold:", value="0", options=["%s" % s for s in self.valid_thresholds])
       self.select_threshold.on_change("value", self.update)
       self.widgets.append(self.select_threshold)
 
@@ -91,6 +90,9 @@ class BokehServer(object):
       self.widgets.append(self.checkbox_group)
 
       self.fullpanel = column(self.widgets)
+      # tab1 = bokeh.models.widgets.Panel(child=column(self.widgets), title="Deterministic")
+      # tab2 = bokeh.models.widgets.Panel(child=column(self.widgets), title="Probabilistic")
+      # self.panel = bokeh.models.widgets.Tabs(tabs=[tab1, tab2])
       self.panel = column(self.widgets)
 
       self.figure = figure(toolbar_location="below")
@@ -130,6 +132,7 @@ class BokehServer(object):
 
       # Set up metric
       metric_name = self.select_metric.value
+      metric = None
       if metric_name in [x[0].lower() for x in verif.metric.get_all()]:
          metric = verif.metric.get(metric_name)
          metric.aggregator = self.aggregator
@@ -139,7 +142,8 @@ class BokehServer(object):
       assert(self.plot is not None)
 
       # Set up axis
-      axis = verif.axis.get(self.select_axis.value)
+      axis_name = self.select_axis.value
+      axis = verif.axis.get(axis_name)
       self.plot.axis = axis
 
       # Set up threshold
@@ -151,6 +155,13 @@ class BokehServer(object):
       self.plot.show_perfect = 0 in self.checkbox_group.active
       self.plot.legfs = (2 in self.checkbox_group.active) * 10
       self.select_axis.disabled = metric_name == "rmse"
+
+      if self.plot.require_threshold_type == "deterministic":
+         self.plot.thresholds = np.linspace(0,10,11)
+      elif self.plot.require_threshold_type == "threshold" or (metric is not None and metric.require_threshold_type == "threshold"):
+         self.select_threshold.options = ["%g" % x for x in self.data.thresholds]
+         if axis_name == "threshold":
+            self.plot.thresholds = self.data.thresholds
 
       #self.plot.xlog = self.xlog
       #self.plot.ylog = self.ylog
@@ -165,8 +176,7 @@ class BokehServer(object):
 
       # Create control panel
       curr = self.fullpanel.children[:]
-      print self.data.thresholds
-      if len(self.data.thresholds) == 0:
+      if len(self.data.thresholds) == 0 or (metric is not None and not metric.supports_threshold) or axis_name == "threshold":
          curr.pop(3)
       if not self.plot.supports_x:
          curr.pop(1)
