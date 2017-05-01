@@ -58,6 +58,17 @@ def unixtime_to_datenum(time):
    return matplotlib.dates.date2num(dt)
 
 
+def datetime_to_date(datetime):
+   x = datetime.year * 10000 + datetime.month * 100 + datetime.day
+   return x
+
+
+def unixtime_to_datetime(unixtime):
+   x = verif.util.unixtime_to_datenum(unixtime)
+   x = datetime.datetime.fromordinal(int(x))
+   return x
+
+
 def bin(x, y, edges, func=np.nanmean):
    """ Bin the x-values using edges and return the average values
 

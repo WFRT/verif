@@ -21,22 +21,6 @@ import verif.aggregator
 import datetime
 
 
-def datetime_to_date(datetime):
-   x = datetime.year * 10000 + datetime.month * 100 + datetime.day
-   return x
-
-
-def unixtime_to_datetime(unixtime):
-   x = verif.util.unixtime_to_datenum(unixtime)
-   x = datetime.datetime.fromordinal(int(x))
-   return x
-
-
-def datetime_to_date(datetime):
-   x = datetime.year * 10000 + datetime.month * 100 + datetime.day
-   return x
-
-
 class BokehServer(object):
    def __init__(self, filenames, use_mpl=False):
       self.axis = verif.axis.Leadtime()
@@ -98,8 +82,8 @@ class BokehServer(object):
       self.widgets.append(self.select_elevs)
       self.update_data()
 
-      start_date = unixtime_to_datetime(self.data.times[0])
-      end_date = unixtime_to_datetime(self.data.times[-1])
+      start_date = verif.util.unixtime_to_datetime(self.data.times[0])
+      end_date = verif.util.unixtime_to_datetime(self.data.times[-1])
       self.select_times = bokeh.models.widgets.MultiSelect(title="Leadtimes:", options=[(str(x),str(x)) for x in self.data.leadtimes])
 
       self.checkbox_group = bokeh.models.widgets.CheckboxButtonGroup( labels=["show perfect", "simple", "legend"], active=[1,2])
@@ -196,8 +180,8 @@ class BokehServer(object):
       self.layout.children[1] = self.figure
 
    def select_times_callback(self, attr, old, new):
-      start_date = datetime_to_date(new[0])
-      end_date = datetime_to_date(new[1])
+      start_date = verif.util.datetime_to_date(new[0])
+      end_date = verif.util.datetime_to_date(new[1])
       dates = verif.util.parse_numbers("%d:%d" % (start_date, end_date), True)
       self.times = [verif.util.date_to_unixtime(date) for date in dates]
       self.update_data()
