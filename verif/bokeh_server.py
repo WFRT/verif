@@ -53,10 +53,10 @@ class BokehServer(object):
       self.valid_thresholds = [0] # self.data.thresholds
       self.aggregator = verif.aggregator.Mean()
       self.threshold = 0#self.valid_thresholds[0]
-      metrics = ["mae", "rmse", "corr", "error", "ets", "bs"]
-      plots = ["obsfcst", "qq", "taylor", "performance", "cond", "reliability"]
+      metrics = ["mae", "rmse", "corr", "error", "ets", "within", "bs"]
+      plots = ["obsfcst", "timeseries", "qq", "taylor", "performance", "cond", "reliability"]
       # self.valid_metrics = ["mae", "rmse", "corr", "taylor", "performance", "cond", "reliability"]
-      self.valid_metrics = [(x, verif.metric.get(x).description) for x in metrics]
+      self.valid_metrics = [(x, verif.metric.get(x).name()) for x in metrics]
       self.valid_metrics += [(x, x.capitalize() + " diagram") for x in plots]
 
       # Widgets
@@ -156,12 +156,16 @@ class BokehServer(object):
       self.plot.legfs = (2 in self.checkbox_group.active) * 10
       self.select_axis.disabled = metric_name == "rmse"
 
+      type = verif.driver.get_type(self.plot, metric)
+      if type is not None:
+         self.plot.thresholds = verif.driver.get_thresholds(type, self.data)
       if self.plot.require_threshold_type == "deterministic":
-         self.plot.thresholds = np.linspace(0,10,11)
+         #self.plot.thresholds = np.linspace(0,10,11)
+         pass
       elif self.plot.require_threshold_type == "threshold" or (metric is not None and metric.require_threshold_type == "threshold"):
          self.select_threshold.options = ["%g" % x for x in self.data.thresholds]
-         if axis_name == "threshold":
-            self.plot.thresholds = self.data.thresholds
+         #if axis_name == "threshold":
+         #   self.plot.thresholds = self.data.thresholds
 
       #self.plot.xlog = self.xlog
       #self.plot.ylog = self.ylog
@@ -170,7 +174,9 @@ class BokehServer(object):
       #else:
       if self.use_mpl:
          self.plot.plot(self.data)
-         self.figure = bokeh.mpl.to_bokeh()
+         q = bokeh.mpl.to_bokeh()
+         print "Done"
+         self.figure = q
       else:
          self.plot.bokeh(self.data, self.figure)
 
