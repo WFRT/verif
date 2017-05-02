@@ -119,9 +119,6 @@ class BokehServer(object):
       altitudes = [self.select_elevs.value, 10000]
       self.data = verif.data.Data(self.inputs, times=self.times, elev_range=altitudes)
 
-   def modify_doc(self, doc):
-      doc.add_root(self.layout)
-
    def create_figure(self):
       print "Create figure"
       # create a plot and style its properties
@@ -210,15 +207,21 @@ class BokehServer(object):
       self.create_figure()
 
 
+def modify_doc(doc):
+   bokeh_app = verif.bokeh_server.BokehServer(filenames, use_mpl)
+   doc.add_root(bokeh_app.layout)
+
+
 def main():
    print('Opening Bokeh application on http://localhost:5006/')
 
    io_loop = IOLoop.current()
    filenames = [arg for arg in sys.argv[1:] if arg not in ["--mpl"]]
    use_mpl = "--mpl" in sys.argv
-   s = verif.bokeh_server.BokehServer(filenames, use_mpl)
+   global filenames
+   global use_mpl
 
-   bokeh_app = Application(FunctionHandler(s.modify_doc))
+   bokeh_app = Application(FunctionHandler(modify_doc))
    server = Server({'/': bokeh_app}, io_loop=io_loop,
          allow_websocket_origin=["pc4423.pc.met.no:5006", "localhost:5006"])
    server.start()
