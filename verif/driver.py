@@ -179,7 +179,7 @@ def run(argv):
                dates = verif.util.parse_numbers(arg_next, True)
                times = [verif.util.date_to_unixtime(date) for date in dates]
             elif(arg == "-t"):
-               times = verif.util.parse_numbers(arg_next, True)
+               times = verif.util.parse_numbers(arg_next)
             elif(arg == "-c"):
                clim_file = verif.input.get_input(arg_next)
                clim_type = "subtract"
