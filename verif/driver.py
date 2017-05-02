@@ -427,47 +427,9 @@ def run(argv):
 
    # Create thresholds if needed
    if thresholds is None:
-      type = None
-      if pl.require_threshold_type == "deterministic":
-         type = "deterministic"
-      elif pl.require_threshold_type == "threshold":
-         type = "threshold"
-      elif pl.require_threshold_type == "quantile":
-         type = "quantile"
-      elif m is not None:
-         if m.require_threshold_type == "deterministic":
-            type = "deterministic"
-         elif m.require_threshold_type == "threshold":
-            type = "threshold"
-         elif m.require_threshold_type == "quantile":
-            type = "quantile"
-         elif m.require_threshold_type is not None:
-            verif.util.error("Internal error for metric %s: Cannot understand required threshold type '%s'" % (m.name(), m.require_threshold_type))
-      elif pl.require_threshold_type is not None:
-         verif.util.error("Internal error for output %s: Cannot understand required threshold type '%s'" % (pl.name(), pl.require_threshold_type))
-
+      type = get_type(pl, m)
       if type is not None:
-         if type == "deterministic":
-            smin = np.inf
-            smax = -np.inf
-            if verif.field.Obs() in data.get_fields():
-               obs = data.get_scores(verif.field.Obs(), 0)
-               smin = min(np.nanmin(obs), smin)
-               smax = max(np.nanmax(obs), smax)
-            if verif.field.Fcst() in data.get_fields():
-               fcst = data.get_scores(verif.field.Fcst(), 0)
-               smin = min(np.nanmin(fcst), smin)
-               smax = max(np.nanmax(fcst), smax)
-            thresholds = np.linspace(smin, smax, 10)
-            verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
-         elif type == "threshold":
-            thresholds = data.thresholds
-            verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
-         elif type == "quantile":
-            thresholds = data.quantiles
-            verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
-         if len(thresholds) == 0:
-            verif.util.error("No thresholds available")
+         thresholds = get_thresholds(type, data)
 
    # Set plot parameters
    if(simple is not None):
@@ -578,6 +540,53 @@ def get_aggregation_string():
          value = "%s'%s', " % (value, aggregator.name())
    value = value + "or a number between 0 and 1. Some metrics computes a value for each value on the x-axis. Which function should be used to do the aggregation? Default is 'mean'. Only supported by some metrics. A number between 0 and 1 returns a specific quantile (e.g. 0.5 is the median)."
    return value
+
+
+def get_type(pl, m):
+   type = None
+   if pl.require_threshold_type == "deterministic":
+      type = "deterministic"
+   elif pl.require_threshold_type == "threshold":
+      type = "threshold"
+   elif pl.require_threshold_type == "quantile":
+      type = "quantile"
+   elif m is not None:
+      if m.require_threshold_type == "deterministic":
+         type = "deterministic"
+      elif m.require_threshold_type == "threshold":
+         type = "threshold"
+      elif m.require_threshold_type == "quantile":
+         type = "quantile"
+      elif m.require_threshold_type is not None:
+         verif.util.error("Internal error for metric %s: Cannot understand required threshold type '%s'" % (m.name(), m.require_threshold_type))
+   elif pl.require_threshold_type is not None:
+      verif.util.error("Internal error for output %s: Cannot understand required threshold type '%s'" % (pl.name(), pl.require_threshold_type))
+   return type
+
+
+def get_thresholds(type, data):
+   if type == "deterministic":
+      smin = np.inf
+      smax = -np.inf
+      if verif.field.Obs() in data.get_fields():
+         obs = data.get_scores(verif.field.Obs(), 0)
+         smin = min(np.nanmin(obs), smin)
+         smax = max(np.nanmax(obs), smax)
+      if verif.field.Fcst() in data.get_fields():
+         fcst = data.get_scores(verif.field.Fcst(), 0)
+         smin = min(np.nanmin(fcst), smin)
+         smax = max(np.nanmax(fcst), smax)
+      thresholds = np.linspace(smin, smax, 10)
+      verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+   elif type == "threshold":
+      thresholds = data.thresholds
+      verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+   elif type == "quantile":
+      thresholds = data.quantiles
+      verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+   if len(thresholds) == 0:
+      verif.util.error("No thresholds available")
+   return thresholds
 
 
 def show_description(data=None):
