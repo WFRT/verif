@@ -1390,9 +1390,12 @@ class Change(Output):
       labels = data.get_legend()
       # Find range
       [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], 0)
-      change = obs[1:, Ellipsis] - obs[0:-1, Ellipsis]
-      maxChange = np.nanmax(abs(change.flatten()))
-      edges = np.linspace(-maxChange, maxChange, 20)
+      if self.thresholds is None:
+         change = obs[1:, Ellipsis] - obs[0:-1, Ellipsis]
+         maxChange = np.nanmax(abs(change.flatten()))
+         edges = np.linspace(-maxChange, maxChange, 20)
+      else:
+         edges = self.thresholds
       bins = (edges[1:] + edges[0:-1]) / 2
       F = data.num_inputs
 
