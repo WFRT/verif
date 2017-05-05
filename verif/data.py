@@ -504,20 +504,21 @@ class Data(object):
    def _get_months(self):
       dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
       for i in range(0, len(dts)):
-         dts[i] = dts[i].replace(day=1)
+         dts[i] = dts[i].replace(day=1, hour=0, minute=0, second=0)
       months = np.unique(np.array([calendar.timegm(dt.timetuple()) for dt in dts]))
       return months
 
    def _get_years(self):
       dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
       for i in range(0, len(dts)):
-         dts[i] = dts[i].replace(day=1, month=1)
+         dts[i] = dts[i].replace(month=1, day=1, hour=0, minute=0, second=0)
       years = np.unique(np.array([calendar.timegm(dt.timetuple()) for dt in dts]))
       return years
 
    def _get_weeks(self):
       dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
       for i in range(0, len(dts)):
+         dts[i] = dts[i].replace(hour=0, minute=0, second=0)
          # Reset datetime such that it is for the first day of the week
          # That is subtract the day of the week from the date
          weekday = dts[i].weekday()
