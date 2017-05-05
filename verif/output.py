@@ -2841,6 +2841,9 @@ class Impact(Output):
    _showNumbers = False
    _prob = False
 
+   def _show_marginal(self):
+      return not self.simple
+
    def _plot_core(self, data):
       F = data.num_inputs
       units = data.variable.units
@@ -2882,6 +2885,7 @@ class Impact(Output):
          if len(I) > 0:
             contrib[e] = np.nansum(error_x[I] - error_y[I])
             num[e] = len(I)
+
       I0 = np.where(contrib < 0)[0]
       I1 = np.where(contrib > 0)[0]
       # Compute size (scatter wants area) of marker. Scale using self.ms.
@@ -2894,13 +2898,42 @@ class Impact(Output):
          Snum = 400/np.max(num**2)
          mpl.scatter(XX, YY, s=abs(num**2) * Snum, edgecolor="k",
                color=[1, 1, 1, 0], lw=1, zorder=100)
-
       xlim = mpl.xlim()
       ylim = mpl.ylim()
       lower = min(xlim[0], ylim[0])
       upper = max(xlim[1], ylim[1])
       mpl.xlim([lower, upper])
       mpl.ylim([lower, upper])
+
+      if self._show_marginal():
+         contribx = np.zeros([len(centres)], float)
+         contriby = np.zeros([len(centres)], float)
+         for e in range(0, len(centres)):
+            I = np.where((x > centres[e] - w) & (x <= centres[e] + w))[0]
+            contribx[e] = np.nansum(error_x[I] - error_y[I])
+            I = np.where((y > centres[e] - w) & (y <= centres[e] + w))[0]
+            contriby[e] = np.nansum(error_x[I] - error_y[I])
+         dw = w
+         scale = (np.max(centres) - np.min(centres))/np.max(contribx)/10
+         I1 = np.where(contribx > 0)[0]
+         I0 = np.where(contribx < 0)[0]
+         mpl.bar(centres[I1]-dw/2, contribx[I1]*scale, width=dw, bottom=lower,
+               zorder=-1001,
+               color="blue", edgecolor="blue")
+         mpl.bar(centres[I0]-dw/2, -contribx[I0]*scale, width=dw, bottom=lower,
+               zorder=-1001,
+               color="red", edgecolor="red")
+         I1 = np.where(contriby > 0)[0]
+         I0 = np.where(contriby < 0)[0]
+         mpl.bar(lower*np.ones(len(I1)), np.ones(len(I1))*dw, contriby[I1]*scale,
+               centres[I1]-dw/2,
+               zorder=-1001,
+               color="blue", edgecolor="blue")
+         mpl.bar(lower*np.ones(len(I0)), np.ones(len(I0))*dw, -contriby[I0]*scale,
+               centres[I0]-dw/2,
+               zorder=-1001,
+               color="red", edgecolor="red")
+
       mpl.xlabel("%s (%s)" % (labels[0], units), color="r")
       mpl.ylabel("%s (%s)" % (labels[1], units), color="b")
 
