@@ -2848,10 +2848,10 @@ class Impact(Output):
       F = data.num_inputs
       units = data.variable.units
       if F != 2:
-         verif.util.error("Improvement plot requires exactly 2 files")
+         verif.util.error("Impact plot requires exactly 2 files")
 
       if self.thresholds is None or len(self.thresholds) < 2:
-         verif.util.error("Reliability plot needs at least two thresholds (use -r)")
+         verif.util.error("Impact plot needs at least two thresholds (use -r)")
 
       labels = data.get_legend()
       edges = self.thresholds
@@ -2890,10 +2890,10 @@ class Impact(Output):
       I1 = np.where(contrib > 0)[0]
       # Compute size (scatter wants area) of marker. Scale using self.ms.
       S = 400/np.max(contrib**2) * (self.ms / 8.0)**2
-      mpl.scatter(XX[I0], YY[I0], s=abs(contrib[I0]**2)*S,
-            color="red", label="%s is better" % labels[0])
       mpl.scatter(XX[I1], YY[I1], s=abs(contrib[I1]**2)*S,
-            color="blue", label="%s is better" % labels[1])
+            color="red", label="%s is worse" % labels[0])
+      mpl.scatter(XX[I0], YY[I0], s=abs(contrib[I0]**2)*S,
+            color="blue", label="%s is worse" % labels[1])
       if self._showNumbers:
          Snum = 400/np.max(num**2)
          mpl.scatter(XX, YY, s=abs(num**2) * Snum, edgecolor="k",
@@ -2919,20 +2919,20 @@ class Impact(Output):
          I0 = np.where(contribx < 0)[0]
          mpl.bar(centres[I1]-dw/2, contribx[I1]*scale, width=dw, bottom=lower,
                zorder=-1001,
-               color="blue", edgecolor="blue")
+               color="red", edgecolor="red")
          mpl.bar(centres[I0]-dw/2, -contribx[I0]*scale, width=dw, bottom=lower,
                zorder=-1001,
-               color="red", edgecolor="red")
+               color="blue", edgecolor="blue")
          I1 = np.where(contriby > 0)[0]
          I0 = np.where(contriby < 0)[0]
          mpl.bar(lower*np.ones(len(I1)), np.ones(len(I1))*dw, contriby[I1]*scale,
                centres[I1]-dw/2,
                zorder=-1001,
-               color="blue", edgecolor="blue")
+               color="red", edgecolor="red")
          mpl.bar(lower*np.ones(len(I0)), np.ones(len(I0))*dw, -contriby[I0]*scale,
                centres[I0]-dw/2,
                zorder=-1001,
-               color="red", edgecolor="red")
+               color="blue", edgecolor="blue")
 
       mpl.xlabel("%s (%s)" % (labels[0], units), color="r")
       mpl.ylabel("%s (%s)" % (labels[1], units), color="b")
