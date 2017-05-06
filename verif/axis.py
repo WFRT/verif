@@ -164,6 +164,15 @@ class Week(Axis):
       return "Week"
 
 
+class Day(Axis):
+   is_time_like = True
+   fmt = "%Y/%m/%d"
+   formatter = matplotlib.dates.DateFormatter('\n%Y-%m-%d')
+
+   def label(self, variable):
+      return "Day"
+
+
 class DayOfMonth(Axis):
    is_time_like = True
 

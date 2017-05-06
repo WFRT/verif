@@ -28,9 +28,10 @@ class Data(object):
    quantiles      A numpy array of available quantiles
    num_inputs     The number of inputs in the dataset
    variable       The variable
+   days           Available days (derived from times)
+   weeks          Available weeks (derived from times)
    months         Available months (derived from times)
    years          Available years (derived from times)
-   weeks          Available weeks (derived from times)
    leadtimedays   Available leadtimedays (derived from leadtimes)
    """
    def __init__(self, inputs, times=None, leadtimes=None, locations=None, locations_x=None,
@@ -157,9 +158,10 @@ class Data(object):
       self.thresholds = self._get_thresholds()
       self.quantiles = self._get_quantiles()
       self.variable = self._get_variable()
+      self.days = self._get_days()
+      self.weeks = self._get_weeks()
       self.months = self._get_months()
       self.years = self._get_years()
-      self.weeks = self._get_weeks()
       self.leadtimedays = self._get_leadtimedays()
       self.num_inputs = self._get_num_inputs()
 
@@ -294,10 +296,12 @@ class Data(object):
          return self.times
       elif(axis == verif.axis.Year()):
          return self.years
-      elif(axis == verif.axis.Month()):
-         return self.months
+      elif(axis == verif.axis.Day()):
+         return self.days
       elif(axis == verif.axis.Week()):
          return self.weeks
+      elif(axis == verif.axis.Month()):
+         return self.months
       elif(axis == verif.axis.Leadtimeday()):
          return self.leadtimedays
       elif(axis == verif.axis.Leadtime()):
@@ -501,6 +505,24 @@ class Data(object):
       I = self._timesI[0]
       return np.array([times[i] for i in I], int)
 
+   def _get_days(self):
+      dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
+      for i in range(0, len(dts)):
+         dts[i] = dts[i].replace(hour=0, minute=0, second=0)
+      days = np.unique(np.array([calendar.timegm(dt.timetuple()) for dt in dts]))
+      return days
+
+   def _get_weeks(self):
+      dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
+      for i in range(0, len(dts)):
+         dts[i] = dts[i].replace(hour=0, minute=0, second=0)
+         # Reset datetime such that it is for the first day of the week
+         # That is subtract the day of the week from the date
+         weekday = dts[i].weekday()
+         dts[i] = dts[i] - datetime.timedelta(days=weekday)
+      weeks = np.unique(np.array([calendar.timegm(dt.timetuple()) for dt in dts]))
+      return weeks
+
    def _get_months(self):
       dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
       for i in range(0, len(dts)):
@@ -514,17 +536,6 @@ class Data(object):
          dts[i] = dts[i].replace(month=1, day=1, hour=0, minute=0, second=0)
       years = np.unique(np.array([calendar.timegm(dt.timetuple()) for dt in dts]))
       return years
-
-   def _get_weeks(self):
-      dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
-      for i in range(0, len(dts)):
-         dts[i] = dts[i].replace(hour=0, minute=0, second=0)
-         # Reset datetime such that it is for the first day of the week
-         # That is subtract the day of the week from the date
-         weekday = dts[i].weekday()
-         dts[i] = dts[i] - datetime.timedelta(days=weekday)
-      weeks = np.unique(np.array([calendar.timegm(dt.timetuple()) for dt in dts]))
-      return weeks
 
    def _get_leadtimes(self):
       leadtimes = self._inputs[0].leadtimes
@@ -664,12 +675,21 @@ class Data(object):
       output = None
       if(axis == verif.axis.Time()):
          output = array[axis_index, :, :].flatten()
-      elif(axis == verif.axis.Year()):
-         if(axis_index == self.years.shape[0]-1):
-            I = np.where(self.times >= self.years[axis_index])
+      elif(axis == verif.axis.Day()):
+         if(axis_index == self.days.shape[0]-1):
+            # TODO
+            I = np.where(self.times >= self.days[axis_index])
          else:
-            I = np.where((self.times >= self.years[axis_index]) &
-                         (self.times < self.years[axis_index + 1]))
+            I = np.where((self.times >= self.days[axis_index]) &
+                         (self.times < self.days[axis_index + 1]))
+         output = array[I, :, :].flatten()
+      elif(axis == verif.axis.Week()):
+         if(axis_index == self.weeks.shape[0]-1):
+            # TODO
+            I = np.where(self.times >= self.weeks[axis_index])
+         else:
+            I = np.where((self.times >= self.weeks[axis_index]) &
+                         (self.times < self.weeks[axis_index + 1]))
          output = array[I, :, :].flatten()
       elif(axis == verif.axis.Month()):
          if(axis_index == self.months.shape[0]-1):
@@ -679,13 +699,12 @@ class Data(object):
             I = np.where((self.times >= self.months[axis_index]) &
                          (self.times < self.months[axis_index + 1]))
          output = array[I, :, :].flatten()
-      elif(axis == verif.axis.Week()):
-         if(axis_index == self.weeks.shape[0]-1):
-            # TODO
-            I = np.where(self.times >= self.weeks[axis_index])
+      elif(axis == verif.axis.Year()):
+         if(axis_index == self.years.shape[0]-1):
+            I = np.where(self.times >= self.years[axis_index])
          else:
-            I = np.where((self.times >= self.weeks[axis_index]) &
-                         (self.times < self.weeks[axis_index + 1]))
+            I = np.where((self.times >= self.years[axis_index]) &
+                         (self.times < self.years[axis_index + 1]))
          output = array[I, :, :].flatten()
       elif(axis == verif.axis.Leadtime()):
          output = array[:, axis_index, :].flatten()
