@@ -164,6 +164,11 @@ class Week(Axis):
       return "Week"
 
 
+class Timeofday(Axis):
+   def label(self, variable):
+      return "Time of day"
+
+
 class Day(Axis):
    is_time_like = True
    fmt = "%Y/%m/%d"

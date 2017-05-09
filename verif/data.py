@@ -28,6 +28,7 @@ class Data(object):
    quantiles      A numpy array of available quantiles
    num_inputs     The number of inputs in the dataset
    variable       The variable
+   timesofday     Available times of day (derived from times)
    days           Available days (derived from times)
    weeks          Available weeks (derived from times)
    months         Available months (derived from times)
@@ -158,6 +159,7 @@ class Data(object):
       self.thresholds = self._get_thresholds()
       self.quantiles = self._get_quantiles()
       self.variable = self._get_variable()
+      self.timesofday = self._get_timesofday()
       self.days = self._get_days()
       self.weeks = self._get_weeks()
       self.months = self._get_months()
@@ -281,6 +283,7 @@ class Data(object):
       verif.axis.Year()          Unixtimes of the beginning of each year
       verif.axis.Leadtime()      Lead times in hours
       verif.axis.Leadtimeday()   Lead time day in days
+      verif.axis.Timeofday()     Time of day in hours
       verif.axis.Location()      Location id
       verif.axis.Lat()           Latitudes of locations
       verif.axis.Lon()           Longitudes of locations
@@ -294,18 +297,20 @@ class Data(object):
       """
       if(axis == verif.axis.Time()):
          return self.times
-      elif(axis == verif.axis.Year()):
-         return self.years
+      elif(axis == verif.axis.Timeofday()):
+         return self.timesofday
       elif(axis == verif.axis.Day()):
          return self.days
       elif(axis == verif.axis.Week()):
          return self.weeks
       elif(axis == verif.axis.Month()):
          return self.months
-      elif(axis == verif.axis.Leadtimeday()):
-         return self.leadtimedays
+      elif(axis == verif.axis.Year()):
+         return self.years
       elif(axis == verif.axis.Leadtime()):
          return self.leadtimes
+      elif(axis == verif.axis.Leadtimeday()):
+         return self.leadtimedays
       elif(axis == verif.axis.No()):
          return [0]
       elif(axis.is_location_like):
@@ -505,6 +510,10 @@ class Data(object):
       I = self._timesI[0]
       return np.array([times[i] for i in I], int)
 
+   def _get_timesofday(self):
+      timesofday = np.unique(self.times % 86400) / 3600
+      return timesofday
+
    def _get_days(self):
       dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
       for i in range(0, len(dts)):
@@ -675,6 +684,9 @@ class Data(object):
       output = None
       if(axis == verif.axis.Time()):
          output = array[axis_index, :, :].flatten()
+      elif(axis == verif.axis.Timeofday()):
+         I = np.where(self.timesofday[axis_index] == (self.times % 86400)/3600)
+         output = array[I, :, :].flatten()
       elif(axis == verif.axis.Day()):
          if(axis_index == self.days.shape[0]-1):
             # TODO
