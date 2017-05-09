@@ -29,6 +29,7 @@ class Data(object):
    num_inputs     The number of inputs in the dataset
    variable       The variable
    timesofday     Available times of day (derived from times)
+   daysofyear     Available days of year (derived from times)
    days           Available days (derived from times)
    weeks          Available weeks (derived from times)
    months         Available months (derived from times)
@@ -160,6 +161,7 @@ class Data(object):
       self.quantiles = self._get_quantiles()
       self.variable = self._get_variable()
       self.timesofday = self._get_timesofday()
+      self.daysofyear = self._get_daysofyear()
       self.days = self._get_days()
       self.weeks = self._get_weeks()
       self.months = self._get_months()
@@ -299,6 +301,8 @@ class Data(object):
          return self.times
       elif(axis == verif.axis.Timeofday()):
          return self.timesofday
+      elif(axis == verif.axis.Dayofyear()):
+         return self.daysofyear
       elif(axis == verif.axis.Day()):
          return self.days
       elif(axis == verif.axis.Week()):
@@ -514,6 +518,14 @@ class Data(object):
       timesofday = np.unique(self.times % 86400) / 3600
       return timesofday
 
+   def _get_daysofyear(self):
+      dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
+      for i in range(len(dts)):
+         dts[i] = dts[i].replace(year=2000)
+      doy = np.unique(np.array([(x - datetime.datetime(year=2000, month=1, day=1)).days for x in dts]))
+
+      return doy
+
    def _get_days(self):
       dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
       for i in range(0, len(dts)):
@@ -686,6 +698,13 @@ class Data(object):
          output = array[axis_index, :, :].flatten()
       elif(axis == verif.axis.Timeofday()):
          I = np.where(self.timesofday[axis_index] == (self.times % 86400)/3600)
+         output = array[I, :, :].flatten()
+      elif(axis == verif.axis.Dayofyear()):
+         dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
+         for i in range(len(dts)):
+            dts[i] = dts[i].replace(year=2000)
+         doy = [(x - datetime.datetime(year=2000, month=1, day=1)).days for x in dts]
+         I = np.where(self.daysofyear[axis_index] == doy)
          output = array[I, :, :].flatten()
       elif(axis == verif.axis.Day()):
          if(axis_index == self.days.shape[0]-1):

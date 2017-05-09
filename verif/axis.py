@@ -169,6 +169,11 @@ class Timeofday(Axis):
       return "Time of day"
 
 
+class Dayofyear(Axis):
+   def label(self, variable):
+      return "Day of year"
+
+
 class Day(Axis):
    is_time_like = True
    fmt = "%Y/%m/%d"
