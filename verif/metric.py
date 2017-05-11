@@ -131,11 +131,18 @@ class Metric(object):
    def label(self, variable):
       """ What is an appropriate y-axis label for this metric? Override this if
       the metric does not have the same units as the forecast variable """
-      return self.name() + " (" + variable.units + ")"
+      return self.name + " (" + variable.units + ")"
 
-   def name(self):
-      """ Cannot be a classmethod, since it might use self.aggregator """
-      return self.get_class_name()
+   class ClassProperty(property):
+      def __get__(self, cls, owner):
+         return self.fget.__get__(None, owner)()
+
+   @ClassProperty
+   @classmethod
+   def name(cls):
+      """ Use the class name as default
+      """
+      return cls.get_class_name()
 
    @classmethod
    def is_valid(cls):
@@ -237,7 +244,7 @@ class FromField(Metric):
          values = data.get_scores(self._field, input_index, axis, axis_index)
       return self.aggregator(values)
 
-   def name(self):
+   def label(self, variable):
       return self.aggregator.name().title() + " of " + self._field.name()
 
 
@@ -248,6 +255,7 @@ class Obs(Metric):
    to remove obs for which the forecasts are missing. Same for Fcst.
    """
    type = verif.metric_type.Deterministic()
+   name = "Observation"
    description = "Observed value"
    supports_aggregator = True
    orientation = 0
@@ -256,12 +264,13 @@ class Obs(Metric):
       obs = data.get_scores(verif.field.Obs(), input_index, axis, axis_index)
       return self.aggregator(obs)
 
-   def name(self):
-      return self.aggregator.name().title() + " of observation"
+   def label(self, variable):
+      return self.aggregator.name().title() + " of observation (" + variable.units + ")"
 
 
 class Fcst(Metric):
    type = verif.metric_type.Deterministic()
+   name = "Forecast"
    description = "Forecasted value"
    supports_aggregator = True
    orientation = 0
@@ -270,8 +279,8 @@ class Fcst(Metric):
       fcst = data.get_scores(verif.field.Fcst(), input_index, axis, axis_index)
       return self.aggregator(fcst)
 
-   def name(self):
-      return self.aggregator.name().title() + " of forecast"
+   def label(self, variable):
+      return self.aggregator.name().title() + " of forecast (" + variable.units + ")"
 
 
 class Mae(ObsFcstBased):
@@ -280,15 +289,17 @@ class Mae(ObsFcstBased):
    perfect_score = 0
    supports_aggregator = True
    orientation = -1
+   name = "Mean absolute error"
 
    def _compute_from_obs_fcst(self, obs, fcst):
       return self.aggregator(abs(obs - fcst))
 
-   def name(self):
-      return "MAE"
+   def label(self, variable):
+      return "MAE (" + variable.units + ")"
 
 
 class Bias(ObsFcstBased):
+   name = "Bias"
    description = "Bias (forecast - observation)"
    perfect_score = 0
    supports_aggregator = True
@@ -299,6 +310,7 @@ class Bias(ObsFcstBased):
 
 
 class Ef(ObsFcstBased):
+   name = "Exceedance fraction"
    description = "Exeedance fraction: fraction of times that forecasts > observations"
    min = 0
    max = 1
@@ -309,16 +321,14 @@ class Ef(ObsFcstBased):
       Nfcst = np.sum(obs < fcst)
       return Nfcst / 1.0 / len(fcst)
 
-   def name(self):
-      return "Exceedance fraction"
-
    def label(self, variable):
       return "Fraction fcst > obs"
 
 
 class StdError(ObsFcstBased):
-   min = 0
+   name = "Standard error"
    description = "Standard error (i.e. RMSE if forecast had no bias)"
+   min = 0
    perfect_score = 0
    orientation = -1
 
@@ -326,55 +336,56 @@ class StdError(ObsFcstBased):
       bias = np.mean(obs - fcst)
       return np.mean((obs - fcst - bias) ** 2) ** 0.5
 
-   def name(self):
-      return "Standard error"
-
 
 class Rmse(ObsFcstBased):
-   min = 0
+   name = "Root mean squared error"
    description = "Root mean squared error"
+   min = 0
    perfect_score = 0
    orientation = -1
 
    def _compute_from_obs_fcst(self, obs, fcst):
       return np.mean((obs - fcst) ** 2) ** 0.5
 
-   def name(self):
-      return "RMSE"
+   def label(self, variable):
+      return "RMSE (" + variable.units + ")"
 
 
 class Rmsf(ObsFcstBased):
-   min = 0
+   name = "Root mean squared factor"
    description = "Root mean squared factor"
+   min = 0
    perfect_score = 1
    orientation = 0
 
    def _compute_from_obs_fcst(self, obs, fcst):
       return np.exp(np.mean((np.log(fcst / obs)) ** 2) ** 0.5)
 
-   def name(self):
-      return "RMSF"
+   def label(self, variable):
+      return "RMSF (" + variable.units + ")"
 
 
 class Cmae(ObsFcstBased):
-   min = 0
+   name = "Cube-root mean absolute cubic error"
    description = "Cube-root mean absolute cubic error"
+   min = 0
    perfect_score = 0
    orientation = -1
 
    def _compute_from_obs_fcst(self, obs, fcst):
       return (np.mean(abs(obs ** 3 - fcst ** 3))) ** (1.0 / 3)
 
-   def name(self):
-      return "CMAE"
+   def label(self, variable):
+      return "CMAE (" + variable.units + ")"
 
 
 class Nsec(ObsFcstBased):
-   min = 0
+   name = "Nash-Sutcliffe efficiency coefficient"
    description = "Nash-Sutcliffe efficiency coefficient"
+   min = 0
+   max = 1
    perfect_score = 1
    orientation = 1
-   max = 1
 
    def _compute_from_obs_fcst(self, obs, fcst):
       meanobs = np.mean(obs)
@@ -385,14 +396,12 @@ class Nsec(ObsFcstBased):
       else:
          return 1 - num / denom
 
-   def name(self):
-      return "NSEC"
-
    def label(self, variable):
-      return self.name()
+      return "NSEC"
 
 
 class Alphaindex(ObsFcstBased):
+   name = "Alpha index"
    description = "Alpha index"
    perfect_score = 0
    orientation = -1
@@ -409,16 +418,14 @@ class Alphaindex(ObsFcstBased):
       else:
          return 1 - num / denom
 
-   def name(self):
-      return "Alpha index"
-
    def label(self, variable):
-      return self.name()
+      return self.name
 
 
 class Leps(ObsFcstBased):
-   min = 0
+   name = "Linear error in probability space"
    description = "Linear error in probability space"
+   min = 0
    perfect_score = 0
    orientation = -1
 
@@ -440,11 +447,12 @@ class Leps(ObsFcstBased):
             qfcst[i] = 1
       return np.mean(abs(qfcst - qobs))
 
-   def name(self):
+   def label(self, variable):
       return "LEPS"
 
 
 class Dmb(ObsFcstBased):
+   name = "Degree of mass balance"
    description = "Degree of mass balance (obs/fcst)"
    perfect_score = 1
    orientation = 0
@@ -452,11 +460,12 @@ class Dmb(ObsFcstBased):
    def _compute_from_obs_fcst(self, obs, fcst):
       return np.mean(obs) / np.mean(fcst)
 
-   def name(self):
-      return "Degree of mass balance (obs/fcst)"
+   def label(self, variable):
+      return self.description
 
 
 class Mbias(ObsFcstBased):
+   name = "Multiplicative bias"
    description = "Multiplicative bias (fcst/obs)"
    perfect_score = 1
    orientation = 0
@@ -466,17 +475,15 @@ class Mbias(ObsFcstBased):
          return np.nan
       return np.mean(fcst) / np.mean(obs)
 
-   def name(self):
-      return self.description
-
    def label(self, variable):
       return self.description
 
 
 class Corr(ObsFcstBased):
+   name = "Correlation"
+   description = "Correlation between observations and forecasts"
    min = 0  # Technically -1, but values below 0 are not as interesting
    max = 1
-   description = "Correlation between observations and forecasts"
    perfect_score = 1
    orientation = 1
 
@@ -487,17 +494,15 @@ class Corr(ObsFcstBased):
          return np.nan
       return np.corrcoef(obs, fcst)[1, 0]
 
-   def name(self):
-      return "Correlation"
-
    def label(self, variable):
-      return "Correlation"
+      return self.name
 
 
 class RankCorr(ObsFcstBased):
+   name = "Rank correlation"
+   description = "Rank correlation between observations and forecasts"
    min = 0  # Technically -1, but values below 0 are not as interesting
    max = 1
-   description = "Rank correlation between observations and forecasts"
    perfect_score = 1
    orientation = 1
 
@@ -506,17 +511,15 @@ class RankCorr(ObsFcstBased):
          return np.nan
       return scipy.stats.spearmanr(obs, fcst)[0]
 
-   def name(self):
-      return "Rank correlation"
-
    def label(self, variable):
-      return "Rank correlation"
+      return self.name
 
 
 class KendallCorr(ObsFcstBased):
+   name = "Kendall correlation"
+   description = "Kendall correlation between observations and forecasts"
    min = 0  # Technically -1, but values below 0 are not as interesting
    max = 1
-   description = "Kendall correlation between observations and forecasts"
    perfect_score = 1
    orientation = 1
 
@@ -527,14 +530,12 @@ class KendallCorr(ObsFcstBased):
          return np.nan
       return scipy.stats.kendalltau(obs, fcst)[0]
 
-   def name(self):
-      return "Kendall correlation"
-
    def label(self, variable):
-      return "Kendall correlation"
+      return self.name
 
 
 class DError(ObsFcstBased):
+   name = "Distribution Error"
    description = "Distribution error"
    min = 0
    perfect_score = 0
@@ -546,13 +547,11 @@ class DError(ObsFcstBased):
       sortedfcst = np.sort(fcst)
       return np.mean(np.abs(sortedobs - sortedfcst))
 
-   def name(self):
-      return "Distribution Error"
-
 
 class Pit(Metric):
    """ Retrives the PIT-value corresponding to the observation """
    type = verif.metric_type.Probabilistic()
+   name = "Probability integral transform"
    description = "Verifying PIT-value (CDF at observation)"
    supports_aggregator = True
    orientation = 0
@@ -561,19 +560,17 @@ class Pit(Metric):
       pit = data.get_scores(verif.field.Pit(), input_index, axis, axis_index)
       return self.aggregator(pit)
 
-   def name(self):
-      return self.aggregator.name().title() + " of verifying PIT"
-
    def label(self, variable):
       return self.aggregator.name().title() + " of verifying PIT"
 
 
 class PitDev(Metric):
    type = verif.metric_type.Probabilistic()
+   name = "PIT deviation factor"
+   description = "PIT histogram deviation factor (actual deviation / expected deviation)"
    min = 0
    # max = 1
    perfect_score = 1
-   description = "PIT histogram deviation factor (actual deviation / expected deviation)"
    orientation = -1
 
    def __init__(self, numBins=11, field=verif.field.Pit()):
@@ -588,12 +585,8 @@ class PitDev(Metric):
       dev = D / D0
       return dev
 
-   def name(self):
-      return "PIT deviation factor"
-
    def label(self, variable):
-      # Use this to avoid units in label
-      return self.name()
+      return self.name
 
    @staticmethod
    def expected_deviation(values, numBins):
@@ -635,9 +628,10 @@ class PitDev(Metric):
 
 class MarginalRatio(Metric):
    type = verif.metric_type.Probabilistic()
-   min = 0
+   name = "Marginal ratio"
    description = "Ratio of marginal probability of obs to marginal" \
          " probability of fcst. Use -r to specify thresholds."
+   min = 0
    perfect_score = 1
    require_threshold_type = "threshold"
    supports_threshold = True
@@ -673,9 +667,10 @@ class Within(Metric):
    type = verif.metric_type.Deterministic()
    """ Can't be a subclass of ObsFcstBased, because it depends on threshold
    """
+   name = "Within"
+   description = "The percentage of forecasts within some error bound. Use -r to specify error bounds"
    min = 0
    max = 100
-   description = "The percentage of forecasts within some error bound. Use -r to specify error bounds"
    default_bin_type = "below"
    require_threshold_type = "threshold"
    supports_threshold = True
@@ -691,9 +686,6 @@ class Within(Metric):
    def compute_from_obs_fcst(self, obs, fcst, interval):
       diff = abs(obs - fcst)
       return np.mean(interval.within(diff)) * 100
-
-   def name(self):
-      return "Within"
 
    def label(self, variable):
       return "% of forecasts"
@@ -782,11 +774,12 @@ class Quantile(Metric):
 
 
 class Bs(Metric):
-   default_axis = verif.axis.Threshold()
    type = verif.metric_type.Probabilistic()
+   name = "Brier score"
+   description = "Brier score"
    min = 0
    max = 1
-   description = "Brier score"
+   default_axis = verif.axis.Threshold()
    require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = 0
@@ -856,14 +849,15 @@ class Bs(Metric):
       return [obs, q]
 
    def label(self, variable):
-      return "Brier score"
+      return self.name
 
 
 class Bss(Metric):
    type = verif.metric_type.Probabilistic()
+   name = "brier skill score"
+   description = "Brier skill score"
    min = 0
    max = 1
-   description = "Brier skill score"
    require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = 1
@@ -888,14 +882,15 @@ class Bss(Metric):
       return bss
 
    def label(self, variable):
-      return "Brier skill score"
+      return self.name
 
 
 class BsRel(Metric):
    type = verif.metric_type.Probabilistic()
+   name = "Brier score, reliability term"
+   description = "Brier score, reliability term"
    min = 0
    max = 1
-   description = "Brier score, reliability term"
    require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = 0
@@ -917,14 +912,15 @@ class BsRel(Metric):
       return verif.util.nanmean(bs)
 
    def label(self, variable):
-      return "Brier score, reliability term"
+      return self.name
 
 
 class BsUnc(Metric):
    type = verif.metric_type.Probabilistic()
+   name = "Brier score, uncertainty term"
+   description = "Brier score, uncertainty term"
    min = 0
    max = 1
-   description = "Brier score, uncertainty term"
    require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = None
@@ -937,14 +933,15 @@ class BsUnc(Metric):
       return bs
 
    def label(self, variable):
-      return "Brier score, uncertainty term"
+      return self.name
 
 
 class BsRes(Metric):
    type = verif.metric_type.Probabilistic()
+   name = "Brier score, resolution term"
+   description = "Brier score, resolution term"
    min = 0
    max = 1
-   description = "Brier score, resolution term"
    require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = 1
@@ -965,13 +962,14 @@ class BsRes(Metric):
       return verif.util.nanmean(bs)
 
    def label(self, variable):
-      return "Brier score, resolution term"
+      return self.name
 
 
 class QuantileScore(Metric):
    type = verif.metric_type.Probabilistic()
-   min = 0
+   name = "Quantile score"
    description = "Quantile score. Use -q to set which quantiles to use."
+   min = 0
    require_threshold_type = "quantile"
    supports_threshold = True
    perfect_score = 0
@@ -984,9 +982,13 @@ class QuantileScore(Metric):
       qs = v * (interval.lower - (v < 0))
       return np.mean(qs)
 
+   def label(self, variable):
+      return self.name
+
 
 class Ign0(Metric):
    type = verif.metric_type.Probabilistic()
+   name = "Binary ignorance"
    description = "Ignorance of the binary probability based on threshold"
    require_threshold_type = "threshold"
    supports_threshold = True
@@ -1002,11 +1004,12 @@ class Ign0(Metric):
       return np.mean(ign)
 
    def label(self, variable):
-      return "Binary Ignorance"
+      return self.name
 
 
 class Spherical(Metric):
    type = verif.metric_type.Probabilistic()
+   name = "Spherical score"
    description = "Spherical probabilistic scoring rule for binary events"
    require_threshold_type = "threshold"
    supports_threshold = True
@@ -1026,7 +1029,7 @@ class Spherical(Metric):
       return np.mean(sp)
 
    def label(self, variable):
-      return "Spherical score"
+      return self.name
 
 
 class Contingency(Metric):
@@ -1058,7 +1061,7 @@ class Contingency(Metric):
       raise NotImplementedError()
 
    def label(self, variable):
-      return self.name()
+      return self.name
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
       [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], input_index, axis, axis_index)
@@ -1159,11 +1162,12 @@ class Contingency(Metric):
       value = value / N
       return value
 
-   def name(self):
-      return self.description
+   def label(self, variable):
+      return self.name
 
 
 class A(Contingency):
+   name = "Hit"
    description = "Hit"
 
    def compute_from_abcd(self, a, b, c, d):
@@ -1171,6 +1175,7 @@ class A(Contingency):
 
 
 class B(Contingency):
+   name = "False alarm"
    description = "False alarm"
 
    def compute_from_abcd(self, a, b, c, d):
@@ -1178,6 +1183,7 @@ class B(Contingency):
 
 
 class C(Contingency):
+   name = "Miss"
    description = "Miss"
 
    def compute_from_abcd(self, a, b, c, d):
@@ -1185,6 +1191,7 @@ class C(Contingency):
 
 
 class D(Contingency):
+   name = "Correct rejection"
    description = "Correct rejection"
 
    def compute_from_abcd(self, a, b, c, d):
@@ -1192,6 +1199,7 @@ class D(Contingency):
 
 
 class N(Contingency):
+   name = "Total cases"
    description = "Total cases"
    max = None
 
@@ -1200,6 +1208,7 @@ class N(Contingency):
 
 
 class Ets(Contingency):
+   name = "Equitable threat score"
    description = "Equitable threat score"
    perfect_score = 1
    orientation = 1
@@ -1211,11 +1220,12 @@ class Ets(Contingency):
          return np.nan
       return (a - ar) / 1.0 / (a + b + c - ar)
 
-   def name(self):
+   def label(self, variable):
       return "ETS"
 
 
 class FcstRate(Contingency):
+   name = "Forecast rate"
    description = "Fractions of forecasts (a + b)"
    perfect_score = None
    orientation = 0
@@ -1223,11 +1233,9 @@ class FcstRate(Contingency):
    def compute_from_abcd(self, a, b, c, d):
       return (a + b) / 1.0 / (a + b + c + d)
 
-   def name(self):
-      return "Forecast rate"
-
 
 class Dscore(Contingency):
+   name = "Discimination"
    description = "Generalized discrimination score"
    perfect_score = 1
    orientation = 1
@@ -1243,11 +1251,9 @@ class Dscore(Contingency):
          return np.nan
       return num / denom
 
-   def name(self):
-      return "Discrimination"
-
 
 class Threat(Contingency):
+   name = "Threat score"
    description = "Threat score"
    perfect_score = 1
    orientation = 1
@@ -1259,6 +1265,7 @@ class Threat(Contingency):
 
 
 class Pc(Contingency):
+   name = "Proportion correct"
    description = "Proportion correct"
    perfect_score = 1
    orientation = 1
@@ -1268,6 +1275,7 @@ class Pc(Contingency):
 
 
 class Diff(Contingency):
+   name = "false alarms - misses"
    description = "Difference between false alarms and misses"
    min = -1
    max = 1
@@ -1279,6 +1287,7 @@ class Diff(Contingency):
 
 
 class Edi(Contingency):
+   name = "Extremal dependency index"
    description = "Extremal dependency index"
    perfect_score = 1
    orientation = 1
@@ -1297,11 +1306,12 @@ class Edi(Contingency):
          return np.nan
       return (np.log(F) - np.log(H)) / denom
 
-   def name(self):
+   def label(self, variable):
       return "EDI"
 
 
 class Sedi(Contingency):
+   name = "Symmetric extremal dependency index"
    description = "Symmetric extremal dependency index"
    perfect_score = 1
    orientation = 1
@@ -1321,11 +1331,12 @@ class Sedi(Contingency):
       num = np.log(F) - np.log(H) - np.log(1 - F) + np.log(1 - H)
       return num / denom
 
-   def name(self):
+   def label(self, variable):
       return "SEDI"
 
 
 class Eds(Contingency):
+   name = "Extreme dependency score"
    description = "Extreme dependency score"
    min = None
    perfect_score = 1
@@ -1345,11 +1356,12 @@ class Eds(Contingency):
          return np.nan
       return (np.log(p) - np.log(H)) / denom
 
-   def name(self):
+   def label(self, variable):
       return "EDS"
 
 
 class Seds(Contingency):
+   name = "Symmetric extreme dependency score"
    description = "Symmetric extreme dependency score"
    min = None
    perfect_score = 1
@@ -1369,13 +1381,14 @@ class Seds(Contingency):
          return np.nan
       return (np.log(q) - np.log(H)) / (np.log(p) + np.log(H))
 
-   def name(self):
+   def label(self, variable):
       return "SEDS"
 
 
 class BiasFreq(Contingency):
-   max = None
+   name = "Bias frequency"
    description = "Bias frequency (number of fcsts / number of obs)"
+   max = None
    perfect_score = 1
    orientation = 0
 
@@ -1384,6 +1397,8 @@ class BiasFreq(Contingency):
          return np.nan
       return 1.0 * (a + b) / (a + c)
 
+   def label(self, variable):
+      return "SEDS"
 
 class Hss(Contingency):
    max = None
@@ -1399,6 +1414,7 @@ class Hss(Contingency):
 
 
 class BaseRate(Contingency):
+   name = "Base rate"
    description = "Base rate: Fraction of observations (a + c)"
    perfect_score = None
    orientation = 0
@@ -1408,11 +1424,9 @@ class BaseRate(Contingency):
          return np.nan
       return (a + c) / 1.0 / (a + b + c + d)
 
-   def name(self):
-      return "Base rate"
-
 
 class Or(Contingency):
+   name = "Odds ratio"
    description = "Odds ratio"
    max = None
    perfect_score = None  # Should be infinity
@@ -1425,6 +1439,7 @@ class Or(Contingency):
 
 
 class Lor(Contingency):
+   name = "Log odds ratio"
    description = "Log odds ratio"
    max = None
    perfect_score = None  # Should be infinity
@@ -1437,6 +1452,7 @@ class Lor(Contingency):
 
 
 class YulesQ(Contingency):
+   name = "Yule's Q"
    description = "Yule's Q (Odds ratio skill score)"
    perfect_score = 1
    orientation = 1
@@ -1448,6 +1464,7 @@ class YulesQ(Contingency):
 
 
 class Kss(Contingency):
+   name = "Hanssen-Kuiper skill score"
    description = "Hanssen-Kuiper skill score"
    perfect_score = 1
    orientation = 1
@@ -1460,6 +1477,7 @@ class Kss(Contingency):
 
 
 class Hit(Contingency):
+   name = "Hit rate"
    description = "Hit rate (a.k.a. probability of detection)"
    perfect_score = 1
    orientation = 1
@@ -1471,6 +1489,7 @@ class Hit(Contingency):
 
 
 class Miss(Contingency):
+   name = "Miss rate"
    description = "Miss rate"
    perfect_score = 0
    orientation = -1
@@ -1483,6 +1502,7 @@ class Miss(Contingency):
 
 # Fraction of non-events that are forecasted as events
 class Fa(Contingency):
+   name = "False alarm rate"
    description = "False alarm rate"
    perfect_score = 0
    orientation = -1
@@ -1495,6 +1515,7 @@ class Fa(Contingency):
 
 # Fraction of forecasted events that are false alarms
 class Far(Contingency):
+   name = "False alarm ratio"
    description = "False alarm ratio"
    perfect_score = 0
    orientation = -1

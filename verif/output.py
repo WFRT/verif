@@ -169,10 +169,16 @@ class Output(object):
       self.yticks = None
       self.aspect = None
 
+   class ClassProperty(property):
+      def __get__(self, cls, owner):
+         return self.fget.__get__(None, owner)()
+
+   @ClassProperty
    @classmethod
    def name(cls):
-      name = cls.__name__
-      return name
+      """ Use the class name as default
+      """
+      return cls.get_class_name()
 
    # Is this a valid output that should be created be called?
    @classmethod
@@ -920,7 +926,7 @@ class Standard(Output):
          elif F > 1:
             mpl.title(names[f])
          elif F == 1 and self.show_rank:
-            mpl.title(self._metric.name())
+            mpl.title(self._metric.name)
          self._adjust_axis(mpl.gca())
 
       # Legend
@@ -1005,6 +1011,7 @@ class Sort(Output):
 
 class ObsFcst(Output):
    supports_threshold = False
+   name = "Observations and forecasts"
    description = "Plot observations and forecasts"
 
    def __init__(self):
@@ -1063,6 +1070,7 @@ class ObsFcst(Output):
 class QQ(Output):
    supports_threshold = False
    supports_x = False
+   name = "Quantile-quantile"
    description = "Quantile-quantile plot of obs vs forecasts"
 
    def __init__(self):
@@ -1092,6 +1100,7 @@ class AutoCorr(Output):
    supports_threshold = False
    supports_x = True
    default_axis = verif.axis.Location()
+   name = "Auto-correlation"
    description = "Plots error auto-correlation as a function of distance. Use -x to specify axis to find auto-correlations for: -x location gives correlation between all pairs of locations; -x time gives between all pairs of forecast initializations; Similarly for -x leadtime, -x lat, -x lon, -x elev."
 
    def __init__(self):
@@ -1213,6 +1222,7 @@ class AutoCorr(Output):
 class Fss(Output):
    supports_threshold = True
    supports_x = False
+   name = "Fractional skill score"
    description = "Fractional skill score"
 
    def __init__(self):
@@ -1284,6 +1294,7 @@ class Fss(Output):
 
 
 class Scatter(Output):
+   name = "Scatter"
    description = "Scatter plot of forecasts vs obs and lines showing quantiles of obs given forecast (use -r to specify)"
    supports_threshold = False
    supports_x = False
@@ -1381,6 +1392,7 @@ class Scatter(Output):
 class Change(Output):
    supports_threshold = False
    supports_x = False
+   name = "Change"
    description = "Forecast skill (MAE) as a function of change in obs from previous forecast run"
 
    def __init__(self):
@@ -1420,6 +1432,7 @@ class Change(Output):
 
 
 class Cond(Output):
+   name = "Conditional"
    description = "Plots forecasts as a function of obs (use -r to specify bin-edges)"
    default_axis = verif.axis.Threshold()
    default_bin_type = "within="
@@ -1470,6 +1483,7 @@ class SpreadSkill(Output):
    supports_threshold = True
    supports_x = False
    require_threshold_type = "deterministic"
+   name = "Spread skill"
    description = "Spread/skill plot showing RMSE of ensemble mean as a function of ensemble spread (use -r to specify spread thresholds and -q to specify a lower and upper quantile to represent spread)"
 
    def __init__(self):
@@ -1531,6 +1545,7 @@ class SpreadSkill(Output):
 
 
 class TimeSeries(Output):
+   name = "Time series"
    description = "Plot observations and forecasts as a time series "\
          "(i.e. by concatinating all leadtimes). '-x <dimension>' has no "\
          "effect, as it is always shown by date."
@@ -1604,6 +1619,7 @@ class TimeSeries(Output):
 
 
 class Meteo(Output):
+   name = "Meteogram"
    description = "Plot a meteogram, with deterministic forecast, all quantile lines available (use -q to select a subset of quantiles), and observations. This makes most sense to use for a single location and forecast initialization time. If multiple dates and locations are used, then the average is used."
    supports_threshold = False
    supports_x = False
@@ -1698,6 +1714,7 @@ class Meteo(Output):
 
 
 class PitHist(Output):
+   name = "PIT histogram"
    description = "Histogram of PIT values. Use -r to specify bins."
    supports_threshold = False
    supports_x = False
@@ -1775,6 +1792,7 @@ class PitHist(Output):
 
 
 class Discrimination(Output):
+   name = "Discrimination"
    description = "Discrimination diagram for a certain threshold (-r)"
    supports_x = False
 
@@ -1839,6 +1857,7 @@ class Discrimination(Output):
 
 
 class Reliability(Output):
+   name = "Reliability diagram"
    description = "Reliability diagram for a certain threshold (-r)"
    supports_x = False
    leg_loc = "lower right"
@@ -1955,6 +1974,7 @@ class Reliability(Output):
 
 
 class IgnContrib(Output):
+   name = "Ignorance contribution"
    description = "Binary Ignorance contribution diagram for a single "\
          "threshold (-r). Shows how much each probability issued contributes "\
          "to the total ignorance."
@@ -2049,6 +2069,7 @@ class IgnContrib(Output):
 
 
 class EconomicValue(Output):
+   name = "Economic value diagram"
    description = "Economic value diagram for a single "\
          "threshold (-r). Shows what fraction of costs/loses can be reduced by"\
          " the forecast relative to using climatology."
@@ -2125,6 +2146,7 @@ class EconomicValue(Output):
 
 
 class Roc(Output):
+   name = "ROC diagram"
    description = "Plots the receiver operating characteristics curve for a single threshold (-r)"
    supports_x = False
 
@@ -2192,6 +2214,7 @@ class Roc(Output):
 # doClassic: Use the classic definition, by not varying the forecast threshold
 #            i.e. using the same threshold for observation and forecast.
 class DRoc(Output):
+   name = "Determininstic ROC diagram"
    description = "Plots the receiver operating characteristics curve for "\
          "the deterministic forecast for a single threshold. Uses different "\
          "forecast thresholds to create points."
@@ -2277,6 +2300,7 @@ class DRoc(Output):
 
 
 class DRocNorm(DRoc):
+   name = "Normalized deterministic ROC diagram"
    description = "Same as DRoc, except the hit and false alarm rates are transformed using the " \
             "inverse of the standard normal distribution in order to highlight the extreme " \
             "values."
@@ -2286,6 +2310,7 @@ class DRocNorm(DRoc):
 
 
 class DRoc0(DRoc):
+   name = "Single-point deterministic ROC diagram"
    description = "Same as DRoc, except don't use different forecast thresholds: Use the "\
       "same\n threshold for forecast and obs."
 
@@ -2294,6 +2319,7 @@ class DRoc0(DRoc):
 
 
 class Against(Output):
+   name = "Against diagram"
    description = "Plots the forecasts for each pair of input files against each other. "\
    "Colours indicate which input file had the best forecast (but only if the difference is "\
    "more than 10% of the standard deviation of the observation)."
@@ -2363,6 +2389,7 @@ class Against(Output):
 
 
 class Taylor(Output):
+   name = "Taylor diagram"
    description = "Taylor diagram showing correlation and forecast standard deviation. Use '-x none' to collapse all data showing only one point.  Otherwise, the whole graph is normalized by the standard deviation of the observations."
    supports_threshold = True
    supports_x = True
@@ -2485,6 +2512,7 @@ class Taylor(Output):
 
 
 class Performance(Output):
+   name = "Categorical performance diagram"
    description = "Categorical performance diagram showing POD, FAR, bias, and Threat score. Also shows the scores the forecasts would attain by using different forecast thresholds (turn off using -simple)"
    supports_x = True
    leg_loc = "upper left"
@@ -2588,6 +2616,7 @@ class Performance(Output):
 
 
 class Error(Output):
+   name = "Error decomposition diagram"
    description = "Decomposition of RMSE into systematic and unsystematic components"
    supports_threshold = False
    supports_x = False
@@ -2649,6 +2678,7 @@ class Error(Output):
 
 
 class Marginal(Output):
+   name = "Marginal distribution"
    description = "Show marginal distribution for different thresholds"
    require_threshold_type = "threshold"
    supports_x = False
@@ -2689,7 +2719,8 @@ class Marginal(Output):
 
 
 class Freq(Output):
-   description = "Show frequency of obs and forecasts"
+   name = "Frequency of obs and forecasts"
+   description = "Frequency of obs and forecasts"
    default_bin_type = "within="
    require_threshold_type = "deterministic"
    supports_x = False
@@ -2740,6 +2771,7 @@ class Freq(Output):
 
 
 class InvReliability(Output):
+   name = "Inverse reliability diagram"
    description = "Reliability diagram for a certain quantile (-q)"
    supports_x = False
 
@@ -2834,6 +2866,7 @@ class InvReliability(Output):
 
 
 class Impact(Output):
+   name = "Impact diagram"
    description = ""\
    "Colours indicate which input file had the best forecast (but only if the difference is "\
    "more than 10% of the standard deviation of the observation)."

@@ -83,5 +83,13 @@ class TestStandard(unittest.TestCase):
       self.assertEqual(2, y.shape[1])
 
 
+class NameTest(unittest.TestCase):
+   def test_valid(self):
+      outputs = [x[1] for x in verif.output.get_all() if x[1].is_valid]
+      for output in outputs:
+         self.assertTrue(output.name != "")
+         self.assertTrue(output.description != "")
+
+
 if __name__ == '__main__':
    unittest.main()

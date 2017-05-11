@@ -28,7 +28,7 @@ class MetricTest(unittest.TestCase):
 
    def test_name(self):
       mae = verif.metric.Mae()
-      self.assertEqual("MAE", mae.name())
+      self.assertEqual("Mean absolute error", mae.name)
 
    def test_reample(self):
       metric = verif.metric.Ets()
@@ -137,6 +137,14 @@ class TestThresholdBased(unittest.TestCase):
       f_interval = verif.interval.Interval(1.5, np.inf, True, True)
       value = metric.compute_from_obs_fcst(obs, fcst, interval, f_interval)
       self.assertEqual(value, 1.0/3)
+
+
+class NameTest(unittest.TestCase):
+   def test_valid(self):
+      metrics = [x[1] for x in verif.metric.get_all() if x[1].is_valid]
+      for metric in metrics:
+         self.assertTrue(metric.name != "")
+         self.assertTrue(metric.description != "")
 
 
 if __name__ == '__main__':
