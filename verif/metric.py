@@ -43,6 +43,54 @@ def get(name):
    return m
 
 
+def get_p(data, input_index, axis, axis_index, interval):
+   """
+   Retrieves and computes forecast probability and verifying observation for
+   being inside interval
+
+   Returns:
+      obs (np.array): True when observation is inside interval
+      p (np.array): True when forecast is inside interval
+
+   """
+   p0 = 0
+   p1 = 1
+   if(interval.lower != -np.inf and interval.upper != np.inf):
+      var0 = verif.field.Threshold(interval.lower)
+      var1 = verif.field.Threshold(interval.upper)
+      [obs, p0, p1] = data.get_scores([verif.field.Obs(), var0, var1],
+            input_index, axis, axis_index)
+   elif(interval.lower != -np.inf):
+      var0 = verif.field.Threshold(interval.lower)
+      [obs, p0] = data.get_scores([verif.field.Obs(), var0], input_index,
+            axis, axis_index)
+   elif(interval.upper != np.inf):
+      var1 = verif.field.Threshold(interval.upper)
+      [obs, p1] = data.get_scores([verif.field.Obs(), var1], input_index,
+            axis, axis_index)
+
+   obsP = interval.within(obs)
+   p = p1 - p0  # Prob of obs within range
+   return [obsP, p]
+
+
+def get_q(data, input_index, axis, axis_index, interval):
+   """
+   Retrieve forecast quantile and verifying observation
+
+   Returns:
+      obs (np.array): True when observation is inside interval
+      p (np.array): True when forecast is inside interval
+
+   """
+   p0 = 0
+   p1 = 1
+   var = verif.field.Quantile(interval.lower)
+   [obs, q] = data.get_scores([verif.field.Obs(), var], input_index, axis, axis_index)
+
+   return [obs, q]
+
+
 class Metric(object):
    """ Class to compute a score for a verification metric
 
@@ -786,108 +834,23 @@ class Bs(Metric):
    orientation = -1
    reference = "Glenn W. Brier, 1950: Verification of forecasts expressed in terms of probability. Mon. Wea. Rev., 78, 1-3."
 
-   def __init__(self, numBins=10):
-      self._edges = np.linspace(0, 1.0001, numBins)
-
    def compute_single(self, data, input_index, axis, axis_index, interval):
       """ Compute probabilities based on thresholds """
-      p0 = 0
-      p1 = 1
-      if(interval.lower != -np.inf and interval.upper != np.inf):
-         var0 = verif.field.Threshold(interval.lower)
-         var1 = verif.field.Threshold(interval.upper)
-         [obs, p0, p1] = data.get_scores([verif.field.Obs(), var0, var1], input_index,
-               axis, axis_index)
-      elif(interval.lower != -np.inf):
-         var0 = verif.field.Threshold(interval.lower)
-         [obs, p0] = data.get_scores([verif.field.Obs(), var0], input_index, axis,
-               axis_index)
-      elif(interval.upper != np.inf):
-         var1 = verif.field.Threshold(interval.upper)
-         [obs, p1] = data.get_scores([verif.field.Obs(), var1], input_index, axis,
-               axis_index)
-      obsP = interval.within(obs)
-      p = p1 - p0  # Prob of obs within range
-      bs = np.nan * np.zeros(len(p), 'float')
+      [obsP, p] = get_p(data, input_index, axis, axis_index, interval)
+      return self.compute_from_obs_fcst(obsP, p)
 
-      # Split into bins and compute Brier score on each bin
-      for i in range(0, len(self._edges) - 1):
-         I = np.where((p >= self._edges[i]) & (p < self._edges[i + 1]))[0]
-         if(len(I) > 0):
-            bs[I] = (np.mean(p[I]) - obsP[I]) ** 2
-      return verif.util.nanmean(bs)
-
-   @staticmethod
-   def get_p(data, input_index, axis, axis_index, interval):
-      p0 = 0
-      p1 = 1
-      if(interval.lower != -np.inf and interval.upper != np.inf):
-         var0 = verif.field.Threshold(interval.lower)
-         var1 = verif.field.Threshold(interval.upper)
-         [obs, p0, p1] = data.get_scores([verif.field.Obs(), var0, var1],
-               input_index, axis, axis_index)
-      elif(interval.lower != -np.inf):
-         var0 = verif.field.Threshold(interval.lower)
-         [obs, p0] = data.get_scores([verif.field.Obs(), var0], input_index,
-               axis, axis_index)
-      elif(interval.upper != np.inf):
-         var1 = verif.field.Threshold(interval.upper)
-         [obs, p1] = data.get_scores([verif.field.Obs(), var1], input_index,
-               axis, axis_index)
-
-      obsP = interval.within(obs)
-      p = p1 - p0  # Prob of obs within range
-      return [obsP, p]
-
-   @staticmethod
-   def get_q(data, input_index, axis, axis_index, interval):
-      p0 = 0
-      p1 = 1
-      var = verif.field.Quantile(interval.lower)
-      [obs, q] = data.get_scores([verif.field.Obs(), var], input_index, axis, axis_index)
-
-      return [obs, q]
-
-   def label(self, variable):
-      return self.name
-
-
-class Bss(Metric):
-   type = verif.metric_type.Probabilistic()
-   name = "brier skill score"
-   description = "Brier skill score"
-   min = 0
-   max = 1
-   require_threshold_type = "threshold"
-   supports_threshold = True
-   perfect_score = 1
-   orientation = 1
-
-   def __init__(self, numBins=10):
-      self._edges = np.linspace(0, 1.0001, numBins)
-
-   def compute_single(self, data, input_index, axis, axis_index, interval):
-      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
-      bs = np.nan * np.zeros(len(p), 'float')
-      for i in range(0, len(self._edges) - 1):
-         I = np.where((p >= self._edges[i]) & (p < self._edges[i + 1]))[0]
-         if(len(I) > 0):
-            bs[I] = (np.mean(p[I]) - obsP[I]) ** 2
-      bs = verif.util.nanmean(bs)
-      bsunc = np.mean(obsP) * (1 - np.mean(obsP))
-      if(bsunc == 0):
-         bss = np.nan
-      else:
-         bss = (bsunc - bs) / bsunc
-      return bss
+   def compute_from_obs_fcst(self, obs, fcst):
+      bs = np.nan * np.zeros(len(obs), 'float')
+      return np.nanmean((fcst-obs)**2)
 
    def label(self, variable):
       return self.name
 
 
 class BsRel(Metric):
+   default_axis = verif.axis.Threshold()
    type = verif.metric_type.Probabilistic()
-   name = "Brier score, reliability term"
+   name = "brier skill score, reliability term"
    description = "Brier score, reliability term"
    min = 0
    max = 1
@@ -896,26 +859,69 @@ class BsRel(Metric):
    perfect_score = 0
    orientation = -1
 
-   def __init__(self, numBins=11):
-      self._edges = np.linspace(0, 1.0001, numBins)
+   def __init__(self, num_edges=11):
+      self._edges = np.linspace(0, 1, num_edges)
+      self._edges[-1] = 1.001
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
-      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
+      [obsP, p] = get_p(data, input_index, axis, axis_index, interval)
+      return self.compute_from_obs_fcst(obsP, p)
 
-      # Break p into bins, and compute reliability
-      bs = np.nan * np.zeros(len(p), 'float')
+   def compute_from_obs_fcst(self, obs, fcst):
+      bs = np.nan * np.zeros(len(fcst), 'float')
+      obs_mean = np.mean(obs)
+      """
+      Break p into bins, and compute reliability. but save each reliability
+      value in an array the same size as fcst. In this way we do not need to do
+      a weighted average
+      """
       for i in range(0, len(self._edges) - 1):
-         I = np.where((p >= self._edges[i]) & (p < self._edges[i + 1]))[0]
+         I = np.where((fcst >= self._edges[i]) & (fcst < self._edges[i + 1]))[0]
          if(len(I) > 0):
-            meanObsI = np.mean(obsP[I])
-            bs[I] = (np.mean(p[I]) - meanObsI) ** 2
-      return verif.util.nanmean(bs)
+            obs_mean_I = np.mean(obs[I])
+            bs[I] = (fcst[I] - obs_mean_I) ** 2
+      return np.nanmean(bs)
+
+   def label(self, variable):
+      return self.name
+
+
+class BsRes(Metric):
+   default_axis = verif.axis.Threshold()
+   type = verif.metric_type.Probabilistic()
+   name = "Brier score, resolution term"
+   description = "Brier score, resolution term"
+   min = 0
+   max = 1
+   require_threshold_type = "threshold"
+   supports_threshold = True
+   perfect_score = 1
+   orientation = 1
+
+   def __init__(self, num_edges=11):
+      self._edges = np.linspace(0, 1, num_edges)
+      self._edges[-1] = 1.001
+
+   def compute_single(self, data, input_index, axis, axis_index, interval):
+      [obsP, p] = get_p(data, input_index, axis, axis_index, interval)
+      return self.compute_from_obs_fcst(obsP, p)
+
+   def compute_from_obs_fcst(self, obs, fcst):
+      bs = np.nan * np.zeros(len(fcst), 'float')
+      obs_mean = np.mean(obs)
+      for i in range(0, len(self._edges) - 1):
+         I = np.where((fcst >= self._edges[i]) & (fcst < self._edges[i + 1]))[0]
+         if(len(I) > 0):
+            obs_mean_I = np.mean(obs[I])
+            bs[I] = (obs_mean_I - obs_mean) ** 2
+      return np.nanmean(bs)
 
    def label(self, variable):
       return self.name
 
 
 class BsUnc(Metric):
+   default_axis = verif.axis.Threshold()
    type = verif.metric_type.Probabilistic()
    name = "Brier score, uncertainty term"
    description = "Brier score, uncertainty term"
@@ -927,19 +933,23 @@ class BsUnc(Metric):
    orientation = 0
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
-      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
-      meanObs = np.mean(obsP)
-      bs = meanObs * (1 - meanObs)
-      return bs
+      [obsP, p] = get_p(data, input_index, axis, axis_index, interval)
+      return self.compute_from_obs_fcst(obsP, p)
+
+   def compute_from_obs_fcst(self, obs, fcst):
+      obs_mean = np.mean(obs)
+      bsunc = np.nanmean((obs_mean - obs)**2)
+      return bsunc
 
    def label(self, variable):
       return self.name
 
 
-class BsRes(Metric):
+class Bss(Metric):
+   default_axis = verif.axis.Threshold()
    type = verif.metric_type.Probabilistic()
-   name = "Brier score, resolution term"
-   description = "Brier score, resolution term"
+   name = "Brier skill score"
+   description = "Brier skill score"
    min = 0
    max = 1
    require_threshold_type = "threshold"
@@ -947,19 +957,19 @@ class BsRes(Metric):
    perfect_score = 1
    orientation = 1
 
-   def __init__(self, numBins=10):
-      self._edges = np.linspace(0, 1.0001, numBins)
-
    def compute_single(self, data, input_index, axis, axis_index, interval):
-      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
-      bs = np.nan * np.zeros(len(p), 'float')
-      meanObs = np.mean(obsP)
-      for i in range(0, len(self._edges) - 1):
-         I = np.where((p >= self._edges[i]) & (p < self._edges[i + 1]))[0]
-         if(len(I) > 0):
-            meanObsI = np.mean(obsP[I])
-            bs[I] = (meanObsI - meanObs) ** 2
-      return verif.util.nanmean(bs)
+      [obsP, p] = get_p(data, input_index, axis, axis_index, interval)
+      return self.compute_from_obs_fcst(obsP, p)
+
+   def compute_from_obs_fcst(self, obs, fcst):
+      bs = np.nanmean((fcst - obs)**2)
+      obs_mean = np.mean(obs)
+      bsunc = np.nanmean((obs_mean - obs)**2)
+      if(bsunc == 0):
+         bss = np.nan
+      else:
+         bss = (bsunc - bs) / bsunc
+      return bss
 
    def label(self, variable):
       return self.name
@@ -976,7 +986,7 @@ class QuantileScore(Metric):
    orientation = -1
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
-      [obs, q] = Bs.get_q(data, input_index, axis, axis_index, interval)
+      [obs, q] = get_q(data, input_index, axis, axis_index, interval)
       qs = np.nan * np.zeros(len(q), 'float')
       v = q - obs
       qs = v * (interval.lower - (v < 0))
@@ -995,7 +1005,7 @@ class Ign0(Metric):
    orientation = -1
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
-      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
+      [obsP, p] = get_p(data, input_index, axis, axis_index, interval)
 
       I0 = np.where(obsP == 0)[0]
       I1 = np.where(obsP == 1)[0]
@@ -1019,7 +1029,7 @@ class Spherical(Metric):
    orientation = 1
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
-      [obsP, p] = Bs.get_p(data, input_index, axis, axis_index, interval)
+      [obsP, p] = get_p(data, input_index, axis, axis_index, interval)
 
       I0 = np.where(obsP == 0)[0]
       I1 = np.where(obsP == 1)[0]
@@ -1399,6 +1409,7 @@ class BiasFreq(Contingency):
 
    def label(self, variable):
       return "SEDS"
+
 
 class Hss(Contingency):
    max = None

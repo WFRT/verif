@@ -147,5 +147,50 @@ class NameTest(unittest.TestCase):
          self.assertTrue(metric.description != "")
 
 
+class TestBrierScore(unittest.TestCase):
+   def test(self):
+      """
+      These have been checked against the Brier scores in the verification R package. The 'bins'
+      attribute was set to False, and the code had to be changed because it didn't work for cases
+      where forecasts were not equal to whole 1/10ths (i.e. 0.1, 0.2).
+
+      To give the same results, there can only be one forecasted value within each bin. I.e. 0.21
+      and 0.22 cannot appear in the same test case.
+      """
+      bs = verif.metric.Bs()
+      bsrel = verif.metric.BsRel()
+      bsres = verif.metric.BsRes()
+      bsunc = verif.metric.BsUnc()
+      bss = verif.metric.Bss()
+      obs = [[0],
+             [0],
+             [0],
+             [1],
+             [0, 0, 1, 1, 1],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+      fcst = [[0],
+              [1],
+              [0.3],
+              [0.1],
+              [0.21, 0.21, 0.21, 0.91, 0.91],
+              [0.06, 0.61, 0.45, 0.87, 0.13, 0.61, 0.79, 0.61, 0.06, 0.06, 0.79, 0.61, 0.13, 0.13, 0.79, 0.21, 0.06, 0.55, 0.37, 0.37]]
+      ans = {bs: [0, 1, 0.09, 0.81, 0.1457, 0.34928],
+             bsrel: [0, 1, 0.09, 0.81, 0.01236667, 0.2076133],
+             bsres: [0, 0, 0, 0, 0.1066667, 0.1083333],
+             bsunc: [0, 0, 0, 0, 0.24, 0.25],
+             bss: [np.nan, np.nan, np.nan, np.nan, 0.3929167, -0.39712]}
+      for i in range(len(obs)):
+         o = np.array(obs[i])
+         f = np.array(fcst[i])
+         for key in ans:
+            print key, i
+            calculated = key.compute_from_obs_fcst(o, f)
+            expected = ans[key][i]
+            if np.isnan(expected):
+               self.assertTrue(np.isnan(expected), np.isnan(calculated))
+            else:
+               self.assertAlmostEqual(expected, calculated, places=5)
+
+
 if __name__ == '__main__':
    unittest.main()
