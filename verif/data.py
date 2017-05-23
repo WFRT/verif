@@ -254,9 +254,9 @@ class Data(object):
          scores.append(curr)
 
       if axis == verif.axis.All():
+         I = np.where(valid == 0)
          for i in range(0, len(fields)):
-            I = np.unravel_index(np.where(valid == 0)[0], valid.shape)
-            scores[i][I] = np.nan
+            scores[i][I[0], I[1], I[2]] = np.nan
       else:
          I = np.where(valid)
          for i in range(0, len(fields)):
