@@ -2546,7 +2546,7 @@ class Performance(Output):
             Hit = verif.metric.Hit()
             for i in range(0, size):
                [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis, i)
-               f_intervals = self._get_f_intervals(fcst, self.bin_type, num_max_points)
+               f_intervals = self._get_f_intervals(fcst, self.bin_type, num_max_points, threshold)
                J = len(f_intervals)
 
                fa = Far.compute_from_obs_fcst(obs, fcst, interval)
@@ -2602,11 +2602,16 @@ class Performance(Output):
       mpl.gca().set_aspect(1)
 
    @staticmethod
-   def _get_f_intervals(fcst, bin_type, num_max):
-      percentiles = np.linspace(0, 100, num_max)
+   def _get_f_intervals(fcst, bin_type, num_max, include_threshold=None):
+      percentiles = np.linspace(0, 10, num_max/3)
+      percentiles = np.append(percentiles, np.linspace(10, 90, num_max/3))
+      percentiles = np.append(percentiles, np.linspace(90, 100, num_max/3))
+      percentiles = np.sort(np.unique(percentiles))
       f_thresholds = np.array([np.percentile(np.unique(np.sort(fcst)), p) for p in percentiles])
       # put a point in forecast point (so that the line goes
       # through the point
+      if include_threshold is not None:
+         f_thresholds = np.append(f_thresholds, [include_threshold])
       f_thresholds = np.unique(np.sort(np.append(f_thresholds, 0)))
       # alternatively, nudge the closest point to 0
       # iclosest = np.argmin(np.abs(dx))
