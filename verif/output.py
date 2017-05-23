@@ -1222,8 +1222,8 @@ class AutoCorr(Output):
 class Fss(Output):
    supports_threshold = True
    supports_x = False
-   name = "Fractional skill score"
-   description = "Fractional skill score"
+   name = "Fractions skill score"
+   description = "Fractions skill score"
 
    def __init__(self):
       Output.__init__(self)
@@ -1245,7 +1245,7 @@ class Fss(Output):
       y = np.nan*np.zeros([len(self.scales), F])
       for f in range(0, F):
          """
-         The fractional skill score is computed for different spatial scales.
+         The fractions skill score is computed for different spatial scales.
          For each scale, find a set of locations that are spaced close enough
          together and compute the fraction of observations and forecasts with
          precip. From these fractions compute the Brier Score.
