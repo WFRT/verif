@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import matplotlib.pylab as mpl
 import verif.driver
 import verif.metric
 import verif.output
@@ -50,6 +51,10 @@ for m in metricOutputs:
    if(m[1].is_valid()):
       desc = m[1].get_class_name()
       print name + " ",
+print "' -- $cur ) )"
+print 'elif [ "$prev" = "-cmap" ]; then'
+print "   COMPREPLY=( $( compgen -W '",
+print ' '.join(mpl.cm.cmap_d.keys()),
 print "' -- $cur ) )"
 print 'fi'
 print 'return 0'
