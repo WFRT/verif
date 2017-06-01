@@ -1883,6 +1883,14 @@ class Reliability(Output):
       threshold = self.thresholds[0]   # Observation threshold
       labels = data.get_legend()
 
+      if self.quantiles is not None:
+         edges = self.quantiles
+         if len(edges) < 2:
+            verif.util.error("Reliability requires at least two quantiles")
+      else:
+         edges = np.array([0, 0.05, 0.15, 0.25, 0.35, 0.45,
+            0.55, 0.65, 0.75, 0.85, 0.95, 1])
+
       F = data.num_inputs
       ax = mpl.gca()
       if self._show_count():
@@ -1894,14 +1902,7 @@ class Reliability(Output):
          var = verif.field.Threshold(threshold)
          [obs, p] = data.get_scores([verif.field.Obs(), var], 0, verif.axis.No())
 
-         # Determine the number of bins to use # (at least 11, at most 25)
-         N = min(25, max(11, int(len(obs) / 1000)))
-         N = 11
-         edges = np.linspace(0, 1, N + 1)
-         edges = np.array([0, 0.05, 0.15, 0.25, 0.35, 0.45,
-            0.55, 0.65, 0.75, 0.85, 0.95, 1])
          x = np.zeros([len(edges) - 1, F], 'float')
-
          y = np.nan * np.zeros([F, len(edges) - 1], 'float')
          n = np.zeros([F, len(edges) - 1], 'float')
          v = np.zeros([F, len(edges) - 1], 'float')  # Variance
