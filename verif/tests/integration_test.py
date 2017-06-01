@@ -113,6 +113,11 @@ class IntegrationTest(unittest.TestCase):
       for axis in ["leadtime", "time", "location", "lat", "lon", "elev", "day", "week", "month", "year", "leadtimeday", "no"]:
          self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -x %s" % axis)
 
+   def test_pithist(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m pitdev")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithistslope")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithistshape")
+
    def test_plotting_options(self):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 0.1")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 2.1")

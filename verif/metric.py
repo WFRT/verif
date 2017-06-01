@@ -674,6 +674,61 @@ class PitDev(Metric):
       return ign
 
 
+class PitHistSlope(Metric):
+   type = verif.metric_type.Probabilistic()
+   name = "PIT histogram slope"
+   description = "Average slope of the PIT histogram. Positive mean too many obs in the higher ranks."
+   perfect_score = 0
+   orientation = 0
+
+   def __init__(self, numBins=11, field=verif.field.Pit()):
+      self._bins = np.linspace(0, 1, numBins)
+      self._field = field
+
+   def compute_single(self, data, input_index, axis, axis_index, interval):
+      # Create a PIT histogram, then compute the average slope across the bars
+      pit = data.get_scores(self._field, input_index, axis, axis_index)
+      n = np.histogram(pit, self._bins)[0]
+      n = n * 1.0 / sum(n)
+
+      centers = (self._bins[1:] + self._bins[0:-1]) / 2
+      dx = np.diff(centers)
+      d = np.diff(n) / dx
+      return np.mean(d)
+
+   def label(self, variable):
+      return self.name
+
+
+class PitHistShape(Metric):
+   type = verif.metric_type.Probabilistic()
+   name = "PIT histogram shape"
+   description = "Second derivative of the PIT histogram. Negative means U-shaped."
+   perfect_score = 0
+   orientation = 0
+
+   def __init__(self, numBins=11, field=verif.field.Pit()):
+      self._bins = np.linspace(0, 1, numBins)
+      self._field = field
+
+   def compute_single(self, data, input_index, axis, axis_index, interval):
+      # Create a PIT histogram, then compute the second derivative across the bars
+      pit = data.get_scores(self._field, input_index, axis, axis_index)
+      n = np.histogram(pit, self._bins)[0]
+      n = n * 1.0 / sum(n)
+
+      centers = (self._bins[1:] + self._bins[0:-1]) / 2
+      dx = np.diff(centers)
+      d = np.diff(n) / dx
+      centers2 = (centers[1:] + centers[0:-1]) / 2
+      dx2 = np.diff(centers2)
+      dd = np.diff(d) / dx2
+      return np.mean(dd)
+
+   def label(self, variable):
+      return self.name
+
+
 class MarginalRatio(Metric):
    type = verif.metric_type.Probabilistic()
    name = "Marginal ratio"
