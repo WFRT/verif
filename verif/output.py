@@ -1764,7 +1764,7 @@ class PitHist(Output):
          # Draw red confidence band
          if self._show_expected_line():
             # Multiply by 100 to get to percent
-            std = verif.metric.PitDev.deviation_std(pit, num_bins) * 100
+            std = verif.metric.PitHistDev.deviation_std(pit, num_bins) * 100
 
             mpl.plot([0, 1], [100.0 / num_bins - 2 * std, 100.0 / num_bins - 2 * std], "r-")
             mpl.plot([0, 1], [100.0 / num_bins + 2 * std, 100.0 / num_bins + 2 * std], "r-")
@@ -1774,9 +1774,9 @@ class PitHist(Output):
 
          # Compute calibration deviation
          if self._show_stats():
-            D = verif.metric.PitDev.deviation(pit, num_bins)
-            D0 = verif.metric.PitDev.expected_deviation(pit, num_bins)
-            ign = verif.metric.PitDev.ignorance_potential(pit, num_bins)
+            D = verif.metric.PitHistDev.deviation(pit, num_bins)
+            D0 = verif.metric.PitHistDev.expected_deviation(pit, num_bins)
+            ign = verif.metric.PitHistDev.ignorance_potential(pit, num_bins)
             mpl.text(0, mpl.ylim()[1], "Dev: %2.4f\nExp: %2.4f\nIgn: %2.4f"
                   % (D, D0, ign), verticalalignment="top")
 

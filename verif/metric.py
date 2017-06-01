@@ -612,9 +612,9 @@ class Pit(Metric):
       return self.aggregator.name().title() + " of verifying PIT"
 
 
-class PitDev(Metric):
+class PitHistDev(Metric):
    type = verif.metric_type.Probabilistic()
-   name = "PIT deviation factor"
+   name = "PIT histogram deviation factor"
    description = "PIT histogram deviation factor (actual deviation / expected deviation)"
    min = 0
    # max = 1

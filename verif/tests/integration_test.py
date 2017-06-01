@@ -114,7 +114,7 @@ class IntegrationTest(unittest.TestCase):
          self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -x %s" % axis)
 
    def test_pithist(self):
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m pitdev")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithistdev")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithistslope")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithistshape")
 
