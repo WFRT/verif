@@ -22,8 +22,7 @@ before_install:
    - sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-mpltoolkits.basemap
 
 install:
-   - pip install -r requirements.txt
-   - sudo python setup.py install
+   - sudo pip install .
 
 script:
    - pip install coveralls pep8
