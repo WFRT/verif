@@ -1177,7 +1177,10 @@ class AutoCorr(Output):
                      x = error[i, :, :].flatten()
                      y = error[j, :, :].flatten()
                   I = np.where((np.isnan(x) == 0) & (np.isnan(y) == 0))[0]
-                  corr[i, j] = np.corrcoef(x[I], y[I])[1, 0]
+                  if len(I) >= 2:
+                     # In some versions of numpy, coffcoef does not give a 2x2
+                     # matrix when arrays are length 0
+                     corr[i, j] = np.corrcoef(x[I], y[I])[1, 0]
          color = self._get_color(f, F)
          style = self._get_style(f, F, False)
          x = dist.flatten()
