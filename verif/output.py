@@ -1189,7 +1189,10 @@ class AutoCorr(Output):
                edges = np.array([np.percentile(np.unique(np.sort(x)), p) for p in percentiles])
             else:
                edges = self.thresholds
-            quantiles = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
+            if self.quantiles is None:
+               quantiles = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
+            else:
+               quantiles = self.quantiles
             for q in range(len(quantiles)):
                quantile = quantiles[q]
                xx, yy = verif.util.bin(x, y, edges, lambda f: verif.util.nanpercentile(f, quantile*100))
