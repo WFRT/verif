@@ -454,7 +454,10 @@ class Output(object):
          verif.util.remove_margin()
 
       if self.filename is not None:
-         mpl.savefig(self.filename, bbox_inches='tight', dpi=self.dpi)
+         if self.top is None and self.bottom is None and self.right is None and self.left is None:
+            mpl.savefig(self.filename, bbox_inches='tight', dpi=self.dpi)
+         else:
+            mpl.savefig(self.filename, dpi=self.dpi)
       else:
          fig = mpl.gcf()
          fig.canvas.set_window_title(data.get_names()[0])
