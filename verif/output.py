@@ -2937,18 +2937,21 @@ class Impact(Output):
             contrib[e] = np.nansum(error_x[I] - error_y[I])
             num[e] = len(I)
 
-      I0 = np.where(contrib < 0)[0]
-      I1 = np.where(contrib > 0)[0]
-      # Compute size (scatter wants area) of marker. Scale using self.ms.
-      S = 400/np.max(contrib**2) * (self.ms / 8.0)**2
-      mpl.scatter(XX[I1], YY[I1], s=abs(contrib[I1]**2)*S,
-            color="red", label="%s is worse" % labels[0])
-      mpl.scatter(XX[I0], YY[I0], s=abs(contrib[I0]**2)*S,
-            color="blue", label="%s is worse" % labels[1])
-      if self._showNumbers:
-         Snum = 400/np.max(num**2)
-         mpl.scatter(XX, YY, s=abs(num**2) * Snum, edgecolor="k",
-               color=[1, 1, 1, 0], lw=1, zorder=100)
+      if np.max(contrib**2) > 0:
+         I0 = np.where(contrib < 0)[0]
+         I1 = np.where(contrib > 0)[0]
+         # Compute size (scatter wants area) of marker. Scale using self.ms.
+         S = 400/np.max(contrib**2) * (self.ms / 8.0)**2
+         mpl.scatter(XX[I1], YY[I1], s=abs(contrib[I1]**2)*S,
+               color="red", label="%s is worse" % labels[0])
+         mpl.scatter(XX[I0], YY[I0], s=abs(contrib[I0]**2)*S,
+               color="blue", label="%s is worse" % labels[1])
+         if self._showNumbers:
+            Snum = 400/np.max(num**2)
+            mpl.scatter(XX, YY, s=abs(num**2) * Snum, edgecolor="k",
+                  color=[1, 1, 1, 0], lw=1, zorder=100)
+      else:
+         verif.util.warning("The error statistics are the same, no impact")
       xlim = mpl.xlim()
       ylim = mpl.ylim()
       lower = min(xlim[0], ylim[0])
