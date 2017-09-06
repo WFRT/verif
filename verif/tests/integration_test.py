@@ -192,6 +192,10 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt -m discrimination -r 0")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m discrimination -r 0")
 
+   def test_auto(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m autocorr")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m autocov")
+
    def test_autocorr(self):
       self.run_with_image("verif examples/raw.txt -m autocorr")
       self.run_with_image("verif examples/raw.txt -m autocorr -x location")

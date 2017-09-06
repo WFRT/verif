@@ -350,7 +350,9 @@ def run(argv):
    elif(metric == "qq"):
       pl = verif.output.QQ()
    elif(metric == "autocorr"):
-      pl = verif.output.AutoCorr()
+      pl = verif.output.Auto("corr")
+   elif(metric == "autocov"):
+      pl = verif.output.Auto("cov")
    elif(metric == "fss"):
       pl = verif.output.Fss()
    elif(metric == "cond"):

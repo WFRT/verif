@@ -1104,18 +1104,39 @@ class QQ(Output):
       mpl.gca().set_aspect(1)
 
 
-class AutoCorr(Output):
+class Auto(Output):
    supports_threshold = False
    supports_x = True
    default_axis = verif.axis.Location()
    name = "Auto-correlation"
    description = "Plots error auto-correlation as a function of distance. Use -x to specify axis to find auto-correlations for: -x location gives correlation between all pairs of locations; -x time gives between all pairs of forecast initializations; Similarly for -x leadtime, -x lat, -x lon, -x elev."
 
-   def __init__(self):
+   def __init__(self, func_name):
+      """
+      Arguments:
+         func_name (str): One of "corr" or "cov"
+      """
       Output.__init__(self)
+      self.func_name = func_name
+      if func_name == "corr":
+         self.func = lambda x, y: np.corrcoef(x, y)[0, 1]
+      elif func_name == "cov":
+         self.func = lambda x, y: np.cov(x, y)[0, 1]
+      else:
+         verif.util.error("Invalid function name: %s" % func_name)
+
+   def _get_label(self, units):
+      if self.func_name == "corr":
+         return "Error correlation"
+      elif self.func_name == "cov":
+         return "Error covariance (%s^2)" % units
 
    @property
    def _show_smoothing_line(self):
+      return not self.simple
+
+   @property
+   def _show_zero_point(self):
       return not self.simple
 
    def _plot_core(self, data):
@@ -1188,7 +1209,7 @@ class AutoCorr(Output):
                   if len(I) >= 2:
                      # In some versions of numpy, coffcoef does not give a 2x2
                      # matrix when arrays are length 0
-                     corr[i, j] = np.corrcoef(x[I], y[I])[1, 0]
+                     corr[i, j] = self.func(x[I], y[I])
          color = self._get_color(f, F)
          style = self._get_style(f, F, False)
          x = dist.flatten()
@@ -1228,9 +1249,13 @@ class AutoCorr(Output):
                mpl.plot(xx, yy, style, lw=lw, ms=self.ms,
                      zorder=100, label=label)
             self._plot_obs(x, 0*x, label="")
+         if self._show_zero_point:
+            I = np.where(dist.flatten() == 0)[0]
+            mpl.plot(0, np.median(corr.flatten()[I]), 's', color=color, ms=self.ms*2)
 
       mpl.xlabel(xlabel)
-      mpl.ylabel("Error correlation")
+      label = self._get_label(data.variable.units)
+      mpl.ylabel(label)
 
 
 class Fss(Output):
