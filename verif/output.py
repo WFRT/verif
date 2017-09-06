@@ -78,6 +78,7 @@ class Output(object):
    line_styles
    xlog
    ylog
+   clabel
    lw                Line width
    map_type
    ms                Marker size
@@ -123,6 +124,7 @@ class Output(object):
       self.axis = self.default_axis
       self.bin_type = self.default_bin_type
       self.bottom = None
+      self.clabel = None
       self.clim = None
       self.cmap = mpl.cm.jet
       self.colors = None
@@ -914,7 +916,10 @@ class Standard(Output):
          else:
             map.scatter(x0, y0, c=y[:, f], s=s, cmap=cmap)
             cb = map.colorbar()
-            cb.set_label(self._metric.label(data.variable), fontsize=self.labfs)
+            if self.clabel is None:
+               cb.set_label(self._metric.label(data.variable), fontsize=self.labfs)
+            else:
+               cb.set_label(self.clabel, fontsize=self.labfs)
             cb.set_clim(clim)
             mpl.clim(clim)
          if self._mapLabelLocations:

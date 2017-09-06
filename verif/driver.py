@@ -31,6 +31,7 @@ def run(argv):
    leg = None
    ylabel = None
    xlabel = None
+   clabel = None
    title = None
    times = None
    leadtimes = None
@@ -165,6 +166,8 @@ def run(argv):
                ylabel = unicode(arg_next, 'utf8')
             elif(arg == "-xlabel"):
                xlabel = unicode(arg_next, 'utf8')
+            elif(arg == "-clabel"):
+               clabel = unicode(arg_next, 'utf8')
             elif(arg == "-title"):
                title = unicode(arg_next, 'utf8')
             elif(arg == "-b"):
@@ -551,6 +554,8 @@ def run(argv):
       pl.ylabel = ylabel
    if xlabel is not None:
       pl.xlabel = xlabel
+   if clabel is not None:
+      pl.clabel = clabel
    if title is not None:
       pl.title = title
    if do_acc:
@@ -628,6 +633,7 @@ def show_description(data=None):
    s += verif.util.green("  Plotting options:") + "\n"
    s += format_argument("-aspect ratio", "Force the aspect ratio of the plot. A value greater than 1 will stretch out the y-axis.") + "\n"
    s += format_argument("-bottom value", "Bottom boundary location for saved figure [range 0-1]") + "\n"
+   s += format_argument("-clabel text", "Custom colorbar label") + "\n"
    s += format_argument("-clim limits", "Force colorbar limits to the two values lower,upper. Only used in combination with -type map.") + "\n"
    s += format_argument("-cmap colormap", "Use this colormap when possible (e.g. jet, inferno, RdBu). Only used in combination with -type map.") + "\n"
    s += format_argument("-dpi value", "Resolution of image in dots per inch (default 100)") + "\n"
