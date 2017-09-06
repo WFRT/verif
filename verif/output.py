@@ -1104,12 +1104,31 @@ class QQ(Output):
       mpl.gca().set_aspect(1)
 
 
-class Auto(Output):
+class AutoCorr(Output):
+   """
+   Description classes for -m autocorr and -m autocov
+   These are instantiated by using Auto(func).
+   """
    supports_threshold = False
    supports_x = True
    default_axis = verif.axis.Location()
    name = "Auto-correlation"
    description = "Plots error auto-correlation as a function of distance. Use -x to specify axis to find auto-correlations for: -x location gives correlation between all pairs of locations; -x time gives between all pairs of forecast initializations; Similarly for -x leadtime, -x lat, -x lon, -x elev."
+
+
+class AutoCov(Output):
+   supports_threshold = False
+   supports_x = True
+   default_axis = verif.axis.Location()
+   name = "Auto-correlation"
+   description = "Plots error auto-covariance as a function of distance. Use -x to specify axis to find auto-correlations for: -x location gives correlation between all pairs of locations; -x time gives between all pairs of forecast initializations; Similarly for -x leadtime, -x lat, -x lon, -x elev."
+
+
+class Auto(Output):
+   supports_threshold = False
+   supports_x = True
+   default_axis = verif.axis.Location()
+   name = "Auto-correlation"
 
    def __init__(self, func_name):
       """
