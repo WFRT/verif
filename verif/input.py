@@ -16,17 +16,15 @@ import verif.field
 
 
 def get_input(filename):
-   if not os.path.isfile(filename):
-      verif.util.error("File '" + filename + "' does not exist")
    is_nc = verif.util.is_valid_nc(filename)
    if is_nc:
-      if(verif.input.Netcdf.is_valid(filename)):
+      if verif.input.Netcdf.is_valid(filename):
          input = verif.input.Netcdf(filename)
-      elif(verif.input.Comps.is_valid(filename)):
+      elif verif.input.Comps.is_valid(filename):
          input = verif.input.Comps(filename)
       else:
          verif.util.error("File '" + filename + "' does not have the correct Netcdf format")
-   elif(verif.input.Text.is_valid(filename)):
+   elif verif.input.Text.is_valid(filename):
       input = verif.input.Text(filename)
    else:
       verif.util.error("File '" + filename + "' is not a valid input file")
