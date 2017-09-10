@@ -549,3 +549,32 @@ def get_distance_matrix(locations):
       for j in range(N):
          dist[i, j] = locations[i].get_distance(locations[j])
    return dist
+
+
+def proj4_string_to_dict(string):
+   """ Parse a proj4 string and create a dictionary
+
+   Arguments:
+      string (str): A proj4 string like "+proj=lcc +lat_0=63
+      +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06"
+   Returns:
+      dict: A dictionary of attributes and values, e.g =proj=
+   """
+   r = dict()
+   pairs = string.split(' ')
+   for pair in pairs:
+      keyvalue =  pair.split('=')
+      if len(keyvalue) > 2:
+         verif.util.error("Could not parse proj4 parameter: %s" % pair)
+      key = keyvalue[0]
+      if len(keyvalue) == 1:
+         value = True
+      else:
+         value = keyvalue[1]
+      # Try converting to number
+      try:
+         value = float(value)
+      except Exception:
+         pass
+      r[key] = value
+   return r

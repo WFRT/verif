@@ -155,5 +155,15 @@ class TestIsValidNc(unittest.TestCase):
       self.assertFalse(verif.util.is_valid_nc("verif/tests/files/file1.txt"))
 
 
+class TestProj4(unittest.TestCase):
+   def test_1(self):
+      string = "+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+07"
+      r = verif.util.proj4_string_to_dict(string)
+      self.assertEqual(r.get("+proj"), "lcc")
+      self.assertEqual(r.get("+lat_0"), 63)
+      self.assertEqual(r.get("+no_defs"), True)
+      self.assertEqual(r.get("+lon_1"), None)
+
+
 if __name__ == '__main__':
    unittest.main()

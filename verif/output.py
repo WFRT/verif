@@ -157,6 +157,7 @@ class Output(object):
       self.title = None
       self.titlefs = 16
       self.top = None
+      self.proj = "cyl"
       self.xlabel = None
       self.xlim = None
       self.xlog = False
@@ -854,8 +855,34 @@ class Standard(Output):
       for f in range(0, F):
          verif.util.subplot(f, F)
          if self.map_type is not None and hasBasemap:
+            # Default projection
+            lat_0 = None
+            lat_1 = None
+            lat_2 = None
+            lat_ts = None
+            lon_0 = None
+            proj = "cyl"
+            earth_radius = 6370997.0
+
+            # Read projection parameteres if available
+            if self.proj is not None:
+               proj_attributes = verif.util.proj4_string_to_dict(self.proj)
+               lat_0 = proj_attributes.get("+lat_0")
+               lon_0 = proj_attributes.get("+lon_0")
+               lat_1 = proj_attributes.get("+lat_1")
+               lat_2 = proj_attributes.get("+lat_2")
+               lat_ts = proj_attributes.get("+lat_ts")
+               proj = proj_attributes.get("+proj")
+               er = proj_attributes.get("+R")
+               if er is not None:
+                  earth_radius = er
+               if proj is None:
+                  verif.util.error("Proj string missing a +proj parameter: (%s)" % self.proj)
             map = mpl_toolkits.basemap.Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
-                  urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection='cyl',
+                  urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection=proj,
+                  lat_0=lat_0, lon_0=lon_0,
+                  lat_1=lat_1, lat_2=lat_2, lat_ts=lat_ts,
+                  rsphere=earth_radius,
                   resolution=res, fix_aspect=False)
             map.drawcoastlines(linewidth=0.25)
             map.drawcountries(linewidth=0.25)
