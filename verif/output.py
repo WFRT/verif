@@ -157,7 +157,7 @@ class Output(object):
       self.title = None
       self.titlefs = 16
       self.top = None
-      self.proj = "cyl"
+      self.proj = None
       self.xlabel = None
       self.xlim = None
       self.xlog = False
