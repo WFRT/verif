@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+import sys
+import argparse
+import numpy as np
+import verif.input
+import netCDF4
+import copy
+import astropy.convolution
+
+def main():
+   parser = argparse.ArgumentParser(prog="accumulate", description="Accumlates a verif file")
+   parser.add_argument('file')
+   parser.add_argument('-o', help="Output file", dest="ofilename", required=True)
+   parser.add_argument('-w', type=int, help="Accumulation window (in number of timesteps). If omitted, accumulate the whole leadtime axis.", dest="w")
+
+   if len(sys.argv) == 1:
+      parser.print_help()
+      sys.exit(0)
+
+   args = parser.parse_args()
+
+   ifile = verif.input.get_input(args.file)
+   locations = ifile.locations
+   locationids = [loc.id for loc in locations]
+   leadtimes  = ifile.leadtimes
+   times    = ifile.times
+   lats     = [loc.lat for loc in locations]
+   lons     = [loc.lon for loc in locations]
+   elevs    = [loc.elev for loc in locations]
+
+   fcst = copy.deepcopy(ifile.fcst)
+   obs = copy.deepcopy(ifile.obs)
+
+   if args.w is None:
+      fcst = np.cumsum(fcst, axis=1)
+      obs = np.cumsum(obs, axis=1)
+
+   elif args.w > 1:
+      fcst = np.cumsum(fcst, axis=1)
+      obs = np.cumsum(obs, axis=1)
+
+      fcst[:,( args.w):, :] = fcst[:, (args.w):, :] - fcst[:, 0:(-args.w), :]
+      fcst[:, 0:(args.w-1), :] = np.nan
+
+      obs[:,( args.w):, :] = obs[:, (args.w):, :] - obs[:, 0:(-args.w), :]
+      obs[:, 0:(args.w-1), :] = np.nan
+
+   file = netCDF4.Dataset(args.ofilename, 'w', format="NETCDF4")
+   file.createDimension("leadtime", len(ifile.leadtimes))
+   file.createDimension("time", None)
+   file.createDimension("location", len(ifile.locations))
+   vTime=file.createVariable("time", "i4", ("time",))
+   vOffset=file.createVariable("leadtime", "f4", ("leadtime",))
+   vLocation=file.createVariable("location", "f8", ("location",))
+   vLat=file.createVariable("lat", "f4", ("location",))
+   vLon=file.createVariable("lon", "f4", ("location",))
+   vElev=file.createVariable("altitude", "f4", ("location",))
+   vfcst=file.createVariable("fcst", "f4", ("time", "leadtime", "location"))
+   vobs=file.createVariable("obs", "f4", ("time", "leadtime", "location"))
+   file.Variable = ifile.variable.name
+   file.Units = ifile.variable.units
+
+   vobs[:] = obs
+   vfcst[:] = fcst
+   vTime[:] = times
+   vOffset[:] = leadtimes
+   vLocation[:] = locationids
+   vLat[:] = lats
+   vLon[:] = lons
+   vElev[:] = elevs
+
+   file.close()
+
+if __name__ == '__main__':
+   main()
