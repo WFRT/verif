@@ -1,9 +1,7 @@
 language: python
 os: linux
 env:
- - DIST=precise
  - DIST=trusty
- - DIST=xenial
 
 python:
    - "2.7_with_system_site_packages"
@@ -20,6 +18,7 @@ before_install:
    - "sh -e /etc/init.d/xvfb start"
    - sudo apt-get update -qq
    - sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-mpltoolkits.basemap
+   - sudo pip install matplotlib==1.1.1
 
 install:
    - sudo pip install .
