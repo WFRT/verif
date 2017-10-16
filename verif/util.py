@@ -563,7 +563,7 @@ def proj4_string_to_dict(string):
    r = dict()
    pairs = string.split(' ')
    for pair in pairs:
-      keyvalue =  pair.split('=')
+      keyvalue = pair.split('=')
       if len(keyvalue) > 2:
          verif.util.error("Could not parse proj4 parameter: %s" % pair)
       key = keyvalue[0]
