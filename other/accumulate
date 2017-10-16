@@ -6,11 +6,22 @@ import verif.input
 import netCDF4
 import copy
 import astropy.convolution
+import scipy.signal
+
+
+""" Convolves the Verif array across the leadtime dimension """
+def convolve(array, window):
+   assert(len(array.shape) == 3)
+   c = np.ones([1, window, 1])
+   new_array = np.nan*np.zeros(array.shape)
+   new_array[:, (window-1):, :] = scipy.signal.convolve(array, c, "valid")
+   return new_array
+
 
 def main():
-   parser = argparse.ArgumentParser(prog="accumulate", description="Accumlates a verif file")
-   parser.add_argument('file')
-   parser.add_argument('-o', help="Output file", dest="ofilename", required=True)
+   parser = argparse.ArgumentParser(prog="accumulate", description="Accumlates a verif file. For each leadtime, sum up values in a specified number of leadtimes leading up to this time. I.e. for a file with hourly time steps, -w 24 creates 24 hour accumulations. For leadtime 36 this is the sum of leadtimes 13-36.")
+   parser.add_argument('ifile', help="Verif text or NetCDF file (input)")
+   parser.add_argument('ofile', help="Verif NetCDF file (output)")
    parser.add_argument('-w', type=int, help="Accumulation window (in number of timesteps). If omitted, accumulate the whole leadtime axis.", dest="w")
 
    if len(sys.argv) == 1:
@@ -19,7 +30,7 @@ def main():
 
    args = parser.parse_args()
 
-   ifile = verif.input.get_input(args.file)
+   ifile = verif.input.get_input(args.ifile)
    locations = ifile.locations
    locationids = [loc.id for loc in locations]
    leadtimes  = ifile.leadtimes
@@ -36,16 +47,38 @@ def main():
       obs = np.cumsum(obs, axis=1)
 
    elif args.w > 1:
-      fcst = np.cumsum(fcst, axis=1)
-      obs = np.cumsum(obs, axis=1)
+      if 0:
+         fcst_missing = np.cumsum(np.isnan(fcst), axis=1)
+         obs_missing = np.cumsum(np.isnan(obs), axis=1)
+         fcst_acc = np.nancumsum(fcst, axis=1)
+         obs_acc = np.nancumsum(obs, axis=1)
 
-      fcst[:,( args.w):, :] = fcst[:, (args.w):, :] - fcst[:, 0:(-args.w), :]
-      fcst[:, 0:(args.w-1), :] = np.nan
+         diff = fcst_acc[:, (args.w):, :] - fcst_acc[:, 0:(-args.w), :]
 
-      obs[:,( args.w):, :] = obs[:, (args.w):, :] - obs[:, 0:(-args.w), :]
-      obs[:, 0:(args.w-1), :] = np.nan
+         # Remove timesteps where there are one or more missing values in the interval
+         diff[fcst_missing[:, (args.w):, :] - fcst_missing[:, 0:(-args.w), :] > 0] = np.nan
+         fcst_acc[:,(args.w):, :] = diff
 
-   file = netCDF4.Dataset(args.ofilename, 'w', format="NETCDF4")
+         # Set missing the first timesteps that don't have a complete window
+         fcst_acc[:, 0:(args.w-1), :] = np.nan
+
+         # Remove timesteps where the leadtime is missing (the previous line does not filter out the case
+         # when the first leadtime is missing)
+         q = np.zeros([fcst_acc.shape[0], 1, fcst_acc.shape[1]])
+         fcst_acc[:, args.w-1, :] = q
+
+         diff = obs_acc[:, (args.w):, :] - obs_acc[:, 0:(-args.w), :]
+         diff[obs_missing[:, (args.w):, :] - obs_missing[:, 0:(-args.w), :] > 0] = np.nan
+         diff[np.isnan(obs[:, (args.w):, :])] = np.nan
+         obs_acc[:,(args.w):, :] = diff
+         obs_acc[:, 0:(args.w-1), :] = np.nan
+         print obs
+         print obs_acc
+      else:
+         fcst = convolve(fcst, args.w)
+         obs = convolve(obs, args.w)
+
+   file = netCDF4.Dataset(args.ofile, 'w', format="NETCDF4")
    file.createDimension("leadtime", len(ifile.leadtimes))
    file.createDimension("time", None)
    file.createDimension("location", len(ifile.locations))
