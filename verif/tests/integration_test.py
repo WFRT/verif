@@ -6,6 +6,9 @@ import tempfile
 np.seterr('raise')
 
 
+all_axes = ["time", "leadtime", "timeofday", "dayofyear", "day", "week", "month", "year", "leadtimeday", "location", "lat", "lon", "elev"]
+
+
 class IntegrationTest(unittest.TestCase):
    """
    These tests run verif on the command-line, but do not test the validity of the
@@ -106,11 +109,11 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -agg range")
 
    def test_standard_option_x(self):
-      for axis in ["leadtime", "time", "location", "lat", "lon", "elev", "day", "week", "month", "year", "leadtimeday", "no"]:
+      for axis in all_axes:
          self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x %s" % axis)
 
    def test_obsfcst_option_x(self):
-      for axis in ["leadtime", "time", "location", "lat", "lon", "elev", "day", "week", "month", "year", "leadtimeday", "no"]:
+      for axis in all_axes:
          self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -x %s" % axis)
 
    def test_pithist(self):
