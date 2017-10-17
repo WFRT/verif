@@ -163,6 +163,7 @@ class Data(object):
       self.timesofday = self._get_timesofday()
       self.daysofyear = self._get_daysofyear()
       self.monthsofyear = self._get_monthsofyear()
+      self.daysofmonth = self._get_daysofmonth()
       self.days = self._get_days()
       self.weeks = self._get_weeks()
       self.months = self._get_months()
@@ -306,6 +307,8 @@ class Data(object):
          return self.daysofyear
       elif(axis == verif.axis.Monthofyear()):
          return self.monthsofyear
+      elif(axis == verif.axis.Dayofmonth()):
+         return self.daysofmonth
       elif(axis == verif.axis.Day()):
          return self.days
       elif(axis == verif.axis.Week()):
@@ -534,6 +537,11 @@ class Data(object):
 
       return moy
 
+   def _get_daysofmonth(self):
+      dom = np.unique(np.array([datetime.datetime.utcfromtimestamp(i).day for i in self.times]))
+
+      return dom
+
    def _get_days(self):
       dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
       for i in range(0, len(dts)):
@@ -717,6 +725,10 @@ class Data(object):
       elif(axis == verif.axis.Monthofyear()):
          moy = [datetime.datetime.utcfromtimestamp(i).month for i in self.times]
          I = np.where(self.monthsofyear[axis_index] == moy)
+         output = array[I, :, :].flatten()
+      elif(axis == verif.axis.Dayofmonth()):
+         dom = [datetime.datetime.utcfromtimestamp(i).day for i in self.times]
+         I = np.where(self.daysofmonth[axis_index] == dom)
          output = array[I, :, :].flatten()
       elif(axis == verif.axis.Day()):
          if(axis_index == self.days.shape[0]-1):
