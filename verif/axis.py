@@ -183,23 +183,12 @@ class Day(Axis):
       return "Day"
 
 
-class DayOfMonth(Axis):
-   is_time_like = True
-
+class Dayofmonth(Axis):
    def label(self, variable):
       return "Day of month"
 
 
-class DayOfYear(Axis):
-   is_time_like = True
-
-   def label(self, variable):
-      return "Day of year"
-
-
-class MonthOfYear(Axis):
-   is_time_like = True
-
+class Monthofyear(Axis):
    def label(self, variable):
       return "Month of year"
 

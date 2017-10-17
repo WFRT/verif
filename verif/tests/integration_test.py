@@ -6,7 +6,7 @@ import tempfile
 np.seterr('raise')
 
 
-all_axes = ["time", "leadtime", "timeofday", "dayofyear", "day", "week", "month", "year", "leadtimeday", "location", "lat", "lon", "elev"]
+all_axes = ["time", "leadtime", "timeofday", "dayofyear", "monthofyear", "day", "week", "month", "year", "leadtimeday", "location", "lat", "lon", "elev"]
 
 
 class IntegrationTest(unittest.TestCase):
