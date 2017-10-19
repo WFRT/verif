@@ -8,6 +8,10 @@ def get_data_from_text(filename):
    return data
 
 
+def assert_set_equal(array1, array2):
+   np.testing.assert_array_equal(np.sort(array1), np.sort(array2))
+
+
 class TestData(unittest.TestCase):
    def test_doesnotexist(self):
       with self.assertRaises(SystemExit):
@@ -71,6 +75,25 @@ class TestData(unittest.TestCase):
       with self.assertRaises(SystemExit):
          data = verif.data.Data(inputs, lat_range=[55, 60])
 
+   def test_dayofyear(self):
+      inputs = [verif.input.get_input("verif/tests/files/file1.txt")]
+      data = verif.data.Data(inputs=inputs)
+      axis = verif.axis.Dayofyear()
+      axis_values = data.get_axis_values(axis)
+      self.assertEqual(3, len(axis_values))
+      self.assertEqual(1, axis_values[0])
+      self.assertEqual(2, axis_values[1])
+      self.assertEqual(3, axis_values[2])
+
+      # All the values for day 1
+      values = data.get_scores([verif.field.Fcst()], 0, axis, 0)[0]
+      self.assertEqual(6, len(values))
+      assert_set_equal(np.array([6, 7, 7, 5, 4, 7]), values)
+
+      values = data.get_scores([verif.field.Fcst()], 0, axis, 2)[0]
+      self.assertEqual(5, len(values))
+      assert_set_equal(np.array([-4, 3, 9, 12, 16]), values)
+
 
 class TestDataRemovingLocations(unittest.TestCase):
    def test_inside_lat_range(self):
@@ -115,7 +138,7 @@ class TestDataClim(unittest.TestCase):
       self.assertEqual(1, len(data.get_full_names()))
 
 
-class TestData(unittest.TestCase):
+class TestDataFields(unittest.TestCase):
    def test_get_fields1(self):
       inputs = [verif.input.Text("verif/tests/files/file1.txt")]
       data = verif.data.Data(inputs)

@@ -528,7 +528,7 @@ class Data(object):
       dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
       for i in range(len(dts)):
          dts[i] = dts[i].replace(year=2000)
-      doy = np.unique(np.array([(x - datetime.datetime(year=2000, month=1, day=1)).days for x in dts]))
+      doy = np.unique(np.array([(x - datetime.datetime(year=2000, month=1, day=1)).days +1 for x in dts]))
 
       return doy
 
@@ -719,7 +719,7 @@ class Data(object):
          dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
          for i in range(len(dts)):
             dts[i] = dts[i].replace(year=2000)
-         doy = [(x - datetime.datetime(year=2000, month=1, day=1)).days for x in dts]
+         doy = [(x - datetime.datetime(year=2000, month=1, day=1)).days + 1 for x in dts]
          I = np.where(self.daysofyear[axis_index] == doy)
          output = array[I, :, :].flatten()
       elif(axis == verif.axis.Monthofyear()):
