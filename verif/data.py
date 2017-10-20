@@ -11,6 +11,9 @@ import matplotlib.ticker
 import verif.field
 import verif.util
 import verif.variable
+time_axes = [verif.axis.Month(), verif.axis.Year(), verif.axis.Week(),
+      verif.axis.Timeofday(), verif.axis.Dayofyear(),
+      verif.axis.Day(), verif.axis.Dayofmonth(), verif.axis.Monthofyear()]
 
 
 class Data(object):
@@ -160,16 +163,13 @@ class Data(object):
       self.thresholds = self._get_thresholds()
       self.quantiles = self._get_quantiles()
       self.variable = self._get_variable()
-      self.timesofday = self._get_timesofday()
-      self.daysofyear = self._get_daysofyear()
-      self.monthsofyear = self._get_monthsofyear()
-      self.daysofmonth = self._get_daysofmonth()
-      self.days = self._get_days()
-      self.weeks = self._get_weeks()
-      self.months = self._get_months()
-      self.years = self._get_years()
       self.leadtimedays = self._get_leadtimedays()
       self.num_inputs = self._get_num_inputs()
+      self.axis_cache = dict()
+      self.axis_cache_unique = dict()
+      for axis in time_axes:
+         self.axis_cache[axis] = axis.compute_from_times(self.times)
+         self.axis_cache_unique[axis] = np.unique(self.axis_cache[axis])
 
    def get_fields(self):
       """ Get a list of fields that all inputs have
@@ -301,22 +301,8 @@ class Data(object):
       """
       if(axis == verif.axis.Time()):
          return self.times
-      elif(axis == verif.axis.Timeofday()):
-         return self.timesofday
-      elif(axis == verif.axis.Dayofyear()):
-         return self.daysofyear
-      elif(axis == verif.axis.Monthofyear()):
-         return self.monthsofyear
-      elif(axis == verif.axis.Dayofmonth()):
-         return self.daysofmonth
-      elif(axis == verif.axis.Day()):
-         return self.days
-      elif(axis == verif.axis.Week()):
-         return self.weeks
-      elif(axis == verif.axis.Month()):
-         return self.months
-      elif(axis == verif.axis.Year()):
-         return self.years
+      elif axis in time_axes:
+         return np.unique(axis.compute_from_times(self.times))
       elif(axis == verif.axis.Leadtime()):
          return self.leadtimes
       elif(axis == verif.axis.Leadtimeday()):
@@ -520,60 +506,6 @@ class Data(object):
       I = self._timesI[0]
       return np.array([times[i] for i in I], int)
 
-   def _get_timesofday(self):
-      timesofday = np.unique(self.times % 86400) / 3600
-      return timesofday
-
-   def _get_daysofyear(self):
-      dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
-      for i in range(len(dts)):
-         dts[i] = dts[i].replace(year=2000)
-      doy = np.unique(np.array([(x - datetime.datetime(year=2000, month=1, day=1)).days +1 for x in dts]))
-
-      return doy
-
-   def _get_monthsofyear(self):
-      moy = np.unique(np.array([datetime.datetime.utcfromtimestamp(i).month for i in self.times]))
-
-      return moy
-
-   def _get_daysofmonth(self):
-      dom = np.unique(np.array([datetime.datetime.utcfromtimestamp(i).day for i in self.times]))
-
-      return dom
-
-   def _get_days(self):
-      dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
-      for i in range(0, len(dts)):
-         dts[i] = dts[i].replace(hour=0, minute=0, second=0)
-      days = np.unique(np.array([calendar.timegm(dt.timetuple()) for dt in dts]))
-      return days
-
-   def _get_weeks(self):
-      dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
-      for i in range(0, len(dts)):
-         dts[i] = dts[i].replace(hour=0, minute=0, second=0)
-         # Reset datetime such that it is for the first day of the week
-         # That is subtract the day of the week from the date
-         weekday = dts[i].weekday()
-         dts[i] = dts[i] - datetime.timedelta(days=weekday)
-      weeks = np.unique(np.array([calendar.timegm(dt.timetuple()) for dt in dts]))
-      return weeks
-
-   def _get_months(self):
-      dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
-      for i in range(0, len(dts)):
-         dts[i] = dts[i].replace(day=1, hour=0, minute=0, second=0)
-      months = np.unique(np.array([calendar.timegm(dt.timetuple()) for dt in dts]))
-      return months
-
-   def _get_years(self):
-      dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
-      for i in range(0, len(dts)):
-         dts[i] = dts[i].replace(month=1, day=1, hour=0, minute=0, second=0)
-      years = np.unique(np.array([calendar.timegm(dt.timetuple()) for dt in dts]))
-      return years
-
    def _get_leadtimes(self):
       leadtimes = self._inputs[0].leadtimes
       I = self._leadtimesI[0]
@@ -712,54 +644,10 @@ class Data(object):
       output = None
       if(axis == verif.axis.Time()):
          output = array[axis_index, :, :].flatten()
-      elif(axis == verif.axis.Timeofday()):
-         I = np.where(self.timesofday[axis_index] == (self.times % 86400)/3600)
-         output = array[I, :, :].flatten()
-      elif(axis == verif.axis.Dayofyear()):
-         dts = [datetime.datetime.utcfromtimestamp(i) for i in self.times]
-         for i in range(len(dts)):
-            dts[i] = dts[i].replace(year=2000)
-         doy = [(x - datetime.datetime(year=2000, month=1, day=1)).days + 1 for x in dts]
-         I = np.where(self.daysofyear[axis_index] == doy)
-         output = array[I, :, :].flatten()
-      elif(axis == verif.axis.Monthofyear()):
-         moy = [datetime.datetime.utcfromtimestamp(i).month for i in self.times]
-         I = np.where(self.monthsofyear[axis_index] == moy)
-         output = array[I, :, :].flatten()
-      elif(axis == verif.axis.Dayofmonth()):
-         dom = [datetime.datetime.utcfromtimestamp(i).day for i in self.times]
-         I = np.where(self.daysofmonth[axis_index] == dom)
-         output = array[I, :, :].flatten()
-      elif(axis == verif.axis.Day()):
-         if(axis_index == self.days.shape[0]-1):
-            # TODO
-            I = np.where(self.times >= self.days[axis_index])
-         else:
-            I = np.where((self.times >= self.days[axis_index]) &
-                         (self.times < self.days[axis_index + 1]))
-         output = array[I, :, :].flatten()
-      elif(axis == verif.axis.Week()):
-         if(axis_index == self.weeks.shape[0]-1):
-            # TODO
-            I = np.where(self.times >= self.weeks[axis_index])
-         else:
-            I = np.where((self.times >= self.weeks[axis_index]) &
-                         (self.times < self.weeks[axis_index + 1]))
-         output = array[I, :, :].flatten()
-      elif(axis == verif.axis.Month()):
-         if(axis_index == self.months.shape[0]-1):
-            # TODO
-            I = np.where(self.times >= self.months[axis_index])
-         else:
-            I = np.where((self.times >= self.months[axis_index]) &
-                         (self.times < self.months[axis_index + 1]))
-         output = array[I, :, :].flatten()
-      elif(axis == verif.axis.Year()):
-         if(axis_index == self.years.shape[0]-1):
-            I = np.where(self.times >= self.years[axis_index])
-         else:
-            I = np.where((self.times >= self.years[axis_index]) &
-                         (self.times < self.years[axis_index + 1]))
+      elif axis in time_axes:
+         axis_values = self.axis_cache[axis]
+         axis_values_unique = self.axis_cache_unique[axis]
+         I = np.where(axis_values == axis_values_unique[axis_index])
          output = array[I, :, :].flatten()
       elif(axis == verif.axis.Leadtime()):
          output = array[:, axis_index, :].flatten()

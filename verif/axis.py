@@ -2,6 +2,9 @@ import inspect
 import matplotlib.dates
 import matplotlib.ticker
 import sys
+import datetime
+import numpy as np
+import calendar
 
 import verif.util
 
@@ -145,6 +148,11 @@ class Year(Axis):
    def label(self, variable):
       return "Year"
 
+   def compute_from_times(self, times):
+      dts = [datetime.datetime.utcfromtimestamp(i) for i in times]
+      dts = [d.replace(month=1, day=1, hour=0, minute=0, second=0) for d in dts]
+      return np.array([calendar.timegm(dt.timetuple()) for dt in dts])
+
 
 class Month(Axis):
    is_time_like = True
@@ -153,6 +161,11 @@ class Month(Axis):
 
    def label(self, variable):
       return "Month"
+
+   def compute_from_times(self, times):
+      dts = [datetime.datetime.utcfromtimestamp(i) for i in times]
+      dts = [d.replace(day=1, hour=0, minute=0, second=0) for d in dts]
+      return np.array([calendar.timegm(dt.timetuple()) for dt in dts])
 
 
 class Week(Axis):
@@ -163,15 +176,31 @@ class Week(Axis):
    def label(self, variable):
       return "Week"
 
+   def compute_from_times(self, times):
+      dts = [datetime.datetime.utcfromtimestamp(i) for i in times]
+      dts = [d.replace(hour=0, minute=0, second=0) for d in dts]
+      # Reset datetime such that it is for the first day of the week
+      # That is subtract the day of the week from the date
+      dts = [d - datetime.timedelta(days=d.weekday()) for d in dts]
+      return np.array([calendar.timegm(dt.timetuple()) for dt in dts])
+
 
 class Timeofday(Axis):
    def label(self, variable):
       return "Time of day"
 
+   def compute_from_times(self, times):
+      return (times % 86400) / 3600
+
 
 class Dayofyear(Axis):
    def label(self, variable):
       return "Day of year"
+
+   def compute_from_times(self, times):
+      dts = [datetime.datetime.utcfromtimestamp(i) for i in times]
+      dts = [d.replace(year=2000) for d in dts]
+      return np.array([(x - datetime.datetime(year=2000, month=1, day=1)).days + 1 for x in dts])
 
 
 class Day(Axis):
@@ -182,15 +211,26 @@ class Day(Axis):
    def label(self, variable):
       return "Day"
 
+   def compute_from_times(self, times):
+      dts = [datetime.datetime.utcfromtimestamp(i) for i in times]
+      dts = [d.replace(hour=0, minute=0, second=0) for d in dts]
+      return np.array([calendar.timegm(dt.timetuple()) for dt in dts])
+
 
 class Dayofmonth(Axis):
    def label(self, variable):
       return "Day of month"
 
+   def compute_from_times(self, times):
+      return np.array([datetime.datetime.utcfromtimestamp(i).day for i in times])
+
 
 class Monthofyear(Axis):
    def label(self, variable):
       return "Month of year"
+
+   def compute_from_times(self, times):
+      return np.array([datetime.datetime.utcfromtimestamp(i).month for i in times])
 
 
 class Threshold(Axis):
