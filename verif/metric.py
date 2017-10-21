@@ -38,7 +38,7 @@ def get(name):
    metrics = get_all()
    m = None
    for metric in metrics:
-      if(name == metric[0].lower() and metric[1].is_valid()):
+      if name == metric[0].lower() and metric[1].is_valid():
          m = metric[1]()
    return m
 
@@ -55,16 +55,16 @@ def get_p(data, input_index, axis, axis_index, interval):
    """
    p0 = 0
    p1 = 1
-   if(interval.lower != -np.inf and interval.upper != np.inf):
+   if interval.lower != -np.inf and interval.upper != np.inf:
       var0 = verif.field.Threshold(interval.lower)
       var1 = verif.field.Threshold(interval.upper)
       [obs, p0, p1] = data.get_scores([verif.field.Obs(), var0, var1],
             input_index, axis, axis_index)
-   elif(interval.lower != -np.inf):
+   elif interval.lower != -np.inf:
       var0 = verif.field.Threshold(interval.lower)
       [obs, p0] = data.get_scores([verif.field.Obs(), var0], input_index,
             axis, axis_index)
-   elif(interval.upper != np.inf):
+   elif interval.upper != np.inf:
       var1 = verif.field.Threshold(interval.upper)
       [obs, p1] = data.get_scores([verif.field.Obs(), var1], input_index,
             axis, axis_index)
@@ -202,23 +202,23 @@ class Metric(object):
       s = ""
       if cls.description is not None:
          s = cls.description
-      if(cls.orientation is not 0):
+      if cls.orientation is not 0:
          s = s + "\n" + verif.util.green("Orientation: ")
-         if(cls.orientation == 1):
+         if cls.orientation == 1:
             s = s + "Positive (higher values are better)"
-         elif(cls.orientation == -1):
+         elif cls.orientation == -1:
             s = s + "Negative (lower values are better)"
          else:
             s = s + "None"
-      if(cls.perfect_score is not None):
+      if cls.perfect_score is not None:
          s = s + "\n" + verif.util.green("Perfect score: ") + str(cls.perfect_score)
-      if(cls.min is not None):
+      if cls.min is not None:
          s = s + "\n" + verif.util.green("Minimum value: ") + str(cls.min)
-      if(cls.max is not None):
+      if cls.max is not None:
          s = s + "\n" + verif.util.green("Maximum value: ") + str(cls.max)
-      if(cls.long is not None):
+      if cls.long is not None:
          s = s + "\n" + verif.util.green("Description: ") + cls.long
-      if(cls.reference is not None):
+      if cls.reference is not None:
          s = s + "\n" + verif.util.green("Reference: ") + cls.reference
       return s
 
@@ -254,7 +254,7 @@ class ObsFcstBased(Metric):
       I = np.where((np.isnan(obs) | np.isnan(fcst)) == 0)[0]
       obs = obs[I]
       fcst = fcst[I]
-      if(obs.shape[0] > 0):
+      if obs.shape[0] > 0:
          return self._compute_from_obs_fcst(obs, fcst)
       else:
          return np.nan
@@ -285,7 +285,7 @@ class FromField(Metric):
       self._aux = aux
 
    def compute_single(self, data, input_index, axis, axis_index, tRange):
-      if(self._aux is not None):
+      if self._aux is not None:
          [values, aux] = data.get_scores([self._field, self._aux], input_index,
                axis, axis_index)
       else:
@@ -439,7 +439,7 @@ class Nsec(ObsFcstBased):
       meanobs = np.mean(obs)
       num = np.sum((fcst - obs) ** 2)
       denom = np.sum((obs - meanobs) ** 2)
-      if(denom == 0):
+      if denom == 0:
          return np.nan
       else:
          return 1 - num / denom
@@ -461,7 +461,7 @@ class Alphaindex(ObsFcstBased):
       meanfcst = np.mean(fcst)
       num = np.sum((fcst - obs - meanfcst + meanobs) ** 2)
       denom = np.sum((fcst - meanfcst) ** 2 + (obs - meanobs) ** 2)
-      if(denom == 0):
+      if denom == 0:
          return np.nan
       else:
          return 1 - num / denom
@@ -489,7 +489,7 @@ class Leps(ObsFcstBased):
       sortobs = np.sort(obs)
       for i in range(0, N):
          I = np.where(fcst[i] < sortobs)[0]
-         if(len(I) > 0):
+         if len(I > 0):
             qfcst[i] = float(I[0]) / N
          else:
             qfcst[i] = 1
@@ -536,9 +536,9 @@ class Corr(ObsFcstBased):
    orientation = 1
 
    def _compute_from_obs_fcst(self, obs, fcst):
-      if(len(obs) <= 1):
+      if len(obs) <= 1:
          return np.nan
-      if(np.var(fcst) == 0):
+      if np.var(fcst) == 0:
          return np.nan
       return np.corrcoef(obs, fcst)[1, 0]
 
@@ -555,7 +555,7 @@ class RankCorr(ObsFcstBased):
    orientation = 1
 
    def _compute_from_obs_fcst(self, obs, fcst):
-      if(len(obs) <= 1):
+      if len(obs) <= 1:
          return np.nan
       return scipy.stats.spearmanr(obs, fcst)[0]
 
@@ -572,9 +572,9 @@ class KendallCorr(ObsFcstBased):
    orientation = 1
 
    def _compute_from_obs_fcst(self, obs, fcst):
-      if(len(obs) <= 1):
+      if len(obs) <= 1:
          return np.nan
-      if(np.var(fcst) == 0):
+      if np.var(fcst) == 0:
          return np.nan
       return scipy.stats.kendalltau(obs, fcst)[0]
 
@@ -638,13 +638,13 @@ class PitHistDev(Metric):
 
    @staticmethod
    def expected_deviation(values, numBins):
-      if(len(values) == 0 or numBins == 0):
+      if len(values) == 0 or numBins == 0:
          return np.nan
       return np.sqrt((1.0 - 1.0 / numBins) / (len(values) * numBins))
 
    @staticmethod
    def deviation(values, numBins):
-      if(len(values) == 0 or numBins == 0):
+      if len(values) == 0 or numBins == 0:
          return np.nan
       x = np.linspace(0, 1, numBins + 1)
       n = np.histogram(values, x)[0]
@@ -653,7 +653,7 @@ class PitHistDev(Metric):
 
    @staticmethod
    def deviation_std(values, numBins):
-      if(len(values) == 0 or numBins == 0):
+      if len(values) == 0 or numBins == 0:
          return np.nan
       n = len(values)
       p = 1.0 / numBins
@@ -664,7 +664,7 @@ class PitHistDev(Metric):
    # What reduction in ignorance is possible by calibrating the PIT-histogram?
    @staticmethod
    def ignorance_potential(values, numBins):
-      if(len(values) == 0 or numBins == 0):
+      if len(values) == 0 or numBins == 0:
          return np.nan
       x = np.linspace(0, 1, numBins + 1)
       n = np.histogram(values, x)[0]
@@ -742,11 +742,11 @@ class MarginalRatio(Metric):
    orientation = 0
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
-      if(np.isinf(interval.lower)):
+      if np.isinf(interval.lower):
          pvar = verif.field.Threshold(interval.upper)
          [obs, p1] = data.get_scores([verif.field.Obs(), pvar], input_index, axis, axis_index)
          p0 = 0 * p1
-      elif(np.isinf(interval.upper)):
+      elif np.isinf(interval.upper):
          pvar = verif.field.Threshold(interval.lower)
          [obs, p0] = data.get_scores([verif.field.Obs(), pvar], input_index,
                axis, axis_index)
@@ -758,7 +758,7 @@ class MarginalRatio(Metric):
                input_index, axis, axis_index)
       obs = interval.within(obs)
       p = p1 - p0
-      if(np.mean(p) == 0):
+      if np.mean(p) == 0:
          return np.nan
       return np.mean(obs) / np.mean(p)
 
@@ -813,7 +813,7 @@ class Conditional(Metric):
 
    def compute_from_obs_fcst(self, obs, fcst, interval):
       I = np.where(interval.within(obs))[0]
-      if(len(I) == 0):
+      if len(I) == 0:
          return np.nan
       return self._func(fcst[I])
 
@@ -838,7 +838,7 @@ class XConditional(Metric):
 
    def compute_from_obs_fcst(self, obs, fcst, interval):
       I = np.where(interval.within(obs))[0]
-      if(len(I) == 0):
+      if len(I) == 0:
          return np.nan
       return self._func(obs[I])
 
@@ -857,7 +857,7 @@ class Count(Metric):
    def compute_single(self, data, input_index, axis, axis_index, interval):
       values = data.get_scores(self._x, input_index, axis, axis_index)
       I = np.where(interval.within(values))[0]
-      if(len(I) == 0):
+      if len(I) == 0:
          return np.nan
       return len(I)
 
@@ -932,7 +932,7 @@ class BsRel(Metric):
       """
       for i in range(0, len(self._edges) - 1):
          I = np.where((fcst >= self._edges[i]) & (fcst < self._edges[i + 1]))[0]
-         if(len(I) > 0):
+         if len(I) > 0:
             obs_mean_I = np.mean(obs[I])
             bs[I] = (fcst[I] - obs_mean_I) ** 2
       return np.nanmean(bs)
@@ -966,7 +966,7 @@ class BsRes(Metric):
       obs_mean = np.mean(obs)
       for i in range(0, len(self._edges) - 1):
          I = np.where((fcst >= self._edges[i]) & (fcst < self._edges[i + 1]))[0]
-         if(len(I) > 0):
+         if len(I) > 0:
             obs_mean_I = np.mean(obs[I])
             bs[I] = (obs_mean_I - obs_mean) ** 2
       return np.nanmean(bs)
@@ -1020,7 +1020,7 @@ class Bss(Metric):
       bs = np.nanmean((fcst - obs)**2)
       obs_mean = np.mean(obs)
       bsunc = np.nanmean((obs_mean - obs)**2)
-      if(bsunc == 0):
+      if bsunc == 0:
          bss = np.nan
       else:
          bss = (bsunc - bs) / bsunc
@@ -1157,9 +1157,9 @@ class Contingency(Metric):
       if f_interval is None:
          f_interval = interval
       value = np.nan
-      if(len(fcst) > 0):
+      if len(fcst) > 0:
          # Compute frequencies
-         if(self._usingQuantiles):
+         if self._usingQuantiles:
             fcstSort = np.sort(fcst)
             obsSort = np.sort(obs)
             f_qinterval = self._quantile_to_threshold(fcstSort, f_interval)
@@ -1191,7 +1191,7 @@ class Contingency(Metric):
       [a, b, c, d] = self._compute_abcd(obs, fcst, interval, f_interval)
 
       value = self.compute_from_abcd(a, b, c, d)
-      if(np.isinf(value)):
+      if np.isinf(value):
          value = np.nan
 
       return value
@@ -1281,7 +1281,7 @@ class Ets(Contingency):
    def compute_from_abcd(self, a, b, c, d):
       N = a + b + c + d
       ar = (a + b) / 1.0 / N * (a + c)
-      if(a + b + c - ar == 0):
+      if a + b + c - ar == 0:
          return np.nan
       return (a - ar) / 1.0 / (a + b + c - ar)
 
@@ -1312,7 +1312,7 @@ class Dscore(Contingency):
       N = a + b + c + d
       num = a*d + 0.5*(a*b + c*d)
       denom = (a + c) * (b + d)
-      if(denom == 0):
+      if denom == 0:
          return np.nan
       return num / denom
 
@@ -1324,7 +1324,7 @@ class Threat(Contingency):
    orientation = 1
 
    def compute_from_abcd(self, a, b, c, d):
-      if(a + b + c == 0):
+      if a + b + c == 0:
          return np.nan
       return a / 1.0 / (a + b + c)
 
@@ -1364,10 +1364,10 @@ class Edi(Contingency):
          return np.nan
       F = b / 1.0 / (b + d)
       H = a / 1.0 / (a + c)
-      if(H == 0 or F == 0):
+      if H == 0 or F == 0:
          return np.nan
       denom = (np.log(H) + np.log(F))
-      if(denom == 0):
+      if denom == 0:
          return np.nan
       return (np.log(F) - np.log(H)) / denom
 
@@ -1388,10 +1388,10 @@ class Sedi(Contingency):
          return np.nan
       F = b / 1.0 / (b + d)
       H = a / 1.0 / (a + c)
-      if(F == 0 or F == 1 or H == 0 or H == 1):
+      if F == 0 or F == 1 or H == 0 or H == 1:
          return np.nan
       denom = np.log(F) + np.log(H) + np.log(1 - F) + np.log(1 - H)
-      if(denom == 0):
+      if denom == 0:
          return np.nan
       num = np.log(F) - np.log(H) - np.log(1 - F) + np.log(1 - H)
       return num / denom
@@ -1414,10 +1414,10 @@ class Eds(Contingency):
          return np.nan
       H = a / 1.0 / (a + c)
       p = (a + c) / 1.0 / N
-      if(H == 0 or p == 0):
+      if H == 0 or p == 0:
          return np.nan
       denom = (np.log(p) + np.log(H))
-      if(denom == 0):
+      if denom == 0:
          return np.nan
       return (np.log(p) - np.log(H)) / denom
 
@@ -1439,10 +1439,10 @@ class Seds(Contingency):
       H = a / 1.0 / (a + c)
       p = (a + c) / 1.0 / N
       q = (a + b) / 1.0 / N
-      if(q == 0 or H == 0):
+      if q == 0 or H == 0:
          return np.nan
       denom = np.log(p) + np.log(H)
-      if(denom == 0):
+      if denom == 0:
          return np.nan
       return (np.log(q) - np.log(H)) / (np.log(p) + np.log(H))
 
@@ -1458,7 +1458,7 @@ class BiasFreq(Contingency):
    orientation = 0
 
    def compute_from_abcd(self, a, b, c, d):
-      if(a + c == 0):
+      if a + c == 0:
          return np.nan
       return 1.0 * (a + b) / (a + c)
 
@@ -1474,7 +1474,7 @@ class Hss(Contingency):
 
    def compute_from_abcd(self, a, b, c, d):
       denom = ((a + c) * (c + d) + (a + b) * (b + d))
-      if(denom == 0):
+      if denom == 0:
          return np.nan
       return 2.0 * (a * d - b * c) / denom
 
@@ -1486,7 +1486,7 @@ class BaseRate(Contingency):
    orientation = 0
 
    def compute_from_abcd(self, a, b, c, d):
-      if(a + b + c + d == 0):
+      if a + b + c + d == 0:
          return np.nan
       return (a + c) / 1.0 / (a + b + c + d)
 
@@ -1499,7 +1499,7 @@ class Or(Contingency):
    orientation = 1
 
    def compute_from_abcd(self, a, b, c, d):
-      if(b * c == 0):
+      if b * c == 0:
          return np.nan
       return (a * d) / 1.0 / (b * c)
 
@@ -1512,7 +1512,7 @@ class Lor(Contingency):
    orientation = 1
 
    def compute_from_abcd(self, a, b, c, d):
-      if(a * d == 0 or b * c == 0):
+      if a * d == 0 or b * c == 0:
          return np.nan
       return np.log((a * d) / 1.0 / (b * c))
 
@@ -1524,7 +1524,7 @@ class YulesQ(Contingency):
    orientation = 1
 
    def compute_from_abcd(self, a, b, c, d):
-      if(a * d + b * c == 0):
+      if a * d + b * c == 0:
          return np.nan
       return (a * d - b * c) / 1.0 / (a * d + b * c)
 
@@ -1537,7 +1537,7 @@ class Kss(Contingency):
    reference = "Hanssen , A., W. Kuipers, 1965: On the relationship between the frequency of rain and various meteorological parameters. - Meded. Verh. 81, 2-15."
 
    def compute_from_abcd(self, a, b, c, d):
-      if((a + c) * (b + d) == 0):
+      if (a + c) * (b + d) == 0:
          return np.nan
       return (a * d - b * c) * 1.0 / ((a + c) * (b + d))
 
@@ -1549,7 +1549,7 @@ class Hit(Contingency):
    orientation = 1
 
    def compute_from_abcd(self, a, b, c, d):
-      if(a + c == 0):
+      if a + c == 0:
          return np.nan
       return a / 1.0 / (a + c)
 
@@ -1561,7 +1561,7 @@ class Miss(Contingency):
    orientation = -1
 
    def compute_from_abcd(self, a, b, c, d):
-      if(a + c == 0):
+      if a + c == 0:
          return np.nan
       return c / 1.0 / (a + c)
 
@@ -1574,7 +1574,7 @@ class Fa(Contingency):
    orientation = -1
 
    def compute_from_abcd(self, a, b, c, d):
-      if(b + d == 0):
+      if b + d == 0:
          return np.nan
       return b / 1.0 / (b + d)
 
@@ -1587,6 +1587,6 @@ class Far(Contingency):
    orientation = -1
 
    def compute_from_abcd(self, a, b, c, d):
-      if(a + b == 0):
+      if a + b == 0:
          return np.nan
       return b / 1.0 / (a + b)

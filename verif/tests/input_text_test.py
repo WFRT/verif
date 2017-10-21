@@ -103,9 +103,9 @@ class InputTextTest(unittest.TestCase):
          loc.id = 0
       I0 = -1
       for i in range(0, len(locations)):
-         if(locations[i] == verif.location.Location(0, 1, 1, 1)):
+         if locations[i] == verif.location.Location(0, 1, 1, 1):
             I0 = i
-         if(locations[i] == verif.location.Location(0, 0, 0, 2)):
+         if locations[i] == verif.location.Location(0, 0, 0, 2):
             I1 = i
       self.assertEqual(12, obs[0, 0, I0])
       self.assertTrue(np.isnan(obs[0, 1, I0]))

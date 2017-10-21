@@ -186,26 +186,26 @@ def parse_numbers(numbers, is_date=False):
       list: parsed numbers
    """
    # Check if valid string
-   if(any(char not in set('-01234567890.:,') for char in numbers)):
+   if any(char not in set('-01234567890.:,') for char in numbers):
       error("Could not translate '" + numbers + "' into numbers")
 
    values = list()
    commaLists = numbers.split(',')
    for commaList in commaLists:
       colonList = commaList.split(':')
-      if(len(colonList) == 1):
+      if len(colonList) == 1:
          values.append(float(colonList[0]))
-      elif(len(colonList) <= 3):
+      elif len(colonList) <= 3:
          start = float(colonList[0])
          step = 1
-         if(len(colonList) == 3):
+         if len(colonList) == 3:
             step = float(colonList[1])
          if step == 0:
             verif.util.error("Could not parse '%s': Step cannot be 0." % (numbers))
          stepSign = step / abs(step)
          # arange does not include the end point:
          end = float(colonList[-1]) + stepSign * 0.0001
-         if(is_date):
+         if is_date:
             date = min(start, end)
             curr = list()
             while date <= max(start, end):
@@ -218,7 +218,7 @@ def parse_numbers(numbers, is_date=False):
             values = values + list(np.round(np.arange(start, end, step), 7))
       else:
          error("Could not translate '" + numbers + "' into numbers")
-      if(is_date):
+      if is_date:
          for i in range(0, len(values)):
             values[i] = int(values[i])
    return values
@@ -232,7 +232,7 @@ def subplot(i, N):
 
 def get_subplot_size(N):
    Y = 1
-   if(N > 4):
+   if N > 4:
       Y = np.ceil(np.sqrt(N) / 1.5)
    X = np.ceil(N / Y)
    return [int(X), int(Y)]
@@ -242,15 +242,15 @@ def get_map_resolution(lats, lons):
    dlat = (max(lats) - min(lats))
    dlon = (max(lons) - min(lons))
    scale = max(dlat, dlon)
-   if(np.isnan(scale)):
+   if np.isnan(scale):
       res = "c"
-   elif(scale > 60):
+   elif scale > 60:
       res = "c"
-   elif(scale > 1):
+   elif scale > 1:
       res = "i"
-   elif(scale > 0.001):
+   elif scale > 0.001:
       res = "h"
-   elif(scale > 0.0001):
+   elif scale > 0.0001:
       res = "f"
    else:
       res = "c"
@@ -276,14 +276,14 @@ def fill(x, y_lower, y_upper, col, alpha=1, zorder=0, hatch=''):
    X = list()
    Y = list()
    for i in range(0, len(x)):
-      if(not(np.isnan(x[i]) or np.isnan(y_lower[i]))):
+      if not(np.isnan(x[i]) or np.isnan(y_lower[i])):
          X.append(x[i])
          Y.append(y_lower[i])
    for i in range(len(x) - 1, -1, -1):
-      if(not (np.isnan(x[i]) or np.isnan(y_upper[i]))):
+      if not (np.isnan(x[i]) or np.isnan(y_upper[i])):
          X.append(x[i])
          Y.append(y_upper[i])
-   if(len(X) > 0):
+   if len(X) > 0:
       mpl.fill(X, Y, facecolor=col, alpha=alpha, linewidth=0, zorder=zorder,
             hatch=hatch)
 
@@ -352,7 +352,7 @@ def nanstd(data, **args):
 def nanpercentile(data, pers):
    I = np.where(np.isnan(data.flatten()) == 0)[0]
    p = np.nan
-   if(len(I) > 0):
+   if len(I) > 0:
       p = np.percentile(data.flatten()[I], pers)
    return p
 

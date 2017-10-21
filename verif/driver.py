@@ -90,7 +90,7 @@ def run(argv):
    extra = []
    while(i < len(argv)):
       arg = argv[i]
-      if(arg == "--config"):
+      if arg == "--config":
          if i == len(argv) - 1:
             verif.util.error("Missing filename after --config")
          i = i + 1
@@ -110,155 +110,155 @@ def run(argv):
    i = 1
    while(i < len(argv)):
       arg = argv[i]
-      if(arg[0] == '-'):
+      if arg[0] == '-':
          # Process option
-         if(arg == "-nomargin"):
+         if arg == "-nomargin":
             no_margin = True
-         elif(arg == "--version"):
+         elif arg == "--version":
             version = True
-         elif(arg == "--list-thresholds"):
+         elif arg == "--list-thresholds":
             list_thresholds = True
-         elif(arg == "--list-quantiles"):
+         elif arg == "--list-quantiles":
             list_quantiles = True
-         elif(arg == "--list-locations"):
+         elif arg == "--list-locations":
             list_locations = True
-         elif(arg == "--list-times"):
+         elif arg == "--list-times":
             list_times = True
-         elif(arg == "-sp"):
+         elif arg == "-sp":
             show_perfect = True
-         elif(arg == "-hist"):
+         elif arg == "-hist":
             do_hist = True
-         elif(arg == "-acc"):
+         elif arg == "-acc":
             do_acc = True
-         elif(arg == "-sort"):
+         elif arg == "-sort":
             do_sort = True
-         elif(arg == "-simple"):
+         elif arg == "-simple":
             simple = True
-         elif(arg == "-xlog"):
+         elif arg == "-xlog":
             xlog = True
-         elif(arg == "-ylog"):
+         elif arg == "-ylog":
             ylog = True
-         elif(arg == "-nogrid"):
+         elif arg == "-nogrid":
             grid = False
          else:
             if len(argv) <= i + 1:
                verif.util.error("Missing value after %s" % argv[i])
             arg_next = argv[i + 1]
-            if(arg == "-f"):
+            if arg == "-f":
                ofile = arg_next
-            elif(arg == "-l"):
+            elif arg == "-l":
                locations = verif.util.parse_numbers(arg_next)
-            elif(arg == "-lx"):
+            elif arg == "-lx":
                locations_x = verif.util.parse_numbers(arg_next)
-            elif(arg == "-latrange"):
+            elif arg == "-latrange":
                lat_range = verif.util.parse_numbers(arg_next)
-            elif(arg == "-lonrange"):
+            elif arg == "-lonrange":
                lon_range = verif.util.parse_numbers(arg_next)
-            elif(arg == "-elevrange"):
+            elif arg == "-elevrange":
                elev_range = verif.util.parse_numbers(arg_next)
-            elif(arg == "-x"):
+            elif arg == "-x":
                axisname = arg_next
                axis = verif.axis.get(axisname)
-            elif(arg == "-o"):
+            elif arg == "-o":
                leadtimes = verif.util.parse_numbers(arg_next)
-            elif(arg == "-leg"):
+            elif arg == "-leg":
                leg = unicode(arg_next, 'utf8')
-            elif(arg == "-ylabel"):
+            elif arg == "-ylabel":
                ylabel = unicode(arg_next, 'utf8')
-            elif(arg == "-xlabel"):
+            elif arg == "-xlabel":
                xlabel = unicode(arg_next, 'utf8')
-            elif(arg == "-clabel"):
+            elif arg == "-clabel":
                clabel = unicode(arg_next, 'utf8')
-            elif(arg == "-title"):
+            elif arg == "-title":
                title = unicode(arg_next, 'utf8')
-            elif(arg == "-b"):
+            elif arg == "-b":
                bin_type = arg_next
-            elif(arg == "-type"):
+            elif arg == "-type":
                plot_type = arg_next
-            elif(arg == "-fs"):
+            elif arg == "-fs":
                figsize = arg_next
-            elif(arg == "-dpi"):
+            elif arg == "-dpi":
                dpi = int(arg_next)
-            elif(arg == "-d"):
+            elif arg == "-d":
                dates = verif.util.parse_numbers(arg_next, True)
                times = [verif.util.date_to_unixtime(date) for date in dates]
-            elif(arg == "-t"):
+            elif arg == "-t":
                times = verif.util.parse_numbers(arg_next)
-            elif(arg == "-c"):
+            elif arg == "-c":
                clim_file = verif.input.get_input(arg_next)
                clim_type = "subtract"
-            elif(arg == "-C"):
+            elif arg == "-C":
                clim_file = verif.input.get_input(arg_next)
                clim_type = "divide"
-            elif(arg == "-xlim"):
+            elif arg == "-xlim":
                xlim = verif.util.parse_numbers(arg_next)
-            elif(arg == "-ylim"):
+            elif arg == "-ylim":
                ylim = verif.util.parse_numbers(arg_next)
-            elif(arg == "-clim"):
+            elif arg == "-clim":
                clim = verif.util.parse_numbers(arg_next)
-            elif(arg == "-xticks"):
+            elif arg == "-xticks":
                xticks = verif.util.parse_numbers(arg_next)
-            elif(arg == "-xticklabels"):
+            elif arg == "-xticklabels":
                xticklabels = (arg_next).split(',')
-            elif(arg == "-yticks"):
+            elif arg == "-yticks":
                yticks = verif.util.parse_numbers(arg_next)
-            elif(arg == "-yticklabels"):
+            elif arg == "-yticklabels":
                yticklabels = (arg_next).split(',')
-            elif(arg == "-agg"):
+            elif arg == "-agg":
                aggregator_name = arg_next
-            elif(arg == "-aspect"):
+            elif arg == "-aspect":
                aspect = float(arg_next)
-            elif(arg == "-r"):
+            elif arg == "-r":
                thresholds = np.array(verif.util.parse_numbers(arg_next))
-            elif(arg == "-q"):
+            elif arg == "-q":
                quantiles = np.array(verif.util.parse_numbers(arg_next))
                if np.min(quantiles) < 0 or np.max(quantiles) > 1:
                   verif.util.error("Quantiles must be between 0 and 1 inclusive")
-            elif(arg == "-ms"):
+            elif arg == "-ms":
                marker_size = float(arg_next)
-            elif(arg == "-lw"):
+            elif arg == "-lw":
                line_width = float(arg_next)
-            elif(arg == "-lc"):
+            elif arg == "-lc":
                line_colors = arg_next
-            elif(arg == "-ls"):
+            elif arg == "-ls":
                line_styles = arg_next
-            elif(arg == "-tickfs"):
+            elif arg == "-tickfs":
                tick_font_size = float(arg_next)
-            elif(arg == "-labfs"):
+            elif arg == "-labfs":
                lab_font_size = float(arg_next)
-            elif(arg == "-legfs"):
+            elif arg == "-legfs":
                leg_font_size = float(arg_next)
-            elif(arg == "-legloc"):
+            elif arg == "-legloc":
                leg_loc = arg_next.replace('_', ' ')
-            elif(arg == "-xrot"):
+            elif arg == "-xrot":
                xrot = float(arg_next)
-            elif(arg == "-yrot"):
+            elif arg == "-yrot":
                yrot = float(arg_next)
-            elif(arg == "-bottom"):
+            elif arg == "-bottom":
                bottom_padding = float(arg_next)
-            elif(arg == "-top"):
+            elif arg == "-top":
                top_padding = float(arg_next)
-            elif(arg == "-right"):
+            elif arg == "-right":
                right_padding = float(arg_next)
-            elif(arg == "-left"):
+            elif arg == "-left":
                left_padding = float(arg_next)
-            elif(arg == "-pad"):
+            elif arg == "-pad":
                Pad = arg_next
-            elif(arg == "-titlefs"):
+            elif arg == "-titlefs":
                title_font_size = float(arg_next)
-            elif(arg == "-cmap"):
+            elif arg == "-cmap":
                cmap = arg_next
-            elif(arg == "-maptype"):
+            elif arg == "-maptype":
                map_type = arg_next
-            elif(arg == "-proj"):
+            elif arg == "-proj":
                proj = arg_next
-            elif(arg == "-obs"):
+            elif arg == "-obs":
                obs_field = verif.field.get(arg_next)
-            elif(arg == "-fcst"):
+            elif arg == "-fcst":
                fcst_field = verif.field.get(arg_next)
-            elif(arg == "-m"):
+            elif arg == "-m":
                metric = arg_next
-            elif(arg == "--config"):
+            elif arg == "--config":
                pass
             else:
                verif.util.error("Flag '" + argv[i] + "' not recognized")
@@ -267,26 +267,26 @@ def run(argv):
          ifiles.append(argv[i])
       i = i + 1
 
-   if(version):
+   if version:
       print "Version: " + verif.version.__version__
       return
 
    # Deal with legend entries
-   if(leg is not None):
+   if leg is not None:
       leg = leg.split(',')
       for i in range(0, len(leg)):
          leg[i] = leg[i].replace('_', ' ')
 
-   if(lat_range is not None and len(lat_range) != 2):
+   if lat_range is not None and len(lat_range) != 2:
       verif.util.error("-lat_range <values> must have exactly 2 values")
 
-   if(lon_range is not None and len(lon_range) != 2):
+   if lon_range is not None and len(lon_range) != 2:
       verif.util.error("-lon_range <values> must have exactly 2 values")
 
-   if(elev_range is not None and len(elev_range) != 2):
+   if elev_range is not None and len(elev_range) != 2:
       verif.util.error("-elev_range <values> must have exactly 2 values")
 
-   if(len(ifiles) > 0):
+   if len(ifiles) > 0:
       inputs = [verif.input.get_input(filename) for filename in ifiles]
       data = verif.data.Data(inputs, clim=clim_file, clim_type=clim_type,
             times=times, leadtimes=leadtimes, locations=locations,
@@ -296,113 +296,113 @@ def run(argv):
    else:
       data = None
 
-   if(list_thresholds or list_quantiles or list_locations or list_times):
-      if(len(ifiles) == 0):
+   if list_thresholds or list_quantiles or list_locations or list_times:
+      if len(ifiles) == 0:
          verif.util.error("Files are required in order to list thresholds, quantiles, or times")
-      if(list_thresholds):
+      if list_thresholds:
          print "Thresholds:",
          for threshold in data.thresholds:
             print "%g" % threshold,
          print ""
-      if(list_quantiles):
+      if list_quantiles:
          print "Quantiles:",
          for quantile in data.quantiles:
             print "%g" % quantile,
          print ""
-      if(list_locations):
+      if list_locations:
          print "    id     lat     lon    elev"
          for location in data.locations:
             print "%6d %7.2f %7.2f %7.1f" % (location.id, location.lat,
                   location.lon, location.elev)
          print ""
-      if(list_times):
+      if list_times:
          for time in data.times:
             print "%d" % time
          print ""
       return
-   elif(len(ifiles) == 0 and metric is not None):
+   elif len(ifiles) == 0 and metric is not None:
       m = verif.metric.get(metric)
-      if(m is not None):
+      if m is not None:
          print m.help()
       else:
          m = verif.output.get(metric)
-         if(m is not None):
+         if m is not None:
             print m.help()
       return
-   elif(len(argv) == 1 or len(ifiles) == 0 or metric is None):
+   elif len(argv) == 1 or len(ifiles) == 0 or metric is None:
       print show_description(data)
       return
 
-   if(figsize is not None):
+   if figsize is not None:
       figsize = figsize.split(',')
-      if(len(figsize) != 2):
+      if len(figsize) != 2:
          print "-fs figsize must be in the form: width,height"
          sys.exit(1)
 
    m = None
 
    # Handle special plots
-   if(metric == "pithist"):
+   if metric == "pithist":
       pl = verif.output.PitHist()
-   elif(metric == "obsfcst"):
+   elif metric == "obsfcst":
       pl = verif.output.ObsFcst()
-   elif(metric == "timeseries"):
+   elif metric == "timeseries":
       pl = verif.output.TimeSeries()
-   elif(metric == "meteo"):
+   elif metric == "meteo":
       pl = verif.output.Meteo()
-   elif(metric == "qq"):
+   elif metric == "qq":
       pl = verif.output.QQ()
-   elif(metric == "autocorr"):
+   elif metric == "autocorr":
       pl = verif.output.Auto("corr")
-   elif(metric == "autocov"):
+   elif metric == "autocov":
       pl = verif.output.Auto("cov")
-   elif(metric == "fss"):
+   elif metric == "fss":
       pl = verif.output.Fss()
-   elif(metric == "cond"):
+   elif metric == "cond":
       pl = verif.output.Cond()
-   elif(metric == "against"):
+   elif metric == "against":
       pl = verif.output.Against()
-   elif(metric == "impact"):
+   elif metric == "impact":
       pl = verif.output.Impact()
-   elif(metric == "scatter"):
+   elif metric == "scatter":
       pl = verif.output.Scatter()
-   elif(metric == "change"):
+   elif metric == "change":
       pl = verif.output.Change()
-   elif(metric == "spreadskill"):
+   elif metric == "spreadskill":
       pl = verif.output.SpreadSkill()
-   elif(metric == "taylor"):
+   elif metric == "taylor":
       pl = verif.output.Taylor()
-   elif(metric == "error"):
+   elif metric == "error":
       pl = verif.output.Error()
-   elif(metric == "freq"):
+   elif metric == "freq":
       pl = verif.output.Freq()
-   elif(metric == "roc"):
+   elif metric == "roc":
       pl = verif.output.Roc()
-   elif(metric == "droc"):
+   elif metric == "droc":
       pl = verif.output.DRoc()
-   elif(metric == "droc0"):
+   elif metric == "droc0":
       pl = verif.output.DRoc0()
-   elif(metric == "drocnorm"):
+   elif metric == "drocnorm":
       pl = verif.output.DRocNorm()
-   elif(metric == "reliability"):
+   elif metric == "reliability":
       pl = verif.output.Reliability()
-   elif(metric == "discrimination"):
+   elif metric == "discrimination":
       pl = verif.output.Discrimination()
-   elif(metric == "performance"):
+   elif metric == "performance":
       pl = verif.output.Performance()
-   elif(metric == "invreliability"):
+   elif metric == "invreliability":
       pl = verif.output.InvReliability()
-   elif(metric == "igncontrib"):
+   elif metric == "igncontrib":
       pl = verif.output.IgnContrib()
-   elif(metric == "economicvalue"):
+   elif metric == "economicvalue":
       pl = verif.output.EconomicValue()
-   elif(metric == "marginal"):
+   elif metric == "marginal":
       pl = verif.output.Marginal()
    else:
       # Standard plots
       # Attempt at automating
       m = verif.metric.get(metric)
-      if(m is None):
+      if m is None:
          m = verif.metric.FromField(verif.field.Other(metric))
 
       if aggregator_name is not None:
@@ -411,7 +411,7 @@ def run(argv):
          m.aggregator = verif.aggregator.get(aggregator_name)
 
       # Output type
-      if(plot_type in ["plot", "text", "csv", "map", "maprank"]):
+      if plot_type in ["plot", "text", "csv", "map", "maprank"]:
          if do_sort:
             field = verif.field.get(metric)
             pl = verif.output.Sort(field)
@@ -424,13 +424,12 @@ def run(argv):
          verif.util.error("Type not understood")
 
    # Rest dimension of '-x' is not allowed
-   if(axis is not None and not pl.supports_x):
+   if axis is not None and not pl.supports_x:
       verif.util.warning(metric + " does not support -x. Ignoring it.")
       axis = None
 
    # Reset dimension if 'threshold' is not allowed
-   if(axis == verif.axis.Threshold() and
-         ((not pl.supports_threshold) or (m is not None and not m.supports_threshold))):
+   if axis == verif.axis.Threshold() and ((not pl.supports_threshold) or (m is not None and not m.supports_threshold)):
       verif.util.warning(metric + " does not support '-x threshold'. Ignoring it.")
       thresholds = None
       axis = None
@@ -480,68 +479,68 @@ def run(argv):
             verif.util.error("No thresholds available")
 
    # Set plot parameters
-   if(simple is not None):
+   if simple is not None:
       pl.simple = simple
-   if(marker_size is not None):
+   if marker_size is not None:
       pl.ms = marker_size
-   if(line_width is not None):
+   if line_width is not None:
       pl.lw = line_width
-   if(line_colors is not None):
+   if line_colors is not None:
       pl.line_colors = line_colors
-   if(line_styles is not None):
+   if line_styles is not None:
       pl.line_styles = line_styles
-   if(lab_font_size is not None):
+   if lab_font_size is not None:
       pl.labfs = lab_font_size
-   if(leg_font_size is not None):
+   if leg_font_size is not None:
       pl.legfs = leg_font_size
-   if(title_font_size is not None):
+   if title_font_size is not None:
       pl.title_font_size = title_font_size
-   if(leg_loc is not None):
+   if leg_loc is not None:
       pl.leg_loc = leg_loc
-   if(tick_font_size is not None):
+   if tick_font_size is not None:
       pl.tick_font_size = tick_font_size
-   if(xrot is not None):
+   if xrot is not None:
       pl.xrot = xrot
-   if(yrot is not None):
+   if yrot is not None:
       pl.yrot = yrot
-   if(bottom_padding is not None):
+   if bottom_padding is not None:
       pl.bottom = bottom_padding
-   if(top_padding is not None):
+   if top_padding is not None:
       pl.top = top_padding
-   if(right_padding is not None):
+   if right_padding is not None:
       pl.right = right_padding
-   if(left_padding is not None):
+   if left_padding is not None:
       pl.left = left_padding
-   if(Pad is not None):
+   if Pad is not None:
       pl.pad = None
-   if(bin_type is not None):
+   if bin_type is not None:
       pl.bin_type = bin_type
-   if(show_perfect is not None):
+   if show_perfect is not None:
       pl.show_perfect = show_perfect
-   if(proj is not None):
+   if proj is not None:
       pl.proj = proj
-   if(xlim is not None):
+   if xlim is not None:
       pl.xlim = xlim
-   if(ylim is not None):
+   if ylim is not None:
       pl.ylim = ylim
-   if(clim is not None):
+   if clim is not None:
       pl.clim = clim
-   if(xticks is not None):
+   if xticks is not None:
       pl.xticks = xticks
-   if(xticklabels is not None):
+   if xticklabels is not None:
       pl.xticklabels = xticklabels
-   if(yticks is not None):
+   if yticks is not None:
       pl.yticks = yticks
-   if(yticklabels is not None):
+   if yticklabels is not None:
       pl.yticklabels = yticklabels
-   if(xlog is not None):
+   if xlog is not None:
       pl.xlog = xlog
-   if(ylog is not None):
+   if ylog is not None:
       pl.ylog = ylog
    pl.grid = grid
-   if(cmap is not None):
+   if cmap is not None:
       pl.cmap = cmap
-   if(map_type is not None):
+   if map_type is not None:
       pl.map_type = map_type
    pl.filename = ofile
    if thresholds is not None:
@@ -571,13 +570,13 @@ def run(argv):
       else:
          verif.util.warning("%s does not support -acc" % metric)
 
-   if(plot_type == "text"):
+   if plot_type == "text":
       pl.text(data)
-   elif(plot_type == "csv"):
+   elif plot_type == "csv":
       pl.csv(data)
-   elif(plot_type == "map"):
+   elif plot_type == "map":
       pl.map(data)
-   elif(plot_type == "maprank"):
+   elif plot_type == "maprank":
       pl.show_rank = True
       pl.map(data)
    else:
@@ -696,7 +695,7 @@ def show_description(data=None):
          s += verif.util.green("  %s:" % metric_type.description) + "\n"
          for m in metric_outputs:
             name = m[0].lower()
-            if(m[1].is_valid()):
+            if m[1].is_valid():
                desc = m[1].description
                s += format_argument(name, desc) + "\n"
    s += "\n"
@@ -714,11 +713,11 @@ def format_argument(arg, description, arg_width=22, total_width=None, indent=2):
                               here more more more more more
    | indent | | arg_width   | | total_width                                 |
    """
-   if(total_width is None):
+   if total_width is None:
       total_width = get_text_width()
    fmt = "%-" + str(indent) + "s%-" + str(arg_width - indent) + "s"
    curr = fmt % ("", arg)
-   if(len(arg) > arg_width - indent - 2):
+   if len(arg) > arg_width - indent - 2:
       output = curr + '\n'
       curr = ""
       for i in range(0, arg_width):
@@ -736,7 +735,7 @@ def format_argument(arg, description, arg_width=22, total_width=None, indent=2):
             curr = ""
             for i in range(0, arg_width):
                curr = curr + " "
-         elif(i != 0):
+         elif i != 0:
             curr = curr + " "
          curr = curr + word
       output = output + curr

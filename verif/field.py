@@ -169,10 +169,10 @@ class Pit(Field):
       Returns:
          np.array: pit values with randomization
       """
-      if(x0 is not None):
+      if x0 is not None:
          factor = np.random.rand(*obs.shape) * (obs == x0) + (obs != x0)
          pit *= factor
-      if(x1 is not None):
+      if x1 is not None:
          # Same for the upper discrete mass
          factor = np.random.rand(*obs.shape) * (obs == x1) + (obs != x1)
          pit = 1 - pit

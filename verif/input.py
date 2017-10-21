@@ -319,22 +319,22 @@ class Text(Input):
       start = time.time()
       # Read the data into dictionary with (unixtime,leadtime,lat,lon,elev) as key and obs/fcst as values
       for rowstr in file:
-         if(rowstr[0] == "#"):
+         if rowstr[0] == "#":
             curr = rowstr[1:]
             curr = curr.split()
-            if(curr[0] == "variable:"):
+            if curr[0] == "variable:":
                self._variable_name = ' '.join(curr[1:])
-            elif(curr[0] == "units:"):
+            elif curr[0] == "units:":
                self._variable_units = ' '.join(curr[1:])
-            elif(curr[0] == "x0:"):
+            elif curr[0] == "x0:":
                self._variable_x0 = float(curr[1])
-            elif(curr[0] == "x1:"):
+            elif curr[0] == "x1:":
                self._variable_x1 = float(curr[1])
             else:
                verif.util.warning("Ignoring line '" + rowstr.strip() + "' in file '" + self._filename + "'")
          else:
             row = rowstr.split()
-            if(header is None):
+            if header is None:
                # Parse the header so we know what each column represents
                header = row
 
@@ -349,7 +349,7 @@ class Text(Input):
 
                for i in range(0, len(header)):
                   att = header[i]
-                  if(att == "offset"):
+                  if att == "offset":
                      indices["leadtime"] = i
                   else:
                      indices[att] = i
@@ -357,25 +357,25 @@ class Text(Input):
                thresholdFields = self._get_threshold_fields(header)
                otherFields = self._get_other_fields(header)
             else:
-               if(len(row) is not len(header)):
+               if len(row) is not len(header):
                   verif.util.error("Incorrect number of columns (expecting %d) in row '%s'"
                         % (len(header), rowstr.strip()))
-               if("date" in indices):
+               if "date" in indices:
                   date = int(self._clean(row[indices["date"]]))
                   unixtime = verif.util.date_to_unixtime(date)
                   add = 0
-                  if("time" in indices):
+                  if "time" in indices:
                      add = (self._clean(row[indices["time"]]))*3600
                   unixtime = unixtime + add
-               elif("unixtime" in indices):
+               elif "unixtime" in indices:
                   unixtime = self._clean(row[indices["unixtime"]])
                self._times.add(unixtime)
-               if("leadtime" in indices):
+               if "leadtime" in indices:
                   leadtime = self._clean(row[indices["leadtime"]])
                self._leadtimes.add(leadtime)
-               if("location" in indices):
+               if "location" in indices:
                   id = self._clean(row[indices["location"]])
-               elif("id" in indices):
+               elif "id" in indices:
                   id = self._clean(row[indices["id"]])
                else:
                   id = np.nan
@@ -384,13 +384,13 @@ class Text(Input):
                currLat = np.nan
                currLon = np.nan
                currElev = np.nan
-               if("lat" in indices):
+               if "lat" in indices:
                   currLat = self._clean(row[indices["lat"]])
-               if("lon" in indices):
+               if "lon" in indices:
                   currLon = self._clean(row[indices["lon"]])
-               if("altitude" in indices):
+               if "altitude" in indices:
                   currElev = self._clean(row[indices["altitude"]])
-               elif("elev" in indices):
+               elif "elev" in indices:
                   currElev = self._clean(row[indices["elev"]])
 
                if not np.isnan(id) and id in locationInfo:
@@ -475,39 +475,39 @@ class Text(Input):
                lon = location.lon
                elev = location.elev
                key = (unixtime, leadtime, id, lat, lon, elev)
-               if(key in obs):
+               if key in obs:
                   self.obs[d][o][s] = obs[key]
-               if(key in fcst):
+               if key in fcst:
                   self.fcst[d][o][s] = fcst[key]
-               if(key in pit):
+               if key in pit:
                   self.pit[d][o][s] = pit[key]
                for q in range(0, len(self._quantiles)):
                   quantile = self._quantiles[q]
                   key = (unixtime, leadtime, id, lat, lon, elev, quantile)
-                  if(key in x):
+                  if key in x:
                      self.quantile_scores[d, o, s, q] = x[key]
                for t in range(0, len(self._thresholds)):
                   threshold = self._thresholds[t]
                   key = (unixtime, leadtime, id, lat, lon, elev, threshold)
-                  if(key in cdf):
+                  if key in cdf:
                      self.threshold_scores[d, o, s, t] = cdf[key]
                for field in other.keys():
-                  if(key in other[field]):
+                  if key in other[field]:
                      self._other_scores[field][d, o, s] = other[field][key]
 
       maxLocationId = np.nan
       for location in self._locations:
-         if(np.isnan(maxLocationId)):
+         if np.isnan(maxLocationId):
             maxLocationId = location.id
-         elif(location.id > maxLocationId):
+         elif location.id > maxLocationId:
             maxLocationId = location.id
 
       counter = 0
-      if(not np.isnan(maxLocationId)):
+      if not np.isnan(maxLocationId):
          counter = maxLocationId + 1
 
       for location in self._locations:
-         if(np.isnan(location.id)):
+         if np.isnan(location.id):
             location.id = counter
             counter = counter + 1
 
@@ -535,21 +535,21 @@ class Text(Input):
    # Parse string into float, changing -999 into np.nan
    def _clean(self, value):
       fvalue = float(value)
-      if(fvalue == -999):
+      if fvalue == -999:
          fvalue = np.nan
       return fvalue
 
    def _get_quantile_fields(self, fields):
       quantiles = list()
       for att in fields:
-         if(att[0] == "q"):
+         if att[0] == "q":
             quantiles.append(att)
       return quantiles
 
    def _get_threshold_fields(self, fields):
       thresholds = list()
       for att in fields:
-         if(att[0] == "p" and att != "pit"):
+         if att[0] == "p" and att != "pit":
             thresholds.append(att)
       return thresholds
 
@@ -684,7 +684,7 @@ class Comps(Input):
    def _get_thresholds(self):
       thresholds = list()
       for (var, v) in self._file.variables.iteritems():
-         if(var not in self._dimensionNames):
+         if var not in self._dimensionNames:
             threshold = self._comps_to_verif_threshold(var)
             if threshold is not None:
                thresholds.append(threshold)
@@ -693,19 +693,19 @@ class Comps(Input):
    def _get_quantiles(self):
       quantiles = list()
       for (var, v) in self._file.variables.iteritems():
-         if(var not in self._dimensionNames):
+         if var not in self._dimensionNames:
             quantile = self._comps_to_verif_quantile(var)
-            if(quantile is not None):
+            if quantile is not None:
                quantiles.append(quantile)
       return np.array(quantiles)
 
    def _get_variable(self):
       name = self._file.Variable
       units = "Unknown units"
-      if(hasattr(self._file, "Units")):
-         if(self._file.Units == ""):
+      if hasattr(self._file, "Units"):
+         if self._file.Units == "":
             units = "Unknown units"
-         elif(self._file.Units == "%"):
+         elif self._file.Units == "%":
             units = "%"
          else:
             units = "$" + self._file.Units + "$"
