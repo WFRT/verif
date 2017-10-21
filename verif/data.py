@@ -57,11 +57,11 @@ class Data(object):
                      'divide'
       """
 
-      if(not isinstance(inputs, list)):
+      if not isinstance(inputs, list):
          inputs = [inputs]
       self._remove_missing_across_all = remove_missing_across_all
 
-      if(legend is not None and len(inputs) is not len(legend)):
+      if legend is not None and len(inputs) is not len(legend):
          verif.util.error("Need one legend entry for each filename")
       self._legend = legend
 
@@ -76,10 +76,10 @@ class Data(object):
       for input in inputs:
          self._inputs.append(input)
          self._get_score_cache.append(dict())
-      if(clim is not None):
+      if clim is not None:
          self._clim = clim
          self._get_score_cache.append(dict())
-         if(not (clim_type == "subtract" or clim_type == "divide")):
+         if not (clim_type == "subtract" or clim_type == "divide"):
             verif.util.error("Data: clim_type must be 'subtract' or 'divide")
          self._clim_type = clim_type
 
@@ -87,7 +87,7 @@ class Data(object):
          self._inputs = self._inputs + [self._clim]
 
       # Latitude-Longitude range
-      if(lat_range is not None or lon_range is not None):
+      if lat_range is not None or lon_range is not None:
          lat = [loc.lat for loc in self._inputs[0].locations]
          lon = [loc.lon for loc in self._inputs[0].locations]
          loc_id = [loc.id for loc in self._inputs[0].locations]
@@ -105,18 +105,14 @@ class Data(object):
          for i in range(0, len(lat)):
             currLat = float(lat[i])
             currLon = float(lon[i])
-            if(currLat >= min_lat and currLat <= max_lat and
-                  currLon >= min_lon and currLon <= max_lon):
+            if currLat >= min_lat and currLat <= max_lat and currLon >= min_lon and currLon <= max_lon:
                latlon_locations.append(loc_id[i])
          use_locations = list()
-         if(locations is not None):
-            for i in range(0, len(locations)):
-               currLocation = locations[i]
-               if(currLocation in latlon_locations):
-                  use_locations.append(currLocation)
+         if locations is not None:
+            use_locations = [loc for loc in locations if loc in latlon_locations]
          else:
             use_locations = latlon_locations
-         if(len(use_locations) == 0):
+         if len(use_locations) == 0:
             verif.util.error("No available locations within lat/lon range")
       elif locations is not None:
          use_locations = locations
@@ -124,7 +120,7 @@ class Data(object):
          use_locations = [s.id for s in self._inputs[0].locations]
 
       # Elevation range
-      if(elev_range is not None):
+      if elev_range is not None:
          locations = self._inputs[0].locations
          min_elev = elev_range[0]
          max_elev = elev_range[1]
@@ -132,10 +128,10 @@ class Data(object):
          for i in range(0, len(locations)):
             curr_elev = float(locations[i].elev)
             id = locations[i].id
-            if(curr_elev >= min_elev and curr_elev <= max_elev):
+            if curr_elev >= min_elev and curr_elev <= max_elev:
                elev_locations.append(id)
          use_locations = verif.util.intersect(use_locations, elev_locations)
-         if(len(use_locations) == 0):
+         if len(use_locations) == 0:
             verif.util.error("No available locations within elevation range")
 
       # Remove locations
@@ -146,11 +142,11 @@ class Data(object):
       self._timesI = self._get_common_indices(self._inputs, verif.axis.Time(), times)
       self._leadtimesI = self._get_common_indices(self._inputs, verif.axis.Leadtime(), leadtimes)
       self._locationsI = self._get_common_indices(self._inputs, verif.axis.Location(), use_locations)
-      if(len(self._timesI[0]) == 0):
+      if len(self._timesI[0]) == 0:
          verif.util.error("No valid times selected")
-      if(len(self._leadtimesI[0]) == 0):
+      if len(self._leadtimesI[0]) == 0:
          verif.util.error("No valid leadtimes selected")
-      if(len(self._locationsI[0]) == 0):
+      if len(self._locationsI[0]) == 0:
          verif.util.error("No valid locations selected")
 
       # Load dimension information
@@ -209,7 +205,7 @@ class Data(object):
       """
 
       fields_is_single = False
-      if(not isinstance(fields, list)):
+      if not isinstance(fields, list):
          fields = [fields]
          fields_is_single = True
 
@@ -229,7 +225,7 @@ class Data(object):
       # Compute climatology, if needed
       obsFcstAvailable = (verif.field.Obs() in fields or verif.field.Fcst() in fields)
       doClim = self._clim is not None and obsFcstAvailable
-      if(doClim):
+      if doClim:
          temp = self._get_score(verif.field.Fcst(), len(self._inputs) - 1)
          clim = self._apply_axis(temp, axis, axis_index)
       else:
@@ -242,15 +238,15 @@ class Data(object):
          curr = self._apply_axis(temp, axis, axis_index)
 
          # Subtract climatology
-         if(doClim and (field == verif.field.Fcst() or field == verif.field.Obs())):
-            if(self._clim_type == "subtract"):
+         if doClim and (field == verif.field.Fcst() or field == verif.field.Obs()):
+            if self._clim_type == "subtract":
                curr = curr - clim
             else:
                curr = curr / clim
 
          # Remove missing values
          currValid = (np.isnan(curr) == 0) & (np.isinf(curr) == 0)
-         if(valid is None):
+         if valid is None:
             valid = currValid
          else:
             valid = (valid & currValid)
@@ -266,7 +262,7 @@ class Data(object):
             scores[i] = scores[i][I]
 
       # No valid data. Therefore return a list of nans instead of an empty list
-      if(scores[0].shape[0] == 0):
+      if scores[0].shape[0] == 0:
          scores = [np.nan * np.zeros(1, float) for i in range(0, len(fields))]
 
       self._get_scores_cache[key] = scores
@@ -300,22 +296,22 @@ class Data(object):
       Returns:
       array       a 1D numpy array of values
       """
-      if(axis == verif.axis.Time()):
+      if axis == verif.axis.Time():
          return self.times
       elif axis in verif.axis.get_time_axes():
          return np.unique(axis.compute_from_times(self.times))
       elif axis in verif.axis.get_leadtime_axes():
          return np.unique(axis.compute_from_leadtimes(self.leadtimes))
-      elif(axis == verif.axis.No()):
+      elif axis == verif.axis.No():
          return [0]
-      elif(axis.is_location_like):
-         if(axis == verif.axis.Location()):
+      elif axis.is_location_like:
+         if axis == verif.axis.Location():
             data = np.array([loc.id for loc in self.locations])
-         elif(axis == verif.axis.Elev()):
+         elif axis == verif.axis.Elev():
             data = np.array([loc.elev for loc in self.locations])
-         elif(axis == verif.axis.Lat()):
+         elif axis == verif.axis.Lat():
             data = np.array([loc.lat for loc in self.locations])
-         elif(axis == verif.axis.Lon()):
+         elif axis == verif.axis.Lon():
             data = np.array([loc.lon for loc in self.locations])
          else:
             verif.util.error("Data.get_axis_values has a bad axis name: " + axis)
@@ -325,23 +321,23 @@ class Data(object):
 
    def get_axis_locator(self, axis):
       """ Where should ticks be located for this axis? Returns an mpl Locator """
-      if(axis == verif.axis.Leadtime()):
+      if axis == verif.axis.Leadtime():
          # Define our own locators, since in general we want multiples of 24
          # (or even fractions thereof) to make the ticks repeat each day. Aim
          # for a maximum of 12 ticks.
          leadtimes = self.get_axis_values(verif.axis.Leadtime())
          span = max(leadtimes) - min(leadtimes)
-         if(span > 300):
+         if span > 300:
             return matplotlib.ticker.AutoLocator()
-         elif(span > 200):
+         elif span > 200:
             return matplotlib.ticker.MultipleLocator(48)
-         elif(span > 144):
+         elif span > 144:
             return matplotlib.ticker.MultipleLocator(24)
-         elif(span > 72):
+         elif span > 72:
             return matplotlib.ticker.MultipleLocator(12)
-         elif(span > 36):
+         elif span > 36:
             return matplotlib.ticker.MultipleLocator(6)
-         elif(span > 12):
+         elif span > 12:
             return matplotlib.ticker.MultipleLocator(3)
          else:
             return matplotlib.ticker.MultipleLocator(1)
@@ -367,7 +363,7 @@ class Data(object):
       return names
 
    def get_legend(self):
-      if(self._legend is None):
+      if self._legend is None:
          legend = self.get_names()
       else:
          legend = self._legend
@@ -386,7 +382,7 @@ class Data(object):
          lons = [loc.lon for loc in self.locations]
          elevs = [loc.elev for loc in self.locations]
          return {"id": ids, "lat": lats, "lon": lons, "elev": elevs}
-      if(axis.is_time_like):
+      elif axis.is_time_like:
          unixtimes = self.get_axis_values(axis)
          # Convert to date objects
          dates = [matplotlib.dates.num2date(verif.util.unixtime_to_datenum(unixtime)) for unixtime in unixtimes]
@@ -409,7 +405,7 @@ class Data(object):
       """
 
       # Check if data is cached
-      if(field in self._get_score_cache[input_index]):
+      if field in self._get_score_cache[input_index]:
          return self._get_score_cache[input_index][field]
 
       if field == verif.field.Obs():
@@ -419,13 +415,14 @@ class Data(object):
 
       # Load all inputs
       for i in range(0, self._get_num_inputs_with_clim()):
-         if(field not in self._get_score_cache[i]):
+         if field not in self._get_score_cache[i]:
             input = self._inputs[i]
             all_fields = input.get_fields() + [verif.field.ObsWindow(), verif.field.FcstWindow()]
-            if(field not in all_fields):
+            if field not in all_fields:
                verif.util.error("%s does not contain '%s'" %
                      (self.get_names()[i], field.name()))
-            if field == verif.field.Obs():
+
+            elif field == verif.field.Obs():
                temp = input.obs
 
             elif field == verif.field.Fcst():
@@ -533,14 +530,14 @@ class Data(object):
       # Find common values among all inputs
       values = aux
       for input in inputs:
-         if(axis == verif.axis.Time()):
+         if axis == verif.axis.Time():
             temp = input.times
-         elif(axis == verif.axis.Leadtime()):
+         elif axis == verif.axis.Leadtime():
             temp = input.leadtimes
-         elif(axis == verif.axis.Location()):
+         elif axis == verif.axis.Location():
             locations = input.locations
             temp = [loc.id for loc in locations]
-         if(values is None):
+         if values is None:
             values = temp
          else:
             values = np.intersect1d(values, temp)
@@ -550,11 +547,11 @@ class Data(object):
       # Determine which index each value is at
       indices = list()
       for input in inputs:
-         if(axis == verif.axis.Time()):
+         if axis == verif.axis.Time():
             temp = input.times
-         elif(axis == verif.axis.Leadtime()):
+         elif axis == verif.axis.Leadtime():
             temp = input.leadtimes
-         elif(axis == verif.axis.Location()):
+         elif axis == verif.axis.Location():
             locations = input.locations
             temp = np.zeros(len(locations))
             for i in range(0, len(locations)):
@@ -573,7 +570,7 @@ class Data(object):
       thresholds = None
       for input in self._inputs:
          currThresholds = input.thresholds
-         if(thresholds is None):
+         if thresholds is None:
             thresholds = currThresholds
          else:
             thresholds = set(thresholds) & set(currThresholds)
@@ -585,7 +582,7 @@ class Data(object):
       quantiles = None
       for input in self._inputs:
          currQuantiles = input.quantiles
-         if(quantiles is None):
+         if quantiles is None:
             quantiles = currQuantiles
          else:
             quantiles = set(quantiles) & set(currQuantiles)
@@ -631,7 +628,7 @@ class Data(object):
       axis_index  Index along the axis to slice
       """
       output = None
-      if(axis == verif.axis.Time()):
+      if axis == verif.axis.Time():
          output = array[axis_index, :, :].flatten()
       elif axis in verif.axis.get_time_axes():
          axis_values = self.axis_cache[axis]

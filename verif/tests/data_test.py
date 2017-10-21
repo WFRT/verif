@@ -75,6 +75,22 @@ class TestData(unittest.TestCase):
       with self.assertRaises(SystemExit):
          data = verif.data.Data(inputs, lat_range=[55, 60])
 
+   def test_latrange_locations(self):
+      # Check that the intersection of lat_range and locations is correct
+      inputs = [verif.input.Text("verif/tests/files/file_many_locations.txt")]
+      data = verif.data.Data(inputs, lat_range=[25, 60], locations=[3, 2, 21])
+      self.assertEqual(2, len(data.locations))
+      self.assertTrue(3 in [loc.id for loc in data.locations])
+      self.assertTrue(21 in [loc.id for loc in data.locations])
+
+   def test_lonrange_locations(self):
+      # Check that the intersection of lon_range and locations is correct
+      inputs = [verif.input.Text("verif/tests/files/file_many_locations.txt")]
+      data = verif.data.Data(inputs, lon_range=[6, 16], locations=[1, 2, 911])
+      self.assertEqual(2, len(data.locations))
+      self.assertTrue(1 in [loc.id for loc in data.locations])
+      self.assertTrue(2 in [loc.id for loc in data.locations])
+
    def test_dayofyear(self):
       inputs = [verif.input.get_input("verif/tests/files/file1.txt")]
       data = verif.data.Data(inputs=inputs)
