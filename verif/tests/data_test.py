@@ -126,13 +126,13 @@ class TestDataRemovingLocations(unittest.TestCase):
       self.assertTrue(1 in [loc.id for loc in data.locations])
       self.assertTrue(2 in [loc.id for loc in data.locations])
 
-   def test_with_l(self):
+   def test_with_l1(self):
       inputs = [verif.input.Text("verif/tests/files/file3locations.txt")]
       data = verif.data.Data(inputs, locations=[1, 2], locations_x=[2])
       self.assertEqual(1, len(data.locations))
       self.assertTrue(1 in [loc.id for loc in data.locations])
 
-   def test_with_l(self):
+   def test_with_l2(self):
       inputs = [verif.input.Text("verif/tests/files/file3locations.txt")]
       data = verif.data.Data(inputs, locations=[1, 2], locations_x=[3])
       self.assertEqual(2, len(data.locations))
