@@ -165,5 +165,14 @@ class TestProj4(unittest.TestCase):
       self.assertEqual(r.get("+lon_1"), None)
 
 
+class TestDistance(unittest.TestCase):
+   def test_1(self):
+      # Verified against http://www.nhc.noaa.gov/gccalc.shtml
+      # They only give answer to nearest km, so allow some deviation
+      self.assertEqual(0, verif.util.distance(60, 10, 60, 10))
+      self.assertLess(abs(1360000 - verif.util.distance(50.5, 3.4, 61.9, 11.5)), 2000)
+      self.assertLess(abs(15712000 - verif.util.distance(-47.2, -24.4, 82.1, 101.5)), 2000)
+
+
 if __name__ == '__main__':
    unittest.main()
