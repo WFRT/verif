@@ -30,6 +30,15 @@ def get(name):
    return a
 
 
+def get_time_axes():
+   return [axis[1]() for axis in get_all() if hasattr(axis[1], "compute_from_times")]
+
+
+def get_leadtime_axes():
+   return [axis[1]() for axis in get_all() if hasattr(axis[1], "compute_from_leadtimes")]
+   return [verif.axis.Leadtime(), verif.axis.Leadtimeday()]
+
+
 class Axis(object):
    """ Represents axes that data can be arranged by
 
@@ -90,12 +99,18 @@ class Leadtime(Axis):
    def label(self, variable):
       return "Lead time (h)"
 
+   def compute_from_leadtimes(self, leadtimes):
+      return leadtimes
+
 
 class Leadtimeday(Axis):
    """ Forecast lead-time aggregated over a day"""
 
    def label(self, variable):
       return "Lead time (day)"
+
+   def compute_from_leadtimes(self, leadtimes):
+      return np.array([int(d/24) for d in leadtimes])
 
 
 class Location(Axis):

@@ -11,9 +11,6 @@ import matplotlib.ticker
 import verif.field
 import verif.util
 import verif.variable
-time_axes = [verif.axis.Month(), verif.axis.Year(), verif.axis.Week(),
-      verif.axis.Timeofday(), verif.axis.Dayofyear(),
-      verif.axis.Day(), verif.axis.Dayofmonth(), verif.axis.Monthofyear()]
 
 
 class Data(object):
@@ -163,12 +160,16 @@ class Data(object):
       self.thresholds = self._get_thresholds()
       self.quantiles = self._get_quantiles()
       self.variable = self._get_variable()
-      self.leadtimedays = self._get_leadtimedays()
       self.num_inputs = self._get_num_inputs()
+
+      # Compute axis values
       self.axis_cache = dict()
       self.axis_cache_unique = dict()
-      for axis in time_axes:
+      for axis in verif.axis.get_time_axes():
          self.axis_cache[axis] = axis.compute_from_times(self.times)
+         self.axis_cache_unique[axis] = np.unique(self.axis_cache[axis])
+      for axis in verif.axis.get_leadtime_axes():
+         self.axis_cache[axis] = axis.compute_from_leadtimes(self.leadtimes)
          self.axis_cache_unique[axis] = np.unique(self.axis_cache[axis])
 
    def get_fields(self):
@@ -301,12 +302,10 @@ class Data(object):
       """
       if(axis == verif.axis.Time()):
          return self.times
-      elif axis in time_axes:
+      elif axis in verif.axis.get_time_axes():
          return np.unique(axis.compute_from_times(self.times))
-      elif(axis == verif.axis.Leadtime()):
-         return self.leadtimes
-      elif(axis == verif.axis.Leadtimeday()):
-         return self.leadtimedays
+      elif axis in verif.axis.get_leadtime_axes():
+         return np.unique(axis.compute_from_leadtimes(self.leadtimes))
       elif(axis == verif.axis.No()):
          return [0]
       elif(axis.is_location_like):
@@ -511,16 +510,6 @@ class Data(object):
       I = self._leadtimesI[0]
       return np.array([leadtimes[i] for i in I], float)
 
-   def _get_leadtimedays(self):
-      dts = [datetime.datetime.utcfromtimestamp(i) for i in self.leadtimes]
-      for i in range(0, len(dts)):
-         # Reset datetime such that it is for the first day of the week
-         # That is subtract the day of the week from the date
-         weekday = dts[i].weekday()
-         dts[i] = dts[i] - datetime.timedelta(days=weekday)
-      leadtimedays = np.unique(np.array([int(x/24) for x in self.leadtimes]))
-      return leadtimedays
-
    def _get_locations(self):
       locations = self._inputs[0].locations
       I = self._locationsI[0]
@@ -644,25 +633,21 @@ class Data(object):
       output = None
       if(axis == verif.axis.Time()):
          output = array[axis_index, :, :].flatten()
-      elif axis in time_axes:
+      elif axis in verif.axis.get_time_axes():
          axis_values = self.axis_cache[axis]
          axis_values_unique = self.axis_cache_unique[axis]
          I = np.where(axis_values == axis_values_unique[axis_index])
          output = array[I, :, :].flatten()
-      elif(axis == verif.axis.Leadtime()):
-         output = array[:, axis_index, :].flatten()
-      elif(axis == verif.axis.Leadtimeday()):
-         if(axis_index == self.leadtimedays.shape[0]-1):
-            I = np.where((self.leadtimes >= self.leadtimedays[axis_index]*24))
-         else:
-            I = np.where((self.leadtimes >= self.leadtimedays[axis_index]*24) &
-                         (self.leadtimes < self.leadtimedays[axis_index + 1]*24))
+      elif axis in verif.axis.get_leadtime_axes():
+         axis_values = self.axis_cache[axis]
+         axis_values_unique = self.axis_cache_unique[axis]
+         I = np.where(axis_values == axis_values_unique[axis_index])
          output = array[:, I, :].flatten()
-      elif(axis.is_location_like):
+      elif axis.is_location_like:
          output = array[:, :, axis_index].flatten()
-      elif(axis == verif.axis.No() or axis == verif.axis.Threshold()):
+      elif axis == verif.axis.No() or axis == verif.axis.Threshold():
          output = array.flatten()
-      elif(axis == verif.axis.All() or axis is None):
+      elif axis == verif.axis.All() or axis is None:
          output = array
       else:
          verif.util.error("data.py: unrecognized axis: " + axis.name())
