@@ -228,7 +228,7 @@ class Output(object):
 
       desc_lengths = dict()
       for w in descs.keys():
-         desc_lengths[w] = max(11, len(w)+1)
+         desc_lengths[w] = max(20, len(w)+1)
 
       # Header line
       s = ""

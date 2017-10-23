@@ -84,7 +84,7 @@ class Axis(object):
 class Time(Axis):
    """ Forecast initialization time """
    is_time_like = True
-   fmt = "%Y-%m-%d"
+   fmt = "%Y-%m-%d %H:%M:%S"
 
    def formatter(self, variable):
       return matplotlib.dates.DateFormatter('\n%Y-%m-%d')

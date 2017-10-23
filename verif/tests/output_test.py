@@ -15,6 +15,9 @@ class TestOutput(unittest.TestCase):
       output = verif.output.Standard(metric)
       output.text(data)
 
+      output.axis = verif.axis.Time()
+      output.text(data)
+
 
 class TestStandard(unittest.TestCase):
    def _get(self):
