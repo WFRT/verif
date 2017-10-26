@@ -110,10 +110,12 @@ class TestData(unittest.TestCase):
       self.assertEqual(5, len(values))
       assert_set_equal(np.array([-4, 3, 9, 12, 16]), values)
 
-   # Check that file still parses even though it has repeated time, leadtime,
-   # or location values
+
+class TestRepeated(unittest.TestCase):
+   """
+   Test that having repeated times, leadtimes, or locations in a file doesn't cause runtime errors
+   """
    def test_repeated_times(self):
-      # Check that subset of times works
       inputs = [verif.input.get_input("verif/tests/files/netcdf_repeated_times.nc")]
       data = verif.data.Data(inputs=inputs)
       self.assertEqual(2, len(data.times))
@@ -124,7 +126,7 @@ class TestData(unittest.TestCase):
       obs = data.get_scores([verif.field.Obs()], 0, verif.axis.All())[0]
       np.testing.assert_array_equal(np.array([[1, 2, 3], [4, 5, 6]]), obs[:, :, 0])
 
-      # Check that intersections with times work
+      # Check that subset of times works
       data = verif.data.Data(inputs=inputs, times=inputs[0].times[[0, 2]])
       obs = data.get_scores([verif.field.Obs()], 0, verif.axis.All(), 0)[0]
       np.testing.assert_array_equal(np.array([[1, 2, 3]]), obs[:, :, 0])
@@ -139,7 +141,7 @@ class TestData(unittest.TestCase):
       obs = data.get_scores([verif.field.Obs()], 0, verif.axis.All())[0]
       np.testing.assert_array_equal(np.array([[1, 2], [4, 5]]), obs[:, :, 0])
 
-      # Check that intersections with leadtimes work
+      # Check that subset of locations works
       data = verif.data.Data(inputs=inputs, leadtimes=inputs[0].leadtimes[[0, 2]])
       obs = data.get_scores([verif.field.Obs()], 0, verif.axis.All())[0]
       ar = np.zeros([2, 1])
@@ -164,6 +166,19 @@ class TestData(unittest.TestCase):
       obs = data.get_scores([verif.field.Obs()], 0, verif.axis.All())[0]
       self.assertEqual(1, obs.shape[2])
       np.testing.assert_array_equal(np.array([[1, 4], [7, 10]]), obs[:, :, 0])
+
+   def test_repeated_times_two_files(self):
+      inputs = [verif.input.get_input("verif/tests/files/netcdf_repeated_%s.nc" % name) for name in ["times", "leadtimes"]]
+      data = verif.data.Data(inputs=inputs)
+      self.assertEqual(2, len(data.times))
+      self.assertEqual(2, len(data.leadtimes))
+      self.assertEqual(1, len(data.locations))
+
+      fcst = data.get_scores([verif.field.Fcst()], 0, verif.axis.All())[0]
+      np.testing.assert_array_equal(np.array([[11, 12], [14, 15]]), fcst[:, :, 0])
+
+      fcst = data.get_scores([verif.field.Fcst()], 1, verif.axis.All())[0]
+      np.testing.assert_array_equal(np.array([[11, 12], [14, 15]]), fcst[:, :, 0])
 
 
 class TestDataRemovingLocations(unittest.TestCase):
