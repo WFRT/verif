@@ -528,21 +528,30 @@ class Data(object):
       Returns a list of arrays, one array for each input
       """
       # Find common values among all inputs
-      values = aux
+      available_values = aux
       for input in inputs:
          if axis == verif.axis.Time():
-            temp = input.times
+            curr_values = input.times
          elif axis == verif.axis.Leadtime():
-            temp = input.leadtimes
+            curr_values = input.leadtimes
          elif axis == verif.axis.Location():
             locations = input.locations
-            temp = [loc.id for loc in locations]
-         if values is None:
-            values = temp
+            curr_values = [loc.id for loc in locations]
+
+         curr_values = np.sort(curr_values)
+         len_before = len(curr_values)
+         curr_values = np.unique(curr_values)
+
+         if len(curr_values) != len_before:
+            verif.util.warning("The '%s' axis in '%s' has repeated values.  Using the first value." % (axis.name(), input.fullname))
+
+         if available_values is None:
+            available_values = curr_values
          else:
-            values = np.intersect1d(values, temp)
+            available_values = np.intersect1d(available_values, curr_values)
+
       # Sort values, since for example, times may not be in an ascending order
-      values = np.sort(values)
+      available_values = np.sort(available_values)
 
       # Determine which index each value is at
       indices = list()
@@ -556,12 +565,12 @@ class Data(object):
             temp = np.zeros(len(locations))
             for i in range(0, len(locations)):
                temp[i] = locations[i].id
-         I = np.where(np.in1d(temp, values))[0]
-         II = np.zeros(len(I), 'int')
-         for i in range(0, len(I)):
-            III = np.where(values[i] == temp)[0]
-            assert(len(III) == 1)
-            II[i] = III
+         I = np.where(np.in1d(temp, available_values))[0]
+         II = np.zeros(len(available_values), 'int')
+         for i in range(0, len(available_values)):
+            III = np.where(available_values[i] == temp)[0]
+            assert(len(III) >= 1)
+            II[i] = III[0]
 
          indices.append(II)
       return indices

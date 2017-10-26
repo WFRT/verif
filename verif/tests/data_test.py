@@ -110,6 +110,61 @@ class TestData(unittest.TestCase):
       self.assertEqual(5, len(values))
       assert_set_equal(np.array([-4, 3, 9, 12, 16]), values)
 
+   # Check that file still parses even though it has repeated time, leadtime,
+   # or location values
+   def test_repeated_times(self):
+      # Check that subset of times works
+      inputs = [verif.input.get_input("verif/tests/files/netcdf_repeated_times.nc")]
+      data = verif.data.Data(inputs=inputs)
+      self.assertEqual(2, len(data.times))
+      self.assertEqual(3, len(data.leadtimes))
+      self.assertEqual(1, len(data.locations))
+
+      # Check that we only have two times
+      obs = data.get_scores([verif.field.Obs()], 0, verif.axis.All())[0]
+      np.testing.assert_array_equal(np.array([[1, 2, 3], [4, 5, 6]]), obs[:, :, 0])
+
+      # Check that intersections with times work
+      data = verif.data.Data(inputs=inputs, times=inputs[0].times[[0, 2]])
+      obs = data.get_scores([verif.field.Obs()], 0, verif.axis.All(), 0)[0]
+      np.testing.assert_array_equal(np.array([[1, 2, 3]]), obs[:, :, 0])
+
+   def test_repeated_leadtimes(self):
+      inputs = [verif.input.get_input("verif/tests/files/netcdf_repeated_leadtimes.nc")]
+      data = verif.data.Data(inputs=inputs)
+      self.assertEqual(2, len(data.times))
+      self.assertEqual(2, len(data.leadtimes))
+      self.assertEqual(1, len(data.locations))
+
+      obs = data.get_scores([verif.field.Obs()], 0, verif.axis.All())[0]
+      np.testing.assert_array_equal(np.array([[1, 2], [4, 5]]), obs[:, :, 0])
+
+      # Check that intersections with leadtimes work
+      data = verif.data.Data(inputs=inputs, leadtimes=inputs[0].leadtimes[[0, 2]])
+      obs = data.get_scores([verif.field.Obs()], 0, verif.axis.All())[0]
+      ar = np.zeros([2, 1])
+      ar[0] = 1
+      ar[1] = 4
+      np.testing.assert_array_equal(ar, obs[:, :, 0])
+
+   def test_repeated_locations(self):
+      inputs = [verif.input.get_input("verif/tests/files/netcdf_repeated_locations.nc")]
+      data = verif.data.Data(inputs=inputs)
+      self.assertEqual(2, len(data.times))
+      self.assertEqual(2, len(data.leadtimes))
+      self.assertEqual(2, len(data.locations))
+
+      obs = data.get_scores([verif.field.Obs()], 0, verif.axis.All())[0]
+      self.assertEqual(2, obs.shape[2])
+      np.testing.assert_array_equal(np.array([[1, 4], [7, 10]]), obs[:, :, 0])
+      np.testing.assert_array_equal(np.array([[2, 5], [8, 11]]), obs[:, :, 1])
+
+      # Check that intersections with locations work
+      data = verif.data.Data(inputs=inputs, locations=[18700, 18700])
+      obs = data.get_scores([verif.field.Obs()], 0, verif.axis.All())[0]
+      self.assertEqual(1, obs.shape[2])
+      np.testing.assert_array_equal(np.array([[1, 4], [7, 10]]), obs[:, :, 0])
+
 
 class TestDataRemovingLocations(unittest.TestCase):
    def test_inside_lat_range(self):
