@@ -778,7 +778,7 @@ class Within(Metric):
    require_threshold_type = "threshold"
    supports_threshold = True
    perfect_score = 100
-   orientation = 1
+   orientation = 0
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
       [obs, fcst] = data.get_scores([verif.field.Obs(),
