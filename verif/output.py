@@ -208,6 +208,15 @@ class Output(object):
       self._legend(data)
       self._save_plot(data)
 
+   def plot_rank(self, data):
+      """ Call this to create a rank plot
+      """
+      mpl.clf()
+      self._plot_rank_core(data)
+      self._adjust_axes(data)
+      self._legend(data)
+      self._save_plot(data)
+
    def text(self, data):
       """ Call this to create nicely formatted text output
 
@@ -360,7 +369,10 @@ class Output(object):
       verif.util.error("This type does not plot")
 
    def _map_core(self, data):
-      verif.util.error("This type does not produce maps")
+      verif.util.error("This type does not support '-type map'")
+
+   def _plot_rank_core(self, data):
+      verif.util.error("This type does not support '-type rank'")
 
    # Helper functions
    def _get_color(self, i, total):
@@ -779,6 +791,65 @@ class Standard(Output):
          # make new ticks, to start from the first day of the desired interval
          mpl.gca().set_xticks(tickRange)
          mpl.autoscale(enable=True, axis=u'x', tight=True)  # make xaxis tight
+
+   def _plot_rank_core(self, data):
+      F = data.num_inputs
+
+      # Choose which axes to make plots for
+      if self.axis == verif.axis.All():
+         axes = [verif.axis.Month(), verif.axis.Week(), verif.axis.Time(), verif.axis.Location(), verif.axis.Leadtime()]
+      else:
+         axes = [self.axis]
+
+      Nx, Ny = verif.util.get_subplot_size(len(axes))
+      for i, axis in enumerate(axes):
+         mpl.subplot(Ny, Nx, i+1)
+         x, y, _, labels, _ = self._get_x_y(data, axis)
+         R = np.argsort(y, axis=1)
+
+         # Flip the rank for positively-oriented scores
+         if self._metric.orientation == 1:
+            R = R[:, ::-1]
+
+         std = verif.util.nanstd(y)
+         minDiff = std / 50
+         Ieven = np.where(np.abs(y[:, 0] - y[:, 1]) < minDiff)[0]
+         R[Ieven, :] = -1
+         yy = np.zeros([F + 1, F])  # Rank, F
+         for j in range(F):
+            for i in range(F):
+               yy[i, j] = np.sum(R[:, j] == i)
+            yy[-1, j] = np.sum(R[:, j] == -1)
+         w = 0.8
+         yy = yy / len(y)
+         accum = np.cumsum(yy, axis=0)
+         labels = labels + ["None"]
+
+         # Loop over all ranks
+         for i in range(F+1):
+            xx = [q + w*0.1 for q in range(F)]
+            bottoms = np.zeros(F)
+            if i > 0:
+               bottoms = accum[i-1, :]
+            if i < F:
+               color = self._get_color(i, F)
+            else:
+               color = "w"
+            mpl.bar(left=xx, bottom=bottoms, height=yy[i, :], width=w, color=color, label=labels[i])
+            for j in range(len(xx)):
+               curr_x = xx[j] + w / 2.0
+               curr_y = bottoms[j] + yy[i, j] / 2.0
+               if yy[i, j] > 0:
+                  mpl.text(curr_x, curr_y, "%d%%" % int(yy[i, j] * 100), horizontalalignment="center", verticalalignment="center")
+
+         mpl.gca().set_xticklabels(range(F))
+         mpl.gca().set_xticks([0.5, F-0.5])
+         if self._metric.orientation == 0:
+            xticklabels = ["Lowest", "Highest"]
+         else:
+            xticklabels = ["Best", "Worst"]
+         mpl.gca().set_xticklabels(xticklabels)
+         mpl.title(axis.label(data.variable))
 
    def _map_core(self, data):
       # Use the Basemap package if it is available
