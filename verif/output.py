@@ -3115,7 +3115,11 @@ class Impact(Output):
             I = np.where((y > centres[e] - w) & (y <= centres[e] + w))[0]
             contriby[e] = np.nansum(error_x[I] - error_y[I])
          dw = w
-         scale = (np.nanmax(centres) - np.nanmin(centres))/np.nanmax(contribx)/10
+
+         """ Scale the bars so they at most occupy 10% of the width/height of the plot """
+         largest_contrib = max(np.nanmax(np.abs(contribx)), np.nanmax(np.abs(contriby)))
+         scale = (np.nanmax(centres) - np.nanmin(centres))/largest_contrib/10
+
          I1 = np.where(contribx > 0)[0]
          I0 = np.where(contribx < 0)[0]
          mpl.bar(centres[I1]-dw/2, contribx[I1]*scale, width=dw, bottom=lower,
