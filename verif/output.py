@@ -3029,9 +3029,7 @@ class InvReliability(Output):
 
 class Impact(Output):
    name = "Impact diagram"
-   description = ""\
-   "Colours indicate which input file had the best forecast (but only if the difference is "\
-   "more than 10% of the standard deviation of the observation)."
+   description = "For two inputs, shows for what forecast values the difference in squared error comes from"
    default_axis = verif.axis.No()
    supports_threshold = False
    require_threshold_type = "deterministic"
