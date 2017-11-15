@@ -33,6 +33,7 @@ def run(argv):
    xlabel = None
    clabel = None
    title = None
+   dates = None
    times = None
    leadtimes = None
    axis = None
@@ -181,7 +182,6 @@ def run(argv):
                dpi = int(arg_next)
             elif arg == "-d":
                dates = verif.util.parse_numbers(arg_next, True)
-               times = [verif.util.date_to_unixtime(date) for date in dates]
             elif arg == "-t":
                times = verif.util.parse_numbers(arg_next)
             elif arg == "-c":
@@ -289,7 +289,7 @@ def run(argv):
    if len(ifiles) > 0:
       inputs = [verif.input.get_input(filename) for filename in ifiles]
       data = verif.data.Data(inputs, clim=clim_file, clim_type=clim_type,
-            times=times, leadtimes=leadtimes, locations=locations,
+            times=times, dates=dates, leadtimes=leadtimes, locations=locations,
             locations_x=locations_x,
             lat_range=lat_range, lon_range=lon_range, elev_range=elev_range,
             legend=leg, obs_field=obs_field, fcst_field=fcst_field)

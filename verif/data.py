@@ -36,7 +36,7 @@ class Data(object):
    years          Available years (derived from times)
    leadtimedays   Available leadtimedays (derived from leadtimes)
    """
-   def __init__(self, inputs, times=None, leadtimes=None, locations=None, locations_x=None,
+   def __init__(self, inputs, times=None, dates=None, leadtimes=None, locations=None, locations_x=None,
          lat_range=None, lon_range=None, elev_range=None, clim=None, clim_type="subtract",
          legend=None, remove_missing_across_all=True,
          obs_field=verif.field.Obs(),
@@ -46,6 +46,8 @@ class Data(object):
       Arguments:
       inputs         A list of verif.input
       times          A numpy array of times. Discard data for all other times
+      dates          A numpy array of dates. Only allow times that occur on
+                     these dates (but alllow any hour of the day).
       leadtimes      A numpy array of leadtimes. Discard data for all other leadtimes
       locations      A list of verif.location. Discard data for all other locations
       locations_x    A list of verif.location to not remove
@@ -157,6 +159,14 @@ class Data(object):
       self.quantiles = self._get_quantiles()
       self.variable = self._get_variable()
       self.num_inputs = self._get_num_inputs()
+
+      if dates is not None:
+         """
+         Only allow specified dates. Allow all initialization times that are
+         within each of the dates.
+         """
+         dates_times = [verif.util.date_to_unixtime(t) for t in dates]
+         self.times = np.array([t for t in self.times if int(t / 86400)*86400 in dates_times])
 
       # Compute axis values
       self.axis_cache = dict()
