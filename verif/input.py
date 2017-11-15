@@ -212,7 +212,10 @@ class Netcdf(Input):
       lat = verif.util.clean(self._file.variables["lat"])
       lon = verif.util.clean(self._file.variables["lon"])
       id = verif.util.clean(self._file.variables["location"])
-      elev = verif.util.clean(self._file.variables["altitude"])
+      if "altitude" not in self._file.variables:
+         elev = np.nan * np.zeros(lat.shape)
+      else:
+         elev = verif.util.clean(self._file.variables["altitude"])
       locations = list()
       for i in range(0, lat.shape[0]):
          location = verif.location.Location(id[i], lat[i], lon[i], elev[i])

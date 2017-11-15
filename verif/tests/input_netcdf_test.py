@@ -32,6 +32,11 @@ class InputNetcdfTest(unittest.TestCase):
    def test_is_valid(self):
       self.assertTrue(verif.input.Netcdf.is_valid("verif/tests/files/netcdf_valid1.nc"))
       self.assertTrue(verif.input.Netcdf.is_valid("verif/tests/files/netcdf_valid2.nc"))
+      # Test that if altitude is missing, the file is still valid
+      self.assertTrue(verif.input.Netcdf.is_valid("verif/tests/files/netcdf_valid3.nc"))
+      verif.input.Netcdf("verif/tests/files/netcdf_valid1.nc")
+      verif.input.Netcdf("verif/tests/files/netcdf_valid2.nc")
+      verif.input.Netcdf("verif/tests/files/netcdf_valid3.nc")
 
    def test_invalid(self):
       self.assertFalse(verif.input.Comps.is_valid("verif/tests/files/netcdf_invalid1.nc"))
