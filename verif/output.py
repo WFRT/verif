@@ -807,6 +807,14 @@ class Standard(Output):
          x, y, _, labels, _ = self._get_x_y(data, axis)
          R = np.argsort(y, axis=1)
 
+         """
+         Remove lines within missing data, otherwise the first
+         file wins the line
+         """
+         invalid = np.sum(np.isnan(y), axis=1) > 0
+         R[invalid, :] = -2
+         num_valid = np.sum(invalid == 0)
+
          # Flip the rank for positively-oriented scores
          if self._metric.orientation == 1:
             R = R[:, ::-1]
@@ -818,10 +826,10 @@ class Standard(Output):
          yy = np.zeros([F + 1, F])  # Rank, F
          for j in range(F):
             for i in range(F):
-               yy[i, j] = np.sum(R[:, j] == i)
-            yy[-1, j] = np.sum(R[:, j] == -1)
+               yy[i, j] = np.nansum(R[:, j] == i)
+            yy[-1, j] = np.nansum(R[:, j] == -1)
          w = 0.8
-         yy = yy / len(y)
+         yy = yy / num_valid
          accum = np.cumsum(yy, axis=0)
          labels = labels + ["None"]
 
