@@ -195,6 +195,74 @@ class TestDataRemovingLocations(unittest.TestCase):
       self.assertTrue(2 in [loc.id for loc in data.locations])
 
 
+class TestDataRemovingTimes1(unittest.TestCase):
+   def test_times(self):
+      inputs = [verif.input.Text("verif/tests/files/file1.txt")]
+      data = verif.data.Data(inputs, times=[1325376000, 1325548800])
+      self.assertEqual(2, len(data.times))
+      self.assertEqual(1325376000, data.times[0])
+      self.assertEqual(1325548800, data.times[1])
+
+   def test_dates(self):
+      inputs = [verif.input.Text("verif/tests/files/file1.txt")]
+      data = verif.data.Data(inputs, dates=[20120101])
+      self.assertEqual(1, len(data.times))
+      self.assertEqual(1325376000, data.times[0])
+
+
+class TestDataRemovingTimes4(unittest.TestCase):
+   """
+   Check that various combinations of -t -d and -tod remove the correct times
+   """
+   def test_times(self):
+      inputs = [verif.input.Text("verif/tests/files/file4.txt")]
+      data = verif.data.Data(inputs, times=[1325376000, 1325548800])
+      self.assertEqual(2, len(data.times))
+      self.assertEqual(1325376000, data.times[0])
+      self.assertEqual(1325548800, data.times[1])
+
+   def test_dates(self):
+      inputs = [verif.input.Text("verif/tests/files/file4.txt")]
+      data = verif.data.Data(inputs, dates=[20120101, 20120102])
+      self.assertEqual(3, len(data.times))
+      self.assertEqual(1325376000, data.times[0])
+      self.assertEqual(1325397600, data.times[1])
+      self.assertEqual(1325462400, data.times[2])
+
+   def test_times_dates(self):
+      inputs = [verif.input.Text("verif/tests/files/file4.txt")]
+      data = verif.data.Data(inputs, times=[1325376000, 1325548800], dates=[20120101, 20120102])
+      self.assertEqual(1, len(data.times))
+      self.assertEqual(1325376000, data.times[0])
+
+   def test_timeofday(self):
+      inputs = [verif.input.Text("verif/tests/files/file4.txt")]
+      data = verif.data.Data(inputs, tods=[6])
+      self.assertEqual(2, len(data.times))
+      self.assertEqual(1325397600, data.times[0])
+      self.assertEqual(1325570400, data.times[1])
+
+      # Check that data retrieved is of the correct size
+      obs, fcst = data.get_scores([verif.field.Obs(), verif.field.Fcst()], 0)
+      self.assertEqual(2, obs.shape[0])
+      self.assertEqual(3, obs.shape[1])
+      self.assertEqual(1, obs.shape[2])
+      np.testing.assert_array_equal(np.array([[11, 4, 9], [3, 5, 6]]), obs[:, :, 0])
+      np.testing.assert_array_equal(np.array([[6, 7, 7], [3, 1, 2]]), fcst[:, :, 0])
+
+      data = verif.data.Data(inputs, tods=[0])
+      self.assertEqual(3, len(data.times))
+      self.assertEqual(1325376000, data.times[0])
+      self.assertEqual(1325462400, data.times[1])
+      self.assertEqual(1325548800, data.times[2])
+
+   def test_times_dates_timeofday(self):
+      inputs = [verif.input.Text("verif/tests/files/file4.txt")]
+      data = verif.data.Data(inputs, times=[1325462400, 1325548800, 1325570400], dates=[20120101, 20120103], tods=[0])
+      self.assertEqual(1, len(data.times))
+      self.assertEqual(1325548800, data.times[0])
+
+
 class TestDataClim(unittest.TestCase):
    def test_names(self):
       """

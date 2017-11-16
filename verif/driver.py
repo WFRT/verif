@@ -34,6 +34,7 @@ def run(argv):
    clabel = None
    title = None
    dates = None
+   tods = None
    times = None
    leadtimes = None
    axis = None
@@ -182,6 +183,8 @@ def run(argv):
                dpi = int(arg_next)
             elif arg == "-d":
                dates = verif.util.parse_numbers(arg_next, True)
+            elif arg == "-tod":
+               tods = [int(tod) for tod in verif.util.parse_numbers(arg_next)]
             elif arg == "-t":
                times = verif.util.parse_numbers(arg_next)
             elif arg == "-c":
@@ -289,7 +292,7 @@ def run(argv):
    if len(ifiles) > 0:
       inputs = [verif.input.get_input(filename) for filename in ifiles]
       data = verif.data.Data(inputs, clim=clim_file, clim_type=clim_type,
-            times=times, dates=dates, leadtimes=leadtimes, locations=locations,
+            times=times, dates=dates, tods=tods, leadtimes=leadtimes, locations=locations,
             locations_x=locations_x,
             lat_range=lat_range, lon_range=lon_range, elev_range=elev_range,
             legend=leg, obs_field=obs_field, fcst_field=fcst_field)
@@ -623,8 +626,8 @@ def show_description(data=None):
    s += format_argument("-o leadtimes", "Limit the verification to these leadtimes (in hours).") + "\n"
    s += format_argument("-r thresholds", "Compute scores using these thresholds (only used by some metrics).") + "\n"
    s += format_argument("-q quantiles", "Compute scores using these quantiles (only used by some metrics).") + "\n"
-   s += format_argument("-t times", "A vector of unix timestamps.") + "\n"
-
+   s += format_argument("-t times", "A vector of unix timestamps. Only allow these times.") + "\n"
+   s += format_argument("-tod timeofdays", "A vector of hours of day, e.g.  0:12. Only allow times with these hour of the day.") + "\n"
    s += format_argument("-x dim", "Plot this dimension on the x-axis: time, leadtime, year, month, week, day, timeofday, dayofyear, monthofyear, location, elev, lat, lon, threshold, leadtimeday, or no. Not supported by all metrics. If not specified, then a default is used based on the metric. 'location' refers to the location id. 'leadtimeday' aggregates leadtimes into whole forecast days. 'no' collapses all dimensions and computes one value.") + "\n"
 
    # Data manipulation

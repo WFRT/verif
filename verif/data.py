@@ -36,7 +36,7 @@ class Data(object):
    years          Available years (derived from times)
    leadtimedays   Available leadtimedays (derived from leadtimes)
    """
-   def __init__(self, inputs, times=None, dates=None, leadtimes=None, locations=None, locations_x=None,
+   def __init__(self, inputs, times=None, dates=None, tods=None, leadtimes=None, locations=None, locations_x=None,
          lat_range=None, lon_range=None, elev_range=None, clim=None, clim_type="subtract",
          legend=None, remove_missing_across_all=True,
          obs_field=verif.field.Obs(),
@@ -48,6 +48,8 @@ class Data(object):
       times          A numpy array of times. Discard data for all other times
       dates          A numpy array of dates. Only allow times that occur on
                      these dates (but alllow any hour of the day).
+      tods           A numpy array of time of day values (in hours). Only allow
+                     initialization times for these hours of the day (in UTC).
       leadtimes      A numpy array of leadtimes. Discard data for all other leadtimes
       locations      A list of verif.location. Discard data for all other locations
       locations_x    A list of verif.location to not remove
@@ -167,6 +169,14 @@ class Data(object):
          """
          dates_times = [verif.util.date_to_unixtime(t) for t in dates]
          self.times = np.array([t for t in self.times if int(t / 86400)*86400 in dates_times])
+
+      if tods is not None:
+         self.times = np.array([t for t in self.times if int(t % 86400)/3600 in tods])
+      """
+      Indices must be recomputed since some times are removed by -d and -tod.
+      There doesn't seem to be an easy way to avoid this.
+      """
+      self._timesI = self._get_common_indices(self._inputs, verif.axis.Time(), self.times)
 
       # Compute axis values
       self.axis_cache = dict()
