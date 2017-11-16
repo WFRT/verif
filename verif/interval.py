@@ -29,11 +29,29 @@ class Interval(object):
 
       Returns:
          bool or np.array(bool): True if the value(s) is in the interval, False otherwise.
+         If any of the inputs have np.nan values, then a masked array is
+         returned with the corresponding answers masked out.
       """
-      is_above = (x > self.lower) | (self.lower_eq and x == self.lower)
-      is_below = (x < self.upper) | (self.upper_eq and x == self.upper)
+      if isinstance(x, np.ndarray):
+         I = np.where(np.isnan(x) == 0)
+         """
+         Only evaluate valid values, in order to avoid a warning. Then fill
+         these values into a masked array
+         """
+         values = np.zeros(x.shape, float)
+         is_above = (x[I] > self.lower) | (self.lower_eq and x[I] == self.lower)
+         is_below = (x[I] < self.upper) | (self.upper_eq and x[I] == self.upper)
+         values[I] = is_above & is_below
+         values = np.ma.masked_array(values, mask=np.isnan(x))
+      else:
+         if np.isnan(x):
+            values = np.nan
+         else:
+            is_above = (x > self.lower) | (self.lower_eq and x == self.lower)
+            is_below = (x < self.upper) | (self.upper_eq and x == self.upper)
+            values = (is_above & is_below)
 
-      return is_above & is_below
+      return values
 
    @property
    def center(self):

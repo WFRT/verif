@@ -60,9 +60,21 @@ class MyTest(unittest.TestCase):
 
    def test_array(self):
       ar = np.array([1, 3, 2, 0, 15])
-      # [2,5]
       interval = verif.interval.Interval(2, 5, True, True)
       np.testing.assert_array_equal(np.array([False, True, True, False, False]), interval.within(ar))
+      np.testing.assert_array_equal(np.array(True), interval.within(3))
+
+   def test_nan(self):
+      """
+      Test within returns np.nan when the input is np.nan. Interval.within
+      returns a masked array, which is converted to a regular aray so that it
+      can be tested here.
+      """
+      ar = np.array([1, 3, 2, np.nan, 15])
+      interval = verif.interval.Interval(2, 5, True, True)
+      values = interval.within(ar)
+      values = np.ma.filled(values, fill_value=np.nan)
+      np.testing.assert_array_equal(np.array([False, True, True, np.nan, False]), values)
       np.testing.assert_array_equal(np.array(True), interval.within(3))
 
 
