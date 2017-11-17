@@ -38,7 +38,7 @@ class Interval(object):
          Only evaluate valid values, in order to avoid a warning. Then fill
          these values into a masked array
          """
-         values = np.zeros(x.shape, float)
+         values = np.zeros(x.shape, bool)
          is_above = (x[I] > self.lower) | (self.lower_eq and x[I] == self.lower)
          is_below = (x[I] < self.upper) | (self.upper_eq and x[I] == self.upper)
          values[I] = is_above & is_below

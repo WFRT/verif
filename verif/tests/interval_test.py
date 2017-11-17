@@ -74,8 +74,11 @@ class MyTest(unittest.TestCase):
       interval = verif.interval.Interval(2, 5, True, True)
       values = interval.within(ar)
       values = np.ma.filled(values, fill_value=np.nan)
-      np.testing.assert_array_equal(np.array([False, True, True, np.nan, False]), values)
-      np.testing.assert_array_equal(np.array(True), interval.within(3))
+      answer = np.ma.masked_array([False, True, True, np.nan, False], mask=[0, 0, 0, 1, 0])
+      np.testing.assert_array_equal(answer, values)
+
+      # Test scalar
+      self.assertTrue(np.isnan(interval.within(np.nan)))
 
 
 if __name__ == '__main__':
