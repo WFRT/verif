@@ -298,5 +298,12 @@ class TestDataFields(unittest.TestCase):
       self.assertTrue(verif.field.Obs() in data.get_fields())
 
 
+class TestDataNanTime(unittest.TestCase):
+   def test(self):
+      data = verif.data.Data([verif.input.Text("verif/tests/files/file_nan_time.txt")])
+      np.testing.assert_array_equal(np.array([1325376000, 1325462400, 1325548800]), data.times)
+      obs = data.get_scores(verif.field.Obs(), 0)
+
+
 if __name__ == '__main__':
    unittest.main()

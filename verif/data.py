@@ -573,6 +573,9 @@ class Data(object):
       # Sort values, since for example, times may not be in an ascending order
       available_values = np.sort(available_values)
 
+      # Remove nan values
+      available_values = available_values[np.isnan(available_values) == 0]
+
       # Determine which index each value is at
       indices = list()
       for input in inputs:
