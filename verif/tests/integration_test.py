@@ -67,6 +67,7 @@ class IntegrationTest(unittest.TestCase):
       self.run_command("verif examples/raw.txt examples/kf.txt --list-thresholds")
       self.run_command("verif examples/raw.txt examples/kf.txt --list-quantiles")
       self.run_command("verif examples/raw.txt examples/kf.txt --list-times")
+      self.run_command("verif examples/raw.txt examples/kf.txt --list-dates")
       self.run_command("verif examples/raw.txt examples/kf.txt --list-thresholds --list-quantiles --list-times")
 
    def test_invalid(self):

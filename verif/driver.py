@@ -80,6 +80,7 @@ def run(argv):
    list_quantiles = False
    list_locations = False
    list_times = False
+   list_dates = False
    map_type = None
    xlog = False
    ylog = False
@@ -126,6 +127,8 @@ def run(argv):
             list_locations = True
          elif arg == "--list-times":
             list_times = True
+         elif arg == "--list-dates":
+            list_dates = True
          elif arg == "-sp":
             show_perfect = True
          elif arg == "-hist":
@@ -299,7 +302,7 @@ def run(argv):
    else:
       data = None
 
-   if list_thresholds or list_quantiles or list_locations or list_times:
+   if list_thresholds or list_quantiles or list_locations or list_times or list_dates:
       if len(ifiles) == 0:
          verif.util.error("Files are required in order to list thresholds, quantiles, or times")
       if list_thresholds:
@@ -321,6 +324,15 @@ def run(argv):
       if list_times:
          for time in data.times:
             print "%d" % time
+         print ""
+      if list_dates:
+         for time in data.times:
+            date = verif.util.unixtime_to_date(time)
+            diff = time % 86400
+            hour = diff / 24
+            minute = (diff % 3600)/60
+            second = diff % 60
+            print "%d %02d:%02d:%02d" % (date, hour, minute, second)
          print ""
       return
    elif len(ifiles) == 0 and metric is not None:
@@ -610,6 +622,7 @@ def show_description(data=None):
    s += format_argument("-m metric", "Which verification metric to use? See 'Metrics' below.") + "\n"
    s += format_argument("--config file", "Read further arguments from this file. This flag can appear multiple times.") + "\n"
    s += format_argument("--list-times", "Prints what times are available in the files") + "\n"
+   s += format_argument("--list-dates", "Like --list-times but in YYYYMMDD HH:MM:SS format") + "\n"
    s += format_argument("--list-locations", "Prints what locations are available in the files") + "\n"
    s += format_argument("--list-quantiles", "Prints what quantiles are available in the files") + "\n"
    s += format_argument("--list-thresholds", "Prints what thresholds are available in the files") + "\n"
