@@ -486,14 +486,14 @@ class Text(Input):
                   self.pit[d][o][s] = pit[key]
                for q in range(0, len(self._quantiles)):
                   quantile = self._quantiles[q]
-                  key = (unixtime, leadtime, id, lat, lon, elev, quantile)
-                  if key in x:
-                     self.quantile_scores[d, o, s, q] = x[key]
+                  qkey = (unixtime, leadtime, id, lat, lon, elev, quantile)
+                  if qkey in x:
+                     self.quantile_scores[d, o, s, q] = x[qkey]
                for t in range(0, len(self._thresholds)):
                   threshold = self._thresholds[t]
-                  key = (unixtime, leadtime, id, lat, lon, elev, threshold)
-                  if key in cdf:
-                     self.threshold_scores[d, o, s, t] = cdf[key]
+                  tkey = (unixtime, leadtime, id, lat, lon, elev, threshold)
+                  if tkey in cdf:
+                     self.threshold_scores[d, o, s, t] = cdf[tkey]
                for field in other.keys():
                   if key in other[field]:
                      self._other_scores[field][d, o, s] = other[field][key]
