@@ -2559,6 +2559,7 @@ class Taylor(Output):
    description = "Taylor diagram showing correlation and forecast standard deviation. Use '-x none' to collapse all data showing only one point.  Otherwise, the whole graph is normalized by the standard deviation of the observations."
    supports_threshold = True
    supports_x = True
+   default_axis = verif.axis.No()
    leg_loc = "upper left"
 
    def _plot_core(self, data):
@@ -2681,6 +2682,7 @@ class Performance(Output):
    name = "Categorical performance diagram"
    description = "Categorical performance diagram showing POD, FAR, bias, and Threat score. Also shows the scores the forecasts would attain by using different forecast thresholds (turn off using -simple)"
    supports_x = True
+   default_axis = verif.axis.No()
    leg_loc = "upper left"
    reference = "Roebber, P.J., 2009: Visualizing multiple measures of forecast quality. Wea. Forecasting, 24, 601-608."
 
