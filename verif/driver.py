@@ -329,7 +329,7 @@ def run(argv):
          for time in data.times:
             date = verif.util.unixtime_to_date(time)
             diff = time % 86400
-            hour = diff / 24
+            hour = diff / 3600
             minute = (diff % 3600)/60
             second = diff % 60
             print "%d %02d:%02d:%02d" % (date, hour, minute, second)
