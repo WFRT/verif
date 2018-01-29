@@ -171,6 +171,9 @@ class Output(object):
       self.yticklabels = None
       self.yticks = None
       self.aspect = None
+      # A class can set this to True to prevent adjust_axes from setting log
+      # axes, useful if the class handles log axes internally
+      self.skip_log = False
 
    class ClassProperty(property):
       def __get__(self, cls, owner):
@@ -520,10 +523,12 @@ class Output(object):
          ax.set_xlim(xlim)
       if self.ylim is not None:
          ax.set_ylim(self.ylim)
-      if self.xlog:
-         ax.set_xscale('log')
-      if self.ylog:
-         ax.set_yscale('log')
+      if not self.skip_log:
+         if self.xlog:
+            ax.set_xscale('log')
+         if self.ylog:
+            ax.set_yscale('log')
+
       if self.grid:
          ax.grid('on')
 
@@ -2391,6 +2396,7 @@ class DRoc(Output):
       self._doNorm = doNorm
       self._fthresholds = fthresholds
       self._doClassic = doClassic
+      self.skip_log = True
 
    def _show_thresholds(self):
       return not self.simple
@@ -2428,14 +2434,26 @@ class DRoc(Output):
             f_interval = f_intervals[i]
             x[i] = verif.metric.Fa().compute_from_obs_fcst(obs, fcst, interval, f_interval)
             y[i] = verif.metric.Hit().compute_from_obs_fcst(obs, fcst, interval, f_interval)
-         if self._doNorm:
-             x = scipy.stats.norm.ppf(x)
-             y = scipy.stats.norm.ppf(y)
-         for i in range(0, len(f_intervals)):
+
+         # Remove end-points when using log axes
+         if self.xlog or self.ylog:
+            I = np.where((x != 0) & (x != 1) & (y != 0) & (y != 1))[0].tolist()
+            x = x[I]
+            y = y[I]
+            f_intervals = [f_intervals[i] for i in I]
+
+         if self.xlog:
+            x = scipy.stats.norm.ppf(x)
+         if self.ylog:
+            y = scipy.stats.norm.ppf(y)
+
+         # Put text labels on points
+         for i in range(len(f_intervals)):
             if self._show_thresholds() and (not np.isnan(x[i]) and not np.isnan(y[i])):
                mpl.text(x[i], y[i], "%2.1f" % f_intervals[i].center, color=color)
-         if not self._doNorm:
-            # Add end points at 0,0 and 1,1:
+
+         # Add end points at 0,0 and 1,1:
+         if not self.xlog and not self.ylog:
             xx = x
             yy = y
             x = np.zeros([len(f_intervals) + 2, 1], 'float')
@@ -2447,32 +2465,33 @@ class DRoc(Output):
             x[len(x) - 1] = 0
             y[len(y) - 1] = 0
          mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
-      if self._doNorm:
-         xlim = mpl.xlim()
-         ylim = mpl.ylim()
+      xlim = mpl.xlim()
+      ylim = mpl.ylim()
+      if self.xlog:
+         mpl.xlabel("Normalized false alarm rate")
+      else:
+         mpl.xlim([0, 1])
+         mpl.xlabel("False alarm rate")
+
+      if self.ylog:
+         mpl.ylabel("Normalized hit rate")
+      else:
+         mpl.ylim([0, 1])
+         mpl.ylabel("Hit rate")
+
+      # Draw the no-skill line. TODO: Do this when only one of the two axes are
+      # logarithmic. In that case the line is curved.
+      if not self.xlog and not self.ylog:
+         mpl.plot([0, 1], [0, 1], color="k")
+         mpl.axis([0, 1, 0, 1])
+         self._plot_perfect_score([0, 0, 1], [0, 1, 1])
+      elif self.xlog and self.ylog:
          q0 = max(abs(xlim[0]), abs(ylim[0]))
          q1 = max(abs(xlim[1]), abs(ylim[1]))
          mpl.plot([-q0, q1], [-q0, q1], 'k--')
-         mpl.xlabel("Normalized false alarm rate")
-         mpl.ylabel("Normalized hit rate")
-      else:
-         mpl.plot([0, 1], [0, 1], color="k")
-         mpl.axis([0, 1, 0, 1])
-         mpl.xlabel("False alarm rate")
-         mpl.ylabel("Hit rate")
-         self._plot_perfect_score([0, 0, 1], [0, 1, 1])
+
       units = " " + data.variable.units
       mpl.title("Threshold: " + str(threshold) + units)
-
-
-class DRocNorm(DRoc):
-   name = "Normalized deterministic ROC diagram"
-   description = "Same as DRoc, except the hit and false alarm rates are transformed using the " \
-            "inverse of the standard normal distribution in order to highlight the extreme " \
-            "values."
-
-   def __init__(self):
-      DRoc.__init__(self, doNorm=True)
 
 
 class DRoc0(DRoc):
