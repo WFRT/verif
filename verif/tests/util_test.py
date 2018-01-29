@@ -117,10 +117,22 @@ class TestGetDate(unittest.TestCase):
 
 
 class TestGetIntervals(unittest.TestCase):
-   def test_get_intervals(self):
+   def test_above(self):
       thresholds = [0, 1, 5]
       intervals = verif.util.get_intervals("above", thresholds)
       self.assertEqual(verif.interval.Interval(0, np.inf, False, False), intervals[0])
+
+   def test_within(self):
+      thresholds = [0, 1, 5]
+      intervals = verif.util.get_intervals("within", thresholds)
+      self.assertEqual(2, len(intervals))
+      self.assertEqual(verif.interval.Interval(0, 1, False, False), intervals[0])
+      self.assertEqual(verif.interval.Interval(1, 5, False, False), intervals[1])
+
+   def test_within_single(self):
+      thresholds = [0]
+      intervals = verif.util.get_intervals("within", thresholds)
+      self.assertEqual(0, len(intervals))
 
 
 class TestAlmostEqual(unittest.TestCase):

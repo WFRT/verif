@@ -437,7 +437,7 @@ class Data(object):
       for i in range(0, self._get_num_inputs_with_clim()):
          if field not in self._get_score_cache[i]:
             input = self._inputs[i]
-            all_fields = input.get_fields() + [verif.field.ObsWindow(), verif.field.FcstWindow()]
+            all_fields = input.get_fields()
             if field not in all_fields:
                verif.util.error("%s does not contain '%s'" %
                      (self.get_names()[i], field.name()))
@@ -473,14 +473,6 @@ class Data(object):
                I = np.where(input.quantiles == field.quantile)[0]
                assert(len(I) == 1)
                temp = input.quantile_scores[:, :, :, I[0]]
-
-            elif field == verif.field.ObsWindow():
-               temp = input.obs[:, :, :]
-               temp = self._calculate_window(temp, input.leadtimes)
-
-            elif field == verif.field.FcstWindow():
-               temp = input.fcst[:, :, :]
-               temp = self._calculate_window(temp, input.leadtimes)
 
             else:
                temp = input.other_score(field.name())

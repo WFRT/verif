@@ -110,22 +110,6 @@ class Spread(Field):
       return "Ensemble spread"
 
 
-class ObsWindow(Field):
-   def label(self, variable):
-      return "%s window" % variable.name
-
-   def units(self, variable):
-      return "h"
-
-
-class FcstWindow(Field):
-   def label(self, variable):
-      return "%s window" % variable.name
-
-   def units(self, variable):
-      return "h"
-
-
 class Other(Field):
    def __init__(self, name):
       self._name = name
