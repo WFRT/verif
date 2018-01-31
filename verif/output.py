@@ -1157,10 +1157,9 @@ class ObsFcst(Output):
             style = self._get_style(f, F, isCont)
             mpl.plot(x, y[:, f + 1], style, color=color, label=labels[f+1], lw=self.lw, ms=self.ms)
          mpl.xlabel(self.axis.label(data.variable))
+         mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
          if self.axis.is_time_like:
             mpl.gca().xaxis_date()
-         else:
-            mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
 
       mpl.ylabel(data.get_variable_and_units())
 

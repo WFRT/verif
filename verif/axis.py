@@ -49,8 +49,7 @@ class Axis(object):
       is_location_like (bool): Does this axis related to the notion of location?
       is_time_like (bool): Does this axis have anything to do with the notion of time?
       formatter (matplotlib.ticker.Formatter): What format should this axis
-         have? Returns an mpl Formatter Note the date formatters are never
-         retrieved from here, since mpl.gca().xaxis_date() is used instead
+         have? Returns an mpl Formatter
    """
    is_continuous = True
    is_location_like = False
@@ -158,7 +157,9 @@ class No(Axis):
 class Year(Axis):
    is_time_like = True
    fmt = "%Y"
-   formatter = matplotlib.dates.DateFormatter('\n%Y')
+
+   def formatter(self, variable):
+      return matplotlib.dates.DateFormatter('\n%Y')
 
    def label(self, variable):
       return "Year"
@@ -172,7 +173,9 @@ class Year(Axis):
 class Month(Axis):
    is_time_like = True
    fmt = "%Y/%m"
-   formatter = matplotlib.dates.DateFormatter('\n%Y-%m')
+
+   def formatter(self, variable):
+      return matplotlib.dates.DateFormatter('%b\n%Y')
 
    def label(self, variable):
       return "Month"
@@ -186,7 +189,9 @@ class Month(Axis):
 class Week(Axis):
    is_time_like = True
    fmt = "%Y/%U"
-   formatter = matplotlib.dates.DateFormatter('\n%Y-%U')
+
+   def formatter(self, variable):
+      return matplotlib.dates.DateFormatter('%Y-%U')
 
    def label(self, variable):
       return "Week"
@@ -221,7 +226,9 @@ class Dayofyear(Axis):
 class Day(Axis):
    is_time_like = True
    fmt = "%Y/%m/%d"
-   formatter = matplotlib.dates.DateFormatter('\n%Y-%m-%d')
+
+   def formatter(self, variable):
+      return matplotlib.dates.DateFormatter('\n%Y-%m-%d')
 
    def label(self, variable):
       return "Day"
