@@ -122,6 +122,11 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithistslope")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithistshape")
 
+   def test_obs_subset(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -r 10")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x threshold")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -r 0,2,10 -x threshold -b within")
+
    def test_plotting_options(self):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 0.1")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 2.1")

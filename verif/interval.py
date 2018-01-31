@@ -57,7 +57,7 @@ class Interval(object):
    def center(self):
       """ float: The center of the interval """
       if self.lower == -np.inf and self.upper == np.inf:
-         return None
+         return 0
       elif self.lower == -np.inf:
          return self.upper
       elif self.upper == np.inf:

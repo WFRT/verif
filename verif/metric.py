@@ -134,7 +134,7 @@ class Metric(object):
    default_axis = verif.axis.Leadtime()  # If no axis is specified, use this axis as default
    default_bin_type = None
    require_threshold_type = None
-   supports_threshold = False
+   supports_threshold = True
    perfect_score = None
    aggregator = verif.aggregator.Mean()
    supports_aggregator = False
@@ -235,9 +235,9 @@ class ObsFcstBased(Metric):
    def compute_single(self, data, input_index, axis, axis_index, interval):
       [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], input_index, axis, axis_index)
       assert(obs.shape[0] == fcst.shape[0])
-      return self.compute_from_obs_fcst(obs, fcst)
+      return self.compute_from_obs_fcst(obs, fcst, interval)
 
-   def compute_from_obs_fcst(self, obs, fcst):
+   def compute_from_obs_fcst(self, obs, fcst, interval=None):
       """ Compute the score using only the observations and forecasts
 
       obs and fcst must have the same length, but may contain nan values
@@ -254,6 +254,13 @@ class ObsFcstBased(Metric):
       I = np.where((np.isnan(obs) | np.isnan(fcst)) == 0)[0]
       obs = obs[I]
       fcst = fcst[I]
+
+      # Keep within interval
+      if interval is not None and (not np.isinf(interval.lower) or not np.isinf(interval.upper)):
+         I = np.where(interval.within(obs))[0]
+         obs = obs[I]
+         fcst = fcst[I]
+
       if obs.shape[0] > 0:
          return self._compute_from_obs_fcst(obs, fcst)
       else:
@@ -310,6 +317,10 @@ class Obs(Metric):
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
       obs = data.get_scores(verif.field.Obs(), input_index, axis, axis_index)
+      if interval is not None and (not np.isinf(interval.lower) or not np.isinf(interval.upper)):
+         I = np.where(interval.within(obs))[0]
+         obs = obs[I]
+
       return self.aggregator(obs)
 
    def label(self, variable):
@@ -324,7 +335,14 @@ class Fcst(Metric):
    orientation = 0
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
-      fcst = data.get_scores(verif.field.Fcst(), input_index, axis, axis_index)
+      if interval is not None and (not np.isinf(interval.lower) or not np.isinf(interval.upper)):
+         # Fetch the observation, since we are conditioning on it
+         obs, fcst = data.get_scores([verif.field.Obs(), verif.field.Fcst()], input_index, axis, axis_index)
+         I = np.where(interval.within(obs))[0]
+         fcst = fcst[I]
+      else:
+         fcst = data.get_scores(verif.field.Fcst(), input_index, axis, axis_index)
+
       return self.aggregator(fcst)
 
    def label(self, variable):
