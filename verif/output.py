@@ -110,6 +110,7 @@ class Output(object):
    default_bin_type = "above"
    require_threshold_type = None
    supports_threshold = True
+   supports_field = False
    supports_acc = False
    # It does not make sense to implement supports_aggregator here, since the
    # it gets complicated when an output uses a metric that may or may not allow
@@ -234,6 +235,10 @@ class Output(object):
       if descs is None:
          if self.axis == verif.axis.Threshold():
             descs = {"Threshold": self.thresholds}
+         elif self.axis == verif.axis.Obs():
+            descs = {"Observed": self.thresholds}
+         elif self.axis == verif.axis.Fcst():
+            descs = {"Forecasted": self.thresholds}
          else:
             descs = data.get_axis_descriptions(self.axis)
       s = ','.join(descs.keys()) + ',' + ','.join(ylabels) + '\n'
@@ -255,7 +260,9 @@ class Output(object):
       # Loop over rows
       for i in range(0, len(x)):
          for w in descs.keys():
-            if isinstance(descs[w][i], basestring):
+            if descs[w] is None:
+               s += "%-*s| " % (desc_lengths[w], "All")
+            elif isinstance(descs[w][i], basestring):
                s += "%-*s| " % (desc_lengths[w], descs[w][i])
             else:
                # Don't use .4g because this will give unnecessary descimals for
@@ -652,6 +659,7 @@ class Standard(Output):
    """
    leg_loc = "best"
    supports_acc = True
+   supports_field = True
 
    def __init__(self, metric):
       """
@@ -680,7 +688,7 @@ class Standard(Output):
 
       intervals = verif.util.get_intervals(self.bin_type, thresholds)
       x = [i.center for i in intervals]
-      if not axis == verif.axis.Threshold():
+      if axis not in [verif.axis.Threshold(), verif.axis.Obs(), verif.axis.Fcst()]:
          x = data.get_axis_values(axis)
       if axis.is_time_like:
          x = [verif.util.unixtime_to_datenum(xx) for xx in x]
@@ -691,7 +699,7 @@ class Standard(Output):
       y = None
       for f in range(0, F):
          yy = np.zeros(len(x), 'float')
-         if axis == verif.axis.Threshold():
+         if axis in [verif.axis.Threshold(), verif.axis.Obs(), verif.axis.Fcst()]:
             for i in range(0, len(intervals)):
                yy[i] = self._metric.compute(data, f, axis, intervals[i])
          else:

@@ -112,6 +112,7 @@ class Metric(object):
       require_threshold_type (str) : What type of thresholds does this metric
          require? One of 'None', 'deterministic', 'threshold', 'quantile'.
       supports_threshold (bool) : Does it make sense to use '-x threshold' with this metric?
+      supports_field (bool) : Does it make sense to use '-x obs' or '-x fcst' with this metric?
       orientation (int): 1 for a positively oriented score (higher values are better),
          -1 for negative, and 0 for all others
       reference (str): A string with an academic reference
@@ -134,7 +135,8 @@ class Metric(object):
    default_axis = verif.axis.Leadtime()  # If no axis is specified, use this axis as default
    default_bin_type = None
    require_threshold_type = None
-   supports_threshold = True
+   supports_threshold = False
+   supports_field = False
    perfect_score = None
    aggregator = verif.aggregator.Mean()
    supports_aggregator = False
@@ -231,10 +233,20 @@ class Metric(object):
 class ObsFcstBased(Metric):
    """ Class for scores that are based on observations and deterministic forecasts only """
    type = verif.metric_type.Deterministic()
+   supports_field = True
 
    def compute_single(self, data, input_index, axis, axis_index, interval):
       [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], input_index, axis, axis_index)
       assert(obs.shape[0] == fcst.shape[0])
+      if axis == verif.axis.Obs():
+          I = np.where(interval.within(obs))
+          obs = obs[I]
+          fcst = fcst[I]
+      elif axis == verif.axis.Fcst():
+          I = np.where(interval.within(fcst))
+          obs = obs[I]
+          fcst = fcst[I]
+
       return self.compute_from_obs_fcst(obs, fcst, interval)
 
    def compute_from_obs_fcst(self, obs, fcst, interval=None):
@@ -255,12 +267,6 @@ class ObsFcstBased(Metric):
       obs = obs[I]
       fcst = fcst[I]
 
-      # Keep within interval
-      if interval is not None and (not np.isinf(interval.lower) or not np.isinf(interval.upper)):
-         I = np.where(interval.within(obs))[0]
-         obs = obs[I]
-         fcst = fcst[I]
-
       if obs.shape[0] > 0:
          return self._compute_from_obs_fcst(obs, fcst)
       else:
@@ -279,6 +285,7 @@ class ObsFcstBased(Metric):
 
 class FromField(Metric):
    supports_aggregator = True
+   supports_field = True
 
    def __init__(self, field, aux=None):
       """ Compute scores from a field
@@ -291,19 +298,34 @@ class FromField(Metric):
       self._field = field
       self._aux = aux
 
-   def compute_single(self, data, input_index, axis, axis_index, tRange):
+   def compute_single(self, data, input_index, axis, axis_index, interval):
+      fields = [self._field]
+      axis_pos = None
+      if axis == verif.axis.Obs():
+         if self._field != verif.field.Obs():
+            fields += [verif.field.Obs()]
+         axis_pos = len(fields) - 1
+      elif axis == verif.axis.Fcst():
+         if self._field != verif.field.Fcst():
+            fields += [verif.field.Fcst()]
+         axis_pos = len(fields) - 1
       if self._aux is not None:
-         [values, aux] = data.get_scores([self._field, self._aux], input_index,
-               axis, axis_index)
-      else:
-         values = data.get_scores(self._field, input_index, axis, axis_index)
+         fields += [self._aux]
+      values_array = data.get_scores(fields, input_index, axis, axis_index)
+      values = values_array[0]
+
+      # Subset if we have a subsetting axis
+      if axis_pos is not None:
+         I = np.where(interval.within(values_array[axis_pos]))[0]
+         values = values[I]
+
       return self.aggregator(values)
 
    def label(self, variable):
       return self.aggregator.name().title() + " of " + self._field.name()
 
 
-class Obs(Metric):
+class Obs(FromField):
    """ Retrives the observation
 
    Note: This cannot be a subclass of ObsFcstBased, since we don't want
@@ -315,35 +337,24 @@ class Obs(Metric):
    supports_aggregator = True
    orientation = 0
 
-   def compute_single(self, data, input_index, axis, axis_index, interval):
-      obs = data.get_scores(verif.field.Obs(), input_index, axis, axis_index)
-      if interval is not None and (not np.isinf(interval.lower) or not np.isinf(interval.upper)):
-         I = np.where(interval.within(obs))[0]
-         obs = obs[I]
+   def __init__(self):
+      super(Obs, self).__init__(verif.field.Obs())
 
-      return self.aggregator(obs)
 
    def label(self, variable):
       return self.aggregator.name().title() + " of observation (" + variable.units + ")"
 
 
-class Fcst(Metric):
+class Fcst(FromField):
    type = verif.metric_type.Deterministic()
    name = "Forecast"
    description = "Forecasted value"
    supports_aggregator = True
    orientation = 0
 
-   def compute_single(self, data, input_index, axis, axis_index, interval):
-      if interval is not None and (not np.isinf(interval.lower) or not np.isinf(interval.upper)):
-         # Fetch the observation, since we are conditioning on it
-         obs, fcst = data.get_scores([verif.field.Obs(), verif.field.Fcst()], input_index, axis, axis_index)
-         I = np.where(interval.within(obs))[0]
-         fcst = fcst[I]
-      else:
-         fcst = data.get_scores(verif.field.Fcst(), input_index, axis, axis_index)
+   def __init__(self):
+      super(Fcst, self).__init__(verif.field.Fcst())
 
-      return self.aggregator(fcst)
 
    def label(self, variable):
       return self.aggregator.name().title() + " of forecast (" + variable.units + ")"

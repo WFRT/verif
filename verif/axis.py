@@ -255,6 +255,22 @@ class Monthofyear(Axis):
       return np.array([datetime.datetime.utcfromtimestamp(i).month for i in times])
 
 
+class Obs(Axis):
+   def formatter(self, variable):
+      return variable.formatter
+
+   def label(self, variable):
+      return "Observed " + variable.name + " (" + variable.units + ")"
+
+
+class Fcst(Axis):
+   def formatter(self, variable):
+      return variable.formatter
+
+   def label(self, variable):
+      return "Observed " + variable.name + " (" + variable.units + ")"
+
+
 class Threshold(Axis):
    def formatter(self, variable):
       return variable.formatter

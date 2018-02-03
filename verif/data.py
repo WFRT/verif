@@ -666,7 +666,7 @@ class Data(object):
          output = array[:, I, :].flatten()
       elif axis.is_location_like:
          output = array[:, :, axis_index].flatten()
-      elif axis == verif.axis.No() or axis == verif.axis.Threshold():
+      elif axis in [verif.axis.No(), verif.axis.Threshold(), verif.axis.Obs(), verif.axis.Fcst()]:
          output = array.flatten()
       elif axis == verif.axis.All() or axis is None:
          output = array

@@ -440,14 +440,20 @@ def run(argv):
 
    # Rest dimension of '-x' is not allowed
    if axis is not None and not pl.supports_x:
-      verif.util.warning(metric + " does not support -x. Ignoring it.")
+      verif.util.warning("'-m %s'" % metric + " does not support '-x'. Ignoring it.")
       axis = None
 
    # Reset dimension if 'threshold' is not allowed
    if axis == verif.axis.Threshold() and ((not pl.supports_threshold) or (m is not None and not m.supports_threshold)):
-      verif.util.warning(metric + " does not support '-x threshold'. Ignoring it.")
+      verif.util.warning("'-m %s'" % metric + " does not support '-x threshold'. Ignoring it.")
       thresholds = None
       axis = None
+   # Reset dimension if 'obs' or 'fcst' is not allowed
+   if axis in [verif.axis.Obs(), verif.axis.Fcst()] and ((not pl.supports_field) or (m is not None and not m.supports_field)):
+      verif.util.warning("'-m %s'" % metric + " does not support '-x %s'. Ignoring it." % axis.name().lower())
+      thresholds = None
+      axis = None
+
 
    # Create thresholds if needed
    if thresholds is None:
