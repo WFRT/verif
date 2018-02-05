@@ -70,7 +70,7 @@ def main():
    vfcst=file.createVariable("fcst", "f4", ("time", "leadtime", "location"))
    vobs=file.createVariable("obs", "f4", ("time", "leadtime", "location"))
    file.Variable = ifile.variable.name
-   file.Units = ifile.variable.units
+   file.units = unit = ifile.variable.units.replace("$", "")
    file.Convensions = "verif_1.0.0"
 
    vobs[:] = obs
