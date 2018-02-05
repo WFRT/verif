@@ -340,7 +340,6 @@ class Obs(FromField):
    def __init__(self):
       super(Obs, self).__init__(verif.field.Obs())
 
-
    def label(self, variable):
       return self.aggregator.name().title() + " of observation (" + variable.units + ")"
 
@@ -354,7 +353,6 @@ class Fcst(FromField):
 
    def __init__(self):
       super(Fcst, self).__init__(verif.field.Fcst())
-
 
    def label(self, variable):
       return self.aggregator.name().title() + " of forecast (" + variable.units + ")"

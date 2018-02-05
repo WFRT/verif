@@ -454,7 +454,6 @@ def run(argv):
       thresholds = None
       axis = None
 
-
    # Create thresholds if needed
    if thresholds is None:
       type = None
