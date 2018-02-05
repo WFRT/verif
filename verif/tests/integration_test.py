@@ -127,6 +127,13 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -x threshold")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -r 0,2,10 -x threshold -b within")
 
+   def test_annotate(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -a")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -a -x location")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -a -type map")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -a")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -a -x location")
+
    def test_plotting_options(self):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 0.1")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 2.1")

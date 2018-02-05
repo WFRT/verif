@@ -71,6 +71,7 @@ def run(argv):
    xlim = None
    ylim = None
    clim = None
+   annotate = False
    xticks = None
    xticklabels = None
    yticks = None
@@ -143,6 +144,8 @@ def run(argv):
             xlog = True
          elif arg == "-ylog":
             ylog = True
+         elif arg == "-a":
+            annotate = True
          elif arg == "-nogrid":
             grid = False
          else:
@@ -557,6 +560,8 @@ def run(argv):
       pl.xlog = xlog
    if ylog is not None:
       pl.ylog = ylog
+   if annotate is not None:
+      pl.annotate = annotate
    pl.grid = grid
    if cmap is not None:
       pl.cmap = cmap
@@ -662,6 +667,7 @@ def show_description(data=None):
 
    # Plot options
    s += verif.util.green("  Plotting options:") + "\n"
+   s += format_argument("-a", "Annotate graph by labeling each data point. Not supported by all metrics.") + "\n"
    s += format_argument("-aspect ratio", "Force the aspect ratio of the plot. A value greater than 1 will stretch out the y-axis.") + "\n"
    s += format_argument("-bottom value", "Bottom boundary location for saved figure [range 0-1]") + "\n"
    s += format_argument("-clabel text", "Custom colorbar label") + "\n"

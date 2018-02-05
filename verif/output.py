@@ -122,6 +122,7 @@ class Output(object):
 
    def __init__(self):
       self.aggregator = verif.aggregator.Mean()
+      self.annotate = False
       self.axis = self.default_axis
       self.bin_type = self.default_bin_type
       self.bottom = None
@@ -591,6 +592,25 @@ class Output(object):
       else:
          mpl.plot(x, y, "o", color="gray", ms=self.ms, label=label,
                zorder=zorder)
+      self._add_annotation(x, y, color="gray")
+
+   def _add_annotation(self, x, y, labels=None, color="k", alpha=1):
+      """
+      Arguments:
+         x (list): x-coordinates
+         y (list): y-coordinates
+         labels (list): Use these labels, otherwise use "x y"
+      """
+      if self.annotate:
+         if len(x) != len(y) or (labels is not None and len(labels) != len(x)):
+            verif.util.error("Cannot add annotation. Missmatch in length of input arrays.")
+         for i in range(len(x)):
+            if not np.isnan(x[i]) and not np.isnan(y[i]):
+               if labels is not None:
+                  label = labels[i]
+               else:
+                  label = "%g %g" % (x[i], y[i])
+               mpl.text(x[i], y[i], label, color=color, alpha=alpha)
 
    def _draw_circle(self, radius, xcenter=0, ycenter=0, maxradius=np.inf,
          style="--", color="k", lw=1, label="", zorder=-100):
@@ -680,7 +700,6 @@ class Standard(Output):
       # Settings
       self._mapLowerPerc = 0    # Lower percentile (%) to show in colourmap
       self._mapUpperPerc = 100  # Upper percentile (%) to show in colourmap
-      self._mapLabelLocations = False  # Show locationIds in map?
       self._minLatLonRange = 0.001  # What is the smallest map size allowed (in degrees)
 
    def _get_x_y(self, data, axis):
@@ -764,6 +783,8 @@ class Standard(Output):
             mpl.plot(x, y[:, id], style, color=color,
                   label=labels[f], lw=self.lw, ms=self.ms,
                   alpha=alpha)
+            self._add_annotation(x, y[:, id], color=color, alpha=alpha)
+
             if self.show_smoothing_line:
                import scipy.ndimage
                I = np.argsort(x)
@@ -1042,12 +1063,10 @@ class Standard(Output):
                cb.set_label(self.clabel, fontsize=self.labfs)
             cb.set_clim(clim)
             mpl.clim(clim)
-         if self._mapLabelLocations:
-            for i in range(0, len(x0)):
-               value = y[i, f]
 
-               if not np.isnan(value):
-                  mpl.text(x0[i], y0[i], "%d" % (ids[i]))
+         # Annotate with location id and the colored value, instead of x and y
+         self._add_annotation(x0, y0, ["%d %g" % (ids[i], y[i, f]) for i in range(len(ids))])
+
          names = data.get_legend()
          if self.title is not None:
             mpl.title(self.title)
@@ -1164,6 +1183,7 @@ class ObsFcst(Output):
             color = self._get_color(f, F)
             style = self._get_style(f, F, isCont)
             mpl.plot(x, y[:, f + 1], style, color=color, label=labels[f+1], lw=self.lw, ms=self.ms)
+            self._add_annotation(x, y[:, f + 1], color=color)
          mpl.xlabel(self.axis.label(data.variable))
          mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
          if self.axis.is_time_like:
