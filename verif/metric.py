@@ -1489,9 +1489,6 @@ class BiasFreq(Contingency):
          return np.nan
       return 1.0 * (a + b) / (a + c)
 
-   def label(self, variable):
-      return "SEDS"
-
 
 class Hss(Contingency):
    max = None
