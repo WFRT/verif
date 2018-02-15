@@ -298,6 +298,9 @@ def clean(data):
       np.array: A numpy array where invalid values have been set to np.nan
 
    """
+   if len(data.shape) == 1 and len(data) == 0:
+      return np.zeros(0)
+
    data = data[:].astype(float)
    q = np.ma.filled(data, fill_value=-999)
    # Remove missing values. Convert to -999 and then back to nan to avoid
