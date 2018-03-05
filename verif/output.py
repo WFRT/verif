@@ -155,7 +155,6 @@ class Output(object):
       self.thresholds = None
       self.tick_font_size = 16
       self.tickfs = 16
-      self.tight = False
       self.title = None
       self.titlefs = 16
       self.top = None
@@ -817,14 +816,6 @@ class Standard(Output):
 
       if not self.show_acc:
          self._set_y_axis_limits(self._metric)
-
-      if self.tight:
-         oldTicks = mpl.gca().get_xticks()
-         diff = oldTicks[1] - oldTicks[0]  # keep auto tick interval
-         tickRange = np.arange(round(np.min(x)), round(np.max(x)) + diff, diff)
-         # make new ticks, to start from the first day of the desired interval
-         mpl.gca().set_xticks(tickRange)
-         mpl.autoscale(enable=True, axis=u'x', tight=True)  # make xaxis tight
 
    def _plot_rank_core(self, data):
       F = data.num_inputs
@@ -1753,50 +1744,35 @@ class TimeSeries(Output):
    def _plot_core(self, data):
       F = data.num_inputs
 
-      # Connect the last leadtime of a day with the first leadtime on the next day
-      # This only makes sense if the obs/fcst don't span more than a day
-      connect = min(data.leadtimes) + 24 > max(data.leadtimes)
-      minLeadtime = min(data.leadtimes)
+      """
+      Draw observation line
 
-      times = data.times
-      dates = [verif.util.unixtime_to_datenum(time) for time in times]
-      # Draw observation line
+      Assemble an observation time series by using all available observations.
+      There are potentially duplicates due to the leadtime dimension
+      """
+      datenums = [verif.util.unixtime_to_datenum(time) for time in data.times]
       if verif.field.Obs() in data.get_fields():
          obs = data.get_scores(verif.field.Obs(), 0)
-         for d in range(0, obs.shape[0]):
-            x = dates[d] + data.leadtimes / 24.0
-            y = verif.util.nanmean(obs[d, :, :], axis=1)
-            if connect and d < obs.shape[0] - 1:
-               obsmean = verif.util.nanmean(obs[d + 1, 0, :], axis=0)
-               x = np.insert(x, x.shape[0], dates[d + 1] + minLeadtime / 24.0)
-               y = np.insert(y, y.shape[0], obsmean)
+         x0, x1 = np.meshgrid(data.leadtimes, data.times)
+         times = x0.flatten() * 3600 + x1.flatten()
+         all_datenums = [verif.util.unixtime_to_datenum(time) for time in times]
+         x, I = np.unique(all_datenums, return_index=True)
+         y = verif.util.nanmean(obs[:, :, :], axis=2).flatten()[I]
+         self._plot_obs(x, y, label="obs")
 
-            if d == 0:
-               xmin = np.min(x)
-            elif d == obs.shape[0] - 1:
-               xmax = np.max(x)
-
-            lab = "obs" if d == 0 else ""
-            mpl.rcParams['ytick.major.pad'] = '20'
-            mpl.rcParams['xtick.major.pad'] = '20'
-            mpl.plot(x, y, ".-", color=[0.3, 0.3, 0.3], lw=5, label=lab)
-
-      # Draw forecast lines
+      """
+      Draw forecast lines: One line per initialization time
+      """
       if verif.field.Fcst() in data.get_fields():
          labels = data.get_legend()
          for f in range(0, F):
             fcst = data.get_scores(verif.field.Fcst(), f)
             color = self._get_color(f, F)
             style = self._get_style(f, F)
-            for d in range(0, len(times)):
-               x = dates[d] + data.leadtimes / 24.0
+            for d in range(0, len(data.times)):
+               x = datenums[d] + data.leadtimes / 24.0
                y = verif.util.nanmean(fcst[d, :, :], axis=1)
-               if connect and d < fcst.shape[0] - 1:
-                  x = np.insert(x, x.shape[0], dates[d + 1] + minLeadtime / 24.0)
-                  y = np.insert(y, y.shape[0], verif.util.nanmean(fcst[d + 1, 0, :]))
                lab = labels[f] if d == 0 else ""
-               mpl.rcParams['ytick.major.pad'] = '20'
-               mpl.rcParams['xtick.major.pad'] = '20'
                mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=lab)
 
       mpl.xlabel(self.axis.label(data.variable))
@@ -1805,14 +1781,6 @@ class TimeSeries(Output):
       else:
          mpl.ylabel(self.ylabel)
       mpl.gca().xaxis_date()
-
-      if self.tight:
-         oldTicks = mpl.gca().get_xticks()
-         diff = oldTicks[1] - oldTicks[0]  # keep auto tick interval
-         tickRange = np.arange(round(xmin), round(xmax) + diff, diff)
-         # make new ticks, to start from the first day of the desired interval
-         mpl.gca().set_xticks(tickRange)
-         mpl.autoscale(enable=True, axis=u'x', tight=True)  # make xaxis tight
 
 
 class Meteo(Output):
