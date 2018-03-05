@@ -287,13 +287,13 @@ def run(argv):
          leg[i] = leg[i].replace('_', ' ')
 
    if lat_range is not None and len(lat_range) != 2:
-      verif.util.error("-lat_range <values> must have exactly 2 values")
+      verif.util.error("-latrange <values> must have exactly 2 values")
 
    if lon_range is not None and len(lon_range) != 2:
-      verif.util.error("-lon_range <values> must have exactly 2 values")
+      verif.util.error("-lonrange <values> must have exactly 2 values")
 
    if elev_range is not None and len(elev_range) != 2:
-      verif.util.error("-elev_range <values> must have exactly 2 values")
+      verif.util.error("-elevrange <values> must have exactly 2 values")
 
    if len(ifiles) > 0:
       inputs = [verif.input.get_input(filename) for filename in ifiles]
