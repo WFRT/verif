@@ -490,7 +490,8 @@ def run(argv):
                fcst = data.get_scores(verif.field.Fcst(), 0)
                smin = min(np.nanmin(fcst), smin)
                smax = max(np.nanmax(fcst), smax)
-            thresholds = np.linspace(smin, smax, 10)
+            num_default_thresholds = 20
+            thresholds = np.linspace(smin, smax, num_default_thresholds)
             verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
          elif type == "threshold":
             thresholds = data.thresholds
