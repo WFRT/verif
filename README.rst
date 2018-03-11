@@ -35,8 +35,10 @@ Features
 * Anomaly statistics relative to a baseline like climatology (``-c climfile.txt``)
 * Output to png, jpeg, eps, etc and specify dimensions and resolution (``-f image.png -dpi 300``)
 
-For a full list of all options, run verif on the command-line without arguments, or check the wiki
-at https://github.com/WFRT/verif/wiki.
+More information
+----------------
+
+For more information on how to use Verif, check out the wiki at https://github.com/WFRT/verif/wiki.
 
 .. image:: image.jpg
     :alt: Example plots
@@ -126,90 +128,8 @@ about the dataset check out the wiki. Here are some example commands to test out
    # Shows Brier skill score as a function of threshold
    verif examples/raw.txt examples/cal.txt -m bss -x threshold
 
-Text-based input
-----------------
-To verify your own forecasts, the easiest option is to put the data into the following format:
-
-.. code-block:: bash
-
-   # variable: Temperature
-   # units: $^oC$
-   date     leadtime location  lat     lon      altitude obs      fcst   p10   q0.1
-   20150101 0        214       49.2    -122.1   92       3.4      2.1    0.914 -1.9
-   20150101 1        214       49.2    -122.1   92       4.7      4.2    0.858 0.1
-   20150101 0        180       50.3    -120.3   150      0.2      -1.2   0.992 -2.1
-
-Any lines starting with '#' can be metadata, currently variable:, units:, x0:, and x1: are
-recognized. These are used in labeling axes. x0 can be specified if the variable has a discrete
-probability mass at the lower boundary (e.g. 0 for precipitation). Use x1 for the upper boundary
-(e.g. 100 % for relative humidity). After that is a header line that must describe the data columns
-below. The following attributes are recognized:
-
-* date (in YYYYMMDD)
-* unixtime (in seconds since 1970-01-01 00:00:00 +00:00)
-* leadtime (forecast lead time in hours)
-* location (station identifier)
-* lat (in degrees)
-* lon (in degrees)
-* obs (observations)
-* fcst (deterministic forecast)
-* p<number> (cumulative probability for a specific threshold, e.g. p10 is the CDF at 10 degrees)
-* q<number> (temperature for a specific quantile e.g. q0.1 is the 0.1 quantile)
-
-Either 'date' or 'unixtime' can be supplied. obs and fcst are the only required columns. Note that
-the file will likely have many rows with repeated values of leadtime/location/lat/lon/altitude. If
-station and lead time information is missing, then Verif assumes they are all for the same
-station and lead time. The columns can be in any order.
-
-Deterministic forecasts will only have "obs" and "fcst", however probabilistic forecasts can provide
-any number of cumulative probabilities. For probabilistic forecasts, "fcst" could represent the
-ensemble mean (or any other method to reduce the ensemble to a deterministic forecast).
-
-For compatibility reason, 'offset' can be used instead of 'leadtime', 'id instead of 'location', and
-'elev' instead of 'altitude'.
-
-NetCDF-based  input
----------------------
-For larger datasets, the files in NetCDF are much quicker to read. The following dimensions,
-variables, and attributes are understood by Verif:
-
-.. code-block:: bash
-
-   netcdf format {
-   dimensions:
-      time = UNLIMITED;
-      leadtime  = 48;
-      location = 10;
-      ensemble = 21;
-      threshold = 11;
-      quantile = 11;
-   variables:
-      int time(time);                                  // Valid time of forecast initialization in
-                                                       // number of seconds since 1970-01-01 00:00:00 +00:00
-      float leadtime(leadtime);                        // Number of hours since forecast init
-      int location(location);                          // Id for each station location
-      float threshold(threshold);
-      float quantile(quantile);                        // Numbers between 0 and 1
-      float lat(location);                             // Decimal degrees latitude
-      float lon(location);                             // Decimal degrees longitude
-      float altitude(location);                        // Altitude in meters
-      float obs(time, leadtime, location);             // Observations
-      float fcst(time, leadtime, location);            // Deterministic forecast
-      float cdf(time, leadtime, location, threshold);  // Accumulated prob at threshold
-      float pdf(time, leadtime, location, threshold);  // Probability density at threshold
-      float x(time, leadtime, location, quantile);     // Threshold corresponding to quantile
-      float pit(time, leadtime, location);             // CDF for threshold=observation
-
-   // global attributes:
-      : long_name = "Precipitation";                   // Used to label axes in plots
-      : standard_name = "precipitation_amount";        // NetCDF/CF standard name of the forecast variable
-      : x0 = 0;                                        // Discrete mass at lower boundary (e.g. 0 mm for precipitation). Omit otherwise.
-      : x1 = 100;                                      // Discrete mass at upper boundary (e.g. 100% for relative humidity). Omit otherwise.
-      : verif_version = "1.0.0";                       // Not required, but will be parsed in the future if format changes
-      }
-
 Copyright and license
 ---------------------
 
-Copyright © 2015-2017 UBC Weather Forecast Research Team. Verif is licensed under the 3-clause
+Copyright © 2015-2018 UBC Weather Forecast Research Team. Verif is licensed under the 3-clause
 BSD license. See LICENSE file.
