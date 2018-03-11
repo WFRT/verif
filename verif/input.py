@@ -296,6 +296,7 @@ class Text(Input):
       self._locations = set()
       self._quantiles = set()
       self._thresholds = set()
+      self._members = set()
       self.obs = None
       self.fcst = None
       self.pit = None
@@ -305,6 +306,7 @@ class Text(Input):
       cdf = dict()
       pit = dict()
       other = dict()
+      ens = dict()
       x = dict()
       indices = dict()
       header = None
@@ -358,6 +360,7 @@ class Text(Input):
                      indices[att] = i
                quantileFields = self._get_quantile_fields(header)
                thresholdFields = self._get_threshold_fields(header)
+               ensFields = self._get_ens_fields(header)
                otherFields = self._get_other_fields(header)
             else:
                if len(row) is not len(header):
@@ -431,6 +434,11 @@ class Text(Input):
                   self._quantiles.add(quantile)
                   key = (unixtime, leadtime, id, lat, lon, elev, quantile)
                   x[key] = self._clean(row[indices[field]])
+               for field in ensFields:
+                  member = float(field[1:])
+                  self._members.add(member)
+                  key = (unixtime, leadtime, id, lat, lon, elev, member)
+                  ens[key] = self._clean(row[indices[field]])
                for field in thresholdFields:
                   threshold = float(field[1:])
                   self._thresholds.add(threshold)
@@ -448,11 +456,13 @@ class Text(Input):
       self._locations = list(self._locations)
       self._quantiles = list(self._quantiles)
       self._thresholds = list(self._thresholds)
+      self._members = sorted(list(self._members))
       Ntimes = len(self._times)
       Nleadtimes = len(self._leadtimes)
       Nlocations = len(self._locations)
       Nquantiles = len(self._quantiles)
       Nthresholds = len(self._thresholds)
+      Nmembers = len(self._members)
 
       # Put the dictionary data into a regular 3D array
       if len(obs) > 0:
@@ -463,6 +473,7 @@ class Text(Input):
          self.pit = np.zeros([Ntimes, Nleadtimes, Nlocations], 'float') * np.nan
       self.threshold_scores = np.zeros([Ntimes, Nleadtimes, Nlocations, Nthresholds], 'float') * np.nan
       self.quantile_scores = np.zeros([Ntimes, Nleadtimes, Nlocations, Nquantiles], 'float') * np.nan
+      self.ensemble = np.zeros([Ntimes, Nleadtimes, Nlocations, Nmembers], 'float') * np.nan
       self._other_scores = dict()
       for field in other.keys():
          self._other_scores[field] = np.zeros([Ntimes, Nleadtimes, Nlocations], 'float') * np.nan
@@ -494,6 +505,11 @@ class Text(Input):
                   tkey = (unixtime, leadtime, id, lat, lon, elev, threshold)
                   if tkey in cdf:
                      self.threshold_scores[d, o, s, t] = cdf[tkey]
+               for e in range(len(self._members)):
+                  member = self._members[e]
+                  ekey = (unixtime, leadtime, id, lat, lon, elev, member)
+                  if ekey in ens:
+                     self.ensemble[d, o, s, e] = ens[ekey]
                for field in other.keys():
                   if key in other[field]:
                      self._other_scores[field][d, o, s] = other[field][key]
@@ -518,6 +534,7 @@ class Text(Input):
       self.leadtimes = np.array(self._leadtimes)
       self.thresholds = np.array(self._thresholds)
       self.quantiles = np.array(self._quantiles)
+      self.members = np.array(self._members)
       self.locations = self._locations
       self.variable = self._get_variable()
 
@@ -555,6 +572,13 @@ class Text(Input):
          if att[0] == "p" and att != "pit":
             thresholds.append(att)
       return thresholds
+
+   def _get_ens_fields(self, fields):
+      members = list()
+      for att in fields:
+         if att[0] == "e" and att != "elev":
+            members.append(att)
+      return members
 
    def _get_other_fields(self, fields):
       other_fields = list()
