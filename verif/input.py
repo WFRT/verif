@@ -280,7 +280,7 @@ class Text(Input):
    "20150101 1        214       49.2    -122.1   92       4.7      4.2    0.858 0.1\n"
    "20150101 0        180       50.3    -120.3   150      0.2      -1.2   0.992 -2.1\n"
    "\n"\
-   "Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD) or unixtime (in seconds since 1970-01-01 00:00:00 +00:00), leadtime (in hours), location (location identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of for example 10), and q<number> (value corresponding to the <number> quantile, e.g. q0.9 for the 90th precentile). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0. If there is conflicting information (for example different lat/lon/altitude for the same id), then the information from the first row containing id will be used. For compatibility reasons, 'offset' can be used instead of 'leadtime', 'id' instead of 'location', and 'elev' instead of 'altitude'."
+   "Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD) or unixtime (in seconds since 1970-01-01 00:00:00 +00:00), leadtime (in hours), location (location identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of for example 10), and q<number> (value corresponding to the <number> quantile, e.g. q0.9 for the 90th precentile). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0. If there is conflicting information (for example different lat/lon/altitude for the same id), then the information from the first row containing id will be used. Missing values can be represented by -999 or any non-numeric string (e.g. NA, nan, etc). For compatibility reasons, 'offset' can be used instead of 'leadtime', 'id' instead of 'location', and 'elev' instead of 'altitude'."
 
    def __init__(self, filename):
       self.fullname = filename
@@ -554,10 +554,13 @@ class Text(Input):
 
    # Parse string into float, changing -999 into np.nan
    def _clean(self, value):
-      fvalue = float(value)
-      if fvalue == -999:
-         fvalue = np.nan
-      return fvalue
+      try:
+         fvalue = float(value)
+         if fvalue == -999:
+            fvalue = np.nan
+         return fvalue
+      except ValueError:
+         return np.nan
 
    def _get_quantile_fields(self, fields):
       quantiles = list()

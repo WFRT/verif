@@ -154,6 +154,25 @@ class InputTextTest(unittest.TestCase):
       with self.assertRaises(SystemExit) as context:
          input = verif.input.Text("verif/tests/files/file1_no_header.txt")
 
+   def test_missing_values(self):
+      # Check NA, na, nan are detected
+      input = verif.input.Text("verif/tests/files/file_missing_values.txt")
+      data = verif.data.Data([input])
+      obs = data.get_scores(verif.field.Obs(), 0)
+      fcst = data.get_scores(verif.field.Fcst(), 0)
+      self.assertEqual(len(data.locations), 1)
+
+      self.assertEqual(obs[0, 0, 0], 3)
+      self.assertEqual(fcst[0, 0, 0], 6)
+
+      self.assertTrue(np.isnan(obs[0, 2, 0]))
+      self.assertEqual(fcst[0, 2, 0], 7)
+
+      self.assertEqual(obs[0, 3, 0], 3)
+      self.assertTrue(np.isnan(fcst[0, 3, 0]))
+
+      self.assertTrue(np.isnan(obs[0, 4, 0]))
+      self.assertTrue(np.isnan(fcst[0, 4, 0]))
 
 if __name__ == '__main__':
    unittest.main()
