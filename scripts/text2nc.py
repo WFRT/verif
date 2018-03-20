@@ -36,7 +36,7 @@ def main():
    vfcst=output.createVariable("fcst", "f4", ("time", "leadtime", "location"))
    vobs=output.createVariable("obs", "f4", ("time", "leadtime", "location"))
    output.standard_name = variable.name
-   output.units = unit = variable.units
+   output.units = unit = variable.units.replace("$", "")
 
    vobs[:] = input.obs
    vfcst[:] = input.fcst
