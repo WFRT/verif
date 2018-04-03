@@ -3312,27 +3312,6 @@ class Impact(Output):
       Ivalid = np.where(np.isnan(contrib) == 0)[0]
       contrib = contrib[Ivalid]
       num = num[Ivalid]
-
-      print type(map)
-      if self.map_type is not None and hasBasemap:
-         x0, y0 = map(lons, lats)
-
-         # Only show labels if specified
-         if self.xlabel is not None:
-            mpl.xlabel(self.xlabel, fontsize=self.labfs)
-         if self.ylabel is not None:
-            mpl.ylabel(self.ylabel, fontsize=self.labfs)
-
-      else:
-         x0 = lons
-         y0 = lats
-
-         # Default to show labels
-         xlabel = ("Longitude" if self.xlabel is None else self.xlabel)
-         ylabel = ("Latitude" if self.ylabel is None else self.ylabel)
-         mpl.xlabel(xlabel, fontsize=self.labfs)
-         mpl.ylabel(ylabel, fontsize=self.labfs)
-
       x0 = x0[Ivalid]
       y0 = y0[Ivalid]
 
@@ -3345,7 +3324,8 @@ class Impact(Output):
       I1 = np.where(contrib > 0)[0]
       map.scatter(x0[I1], y0[I1], s=sizes[I1], color="r", label="%s is worse" % labels[0])
       map.scatter(x0[I0], y0[I0], s=sizes[I0], color="b", label="%s is worse" % labels[1])
-      mpl.legend()
+      if self.legfs > 0:
+         mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
 
       # Annotate with location id and the colored value, instead of x and y
       self._add_annotation(x0, y0, ["%d %g" % (ids[i], contrib[i]) for i in range(len(ids))])
@@ -3353,10 +3333,3 @@ class Impact(Output):
       names = data.get_legend()
       mpl.title(self.title)
       self._adjust_axis(mpl.gca())
-
-   def _legend(self, data, names=None):
-      if self.legfs > 0:
-         if names is None:
-            mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
-         else:
-            mpl.legend(names, loc=self.leg_loc, prop={'size': self.legfs})
