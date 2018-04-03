@@ -950,7 +950,9 @@ class Standard(Output):
 
       # Choose which axes to make plots for
       if self.axis == verif.axis.All():
-         axes = [verif.axis.Month(), verif.axis.Week(), verif.axis.Time(), verif.axis.Location(), verif.axis.Leadtime()]
+         axes = [verif.axis.Month(), verif.axis.Week(), verif.axis.Time(),
+               verif.axis.Location(), verif.axis.Leadtime(),
+               verif.axis.Timeofday()]
       else:
          axes = [self.axis]
 
