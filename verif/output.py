@@ -1788,6 +1788,21 @@ class TimeSeries(Output):
                lab = labels[f] if d == 0 else ""
                mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=lab)
 
+      """
+      Draw probabilistic forecast lines: One line for each quantile specified
+      """
+      if self.quantiles is not None:
+         for quantile in self.quantiles:
+            for f in range(0, F):
+               fcst = data.get_scores(verif.field.Quantile(quantile), f)
+               color = self._get_color(f, F)
+               style = self._get_style(f, F, lineOnly=True)
+               alpha = 1
+               for d in range(0, len(data.times)):
+                  x = datenums[d] + data.leadtimes / 24.0
+                  y = verif.util.nanmean(fcst[d, :, :], axis=1)
+                  mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, alpha=alpha)
+
       mpl.xlabel(self.axis.label(data.variable))
       if self.ylabel is None:
          mpl.ylabel(data.get_variable_and_units())
