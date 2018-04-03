@@ -671,6 +671,134 @@ class Output(object):
       name = cls.__name__
       return name
 
+   def _setup_map(self, data):
+      """
+      Creates a map object
+      """
+      # Use the Basemap package if it is available
+      hasBasemap = True
+      try:
+         import mpl_toolkits.basemap
+      except ImportError:
+         verif.util.warning("Cannot load Basemap package")
+         hasBasemap = False
+
+      lats = np.array([loc.lat for loc in data.locations])
+      lons = np.array([loc.lon for loc in data.locations])
+      ids = np.array([loc.id for loc in data.locations])
+      dlat = max(lats) - min(lats)
+      dlon = max(lons) - min(lons)
+      llcrnrlat = max(-90, min(lats) - dlat / 10)
+      urcrnrlat = min(90, max(lats) + dlat / 10)
+      llcrnrlon = min(lons) - dlon / 10
+      urcrnrlon = max(lons) + dlon / 10
+      if llcrnrlat > urcrnrlat - self._minLatLonRange:
+         llcrnrlat = llcrnrlat - self._minLatLonRange/2.0
+         urcrnrlat = urcrnrlat + self._minLatLonRange/2.0
+      if llcrnrlon > urcrnrlon - self._minLatLonRange:
+         llcrnrlon = llcrnrlon - self._minLatLonRange/2.0
+         urcrnrlon = urcrnrlon + self._minLatLonRange/2.0
+
+      # Check if we are wrapped across the dateline
+      if max(lons) - min(lons) > 180:
+         minEastLon = min(lons[lons > 0])
+         maxWestLon = max(lons[lons < 0])
+         if minEastLon - maxWestLon > 180:
+            llcrnrlon = minEastLon - dlon / 10
+            urcrnrlon = maxWestLon + dlon / 10 + 360
+      if self.xlim is not None:
+         llcrnrlon = self.xlim[0]
+         urcrnrlon = self.xlim[1]
+      if self.ylim is not None:
+         llcrnrlat = self.ylim[0]
+         urcrnrlat = self.ylim[1]
+
+      if self.map_type is not None and hasBasemap:
+         res = verif.util.get_map_resolution(lats, lons)
+         if dlon < 5:
+            dx = 1
+         elif dlon < 90:
+            dx = 5
+         else:
+            dx = 10
+
+         if dlat < 5:
+            dy = 1
+         elif dlat < 90:
+            dy = 5
+         else:
+            dy = 10
+
+         # Default projection
+         lat_0 = None
+         lat_1 = None
+         lat_2 = None
+         lat_ts = None
+         lon_0 = None
+         proj = "cyl"
+         earth_radius = 6370997.0
+
+         # Read projection parameteres if available
+         if self.proj is not None:
+            proj_attributes = verif.util.proj4_string_to_dict(self.proj)
+            lat_0 = proj_attributes.get("+lat_0")
+            lon_0 = proj_attributes.get("+lon_0")
+            lat_1 = proj_attributes.get("+lat_1")
+            lat_2 = proj_attributes.get("+lat_2")
+            lat_ts = proj_attributes.get("+lat_ts")
+            proj = proj_attributes.get("+proj")
+            er = proj_attributes.get("+R")
+            if er is not None:
+               earth_radius = er
+            if proj is None:
+               verif.util.error("Proj string missing a +proj parameter: (%s)" % self.proj)
+         map = mpl_toolkits.basemap.Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
+               urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection=proj,
+               lat_0=lat_0, lon_0=lon_0,
+               lat_1=lat_1, lat_2=lat_2, lat_ts=lat_ts,
+               rsphere=earth_radius,
+               resolution=res, fix_aspect=False)
+         map.drawcoastlines(linewidth=0.25)
+         map.drawcountries(linewidth=0.25)
+         map.drawmapboundary()
+         if self.grid:
+            map.drawparallels(np.arange(-90., 120., dy), labels=[1, 0, 0, 0])
+            map.drawmeridians(np.arange(-180., 420., dx), labels=[0, 0, 0, 1])
+         map.fillcontinents(color=[0.7, 0.7, 0.7], zorder=-1)
+
+         # Only show labels if specified
+         if self.xlabel is not None:
+            mpl.xlabel(self.xlabel, fontsize=self.labfs)
+         if self.ylabel is not None:
+            mpl.ylabel(self.ylabel, fontsize=self.labfs)
+
+         # Draw background map
+         if self.map_type != "simple":
+            if self.map_type == "sat":
+               service = 'ESRI_Imagery_World_2D'
+            elif self.map_type == "topo":
+               service = 'World_Topo_Map'
+            else:
+               service = self.map_type
+            Npixels = 1000
+            map.arcgisimage(service=service, xpixels=Npixels, verbose=True)
+
+         x0, y0 = map(lons, lats)
+      else:
+         # Use matplotlibs plotting functions, if we do not use Basemap
+         map = mpl
+         mpl.xlim([llcrnrlon, urcrnrlon])
+         mpl.ylim([llcrnrlat, urcrnrlat])
+         # Default to show labels
+         xlabel = ("Longitude" if self.xlabel is None else self.xlabel)
+         ylabel = ("Latitude" if self.ylabel is None else self.ylabel)
+         mpl.xlabel(xlabel, fontsize=self.labfs)
+         mpl.ylabel(ylabel, fontsize=self.labfs)
+         x0 = lons
+         y0 = lats
+
+      return map, x0, y0
+
 
 class Standard(Output):
    """
@@ -885,60 +1013,10 @@ class Standard(Output):
          mpl.title(axis.label(data.variable))
 
    def _map_core(self, data):
-      # Use the Basemap package if it is available
-      hasBasemap = True
-      try:
-         import mpl_toolkits.basemap
-      except ImportError:
-         verif.util.warning("Cannot load Basemap package")
-         hasBasemap = False
-
-      labels = data.get_legend()
       F = data.num_inputs
       lats = np.array([loc.lat for loc in data.locations])
       lons = np.array([loc.lon for loc in data.locations])
       ids = np.array([loc.id for loc in data.locations])
-      dlat = max(lats) - min(lats)
-      dlon = max(lons) - min(lons)
-      llcrnrlat = max(-90, min(lats) - dlat / 10)
-      urcrnrlat = min(90, max(lats) + dlat / 10)
-      llcrnrlon = min(lons) - dlon / 10
-      urcrnrlon = max(lons) + dlon / 10
-      if llcrnrlat > urcrnrlat - self._minLatLonRange:
-         llcrnrlat = llcrnrlat - self._minLatLonRange/2.0
-         urcrnrlat = urcrnrlat + self._minLatLonRange/2.0
-      if llcrnrlon > urcrnrlon - self._minLatLonRange:
-         llcrnrlon = llcrnrlon - self._minLatLonRange/2.0
-         urcrnrlon = urcrnrlon + self._minLatLonRange/2.0
-
-      # Check if we are wrapped across the dateline
-      if max(lons) - min(lons) > 180:
-         minEastLon = min(lons[lons > 0])
-         maxWestLon = max(lons[lons < 0])
-         if minEastLon - maxWestLon > 180:
-            llcrnrlon = minEastLon - dlon / 10
-            urcrnrlon = maxWestLon + dlon / 10 + 360
-      if self.xlim is not None:
-         llcrnrlon = self.xlim[0]
-         urcrnrlon = self.xlim[1]
-      if self.ylim is not None:
-         llcrnrlat = self.ylim[0]
-         urcrnrlat = self.ylim[1]
-
-      res = verif.util.get_map_resolution(lats, lons)
-      if dlon < 5:
-         dx = 1
-      elif dlon < 90:
-         dx = 5
-      else:
-         dx = 10
-
-      if dlat < 5:
-         dy = 1
-      elif dlat < 90:
-         dy = 5
-      else:
-         dy = 10
       x, y, _, labels, _ = self._get_x_y(data, verif.axis.Location())
 
       # Colorbar limits should be the same for all subplots
@@ -958,74 +1036,7 @@ class Standard(Output):
          F = 1
       for f in range(0, F):
          verif.util.subplot(f, F)
-         if self.map_type is not None and hasBasemap:
-            # Default projection
-            lat_0 = None
-            lat_1 = None
-            lat_2 = None
-            lat_ts = None
-            lon_0 = None
-            proj = "cyl"
-            earth_radius = 6370997.0
-
-            # Read projection parameteres if available
-            if self.proj is not None:
-               proj_attributes = verif.util.proj4_string_to_dict(self.proj)
-               lat_0 = proj_attributes.get("+lat_0")
-               lon_0 = proj_attributes.get("+lon_0")
-               lat_1 = proj_attributes.get("+lat_1")
-               lat_2 = proj_attributes.get("+lat_2")
-               lat_ts = proj_attributes.get("+lat_ts")
-               proj = proj_attributes.get("+proj")
-               er = proj_attributes.get("+R")
-               if er is not None:
-                  earth_radius = er
-               if proj is None:
-                  verif.util.error("Proj string missing a +proj parameter: (%s)" % self.proj)
-            map = mpl_toolkits.basemap.Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
-                  urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection=proj,
-                  lat_0=lat_0, lon_0=lon_0,
-                  lat_1=lat_1, lat_2=lat_2, lat_ts=lat_ts,
-                  rsphere=earth_radius,
-                  resolution=res, fix_aspect=False)
-            map.drawcoastlines(linewidth=0.25)
-            map.drawcountries(linewidth=0.25)
-            map.drawmapboundary()
-            if self.grid:
-               map.drawparallels(np.arange(-90., 120., dy), labels=[1, 0, 0, 0])
-               map.drawmeridians(np.arange(-180., 420., dx), labels=[0, 0, 0, 1])
-            map.fillcontinents(color=[0.7, 0.7, 0.7], zorder=-1)
-            x0, y0 = map(lons, lats)
-
-            # Only show labels if specified
-            if self.xlabel is not None:
-               mpl.xlabel(self.xlabel, fontsize=self.labfs)
-            if self.ylabel is not None:
-               mpl.ylabel(self.ylabel, fontsize=self.labfs)
-
-            # Draw background map
-            if self.map_type != "simple":
-               if self.map_type == "sat":
-                  service = 'ESRI_Imagery_World_2D'
-               elif self.map_type == "topo":
-                  service = 'World_Topo_Map'
-               else:
-                  service = self.map_type
-               Npixels = 1000
-               map.arcgisimage(service=service, xpixels=Npixels, verbose=True)
-         else:
-            # Use matplotlibs plotting functions, if we do not use Basemap
-            map = mpl
-            x0 = lons
-            y0 = lats
-            mpl.xlim([llcrnrlon, urcrnrlon])
-            mpl.ylim([llcrnrlat, urcrnrlat])
-
-            # Default to show labels
-            xlabel = ("Longitude" if self.xlabel is None else self.xlabel)
-            ylabel = ("Latitude" if self.ylabel is None else self.ylabel)
-            mpl.xlabel(xlabel, fontsize=self.labfs)
-            mpl.ylabel(ylabel, fontsize=self.labfs)
+         map, x0, y0 = self._setup_map(data)
          I = np.where(np.isnan(y[:, f]))[0]
          if self.show_missing:
             map.plot(x0[I], y0[I], 'kx')
@@ -3062,7 +3073,6 @@ class Impact(Output):
    _show_numbers = False  # Draw a black circle around each point to show number of datapoints
    _prob = False
 
-
    def __init__(self):
       Output.__init__(self)
       self._mapLowerPerc = 0    # Lower percentile (%) to show in colourmap
@@ -3249,7 +3259,83 @@ class Impact(Output):
       mpl.ylabel("%s (%s)" % (labels[1], units), color="b")
 
       self._plot_perfect_diagonal(always_show=1, label="")
-      mpl.gca().set_aspect(1)
+
+   def _map_core(self, data):
+      if data.num_inputs != 2:
+         verif.util.error("Impact plot requires exactly 2 files")
+
+      map, x0, y0 = self._setup_map(data)
+      lats = np.array([loc.lat for loc in data.locations])
+      lons = np.array([loc.lon for loc in data.locations])
+      ids = np.array([loc.id for loc in data.locations])
+      labels = data.get_legend()
+
+      thresholds = self.thresholds
+      edges = self.thresholds
+      intervals = verif.util.get_intervals(self.bin_type, thresholds)
+
+      # Show which forecast is better
+      fcstField = verif.field.Fcst()
+      p = 0.5
+      if self._prob:
+         fcstField = verif.field.Quantile(p)
+      obsx, x = data.get_scores([verif.field.Obs(), fcstField], 0)
+      obsy, y = data.get_scores([verif.field.Obs(), fcstField], 1)
+
+      XX = np.array([loc.lon for loc in data.locations])
+      YY = np.array([loc.lat for loc in data.locations])
+      obs = obsx
+      if self._prob:
+         obs = obs <= p
+      error_x = abs(x - obs)
+      error_y = abs(y - obs)
+      contrib = np.array([np.nansum(error_x[:, :, l] - error_y[:, :, l]) for l in range(error_x.shape[2])])
+      num = np.array([np.nansum(np.isnan(error_x[:, :, l]*error_y[:, :, l]) == 0) for l in range(error_x.shape[2])])
+
+      Ivalid = np.where(np.isnan(contrib) == 0)[0]
+      contrib = contrib[Ivalid]
+      num = num[Ivalid]
+
+      print type(map)
+      if self.map_type is not None and hasBasemap:
+         x0, y0 = map(lons, lats)
+
+         # Only show labels if specified
+         if self.xlabel is not None:
+            mpl.xlabel(self.xlabel, fontsize=self.labfs)
+         if self.ylabel is not None:
+            mpl.ylabel(self.ylabel, fontsize=self.labfs)
+
+      else:
+         x0 = lons
+         y0 = lats
+
+         # Default to show labels
+         xlabel = ("Longitude" if self.xlabel is None else self.xlabel)
+         ylabel = ("Latitude" if self.ylabel is None else self.ylabel)
+         mpl.xlabel(xlabel, fontsize=self.labfs)
+         mpl.ylabel(ylabel, fontsize=self.labfs)
+
+      x0 = x0[Ivalid]
+      y0 = y0[Ivalid]
+
+      contrib = contrib / num
+      # contrib[num < 30] = np.nan
+      s = self.ms*self.ms
+      size_scale = 400/np.nanmax(abs(contrib)) * (self.ms / 8.0)**2
+      sizes = abs(contrib) * size_scale
+      I0 = np.where(contrib < 0)[0]
+      I1 = np.where(contrib > 0)[0]
+      map.scatter(x0[I1], y0[I1], s=sizes[I1], color="r", label="%s is worse" % labels[0])
+      map.scatter(x0[I0], y0[I0], s=sizes[I0], color="b", label="%s is worse" % labels[1])
+      mpl.legend()
+
+      # Annotate with location id and the colored value, instead of x and y
+      self._add_annotation(x0, y0, ["%d %g" % (ids[i], contrib[i]) for i in range(len(ids))])
+
+      names = data.get_legend()
+      mpl.title(self.title)
+      self._adjust_axis(mpl.gca())
 
    def _legend(self, data, names=None):
       if self.legfs > 0:
