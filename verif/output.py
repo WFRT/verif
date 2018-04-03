@@ -3055,27 +3055,24 @@ class InvReliability(Output):
 class Impact(Output):
    name = "Impact diagram"
    description = "For two inputs, shows for what forecast values the difference in squared error comes from"
-   default_axis = verif.axis.No()
-   supports_threshold = False
+   default_axis = verif.axis.Threshold()
+   supports_threshold = True
    require_threshold_type = "deterministic"
    supports_x = False
-   _showNumbers = False
+   _show_numbers = False  # Draw a black circle around each point to show number of datapoints
    _prob = False
 
-   def _show_marginal(self):
-      return not self.simple
 
-   def _plot_core(self, data):
-      F = data.num_inputs
-      units = data.variable.units
-      if F != 2:
-         verif.util.error("Impact plot requires exactly 2 files")
+   def __init__(self):
+      Output.__init__(self)
+      self._mapLowerPerc = 0    # Lower percentile (%) to show in colourmap
+      self._mapUpperPerc = 100  # Upper percentile (%) to show in colourmap
+      self._minLatLonRange = 0.001  # What is the smallest map size allowed (in degrees)
 
-      if self.thresholds is None or len(self.thresholds) < 2:
-         verif.util.error("Impact plot needs at least two thresholds (use -r)")
-
-      labels = data.get_legend()
+   def _get_x_y0(self, data, axis):
+      thresholds = self.thresholds
       edges = self.thresholds
+      intervals = verif.util.get_intervals(self.bin_type, thresholds)
 
       # Show which forecast is better
       fcstField = verif.field.Fcst()
@@ -3084,14 +3081,82 @@ class Impact(Output):
          fcstField = verif.field.Quantile(p)
       [obsx, x] = data.get_scores([verif.field.Obs(), fcstField], 0)
       [obsy, y] = data.get_scores([verif.field.Obs(), fcstField], 1)
+      if axis == verif.axis.Location():
+         XX = np.array([loc.lon for loc in data.locations])
+         YY = np.array([loc.lat for loc in data.locations])
+         obs = obsx
+         if self._prob:
+            obs = obs <= p
+         error_x = abs(x - obs)
+         error_y = abs(y - obs)
+         contrib = np.array([np.nanmean(error_x[:, :, l]) for l in range(error_x.shape[2])])
+         contrib = np.array([np.nansum(error_x[:, :, l] - error_y[:, :, l]) for l in range(error_x.shape[2])])
+         num = np.array([np.nansum(np.isnan(error_x[:, :, l]*error_y[:, :, l]) == 0) for l in range(error_x.shape[2])])
+      else:
+         x = x.flatten()
+         y = y.flatten()
+         obs = obsx.flatten()
+         if self._prob:
+            obs = obs <= p
+
+         w = (edges[1]-edges[0])/2
+         centres = (edges[1:] + edges[0:-1]) / 2
+         error_x = abs(x - obs)**2
+         error_y = abs(y - obs)**2
+
+         XX = np.repeat(centres, len(centres))
+         YY = np.tile(centres, len(centres))
+
+         xname = axis.name()
+         ynames = data.get_legend()
+         contrib = np.zeros([len(XX)], float)
+         num = np.zeros([len(XX)], float)
+         for e in range(0, len(XX)):
+            I = np.where((x > XX[e] - w) & (x <= XX[e] + w) &
+                         (y > YY[e] - w) & (y <= YY[e] + w))[0]
+            if len(I) > 0:
+               contrib[e] = np.nansum(error_x[I] - error_y[I])
+               num[e] = len(I)
+      return XX, YY, contrib, num
+
+   def _show_marginal(self):
+      return not self.simple
+
+   def _plot_core(self, data):
+      if data.num_inputs != 2:
+         verif.util.error("Impact plot requires exactly 2 files")
+
+      if self.thresholds is None or len(self.thresholds) < 2:
+         verif.util.error("Impact plot needs at least two thresholds (use -r)")
+
+      edges = self.thresholds
+      width = (edges[1]-edges[0])/2
+      centres = (edges[1:] + edges[0:-1]) / 2
+
+      """
+      Compute MAE contingency table. Compute the errors of each input
+      conditioned on what each input forecasted.
+
+      XX[i], YY[i], contrib[i]: The error impact contribution (MAE[1] - MAE[0])
+      for cases where input 0 forecasted a value of XX[i] and input 1
+      forecasted a values of YY[i].
+      """
+      fcstField = verif.field.Fcst()
+      p = 0.5
+      if self._prob:
+         fcstField = verif.field.Quantile(p)
+      obsx, x = data.get_scores([verif.field.Obs(), fcstField], 0)
+      obsy, y = data.get_scores([verif.field.Obs(), fcstField], 1)
       x = x.flatten()
       y = y.flatten()
       obs = obsx.flatten()
       if self._prob:
          obs = obs <= p
+      Ivalid = np.where((np.isnan(x) == 0) & (np.isnan(y) == 0) & (np.isnan(obs) == 0))[0]
+      x = x[Ivalid]
+      y = y[Ivalid]
+      obs = obs[Ivalid]
 
-      w = (edges[1]-edges[0])/2
-      centres = (edges[1:] + edges[0:-1]) / 2
       error_x = abs(x - obs)**2
       error_y = abs(y - obs)**2
 
@@ -3101,74 +3166,88 @@ class Impact(Output):
       num = np.zeros([len(XX)], float)
 
       for e in range(0, len(XX)):
-         I = np.where((x > XX[e] - w) & (x <= XX[e] + w) &
-                      (y > YY[e] - w) & (y <= YY[e] + w))[0]
+         I = np.where((x > XX[e] - width) & (x <= XX[e] + width) &
+                      (y > YY[e] - width) & (y <= YY[e] + width))[0]
          if len(I) > 0:
             contrib[e] = np.nansum(error_x[I] - error_y[I])
             num[e] = len(I)
 
+      """
+      Plot impact circles
+      """
+      labels = data.get_legend()
       if np.max(contrib**2) > 0:
          I0 = np.where(contrib < 0)[0]
          I1 = np.where(contrib > 0)[0]
          # Compute size (scatter wants area) of marker. Scale using self.ms.
-         S = 400/np.max(contrib**2) * (self.ms / 8.0)**2
-         mpl.scatter(XX[I1], YY[I1], s=abs(contrib[I1]**2)*S,
-               color="red", label="%s is worse" % labels[0])
-         mpl.scatter(XX[I0], YY[I0], s=abs(contrib[I0]**2)*S,
-               color="blue", label="%s is worse" % labels[1])
-         if self._showNumbers:
-            Snum = 400/np.max(num**2)
-            mpl.scatter(XX, YY, s=abs(num**2) * Snum, edgecolor="k",
-                  color=[1, 1, 1, 0], lw=1, zorder=100)
+         # The area of the dots should be proportional to the contribution
+         size_scale = 400/np.nanmax(abs(contrib)) * (self.ms / 8.0)**2
+         sizes = abs(contrib) * size_scale
+         mpl.scatter(XX[I1], YY[I1], s=sizes[I1], color="r", label="%s is worse" % labels[0])
+         mpl.scatter(XX[I0], YY[I0], s=sizes[I0], color="b", label="%s is worse" % labels[1])
+         if self._show_numbers:
+            size_scale_num = 400/np.max(num)
+            sizes = abs(num) * size_scale_num
+            mpl.scatter(XX, YY, s=sizes, edgecolor="k", color=[1, 1, 1, 0], lw=1, zorder=100)
       else:
          verif.util.warning("The error statistics are the same, no impact")
-      xlim = mpl.xlim()
-      ylim = mpl.ylim()
-      lower = min(xlim[0], ylim[0])
-      upper = max(xlim[1], ylim[1])
-      mpl.xlim([lower, upper])
-      mpl.ylim([lower, upper])
 
+      """
+      Use equal axis limits for x and y, unless they are overriden by user
+      """
+      if self.xlim is None and self.ylim is None:
+         lim = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
+         mpl.xlim(lim)
+         mpl.ylim(lim)
+      else:
+         mpl.xlim(self.xlim)
+         mpl.ylim(self.ylim)
+      mpl.gca().set_aspect(1)
+
+      """
+      Plot bar-graph marginals along the x and y axes
+      """
       if self._show_marginal():
          contribx = np.zeros([len(centres)], float)
          contriby = np.zeros([len(centres)], float)
          for e in range(0, len(centres)):
-            I = np.where((x > centres[e] - w) & (x <= centres[e] + w))[0]
+            I = np.where((x > centres[e] - width) & (x <= centres[e] + width))[0]
             contribx[e] = np.nansum(error_x[I] - error_y[I])
-            I = np.where((y > centres[e] - w) & (y <= centres[e] + w))[0]
+            I = np.where((y > centres[e] - width) & (y <= centres[e] + width))[0]
             contriby[e] = np.nansum(error_x[I] - error_y[I])
-         dw = w
 
          """ Scale the bars so they at most occupy 10% of the width/height of the plot """
          largest_contrib = max(np.nanmax(np.abs(contribx)), np.nanmax(np.abs(contriby)))
          scale = (np.nanmax(centres) - np.nanmin(centres))/largest_contrib/10
 
+         # X-axis bars
+         ymin = mpl.ylim()[0]
          I1 = np.where(contribx > 0)[0]
          I0 = np.where(contribx < 0)[0]
-         mpl.bar(centres[I1]-dw/2, contribx[I1]*scale, width=dw, bottom=lower,
-               zorder=-1001,
-               color="red", edgecolor="red")
-         mpl.bar(centres[I0]-dw/2, -contribx[I0]*scale, width=dw, bottom=lower,
-               zorder=-1001,
-               color="blue", edgecolor="blue")
+         mpl.bar(centres[I1] - width/2, contribx[I1]*scale, width=width, bottom=ymin,
+               zorder=-1,
+               color="r", edgecolor="r")
+         mpl.bar(centres[I0] - width/2, -contribx[I0]*scale, width=width, bottom=ymin,
+               zorder=-1,
+               color="b", edgecolor="b")
          I1 = np.where(contriby > 0)[0]
          I0 = np.where(contriby < 0)[0]
-         mpl.bar(lower*np.ones(len(I1)), np.ones(len(I1))*dw, contriby[I1]*scale,
-               centres[I1]-dw/2,
-               zorder=-1001,
-               color="red", edgecolor="red")
-         mpl.bar(lower*np.ones(len(I0)), np.ones(len(I0))*dw, -contriby[I0]*scale,
-               centres[I0]-dw/2,
-               zorder=-1001,
-               color="blue", edgecolor="blue")
 
+         # Y-axis bars
+         xmin = mpl.xlim()[0]
+         mpl.bar(xmin*np.ones(len(I1)), np.ones(len(I1))*width, contriby[I1]*scale,
+               centres[I1] - width/2,
+               zorder=-1,
+               color="r", edgecolor="r")
+         mpl.bar(xmin*np.ones(len(I0)), np.ones(len(I0))*width, -contriby[I0]*scale,
+               centres[I0] - width/2,
+               zorder=-1,
+               color="b", edgecolor="b")
+
+      units = data.variable.units
       mpl.xlabel("%s (%s)" % (labels[0], units), color="r")
       mpl.ylabel("%s (%s)" % (labels[1], units), color="b")
 
-      # Draw diagonal
-      lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
-      mpl.xlim(lims)
-      mpl.ylim(lims)
       self._plot_perfect_diagonal(always_show=1, label="")
       mpl.gca().set_aspect(1)
 
