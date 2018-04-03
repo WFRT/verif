@@ -23,6 +23,7 @@ for i in range(0, len(lines)):
 
 metrics = verif.metric.get_all()
 outputs = verif.output.get_all()
+aggregators = [agg.name() for agg in verif.aggregator.get_all()]
 metricOutputs = metrics + outputs
 metricOutputs.sort(key=lambda x: x[0].lower(), reverse=False)
 
@@ -55,6 +56,10 @@ print "' -- $cur ) )"
 print 'elif [ "$prev" = "-cmap" ]; then'
 print "   COMPREPLY=( $( compgen -W '",
 print ' '.join(mpl.cm.cmap_d.keys()),
+print "' -- $cur ) )"
+print 'elif [ "$prev" = "-agg" ]; then'
+print "   COMPREPLY=( $( compgen -W '",
+print ' '.join(aggregators),
 print "' -- $cur ) )"
 print 'fi'
 print 'return 0'
