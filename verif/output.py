@@ -495,12 +495,15 @@ class Output(object):
          else:
             mpl.legend(names, loc=self.leg_loc, prop={'size': self.legfs})
 
+   """ Set axis limits based on metric """
    def _set_y_axis_limits(self, metric):
       currYlim = mpl.ylim()
       ylim = [metric.min, metric.max]
-      if ylim[0] is None:
+
+      # Don't try to set the axes limit to 0 if using a log axis
+      if ylim[0] is None or (self.ylog and metric.min <= 0):
          ylim[0] = currYlim[0]
-      if ylim[1] is None:
+      if ylim[1] is None or (self.ylog and metric.max <= 0):
          ylim[1] = currYlim[1]
       mpl.ylim(ylim)
 
