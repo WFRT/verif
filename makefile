@@ -40,4 +40,4 @@ count:
 	@wc -l verif/*.py | tail -1
 
 other/verif.sh:
-	python other/create_bash_completion.py > verif.sh
+	python other/create_bash_completion.py > other/verif.sh
