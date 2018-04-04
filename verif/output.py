@@ -1427,16 +1427,16 @@ class Fss(Output):
    supports_threshold = True
    supports_x = False
    name = "Fractions skill score"
-   description = "Fractions skill score"
+   description = "Plots the fractions skill score for different spatial scales.  Use -r to specify a threshold and -b to define the event."
 
    def __init__(self):
       Output.__init__(self)
       self._min_num = 3
-      self.scales = np.array([2, 4, 8, 16, 32, 64, 128])
+      self.scales = np.array([2, 4, 8, 16, 32, 64, 128, 256, 512, 1024])
 
    def _get_x_y(self, data, axis=None):
       if self.thresholds is None or len(self.thresholds) != 1:
-         verif.util.error("Reliability plot needs a single threshold (use -r)")
+         verif.util.error("Fractions skill score plot needs a single threshold (use -r)")
       if re.compile(".*within.*").match(self.bin_type):
          verif.util.error("A 'within' bin type cannot be used in this diagram")
 
@@ -1452,7 +1452,7 @@ class Fss(Output):
          The fractions skill score is computed for different spatial scales.
          For each scale, find a set of locations that are spaced close enough
          together and compute the fraction of observations and forecasts with
-         precip. From these fractions compute the Brier Score.
+         precip. From these fractions compute the Brier skill score.
          """
          [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
          obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
@@ -1477,7 +1477,7 @@ class Fss(Output):
                mean_obs = sum_obs / count
                unc = mean_obs * (1 - mean_obs)
 
-               # Compute Brier score
+               # Compute Brier skill score
                y[i, f] = (unc - np.mean(np.array(bs))) / unc
 
       xname = "Spatial scale (km)"
