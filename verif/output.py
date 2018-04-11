@@ -525,20 +525,6 @@ class Output(object):
       if self.aspect is not None:
          ax.set_aspect(self.aspect)
 
-      if self.xlim is not None:
-         xlim = self.xlim
-         # Convert date to datetime objects
-         if self.axis.is_time_like:
-            xlim = [verif.util.date_to_datenum(lim) for lim in xlim]
-         ax.set_xlim(xlim)
-      if self.ylim is not None:
-         ax.set_ylim(self.ylim)
-      if not self.skip_log:
-         if self.xlog:
-            ax.set_xscale('log')
-         if self.ylog:
-            ax.set_yscale('log')
-
       if self.grid:
          ax.grid('on')
 
@@ -576,6 +562,24 @@ class Output(object):
          ax.set_yticks(self.yticks)
       if self.yticklabels is not None:
          ax.set_yticklabels(self.yticklabels)
+
+      # X-axis limits
+      if self.xlim is not None:
+         xlim = self.xlim
+         # Convert date to datetime objects
+         if self.axis.is_time_like:
+            xlim = [verif.util.date_to_datenum(lim) for lim in xlim]
+         ax.set_xlim(xlim)
+
+      # Y-axis limits
+      if self.ylim is not None:
+         ax.set_ylim(self.ylim)
+      if not self.skip_log:
+         if self.xlog:
+            ax.set_xscale('log')
+         if self.ylog:
+            ax.set_yscale('log')
+
 
    def _adjust_axes(self, data):
       """
