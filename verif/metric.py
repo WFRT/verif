@@ -543,12 +543,16 @@ class Mbias(ObsFcstBased):
    name = "Multiplicative bias"
    description = "Multiplicative bias (fcst/obs)"
    perfect_score = 1
+   supports_aggregator = True
    orientation = 0
 
    def _compute_from_obs_fcst(self, obs, fcst):
-      if np.mean(obs) == 0:
+      num = self.aggregator(fcst)
+      denum = self.aggregator(obs)
+
+      if denum == 0:
          return np.nan
-      return np.mean(fcst) / np.mean(obs)
+      return num / denum
 
    def label(self, variable):
       return self.description
