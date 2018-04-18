@@ -1218,8 +1218,13 @@ class ObsFcst(Output):
       labels = data.get_legend()
       y = np.zeros([len(x), F + 1], float)
       y[:, 0] = obs
+      if sum(np.isnan(obs)) == len(obs):
+         verif.util.warning("No valid observations")
       for f in range(0, F):
-         y[:, f + 1] = mFcst.compute(data, f, self.axis, None)
+         yy = mFcst.compute(data, f, self.axis, None)
+         if sum(np.isnan(yy)) == len(yy):
+            verif.util.warning("No valid scores for " + labels[f])
+         y[:, f + 1] = yy
 
       labels = ["obs"] + labels
       return x, y, axis.name(), labels, None
