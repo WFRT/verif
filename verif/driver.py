@@ -24,6 +24,7 @@ def run(argv):
    lat_range = None
    lon_range = None
    elev_range = None
+   obs_range = None
    thresholds = None
    quantiles = None
    clim_file = None
@@ -164,6 +165,8 @@ def run(argv):
                lon_range = verif.util.parse_numbers(arg_next)
             elif arg == "-elevrange":
                elev_range = verif.util.parse_numbers(arg_next)
+            elif arg == "-obsrange":
+               obs_range = verif.util.parse_numbers(arg_next)
             elif arg == "-x":
                axisname = arg_next
                axis = verif.axis.get(axisname)
@@ -295,13 +298,16 @@ def run(argv):
    if elev_range is not None and len(elev_range) != 2:
       verif.util.error("-elevrange <values> must have exactly 2 values")
 
+   if obs_range is not None and len(obs_range) != 2:
+      verif.util.error("-obsrange <values> must have exactly 2 values")
+
    if len(ifiles) > 0:
       inputs = [verif.input.get_input(filename) for filename in ifiles]
       data = verif.data.Data(inputs, clim=clim_file, clim_type=clim_type,
             times=times, dates=dates, tods=tods, leadtimes=leadtimes, locations=locations,
             locations_x=locations_x,
             lat_range=lat_range, lon_range=lon_range, elev_range=elev_range,
-            legend=leg, obs_field=obs_field, fcst_field=fcst_field)
+            obs_range=obs_range, legend=leg, obs_field=obs_field, fcst_field=fcst_field)
    else:
       data = None
 
