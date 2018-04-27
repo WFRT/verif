@@ -38,7 +38,7 @@ class Data(object):
    """
    def __init__(self, inputs, times=None, dates=None, tods=None, leadtimes=None, locations=None, locations_x=None,
          lat_range=None, lon_range=None, elev_range=None, clim=None, clim_type="subtract",
-         legend=None, remove_missing_across_all=True,
+         obs_range=None, legend=None, remove_missing_across_all=True,
          obs_field=verif.field.Obs(),
          fcst_field=verif.field.Fcst()):
 
@@ -71,6 +71,8 @@ class Data(object):
 
       self._obs_field = obs_field
       self._fcst_field = fcst_field
+
+      self._obs_range = obs_range
 
       # Organize inputs
       self._inputs = list()
@@ -255,6 +257,13 @@ class Data(object):
       for i in range(0, len(fields)):
          field = fields[i]
          temp = self._get_score(field, input_index)
+
+         # Remove observations outside the obsrange
+         if self._obs_range is not None and field == verif.field.Obs():
+            with np.errstate(invalid='ignore'):
+               temp[temp < self._obs_range[0]] = np.nan
+               temp[temp > self._obs_range[1]] = np.nan
+
          curr = self._apply_axis(temp, axis, axis_index)
 
          # Subtract climatology

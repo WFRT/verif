@@ -91,6 +91,24 @@ class TestData(unittest.TestCase):
       self.assertTrue(1 in [loc.id for loc in data.locations])
       self.assertTrue(2 in [loc.id for loc in data.locations])
 
+   def test_obsrange(self):
+      inputs = [verif.input.Text("verif/tests/files/file1.txt"), verif.input.Text("verif/tests/files/file3.txt")]
+      data = verif.data.Data(inputs=inputs, obs_range=[0, 3.5])
+
+      fields = [verif.field.Obs(), verif.field.Fcst()]
+      axis = verif.axis.Time()
+
+      [obs, fcst] = data.get_scores(fields, 0, axis, 0)
+      self.assertEqual(6, fcst[0])  # Offset 0
+      self.assertEqual(7, fcst[1])  # Offset 12
+      self.assertEqual(3, obs[0])
+      self.assertEqual(2, obs[1])
+      # 20120102: (missing obs at leadtime 12)
+      [obs, fcst] = data.get_scores(fields, 0, axis, 1)
+      self.assertEqual(1, fcst.shape[0])
+      self.assertEqual(6, fcst[0])
+      self.assertEqual(1, obs[0])
+
    def test_dayofyear(self):
       inputs = [verif.input.get_input("verif/tests/files/file1.txt")]
       data = verif.data.Data(inputs=inputs)
