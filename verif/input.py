@@ -565,21 +565,21 @@ class Text(Input):
    def _get_quantile_fields(self, fields):
       quantiles = list()
       for att in fields:
-         if att[0] == "q":
+         if att[0] == "q" and verif.util.is_number(att[1:]):
             quantiles.append(att)
       return quantiles
 
    def _get_threshold_fields(self, fields):
       thresholds = list()
       for att in fields:
-         if att[0] == "p" and att != "pit":
+         if att[0] == "p" and att != "pit" and verif.util.is_number(att[1:]):
             thresholds.append(att)
       return thresholds
 
    def _get_ens_fields(self, fields):
       members = list()
       for att in fields:
-         if att[0] == "e" and att != "elev":
+         if att[0] == "e" and att != "elev" and verif.util.is_number(att[1:]):
             members.append(att)
       return members
 
@@ -587,7 +587,7 @@ class Text(Input):
       other_fields = list()
       for att in fields:
          if att not in self.get_regular_names():
-            if len(att) > 1 and (att[0] == "q" or att[0] == "p"):
+            if len(att) > 1 and (att[0] == "q" or att[0] == "p" or att[0] == "e"):
                if verif.util.is_number(att[1:]):
                   continue
             other_fields.append(att)

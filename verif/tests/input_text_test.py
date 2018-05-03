@@ -90,6 +90,10 @@ class InputTextTest(unittest.TestCase):
       data = verif.data.Data(inputs=[verif.input.Text("verif/tests/files/fileNoLat.txt")])
       self.assertEqual(2, len(data.locations))
 
+   def test_odd_header_names(self):
+      # Check that names 'q', 'p', and 'e' can be read
+      data = verif.data.Data(inputs=[verif.input.Text("verif/tests/files/file_odd_header_names.txt")])
+
    def test_get_scores(self):
       input = verif.input.Text("verif/tests/files/example.txt")
       obs = input.obs
