@@ -296,6 +296,27 @@ class TestDataRemovingTimes4(unittest.TestCase):
       self.assertEqual(1325548800, data.times[0])
 
 
+class TestShareObs(unittest.TestCase):
+   def test_reused(self):
+      # Observations from file1 should be reused in file1_no_obs
+      inputs = [verif.input.Text("verif/tests/files/file1.txt"), verif.input.Text("verif/tests/files/file1_no_obs.txt")]
+      data = verif.data.Data(inputs)
+      obs0 = data.get_scores(verif.field.Obs(), 0)
+      obs1 = data.get_scores(verif.field.Obs(), 1)
+      np.testing.assert_array_equal(obs0, obs1)
+
+   def test_different_missing(self):
+      # The two files are identical, other than some obs and fcst are missing for different times
+      # The obs and fcst arrays after retriving through data should be the same
+      inputs = [verif.input.Text("verif/tests/files/file1.txt"), verif.input.Text("verif/tests/files/file1_different_missing.txt")]
+      data = verif.data.Data(inputs)
+      fields = [verif.field.Obs(), verif.field.Fcst()]
+      obs0, fcst0 = data.get_scores(fields, 0)
+      obs1, fcst1 = data.get_scores(fields, 1)
+      np.testing.assert_array_equal(obs0, obs1)
+      np.testing.assert_array_equal(fcst0, fcst1)
+
+
 class TestDataClim(unittest.TestCase):
    def test_names(self):
       """

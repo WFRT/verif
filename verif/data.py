@@ -433,74 +433,102 @@ class Data(object):
       input_index:   which input to load from
       """
 
-      # Check if data is cached
-      if field in self._get_score_cache[input_index]:
-         return self._get_score_cache[input_index][field]
-
+      num_inputs = self._get_num_inputs_with_clim()
       if field == verif.field.Obs():
+         """
+         Treat observation different. Since the observations should be the same
+         for all inputs, reuse the observations if one or more inputs are
+         missing these
+         """
          field = self._obs_field
-      if field == verif.field.Fcst():
-         field = self._fcst_field
+         if field in self._get_score_cache[input_index]:
+            return self._get_score_cache[input_index][field]
 
-      # Load all inputs
-      for i in range(0, self._get_num_inputs_with_clim()):
-         if field not in self._get_score_cache[i]:
+         found_obs = False
+         for i in range(num_inputs):
             input = self._inputs[i]
             all_fields = input.get_fields()
-            if field not in all_fields:
-               verif.util.error("%s does not contain '%s'" %
-                     (self.get_names()[i], field.name()))
+            temp = input.obs
+            if field in all_fields:
+               Itimes = self._get_time_indices(i)
+               Ileadtimes = self._get_leadtime_indices(i)
+               Ilocations = self._get_location_indices(i)
+               temp = temp[Itimes, :, :]
+               temp = temp[:, Ileadtimes, :]
+               temp = temp[:, :, Ilocations]
+               self._get_score_cache[i][field] = temp
+               found_obs = True
+         if not found_obs:
+            verif.util.error("No files have observations")
 
-            elif field == verif.field.Obs():
-               temp = input.obs
+         for i in range(num_inputs):
+            if field not in self._get_score_cache[i]:
+               for j in range(num_inputs):
+                  if field in self._get_score_cache[j]:
+                     verif.util.warning("No observations in %s. Loading from %s" % (self._inputs[i].fullname, self._inputs[j].fullname))
+                     self._get_score_cache[i][field] = self._get_score_cache[j][field]
+                     break
+      else:
+         # Check if data is cached
+         if field in self._get_score_cache[input_index]:
+            return self._get_score_cache[input_index][field]
 
-            elif field == verif.field.Fcst():
-               temp = input.fcst
+         if field == verif.field.Fcst():
+            field = self._fcst_field
 
-            elif field == verif.field.Pit():
-               temp = input.pit
-               x0 = self.variable.x0
-               x1 = self.variable.x1
-               if x0 is not None or x1 is not None:
-                  # w = ""
-                  # if x0 is not None:
-                  #    w += " obs=%g" % x0
-                  # if x1 is not None:
-                  #    w += " obs=%g" % x1
-                  # verif.util.warning("Randomizing PIT values where %s" + w)
-                  temp = verif.field.Pit.randomize(input.obs, temp, x0, x1)
+         for i in range(num_inputs):
+            if field not in self._get_score_cache[i]:
+               input = self._inputs[i]
+               all_fields = input.get_fields()
+               if field not in all_fields:
+                  verif.util.error("%s does not contain '%s'" % (self.get_names()[i], field.name()))
 
-            elif field.__class__ is verif.field.Ensemble:
-               temp = input.ensemble[:, :, :, field.member]
+               elif field == verif.field.Obs():
+                  temp = input.obs
 
-            elif field.__class__ is verif.field.Threshold:
-               I = np.where(input.thresholds == field.threshold)[0]
-               assert(len(I) == 1)
-               temp = input.threshold_scores[:, :, :, I[0]]
+               elif field == verif.field.Fcst():
+                  temp = input.fcst
 
-            elif field.__class__ is verif.field.Quantile:
-               I = np.where(input.quantiles == field.quantile)[0]
-               assert(len(I) == 1)
-               temp = input.quantile_scores[:, :, :, I[0]]
+               elif field == verif.field.Pit():
+                  temp = input.pit
+                  x0 = self.variable.x0
+                  x1 = self.variable.x1
+                  if x0 is not None or x1 is not None:
+                     temp = verif.field.Pit.randomize(input.obs, temp, x0, x1)
 
-            else:
-               temp = input.other_score(field.name())
-            Itimes = self._get_time_indices(i)
-            Ileadtimes = self._get_leadtime_indices(i)
-            Ilocations = self._get_location_indices(i)
-            temp = temp[Itimes, :, :]
-            temp = temp[:, Ileadtimes, :]
-            temp = temp[:, :, Ilocations]
-            self._get_score_cache[i][field] = temp
+               elif field.__class__ is verif.field.Ensemble:
+                  temp = input.ensemble[:, :, :, field.member]
 
-      # Remove missing. If one configuration has a missing value, set all
-      # configurations to missing. This can happen when the times are
-      # available, but have missing values.
+               elif field.__class__ is verif.field.Threshold:
+                  I = np.where(input.thresholds == field.threshold)[0]
+                  assert(len(I) == 1)
+                  temp = input.threshold_scores[:, :, :, I[0]]
+
+               elif field.__class__ is verif.field.Quantile:
+                  I = np.where(input.quantiles == field.quantile)[0]
+                  assert(len(I) == 1)
+                  temp = input.quantile_scores[:, :, :, I[0]]
+
+               else:
+                  temp = input.other_score(field.name())
+               Itimes = self._get_time_indices(i)
+               Ileadtimes = self._get_leadtime_indices(i)
+               Ilocations = self._get_location_indices(i)
+               temp = temp[Itimes, :, :]
+               temp = temp[:, Ileadtimes, :]
+               temp = temp[:, :, Ilocations]
+               self._get_score_cache[i][field] = temp
+
+      """
+      Remove missing. If one configuration has a missing value, set all
+      configurations to missing. This can happen when the times are
+      available, but have missing values.
+      """
       if self._remove_missing_across_all:
          is_missing = np.isnan(self._get_score_cache[0][field])
-         for i in range(1, self._get_num_inputs_with_clim()):
+         for i in range(1, num_inputs):
             is_missing = is_missing | (np.isnan(self._get_score_cache[i][field]))
-         for i in range(0, self._get_num_inputs_with_clim()):
+         for i in range(num_inputs):
             self._get_score_cache[i][field][is_missing] = np.nan
 
       return self._get_score_cache[input_index][field]
