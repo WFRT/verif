@@ -154,7 +154,6 @@ class Output(object):
       self.styles = None
       self.thresholds = None
       self.tick_font_size = 16
-      self.tickfs = 16
       self.title = None
       self.titlefs = 16
       self.top = None
@@ -551,12 +550,6 @@ class Output(object):
 
       if self.grid:
          ax.grid('on')
-
-      # Tick font sizes
-      for tick in ax.xaxis.get_major_ticks():
-         tick.label.set_fontsize(self.tickfs)
-      for tick in ax.yaxis.get_major_ticks():
-         tick.label.set_fontsize(self.tickfs)
 
       # Tick lines
       for label in ax.get_xticklabels():
@@ -1031,7 +1024,6 @@ class Standard(Output):
       self._add_annotation(x0, y0, ["%d %g" % (ids[i], contrib[i]) for i in range(len(ids))])
 
       names = data.get_legend()
-      mpl.title(self.title)
       self._adjust_axis(mpl.gca())
 
    def _show_impact_marginal():
@@ -1221,14 +1213,15 @@ class Standard(Output):
                if yy[i, j] > 0:
                   mpl.text(curr_x, curr_y, "%d%%" % int(yy[i, j] * 100), horizontalalignment="center", verticalalignment="center")
 
-         mpl.gca().set_xticklabels(range(F))
+         print self.tick_font_size
+         mpl.gca().set_xticklabels(range(F), fontsize=self.tick_font_size)
          mpl.gca().set_xticks([0.5, F-0.5])
          if self._metric.orientation == 0:
             xticklabels = ["Lowest", "Highest"]
          else:
             xticklabels = ["Best", "Worst"]
-         mpl.gca().set_xticklabels(xticklabels)
-         mpl.title(axis.label(data.variable))
+         mpl.gca().set_xticklabels(xticklabels, fontsize=self.tick_font_size)
+         mpl.title(axis.label(data.variable), fontsize=self.titlefs)
 
    def _map_core(self, data):
       F = data.num_inputs
@@ -2102,7 +2095,7 @@ class Meteo(Output):
       # Hour labels
       minlabels = [tick.label1 for tick in mpl.gca().xaxis.get_minor_ticks()]
       for i in minlabels:
-         i.set_fontsize(self.tickfs)
+         i.set_fontsize(self.tick_font_size)
 
       # Date labels
       majlabels = [tick.label1 for tick in mpl.gca().xaxis.get_major_ticks()]
@@ -2111,7 +2104,7 @@ class Meteo(Output):
          if isSingleTime and i < len(majlabels)-1:
             label.set_horizontalalignment('left')
             label.set_verticalalignment('top')
-            label.set_fontsize(self.tickfs)
+            label.set_fontsize(self.tick_font_size)
             # Moves major labels to the top of the graph. The x-coordinate
             # seems to be irrelevant. When y-coord is 1, the label is near the
             # top. For 1.1 it is above the graph
