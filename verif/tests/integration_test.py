@@ -194,10 +194,12 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt examples/raw.txt -m against")
 
    def test_impact(self):
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m impact")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m impact -ms 6")
-      # Temporarily disable the legend, since it gives problems when using scatter and only one point
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m impact -type map -legfs 0")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type impact")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m corr -type impact -ms 6 -r 0:0.1:1")
+
+   def test_mapimpact(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type mapimpact")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m ets -type mapimpact -r 1")
 
    def test_fss(self):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m fss -r 5")

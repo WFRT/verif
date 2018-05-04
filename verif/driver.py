@@ -386,8 +386,6 @@ def run(argv):
       pl = verif.output.Cond()
    elif metric == "against":
       pl = verif.output.Against()
-   elif metric == "impact":
-      pl = verif.output.Impact()
    elif metric == "scatter":
       pl = verif.output.Scatter()
    elif metric == "change":
@@ -435,7 +433,7 @@ def run(argv):
          m.aggregator = verif.aggregator.get(aggregator_name)
 
       # Output type
-      if plot_type in ["plot", "text", "csv", "map", "maprank", "rank"]:
+      if plot_type in ["plot", "text", "csv", "map", "maprank", "rank", "impact", "mapimpact"]:
          if do_sort:
             field = verif.field.get(metric)
             pl = verif.output.Sort(field)
@@ -466,7 +464,9 @@ def run(argv):
    # Create thresholds if needed
    if thresholds is None:
       type = None
-      if pl.require_threshold_type == "deterministic":
+      if plot_type == "impact":
+         type = "deterministic"
+      elif pl.require_threshold_type == "deterministic":
          type = "deterministic"
       elif pl.require_threshold_type == "threshold":
          type = "threshold"
@@ -614,6 +614,10 @@ def run(argv):
    elif plot_type == "rank":
       pl.show_rank = True
       pl.plot_rank(data)
+   elif plot_type == "impact":
+      pl.plot_impact(data)
+   elif plot_type == "mapimpact":
+      pl.plot_mapimpact(data)
    else:
       pl.plot(data)
 
@@ -703,7 +707,7 @@ def show_description(data=None):
    s += format_argument("-title text", "Custom title to chart top") + "\n"
    s += format_argument("-titlefs size", "Font size for title.") + "\n"
    s += format_argument("-top value", "Top boundary location for saved figure [range 0-1].  Must be greater than -bottom.") + "\n"
-   s += format_argument("-type type", "One of 'plot' (default), 'text', 'csv', 'map', 'rank', or 'maprank'.") + "\n"
+   s += format_argument("-type type", "One of 'plot' (default), 'text', 'csv', 'map', 'rank', 'maprank', 'impact', or 'mapimpact'.") + "\n"
    s += format_argument("-xlabel text", "Custom x-axis label") + "\n"
    s += format_argument("-xlim limits", "Force x-axis limits to the two values lower,upper") + "\n"
    s += format_argument("-xlog", "Use a logarithmic x-axis") + "\n"

@@ -221,6 +221,24 @@ class Output(object):
       self._legend(data)
       self._save_plot(data)
 
+   def plot_impact(self, data):
+      """ Call this to create a impact plot
+      """
+      mpl.clf()
+      self._plot_impact_core(data)
+      self._adjust_axes(data)
+      self._legend(data)
+      self._save_plot(data)
+
+   def plot_mapimpact(self, data):
+      """ Call this to create a impact plot
+      """
+      mpl.clf()
+      self._plot_mapimpact_core(data)
+      self._adjust_axes(data)
+      self._legend(data)
+      self._save_plot(data)
+
    def text(self, data):
       """ Call this to create nicely formatted text output
 
@@ -380,6 +398,12 @@ class Output(object):
 
    def _map_core(self, data):
       verif.util.error("This type does not support '-type map'")
+
+   def _plot_impact_core(self, data):
+      verif.util.error("This type does not support '-type impact'")
+
+   def _plot_mapimpact_core(self, data):
+      verif.util.error("This type does not support '-type mapimpact'")
 
    def _plot_rank_core(self, data):
       verif.util.error("This type does not support '-type rank'")
@@ -579,7 +603,6 @@ class Output(object):
             ax.set_xscale('log')
          if self.ylog:
             ax.set_yscale('log')
-
 
    def _adjust_axes(self, data):
       """
@@ -951,6 +974,192 @@ class Standard(Output):
 
       if not self.show_acc:
          self._set_y_axis_limits(self._metric)
+
+   def _plot_mapimpact_core(self, data):
+      if data.num_inputs != 2:
+         verif.util.error("Impact plot requires exactly 2 files")
+
+      map, x0, y0 = self._setup_map(data)
+      lats = np.array([loc.lat for loc in data.locations])
+      lons = np.array([loc.lon for loc in data.locations])
+      ids = np.array([loc.id for loc in data.locations])
+      labels = data.get_legend()
+
+      thresholds = self.thresholds
+      edges = self.thresholds
+      intervals = verif.util.get_intervals(self.bin_type, thresholds)
+
+      error_x = np.zeros(len(lats), 'float')
+      error_y = np.zeros(len(lats), 'float')
+      for i in range(len(intervals)):
+         error_x += self._metric.compute(data, 0, verif.axis.Location(), intervals[i])
+         error_y += self._metric.compute(data, 1, verif.axis.Location(), intervals[i])
+      error_x = error_x / len(intervals)
+      error_y = error_y / len(intervals)
+
+      XX = np.array([loc.lon for loc in data.locations])
+      YY = np.array([loc.lat for loc in data.locations])
+      contrib = error_x - error_y
+
+      Ivalid = np.where(np.isnan(contrib) == 0)[0]
+      if len(Ivalid) == 0:
+         verif.util.error("No valid data")
+      contrib = contrib[Ivalid]
+      x0 = x0[Ivalid]
+      y0 = y0[Ivalid]
+      ids = ids[Ivalid]
+
+      # Flip the contribution for positively-oriented scores
+      if self._metric.orientation == 1:
+         contrib = -contrib
+
+      s = self.ms*self.ms
+      size_scale = 400/np.nanmax(abs(contrib)) * (self.ms / 8.0)**2
+      sizes = abs(contrib) * size_scale
+      I0 = np.where(contrib < 0)[0]
+      I1 = np.where(contrib > 0)[0]
+      if self._metric.orientation == 0:
+         label = "higher"
+      else:
+         label = "worse"
+      map.scatter(x0[I1], y0[I1], s=sizes[I1], color="r", label="%s is %s" % (labels[0], label))
+      map.scatter(x0[I0], y0[I0], s=sizes[I0], color="b", label="%s is %s" % (labels[1], label))
+      if self.legfs > 0:
+         mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
+
+      # Annotate with location id and the colored value, instead of x and y
+      self._add_annotation(x0, y0, ["%d %g" % (ids[i], contrib[i]) for i in range(len(ids))])
+
+      names = data.get_legend()
+      mpl.title(self.title)
+      self._adjust_axis(mpl.gca())
+
+   def _show_impact_marginal():
+      return not self.simple
+
+   def _plot_impact_core(self, data):
+      _show_numbers = False
+      if data.num_inputs != 2:
+         verif.util.error("Impact plot requires exactly 2 files")
+
+      if self.thresholds is None or len(self.thresholds) < 2:
+         verif.util.error("Impact plot needs at least two thresholds (use -r)")
+
+      edges = self.thresholds
+      width = (edges[1]-edges[0])/2
+      centres = (edges[1:] + edges[0:-1]) / 2
+
+      """
+      Compute MAE contingency table. Compute the errors of each input
+      conditioned on what each input forecasted.
+
+      XX[i], YY[i], contrib[i]: The error impact contribution (MAE[1] - MAE[0])
+      for cases where input 0 forecasted a value of XX[i] and input 1
+      forecasted a values of YY[i].
+      """
+      fcstField = verif.field.Fcst()
+      obsx, x = data.get_scores([verif.field.Obs(), fcstField], 0)
+      obsy, y = data.get_scores([verif.field.Obs(), fcstField], 1)
+      x = x.flatten()
+      y = y.flatten()
+      obs = obsx.flatten()
+      Ivalid = np.where((np.isnan(x) == 0) & (np.isnan(y) == 0) & (np.isnan(obs) == 0))[0]
+      x = x[Ivalid]
+      y = y[Ivalid]
+      obs = obs[Ivalid]
+
+      error_x = abs(x - obs)**2
+      error_y = abs(y - obs)**2
+
+      XX = np.repeat(centres, len(centres))
+      YY = np.tile(centres, len(centres))
+      contrib = np.zeros([len(XX)], float)
+      num = np.zeros([len(XX)], float)
+
+      for e in range(0, len(XX)):
+         I = np.where((x > XX[e] - width) & (x <= XX[e] + width) &
+                      (y > YY[e] - width) & (y <= YY[e] + width))[0]
+         if len(I) > 0:
+            contrib[e] = np.nansum(error_x[I] - error_y[I])
+            num[e] = len(I)
+
+      """
+      Plot impact circles
+      """
+      labels = data.get_legend()
+      if np.max(contrib**2) > 0:
+         I0 = np.where(contrib < 0)[0]
+         I1 = np.where(contrib > 0)[0]
+         # Compute size (scatter wants area) of marker. Scale using self.ms.
+         # The area of the dots should be proportional to the contribution
+         size_scale = 400/np.nanmax(abs(contrib)) * (self.ms / 8.0)**2
+         sizes = abs(contrib) * size_scale
+         mpl.scatter(XX[I1], YY[I1], s=sizes[I1], color="r", label="%s is worse" % labels[0])
+         mpl.scatter(XX[I0], YY[I0], s=sizes[I0], color="b", label="%s is worse" % labels[1])
+         if _show_numbers:
+            size_scale_num = 400/np.max(num)
+            sizes = abs(num) * size_scale_num
+            mpl.scatter(XX, YY, s=sizes, edgecolor="k", color=[1, 1, 1, 0], lw=1, zorder=100)
+      else:
+         verif.util.warning("The error statistics are the same, no impact")
+
+      """
+      Use equal axis limits for x and y, unless they are overriden by user
+      """
+      if self.xlim is None and self.ylim is None:
+         lim = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
+         mpl.xlim(lim)
+         mpl.ylim(lim)
+      else:
+         mpl.xlim(self.xlim)
+         mpl.ylim(self.ylim)
+      mpl.gca().set_aspect(1)
+
+      """
+      Plot bar-graph marginals along the x and y axes
+      """
+      if self._show_impact_marginal:
+         contribx = np.zeros([len(centres)], float)
+         contriby = np.zeros([len(centres)], float)
+         for e in range(0, len(centres)):
+            I = np.where((x > centres[e] - width) & (x <= centres[e] + width))[0]
+            contribx[e] = np.nansum(error_x[I] - error_y[I])
+            I = np.where((y > centres[e] - width) & (y <= centres[e] + width))[0]
+            contriby[e] = np.nansum(error_x[I] - error_y[I])
+
+         """ Scale the bars so they at most occupy 10% of the width/height of the plot """
+         largest_contrib = max(np.nanmax(np.abs(contribx)), np.nanmax(np.abs(contriby)))
+         scale = (np.nanmax(centres) - np.nanmin(centres))/largest_contrib/10
+
+         # X-axis bars
+         ymin = mpl.ylim()[0]
+         I1 = np.where(contribx > 0)[0]
+         I0 = np.where(contribx < 0)[0]
+         mpl.bar(centres[I1] - width/2, contribx[I1]*scale, width=width, bottom=ymin,
+               zorder=-1,
+               color="r", edgecolor="r")
+         mpl.bar(centres[I0] - width/2, -contribx[I0]*scale, width=width, bottom=ymin,
+               zorder=-1,
+               color="b", edgecolor="b")
+         I1 = np.where(contriby > 0)[0]
+         I0 = np.where(contriby < 0)[0]
+
+         # Y-axis bars
+         xmin = mpl.xlim()[0]
+         mpl.bar(xmin*np.ones(len(I1)), np.ones(len(I1))*width, contriby[I1]*scale,
+               centres[I1] - width/2,
+               zorder=-1,
+               color="r", edgecolor="r")
+         mpl.bar(xmin*np.ones(len(I0)), np.ones(len(I0))*width, -contriby[I0]*scale,
+               centres[I0] - width/2,
+               zorder=-1,
+               color="b", edgecolor="b")
+
+      units = data.variable.units
+      mpl.xlabel("%s (%s)" % (labels[0], units), color="r")
+      mpl.ylabel("%s (%s)" % (labels[1], units), color="b")
+
+      self._plot_perfect_diagonal(always_show=1, label="")
 
    def _plot_rank_core(self, data):
       F = data.num_inputs
@@ -3090,258 +3299,3 @@ class InvReliability(Output):
       units = " " + data.variable.units
       if len(self.quantiles) == 1:
          mpl.title("Quantile: " + str(self.quantiles[0] * 100) + "%")
-
-
-class Impact(Output):
-   name = "Impact diagram"
-   description = "For two inputs, shows for what forecast values the difference in squared error comes from"
-   default_axis = verif.axis.Threshold()
-   supports_threshold = True
-   require_threshold_type = "deterministic"
-   supports_x = False
-   _show_numbers = False  # Draw a black circle around each point to show number of datapoints
-   _prob = False
-
-   def __init__(self):
-      Output.__init__(self)
-      self._mapLowerPerc = 0    # Lower percentile (%) to show in colourmap
-      self._mapUpperPerc = 100  # Upper percentile (%) to show in colourmap
-      self._minLatLonRange = 0.001  # What is the smallest map size allowed (in degrees)
-
-   def _get_x_y0(self, data, axis):
-      thresholds = self.thresholds
-      edges = self.thresholds
-      intervals = verif.util.get_intervals(self.bin_type, thresholds)
-
-      # Show which forecast is better
-      fcstField = verif.field.Fcst()
-      p = 0.5
-      if self._prob:
-         fcstField = verif.field.Quantile(p)
-      [obsx, x] = data.get_scores([verif.field.Obs(), fcstField], 0)
-      [obsy, y] = data.get_scores([verif.field.Obs(), fcstField], 1)
-      if axis == verif.axis.Location():
-         XX = np.array([loc.lon for loc in data.locations])
-         YY = np.array([loc.lat for loc in data.locations])
-         obs = obsx
-         if self._prob:
-            obs = obs <= p
-         error_x = abs(x - obs)
-         error_y = abs(y - obs)
-         contrib = np.array([np.nanmean(error_x[:, :, l]) for l in range(error_x.shape[2])])
-         contrib = np.array([np.nansum(error_x[:, :, l] - error_y[:, :, l]) for l in range(error_x.shape[2])])
-         num = np.array([np.nansum(np.isnan(error_x[:, :, l]*error_y[:, :, l]) == 0) for l in range(error_x.shape[2])])
-      else:
-         x = x.flatten()
-         y = y.flatten()
-         obs = obsx.flatten()
-         if self._prob:
-            obs = obs <= p
-
-         w = (edges[1]-edges[0])/2
-         centres = (edges[1:] + edges[0:-1]) / 2
-         error_x = abs(x - obs)**2
-         error_y = abs(y - obs)**2
-
-         XX = np.repeat(centres, len(centres))
-         YY = np.tile(centres, len(centres))
-
-         xname = axis.name()
-         ynames = data.get_legend()
-         contrib = np.zeros([len(XX)], float)
-         num = np.zeros([len(XX)], float)
-         for e in range(0, len(XX)):
-            I = np.where((x > XX[e] - w) & (x <= XX[e] + w) &
-                         (y > YY[e] - w) & (y <= YY[e] + w))[0]
-            if len(I) > 0:
-               contrib[e] = np.nansum(error_x[I] - error_y[I])
-               num[e] = len(I)
-      return XX, YY, contrib, num
-
-   def _show_marginal(self):
-      return not self.simple
-
-   def _plot_core(self, data):
-      if data.num_inputs != 2:
-         verif.util.error("Impact plot requires exactly 2 files")
-
-      if self.thresholds is None or len(self.thresholds) < 2:
-         verif.util.error("Impact plot needs at least two thresholds (use -r)")
-
-      edges = self.thresholds
-      width = (edges[1]-edges[0])/2
-      centres = (edges[1:] + edges[0:-1]) / 2
-
-      """
-      Compute MAE contingency table. Compute the errors of each input
-      conditioned on what each input forecasted.
-
-      XX[i], YY[i], contrib[i]: The error impact contribution (MAE[1] - MAE[0])
-      for cases where input 0 forecasted a value of XX[i] and input 1
-      forecasted a values of YY[i].
-      """
-      fcstField = verif.field.Fcst()
-      p = 0.5
-      if self._prob:
-         fcstField = verif.field.Quantile(p)
-      obsx, x = data.get_scores([verif.field.Obs(), fcstField], 0)
-      obsy, y = data.get_scores([verif.field.Obs(), fcstField], 1)
-      x = x.flatten()
-      y = y.flatten()
-      obs = obsx.flatten()
-      if self._prob:
-         obs = obs <= p
-      Ivalid = np.where((np.isnan(x) == 0) & (np.isnan(y) == 0) & (np.isnan(obs) == 0))[0]
-      x = x[Ivalid]
-      y = y[Ivalid]
-      obs = obs[Ivalid]
-
-      error_x = abs(x - obs)**2
-      error_y = abs(y - obs)**2
-
-      XX = np.repeat(centres, len(centres))
-      YY = np.tile(centres, len(centres))
-      contrib = np.zeros([len(XX)], float)
-      num = np.zeros([len(XX)], float)
-
-      for e in range(0, len(XX)):
-         I = np.where((x > XX[e] - width) & (x <= XX[e] + width) &
-                      (y > YY[e] - width) & (y <= YY[e] + width))[0]
-         if len(I) > 0:
-            contrib[e] = np.nansum(error_x[I] - error_y[I])
-            num[e] = len(I)
-
-      """
-      Plot impact circles
-      """
-      labels = data.get_legend()
-      if np.max(contrib**2) > 0:
-         I0 = np.where(contrib < 0)[0]
-         I1 = np.where(contrib > 0)[0]
-         # Compute size (scatter wants area) of marker. Scale using self.ms.
-         # The area of the dots should be proportional to the contribution
-         size_scale = 400/np.nanmax(abs(contrib)) * (self.ms / 8.0)**2
-         sizes = abs(contrib) * size_scale
-         mpl.scatter(XX[I1], YY[I1], s=sizes[I1], color="r", label="%s is worse" % labels[0])
-         mpl.scatter(XX[I0], YY[I0], s=sizes[I0], color="b", label="%s is worse" % labels[1])
-         if self._show_numbers:
-            size_scale_num = 400/np.max(num)
-            sizes = abs(num) * size_scale_num
-            mpl.scatter(XX, YY, s=sizes, edgecolor="k", color=[1, 1, 1, 0], lw=1, zorder=100)
-      else:
-         verif.util.warning("The error statistics are the same, no impact")
-
-      """
-      Use equal axis limits for x and y, unless they are overriden by user
-      """
-      if self.xlim is None and self.ylim is None:
-         lim = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
-         mpl.xlim(lim)
-         mpl.ylim(lim)
-      else:
-         mpl.xlim(self.xlim)
-         mpl.ylim(self.ylim)
-      mpl.gca().set_aspect(1)
-
-      """
-      Plot bar-graph marginals along the x and y axes
-      """
-      if self._show_marginal():
-         contribx = np.zeros([len(centres)], float)
-         contriby = np.zeros([len(centres)], float)
-         for e in range(0, len(centres)):
-            I = np.where((x > centres[e] - width) & (x <= centres[e] + width))[0]
-            contribx[e] = np.nansum(error_x[I] - error_y[I])
-            I = np.where((y > centres[e] - width) & (y <= centres[e] + width))[0]
-            contriby[e] = np.nansum(error_x[I] - error_y[I])
-
-         """ Scale the bars so they at most occupy 10% of the width/height of the plot """
-         largest_contrib = max(np.nanmax(np.abs(contribx)), np.nanmax(np.abs(contriby)))
-         scale = (np.nanmax(centres) - np.nanmin(centres))/largest_contrib/10
-
-         # X-axis bars
-         ymin = mpl.ylim()[0]
-         I1 = np.where(contribx > 0)[0]
-         I0 = np.where(contribx < 0)[0]
-         mpl.bar(centres[I1] - width/2, contribx[I1]*scale, width=width, bottom=ymin,
-               zorder=-1,
-               color="r", edgecolor="r")
-         mpl.bar(centres[I0] - width/2, -contribx[I0]*scale, width=width, bottom=ymin,
-               zorder=-1,
-               color="b", edgecolor="b")
-         I1 = np.where(contriby > 0)[0]
-         I0 = np.where(contriby < 0)[0]
-
-         # Y-axis bars
-         xmin = mpl.xlim()[0]
-         mpl.bar(xmin*np.ones(len(I1)), np.ones(len(I1))*width, contriby[I1]*scale,
-               centres[I1] - width/2,
-               zorder=-1,
-               color="r", edgecolor="r")
-         mpl.bar(xmin*np.ones(len(I0)), np.ones(len(I0))*width, -contriby[I0]*scale,
-               centres[I0] - width/2,
-               zorder=-1,
-               color="b", edgecolor="b")
-
-      units = data.variable.units
-      mpl.xlabel("%s (%s)" % (labels[0], units), color="r")
-      mpl.ylabel("%s (%s)" % (labels[1], units), color="b")
-
-      self._plot_perfect_diagonal(always_show=1, label="")
-
-   def _map_core(self, data):
-      if data.num_inputs != 2:
-         verif.util.error("Impact plot requires exactly 2 files")
-
-      map, x0, y0 = self._setup_map(data)
-      lats = np.array([loc.lat for loc in data.locations])
-      lons = np.array([loc.lon for loc in data.locations])
-      ids = np.array([loc.id for loc in data.locations])
-      labels = data.get_legend()
-
-      thresholds = self.thresholds
-      edges = self.thresholds
-      intervals = verif.util.get_intervals(self.bin_type, thresholds)
-
-      # Show which forecast is better
-      fcstField = verif.field.Fcst()
-      p = 0.5
-      if self._prob:
-         fcstField = verif.field.Quantile(p)
-      obsx, x = data.get_scores([verif.field.Obs(), fcstField], 0)
-      obsy, y = data.get_scores([verif.field.Obs(), fcstField], 1)
-
-      XX = np.array([loc.lon for loc in data.locations])
-      YY = np.array([loc.lat for loc in data.locations])
-      obs = obsx
-      if self._prob:
-         obs = obs <= p
-      error_x = abs(x - obs)
-      error_y = abs(y - obs)
-      contrib = np.array([np.nansum(error_x[:, :, l] - error_y[:, :, l]) for l in range(error_x.shape[2])])
-      num = np.array([np.nansum(np.isnan(error_x[:, :, l]*error_y[:, :, l]) == 0) for l in range(error_x.shape[2])])
-
-      Ivalid = np.where(np.isnan(contrib) == 0)[0]
-      contrib = contrib[Ivalid]
-      num = num[Ivalid]
-      x0 = x0[Ivalid]
-      y0 = y0[Ivalid]
-
-      contrib = contrib / num
-      # contrib[num < 30] = np.nan
-      s = self.ms*self.ms
-      size_scale = 400/np.nanmax(abs(contrib)) * (self.ms / 8.0)**2
-      sizes = abs(contrib) * size_scale
-      I0 = np.where(contrib < 0)[0]
-      I1 = np.where(contrib > 0)[0]
-      map.scatter(x0[I1], y0[I1], s=sizes[I1], color="r", label="%s is worse" % labels[0])
-      map.scatter(x0[I0], y0[I0], s=sizes[I0], color="b", label="%s is worse" % labels[1])
-      if self.legfs > 0:
-         mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
-
-      # Annotate with location id and the colored value, instead of x and y
-      self._add_annotation(x0, y0, ["%d %g" % (ids[i], contrib[i]) for i in range(len(ids))])
-
-      names = data.get_legend()
-      mpl.title(self.title)
-      self._adjust_axis(mpl.gca())
