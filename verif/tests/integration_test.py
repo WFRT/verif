@@ -198,8 +198,8 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m corr -type impact -ms 6 -r 0:0.1:1")
 
    def test_mapimpact(self):
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type mapimpact")
-      self.run_with_image("verif examples/raw.txt examples/kf.txt -m ets -type mapimpact -r 1")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type mapimpact -legfs 0")
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m ets -type mapimpact -r 1 -legfs 0")
 
    def test_fss(self):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m fss -r 5")
