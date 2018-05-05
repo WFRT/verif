@@ -417,10 +417,11 @@ class Rmse(ObsFcstBased):
    description = "Root mean squared error"
    min = 0
    perfect_score = 0
+   supports_aggregator = True
    orientation = -1
 
    def _compute_from_obs_fcst(self, obs, fcst):
-      return np.mean((obs - fcst) ** 2) ** 0.5
+      return self.aggregator((obs - fcst) ** 2) ** 0.5
 
    def label(self, variable):
       return "RMSE (" + variable.units + ")"
@@ -431,10 +432,11 @@ class Rmsf(ObsFcstBased):
    description = "Root mean squared factor"
    min = 0
    perfect_score = 1
+   supports_aggregator = True
    orientation = 0
 
    def _compute_from_obs_fcst(self, obs, fcst):
-      return np.exp(np.mean((np.log(fcst / obs)) ** 2) ** 0.5)
+      return np.exp(self.aggregator((np.log(fcst / obs)) ** 2) ** 0.5)
 
    def label(self, variable):
       return "RMSF (" + variable.units + ")"
@@ -445,10 +447,11 @@ class Cmae(ObsFcstBased):
    description = "Cube-root mean absolute cubic error"
    min = 0
    perfect_score = 0
+   supports_aggregator = True
    orientation = -1
 
    def _compute_from_obs_fcst(self, obs, fcst):
-      return (np.mean(abs(obs ** 3 - fcst ** 3))) ** (1.0 / 3)
+      return (self.aggregator(abs(obs ** 3 - fcst ** 3))) ** (1.0 / 3)
 
    def label(self, variable):
       return "CMAE (" + variable.units + ")"
