@@ -633,7 +633,7 @@ def get_aggregation_string():
 
 
 def show_description(data=None):
-   desc = "Program to compute verification scores for weather forecasts"
+   desc = "Program to compute verification scores for weather forecasts. See https://github.com/WFRT/verif/wiki for how to format input files."
    s = "usage: verif files -m metric [options]\n"
    s += "\n"
    s += textwrap.fill(desc, get_text_width()) + "\n"
@@ -739,10 +739,6 @@ def show_description(data=None):
             if m[1].is_valid():
                desc = m[1].description
                s += format_argument(name, desc) + "\n"
-   s += "\n"
-   s += verif.util.green("File formats:") + "\n"
-   s += format_argument("text", verif.input.Text.description) + "\n"
-   s += format_argument("netcdf", verif.input.Netcdf.description) + "\n"
 
    return s
 

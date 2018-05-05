@@ -118,11 +118,6 @@ class Input(object):
 
 
 class Netcdf(Input):
-   """
-   Netcdf file format
-   """
-   description = "NetCDF format that runs much quicker than the text format, though requires more effort to create. See https://github.com/WFRT/verif for more information about creating this file."
-
    def __init__(self, filename):
       self.fullname = filename
       self._filename = os.path.expanduser(filename)
@@ -271,17 +266,6 @@ class Netcdf(Input):
 
 # Flat text file format
 class Text(Input):
-   description = "Data organized in rows and columns with space as a delimiter. Each row represents one forecast/obs pair, and each column represents one attribute of the data. Here is an example:"\
-   "\n"\
-   "# variable: Temperature\n"\
-   "# units: $^oC$\n"\
-   "date     leadtime location lat     lon      altitude  obs  fcst  p10\n"\
-   "20150101 0        214       49.2    -122.1   92       3.4      2.1    0.914 -1.9\n"
-   "20150101 1        214       49.2    -122.1   92       4.7      4.2    0.858 0.1\n"
-   "20150101 0        180       50.3    -120.3   150      0.2      -1.2   0.992 -2.1\n"
-   "\n"\
-   "Any lines starting with '#' can be metadata (currently variable: and units: are recognized). After that is a header line that must describe the data columns below. The following attributes are recognized: date (in YYYYMMDD) or unixtime (in seconds since 1970-01-01 00:00:00 +00:00), leadtime (in hours), location (location identifier), lat (in degrees), lon (in degrees), obs (observations), fcst (deterministic forecast), p<number> (cumulative probability at a threshold of for example 10), and q<number> (value corresponding to the <number> quantile, e.g. q0.9 for the 90th precentile). obs and fcst are required columns: a value of 0 is used for any missing column. The columns can be in any order. If 'id' is not provided, then they are assigned sequentially starting at 0. If there is conflicting information (for example different lat/lon/altitude for the same id), then the information from the first row containing id will be used. Missing values can be represented by -999 or any non-numeric string (e.g. NA, nan, etc). For compatibility reasons, 'offset' can be used instead of 'leadtime', 'id' instead of 'location', and 'elev' instead of 'altitude'."
-
    def __init__(self, filename):
       self.fullname = filename
       self._filename = os.path.expanduser(filename)
