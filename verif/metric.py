@@ -384,6 +384,17 @@ class Bias(ObsFcstBased):
       return self.aggregator(fcst - obs)
 
 
+class Diff(ObsFcstBased):
+   name = "Diff"
+   description = "Difference in aggregated statistics (agg(forecast) - agg(observation))"
+   perfect_score = 0
+   supports_aggregator = True
+   orientation = 0
+
+   def _compute_from_obs_fcst(self, obs, fcst):
+      return self.aggregator(fcst) - self.aggregator(obs)
+
+
 class Ef(ObsFcstBased):
    name = "Exceedance fraction"
    description = "Exeedance fraction: fraction of times that forecasts > observations"
@@ -1371,18 +1382,6 @@ class Pc(Contingency):
 
    def compute_from_abcd(self, a, b, c, d):
       return (a + d) / 1.0 / (a + b + c + d)
-
-
-class Diff(Contingency):
-   name = "false alarms - misses"
-   description = "Difference between false alarms and misses"
-   min = -1
-   max = 1
-   perfect_score = 0
-   orientation = 0
-
-   def compute_from_abcd(self, a, b, c, d):
-      return (b - c) / 1.0 / (b + c)
 
 
 class Edi(Contingency):
