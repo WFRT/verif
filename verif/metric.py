@@ -395,6 +395,25 @@ class Diff(ObsFcstBased):
       return self.aggregator(fcst) - self.aggregator(obs)
 
 
+class Ratio(ObsFcstBased):
+   name = "Ratio"
+   description = "Ratio of aggregated statistics (agg(forecast) / agg(observation))"
+   perfect_score = 1
+   supports_aggregator = True
+   orientation = 0
+
+   def _compute_from_obs_fcst(self, obs, fcst):
+      num = self.aggregator(fcst)
+      denum = self.aggregator(obs)
+
+      if denum == 0:
+         return np.nan
+      return num / denum
+
+   def label(self, variable):
+      return "Ratio"
+
+
 class Ef(ObsFcstBased):
    name = "Exceedance fraction"
    description = "Exeedance fraction: fraction of times that forecasts > observations"
@@ -557,12 +576,11 @@ class Mbias(ObsFcstBased):
    name = "Multiplicative bias"
    description = "Multiplicative bias (fcst/obs)"
    perfect_score = 1
-   supports_aggregator = True
    orientation = 0
 
    def _compute_from_obs_fcst(self, obs, fcst):
-      num = self.aggregator(fcst)
-      denum = self.aggregator(obs)
+      num = np.nanmean(fcst)
+      denum = np.nanmean(obs)
 
       if denum == 0:
          return np.nan
