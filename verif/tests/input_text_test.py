@@ -94,6 +94,16 @@ class InputTextTest(unittest.TestCase):
       # Check that names 'q', 'p', and 'e' can be read
       data = verif.data.Data(inputs=[verif.input.Text("verif/tests/files/file_odd_header_names.txt")])
 
+   def test_hour(self):
+      # Check that the hour column works
+      input = verif.input.Text("verif/tests/files/text_hour.txt")
+      self.assertEqual((3, 2, 1), input.obs.shape)
+      np.testing.assert_array_equal(input.leadtimes, [0, 2])
+      ut = verif.util.date_to_unixtime(20180101)
+      np.testing.assert_array_equal(input.times, [ut, ut + 12 * 3600, ut + 36 * 3600])
+      self.assertTrue(np.isnan(input.obs[2, 0, 0]))
+      self.assertEqual(9, input.obs[2, 1, 0])
+
    def test_get_scores(self):
       input = verif.input.Text("verif/tests/files/example.txt")
       obs = input.obs

@@ -114,7 +114,7 @@ class Input(object):
 
    def get_regular_names(self):
       """ Standard names of fields in dataset """
-      return ["obs", "fcst", "id", "location", "lat", "lon", "elev", "altitude", "time", "date", "unixtime", "leadtime", "offset"]
+      return ["obs", "fcst", "id", "location", "lat", "lon", "elev", "altitude", "hour", "date", "unixtime", "leadtime", "offset"]
 
 
 class Netcdf(Input):
@@ -354,8 +354,8 @@ class Text(Input):
                   date = int(self._clean(row[indices["date"]]))
                   unixtime = verif.util.date_to_unixtime(date)
                   add = 0
-                  if "time" in indices:
-                     add = (self._clean(row[indices["time"]]))*3600
+                  if "hour" in indices:
+                     add = (self._clean(row[indices["hour"]]))*3600
                   unixtime = unixtime + add
                elif "unixtime" in indices:
                   unixtime = self._clean(row[indices["unixtime"]])
