@@ -79,6 +79,12 @@ sudo-rights, then install verif as follows:
 This will create the executable ``~/.local/bin/verif``. Add this to your PATH environment
 variable if necessary (i.e add ``export PATH=$PATH:~/.local/bin`` to ``~/.bashrc``).
 
+To upgrade to a newer version of Verif, run the following:
+
+.. code-block:: bash
+
+   pip install verif --upgrade
+
 **Installing from source**
 
 Alternatively, to install from source, download the source code of the latest version:
