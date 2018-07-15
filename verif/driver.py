@@ -90,6 +90,7 @@ def run(argv):
    xlog = False
    ylog = False
    cmap = None
+   obs_leg = None
    obs_field = verif.field.Obs()
    fcst_field = verif.field.Fcst()
 
@@ -271,6 +272,8 @@ def run(argv):
                obs_field = verif.field.get(arg_next)
             elif arg == "-fcst":
                fcst_field = verif.field.get(arg_next)
+            elif arg == "-obsleg":
+               obs_leg = arg_next
             elif arg == "-m":
                metric = arg_next
             elif arg == "--config":
@@ -599,6 +602,8 @@ def run(argv):
       pl.clabel = clabel
    if title is not None:
       pl.title = title
+   if obs_leg is not None:
+      pl.obs_leg = obs_leg
    if do_acc:
       if pl.supports_acc:
          pl.show_acc = do_acc
@@ -702,6 +707,7 @@ def show_description(data=None):
    s += format_argument("-ms size", "How big should markers be?") + "\n"
    s += format_argument("-nogrid", "Turn the grid on the plot off") + "\n"
    s += format_argument("-nomargin", "Remove margins (whitespace) in the plot") + "\n"
+   s += format_argument("-obsleg", "Name to put in legend for observations (if applicable)") + "\n"
    s += format_argument("-proj string", "Proj4 projection string when used with -maptype (experimental)") + "\n"
    s += format_argument("-right value", "Right boundary location for saved figure [range 0-1]. Must be greater than -left.") + "\n"
    s += format_argument("-simple", "Make a simpler plot, without extra lines, subplots, etc.") + "\n"

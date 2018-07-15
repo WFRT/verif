@@ -177,6 +177,7 @@ class Output(object):
       # A class can set this to True to prevent adjust_axes from setting log
       # axes, useful if the class handles log axes internally
       self.skip_log = False
+      self.obs_leg = "Observed"
 
    class ClassProperty(property):
       def __get__(self, cls, owner):
@@ -614,7 +615,9 @@ class Output(object):
       # Margins
       mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
 
-   def _plot_obs(self, x, y, isCont=True, zorder=0, label="Observed"):
+   def _plot_obs(self, x, y, isCont=True, zorder=0, label=None):
+      if label is None:
+         label = self.obs_leg
       if isCont:
          mpl.plot(x, y, ".-", color="gray", lw=5, label=label, zorder=zorder)
       else:
@@ -2049,7 +2052,7 @@ class Meteo(Output):
       # Plot obs line
       obs = data.get_scores(verif.field.Obs(), 0)
       obs = verif.util.nanmean(verif.util.nanmean(obs, axis=0), axis=1)
-      mpl.plot(x, obs, "o-", color=self._obs_col, lw=2, ms=8, label="Observed")
+      mpl.plot(x, obs, "o-", color=self._obs_col, lw=2, ms=8, label=self.obs_leg)
 
       # Plot deterministic forecast
       fcst = data.get_scores(verif.field.Fcst(), 0)
@@ -2909,7 +2912,7 @@ class Taylor(Output):
       # Draw obs point/lines
       orange = [1, 0.8, 0.4]
       self._draw_circle(stdobs, style='-', lw=5, color=orange)
-      mpl.plot(stdobs, 0, 's-', color=orange, label="Observed", mew=2, ms=self.ms, clip_on=False)
+      mpl.plot(stdobs, 0, 's-', color=orange, label=self.obs_leg, mew=2, ms=self.ms, clip_on=False)
 
       # Draw CRMSE rings
       xticks = mpl.xticks()[0]
