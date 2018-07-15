@@ -215,6 +215,9 @@ class IntegrationTest(unittest.TestCase):
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m droc -r 0 -ylog")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m droc -r 0 -xlog -ylog")
 
+   def test_obsleg(self):
+      self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -obsleg Test -leg 1,2")
+
    def test_discrimination(self):
       self.run_with_image("verif examples/raw.txt -m discrimination -r 0")
       self.run_with_image("verif examples/raw.txt examples/kf.txt -m discrimination -r 0")
