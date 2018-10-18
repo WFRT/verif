@@ -1,3 +1,4 @@
+from __future__ import print_function
 import unittest
 import verif.metric
 import verif.metric_type
@@ -183,7 +184,7 @@ class TestBrierScore(unittest.TestCase):
          o = np.array(obs[i])
          f = np.array(fcst[i])
          for key in ans:
-            print key, i
+            print(key, i)
             calculated = key.compute_from_obs_fcst(o, f)
             expected = ans[key][i]
             if np.isnan(expected):

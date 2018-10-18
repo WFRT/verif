@@ -1,3 +1,6 @@
+from __future__ import print_function
+import six
+
 import datetime
 import matplotlib.dates
 import numpy as np
@@ -158,7 +161,7 @@ class TestConvert(unittest.TestCase):
    def test_convert_back_and_forth(self):
       dates = [20150101, 20141231]
       new_dates = [verif.util.datenum_to_date(verif.util.date_to_datenum(date)) for date in dates]
-      self.assertItemsEqual(new_dates, dates)
+      six.assertCountEqual(self, new_dates, dates)
 
 
 class TestIsValidNc(unittest.TestCase):

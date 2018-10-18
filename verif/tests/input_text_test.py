@@ -25,7 +25,7 @@ class InputTextTest(unittest.TestCase):
    def test_get_locations_no_id(self):
       input = verif.input.Text("verif/tests/files/example.txt")
       locations = input.locations
-      locations = np.sort(locations)
+      # locations = np.sort(locations) # TODO does it have to be sorted?
       # Reset ids, to make it easier to verify what locations are available
       for loc in locations:
          loc.id = 0
@@ -38,7 +38,7 @@ class InputTextTest(unittest.TestCase):
    def test_get_locations(self):
       input = verif.input.Text("verif/tests/files/file1.txt")
       locations = input.locations
-      locations = np.sort(locations)
+      #locations = np.sort(locations) # TODO does it have to be sorted?
       self.assertEqual(2, len(locations))
       self.assertTrue(verif.location.Location(3, 50, 10, 12) in locations)
       self.assertTrue(verif.location.Location(41, 42, 23, 341) in locations)
@@ -59,7 +59,7 @@ class InputTextTest(unittest.TestCase):
                I += [j]
 
       self.assertEqual(len(locations1), len(I))
-      locations2 = np.sort(locations2)
+      # locations2 = np.sort(locations2) # TODO does it have to be sorted?
       self.assertEqual(2, len(locations2))
       self.assertTrue(verif.location.Location(3, 50, 10, 12) in locations2)
       self.assertTrue(verif.location.Location(41, 50, 10, 12) in locations2)
@@ -139,7 +139,7 @@ class InputTextTest(unittest.TestCase):
    def test_compatibility(self):
       input = verif.input.Text("verif/tests/files/file1_compatibility.txt")
       locations = input.locations
-      locations = np.sort(locations)
+      # locations = np.sort(locations) # TODO does it have to be sorted?
       self.assertEqual(2, len(locations))
       self.assertTrue(verif.location.Location(3, 50, 10, 12) in locations)
       self.assertTrue(verif.location.Location(41, 42, 23, 341) in locations)

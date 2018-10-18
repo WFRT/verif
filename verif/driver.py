@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import str
+
 import sys
 import os
 import verif.axis
@@ -173,15 +176,15 @@ def run(argv):
             elif arg == "-o":
                leadtimes = verif.util.parse_numbers(arg_next)
             elif arg == "-leg":
-               leg = unicode(arg_next, 'utf8')
+               leg = str(arg_next)
             elif arg == "-ylabel":
-               ylabel = unicode(arg_next, 'utf8')
+               ylabel = str(arg_next)
             elif arg == "-xlabel":
-               xlabel = unicode(arg_next, 'utf8')
+               xlabel = str(arg_next)
             elif arg == "-clabel":
-               clabel = unicode(arg_next, 'utf8')
+               clabel = str(arg_next)
             elif arg == "-title":
-               title = unicode(arg_next, 'utf8')
+               title = str(arg_next)
             elif arg == "-b":
                bin_type = arg_next
             elif arg == "-type":
@@ -280,7 +283,7 @@ def run(argv):
       i = i + 1
 
    if version:
-      print "Version: " + verif.version.__version__
+      print("Version: " + verif.version.__version__)
       return
 
    # Deal with legend entries
@@ -315,25 +318,25 @@ def run(argv):
       if len(ifiles) == 0:
          verif.util.error("Files are required in order to list thresholds, quantiles, or times")
       if list_thresholds:
-         print "Thresholds:",
+         print("Thresholds:", end=' ')
          for threshold in data.thresholds:
-            print "%g" % threshold,
-         print ""
+            print("%g" % threshold, end=' ')
+         print("")
       if list_quantiles:
-         print "Quantiles:",
+         print("Quantiles:", end=' ')
          for quantile in data.quantiles:
-            print "%g" % quantile,
-         print ""
+            print("%g" % quantile, end=' ')
+         print("")
       if list_locations:
-         print "    id     lat     lon    elev"
+         print("    id     lat     lon    elev")
          for location in data.locations:
-            print "%6d %7.2f %7.2f %7.1f" % (location.id, location.lat,
-                  location.lon, location.elev)
-         print ""
+            print("%6d %7.2f %7.2f %7.1f" % (location.id, location.lat,
+                  location.lon, location.elev))
+         print("")
       if list_times:
          for time in data.times:
-            print "%d" % time
-         print ""
+            print("%d" % time)
+         print("")
       if list_dates:
          for time in data.times:
             date = verif.util.unixtime_to_date(time)
@@ -341,26 +344,26 @@ def run(argv):
             hour = diff / 3600
             minute = (diff % 3600)/60
             second = diff % 60
-            print "%d %02d:%02d:%02d" % (date, hour, minute, second)
-         print ""
+            print("%d %02d:%02d:%02d" % (date, hour, minute, second))
+         print("")
       return
    elif len(ifiles) == 0 and metric is not None:
       m = verif.metric.get(metric)
       if m is not None:
-         print m.help()
+         print(m.help())
       else:
          m = verif.output.get(metric)
          if m is not None:
-            print m.help()
+            print(m.help())
       return
    elif len(argv) == 1 or len(ifiles) == 0 or metric is None:
-      print show_description(data)
+      print(show_description(data))
       return
 
    if figsize is not None:
       figsize = figsize.split(',')
       if len(figsize) != 2:
-         print "-fs figsize must be in the form: width,height"
+         print("-fs figsize must be in the form: width,height")
          sys.exit(1)
 
    m = None

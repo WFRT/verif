@@ -1,4 +1,7 @@
 # -*- coding: ISO-8859-1 -*-
+from __future__ import print_function
+from six.moves import reload_module
+
 import datetime
 import inspect
 import os
@@ -12,8 +15,8 @@ import verif.axis
 import verif.metric
 import verif.metric_type
 import verif.util
-reload(sys)
-sys.setdefaultencoding('ISO-8859-1')
+reload_module(sys)
+#sys.setdefaultencoding('ISO-8859-1')
 
 allowedMapTypes = ["simple", "sat", "topo", "ESRI_Imagery_World_2D",
          "ESRI_StreetMap_World_2D", "I3_Imagery_Prime_World",
@@ -274,6 +277,9 @@ class Output(object):
          s += "%-*s| " % (lengths[i], ylabels[i])
       s += "\n"
 
+      # Cannot be imported into the global namespace because it breaks the introspection used in get_all()
+      from past.builtins import basestring
+
       # Loop over rows
       for i in range(0, len(x)):
          for w in descs.keys():
@@ -298,7 +304,7 @@ class Output(object):
          file.write("\n")
          file.close()
       else:
-         print s
+         print(s)
 
    def csv(self, data):
       """ Call this to create machine-readable csv output
@@ -333,7 +339,7 @@ class Output(object):
          file.write("\n")
          file.close()
       else:
-         print s
+         print(s)
 
    def _get_x_y(self, data, axis):
       """ Retrieve x and y axis values
@@ -484,7 +490,7 @@ class Output(object):
          return listStyles[I]
 
       else:  # default linestyles
-         I = (i / len(self.colors)) % len(self.default_lines)
+         I = (i // len(self.colors)) % len(self.default_lines)
          line = self.default_lines[I]
          marker = self.default_markers[I]
          if lineOnly:
@@ -1213,7 +1219,7 @@ class Standard(Output):
                if yy[i, j] > 0:
                   mpl.text(curr_x, curr_y, "%d%%" % int(yy[i, j] * 100), horizontalalignment="center", verticalalignment="center")
 
-         print self.tick_font_size
+         print(self.tick_font_size)
          mpl.gca().set_xticklabels(range(F), fontsize=self.tick_font_size)
          mpl.gca().set_xticks([0.5, F-0.5])
          if self._metric.orientation == 0:
@@ -1493,7 +1499,7 @@ class Auto(Output):
          func_name (str): One of "corr" or "cov"
       """
       Output.__init__(self)
-      self.func_name = func_name
+      self.__name__ = func_name
       if func_name == "corr":
          self.func = lambda x, y: np.corrcoef(x, y)[0, 1]
       elif func_name == "cov":
@@ -1502,9 +1508,9 @@ class Auto(Output):
          verif.util.error("Invalid function name: %s" % func_name)
 
    def _get_label(self, units):
-      if self.func_name == "corr":
+      if self.__name__ == "corr":
          return "Error correlation"
-      elif self.func_name == "cov":
+      elif self.__name__ == "cov":
          return "Error covariance (%s^2)" % units
 
    @property
