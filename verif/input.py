@@ -1,3 +1,4 @@
+from __future__ import print_function
 import csv
 import datetime
 import numpy as np
@@ -389,7 +390,7 @@ class Text(Input):
                   elev = locationInfo[id].elev
                   if not shownConflictingWarning:
                      if (not np.isnan(currLat) and abs(currLat - lat) > 0.0001) or (not np.isnan(currLon) and abs(currLon - lon) > 0.0001) or (not np.isnan(currElev) and abs(currElev - elev) > 0.001):
-                        print currLat - lat, currLon - lon, currElev - elev
+                        print(currLat - lat, currLon - lon, currElev - elev)
                         verif.util.warning("Conflicting lat/lon/elev information: (%f,%f,%f) does not match (%f,%f,%f)" % (currLat, currLon, currElev, lat, lon, elev))
                         shownConflictingWarning = True
                else:
@@ -435,8 +436,8 @@ class Text(Input):
                   other[field][key] = self._clean(row[indices[field]])
 
       file.close()
-      self._times = list(self._times)
-      self._leadtimes = list(self._leadtimes)
+      self._times = list(sorted(self._times))
+      self._leadtimes = list(sorted(self._leadtimes))
       self._locations = list(self._locations)
       self._quantiles = list(self._quantiles)
       self._thresholds = list(self._thresholds)

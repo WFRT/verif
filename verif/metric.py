@@ -1,5 +1,6 @@
+from __future__ import absolute_import
 import inspect
-import metric_type
+from . import metric_type
 import numpy as np
 import sys
 import scipy.stats

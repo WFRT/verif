@@ -1,3 +1,4 @@
+from __future__ import print_function
 import matplotlib.dates
 import calendar
 import copy
@@ -106,8 +107,8 @@ def date_to_unixtime(date):
    Returns:
       int: unixtime
    """
-   year = date / 10000
-   month = date / 100 % 100
+   year = date // 10000
+   month = date // 100 % 100
    day = date % 100
    ut = calendar.timegm(datetime.datetime(year, month, day).timetuple())
    return ut
@@ -157,13 +158,13 @@ def experimental():
 
 def error(message):
    """ Write error message to console and abort """
-   print "\033[1;31mError: " + message + "\033[0m"
+   print("\033[1;31mError: " + message + "\033[0m")
    sys.exit(1)
 
 
 def warning(message):
    """ Write a warning message to console """
-   print "\033[1;33mWarning: " + message + "\033[0m"
+   print("\033[1;33mWarning: " + message + "\033[0m")
 
 
 def parse_numbers(numbers, is_date=False):
@@ -298,7 +299,7 @@ def clean(data):
       np.array: A numpy array where invalid values have been set to np.nan
 
    """
-   if len(data.shape) == 1 and len(data) == 0:
+   if len(data.shape) == 1 and data.shape[0] == 0:
       return np.zeros(0)
 
    data = data[:].astype(float)

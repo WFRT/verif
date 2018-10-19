@@ -104,6 +104,9 @@ class Threshold(Field):
          return False
       return self.threshold == other.threshold
 
+   def __hash__(self):
+      return hash(self.threshold)
+
 
 class Spread(Field):
    def label(self, variable):
@@ -128,6 +131,8 @@ class Other(Field):
          return False
       return self._name == other._name
 
+   def __hash__(self):
+      return hash(self._name)
 
 class Pit(Field):
    def label(self, variable):
