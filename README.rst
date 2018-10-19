@@ -118,15 +118,15 @@ about the dataset check out the wiki. Here are some example commands to test out
 .. code-block:: bash
 
    # Shows mean absolute error as a function of lead-time
-   verif examples/raw.txt examples/cal.txt -m mae
+   verif examples/raw.txt examples/kf.txt -m mae
    # Shows average observed and forecasted values as a function on time
-   verif examples/raw.txt examples/cal.txt -m obsfcst -x time
+   verif examples/raw.txt examples/kf.txt -m obsfcst -x time
    # Shows equitable threat score as a function of threshold
-   verif examples/raw.txt examples/cal.txt -m ets
-   # Shows a reliability diagram for a threshold of 0.5 mm
-   verif examples/raw.txt examples/cal.txt -m reliability -r 0.5
+   verif examples/raw.txt examples/kf.txt -m ets
+   # Shows a reliability diagram for a threshold of 0 °C
+   verif examples/raw.txt examples/kf.txt -m reliability -r 0
    # Shows Brier skill score as a function of threshold
-   verif examples/raw.txt examples/cal.txt -m bss -x threshold
+   verif examples/raw.txt examples/kf.txt -m bss -x threshold
 
 Copyright and license
 ---------------------
