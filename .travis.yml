@@ -1,10 +1,19 @@
+sudo: false
 language: python
 os: linux
-env:
- - DIST=trusty
 
 python:
-   - "2.7_with_system_site_packages"
+  - "2.7"
+  - "3.5"
+  - "3.6"
+
+# Python 3.7 needs a special treatment until it is supported by default
+# https://github.com/travis-ci/travis-ci/issues/9069#issuecomment-425720905
+matrix:
+  include:
+    - python: "3.7"
+      sudo: required
+      dist: xenial
 
 addons:
    apt:
@@ -13,20 +22,8 @@ addons:
          - netcdf-bin
          - libnetcdf-dev
 
-before_install:
-   - "export DISPLAY=:99.0"
-   - "sh -e /etc/init.d/xvfb start"
-   - sudo apt-get update -qq
-   - sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-mpltoolkits.basemap
-   - sudo pip install matplotlib==1.1.1
-
 install:
-   - sudo pip install .
+  - pip install tox-travis==0.11
 
 script:
-   - pip install coveralls pep8
-   - nosetests -v --with-coverage --cover-erase --cover-package=verif
-   - verif examples/raw.txt examples/kf.txt -m mae -f test.png
-
-after_success:
-   - coveralls
+  - tox
