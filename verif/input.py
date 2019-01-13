@@ -348,7 +348,7 @@ class Text(Input):
                ensFields = self._get_ens_fields(header)
                otherFields = self._get_other_fields(header)
             else:
-               if len(row) is not len(header):
+               if len(row) != len(header):
                   verif.util.error("Incorrect number of columns (expecting %d) in row '%s'"
                         % (len(header), rowstr.strip()))
                if "date" in indices:
