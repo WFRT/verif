@@ -2088,11 +2088,12 @@ class Meteo(Output):
 
       if self.xlim is not None:
          mpl.xlim([verif.util.date_to_datenum(lim) for lim in self.xlim])
+      elif np.min(x) == np.max(x):
+         mpl.xlim(x[0], x[0] + 1)
       else:
-         if np.min(x) == np.max(x):
-            mpl.xlim(x[0], x[0] + 1)
-         else:
-            mpl.xlim(np.min(x), np.max(x))
+         # Round the limits, otherwise floating point differences can cause
+         # the 6h grid to be aligned 1 hour to the right
+         mpl.xlim(np.round(np.min(x), 2), np.round(np.max(x), 2))
       mpl.gca().xaxis.set_major_locator(mpldates.DayLocator(interval=1))
       mpl.gca().xaxis.set_minor_locator(mpldates.HourLocator(interval=6))
       mpl.gca().xaxis.set_major_formatter(mpldates.DateFormatter('\n  %a %d %b %Y'))
