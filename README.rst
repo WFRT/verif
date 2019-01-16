@@ -40,7 +40,7 @@ More information
 
 For more information on how to use Verif, check out the wiki at https://github.com/WFRT/verif/wiki.
 
-.. image:: image.jpg
+.. image:: other/image.jpg
     :alt: Example plots
     :width: 400
     :align: center
