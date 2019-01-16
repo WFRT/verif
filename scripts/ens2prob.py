@@ -2,7 +2,7 @@ import argparse
 import copy
 import netCDF4
 import numpy as np
-import scipy
+import scipy.interpolate
 import sys
 
 
@@ -129,7 +129,7 @@ def main():
       vQuantile=file.createVariable("quantile", "f4", ("quantile"))
    if args.pit:
       vPit=file.createVariable("pit", "f4", ("time", "leadtime", "location"))
-   file.Variable = ifile.variable.name
+   file.long_name = ifile.variable.name
    file.units = unit = ifile.variable.units.replace("$", "")
    file.Convensions = "verif_1.0.0"
    new_history = ' '.join(sys.argv)
