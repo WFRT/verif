@@ -134,6 +134,7 @@ class Other(Field):
    def __hash__(self):
       return hash(self._name)
 
+
 class Pit(Field):
    def label(self, variable):
       return "Verifying PIT"

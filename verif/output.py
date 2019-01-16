@@ -16,7 +16,7 @@ import verif.metric
 import verif.metric_type
 import verif.util
 reload_module(sys)
-#sys.setdefaultencoding('ISO-8859-1')
+# sys.setdefaultencoding('ISO-8859-1')
 
 allowedMapTypes = ["simple", "sat", "topo", "ESRI_Imagery_World_2D",
          "ESRI_StreetMap_World_2D", "I3_Imagery_Prime_World",

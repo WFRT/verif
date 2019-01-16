@@ -38,7 +38,7 @@ class InputTextTest(unittest.TestCase):
    def test_get_locations(self):
       input = verif.input.Text("verif/tests/files/file1.txt")
       locations = input.locations
-      #locations = np.sort(locations) # TODO does it have to be sorted?
+      # locations = np.sort(locations) # TODO does it have to be sorted?
       self.assertEqual(2, len(locations))
       self.assertTrue(verif.location.Location(3, 50, 10, 12) in locations)
       self.assertTrue(verif.location.Location(41, 42, 23, 341) in locations)
