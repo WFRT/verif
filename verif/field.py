@@ -83,7 +83,7 @@ class Quantile(Field):
    def __eq__(self, other):
       if self.__class__ != other.__class__:
          return False
-      return self.quantile == other.quantile
+      return np.isclose(self.quantile, other.quantile)
 
 
 class Threshold(Field):
@@ -102,7 +102,7 @@ class Threshold(Field):
    def __eq__(self, other):
       if self.__class__ != other.__class__:
          return False
-      return self.threshold == other.threshold
+      return np.isclose(self.threshold, other.threshold)
 
    def __hash__(self):
       return hash(self.threshold)
