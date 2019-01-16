@@ -2069,7 +2069,7 @@ class Meteo(Output):
          style = "k-"
          if i == 0 or i == len(quantiles) - 1:
             style = "k--"
-         label = "%d%%" % (quantiles[i]*100)
+         label = "%g%%" % (quantiles[i]*100)
          mpl.plot(x, y[:, i], style, label=label, zorder=-1)
 
       # Fill areas betweeen lines
