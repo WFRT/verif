@@ -67,6 +67,12 @@ print "   COMPREPLY=( $( compgen -W '",
 print ' '.join(aggregators),
 print "' -- $cur ) )"
 
+# Type
+print 'elif [ "$prev" = "-type" ]; then'
+print "   COMPREPLY=( $( compgen -W '",
+print 'plot text csv map rank maprank impact mapimpact',
+print "' -- $cur ) )"
+
 # Axis
 print 'elif [ "$prev" = "-x" ]; then'
 print "   COMPREPLY=( $( compgen -W '",
