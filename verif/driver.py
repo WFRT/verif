@@ -177,15 +177,15 @@ def run(argv):
             elif arg == "-o":
                leadtimes = verif.util.parse_numbers(arg_next)
             elif arg == "-leg":
-               leg = str(arg_next)
+               leg = verif.util.parse_label(arg_next)
             elif arg == "-ylabel":
-               ylabel = str(arg_next)
+               ylabel = verif.util.parse_label(arg_next)
             elif arg == "-xlabel":
-               xlabel = str(arg_next)
+               xlabel = verif.util.parse_label(arg_next)
             elif arg == "-clabel":
-               clabel = str(arg_next)
+               clabel = verif.util.parse_label(arg_next)
             elif arg == "-title":
-               title = str(arg_next)
+               title = verif.util.parse_label(arg_next)
             elif arg == "-b":
                bin_type = arg_next
             elif arg == "-type":
@@ -215,11 +215,11 @@ def run(argv):
             elif arg == "-xticks":
                xticks = verif.util.parse_numbers(arg_next)
             elif arg == "-xticklabels":
-               xticklabels = (arg_next).split(',')
+               xticklabels = verif.util.parse_label(arg_next).split(',')
             elif arg == "-yticks":
                yticks = verif.util.parse_numbers(arg_next)
             elif arg == "-yticklabels":
-               yticklabels = (arg_next).split(',')
+               yticklabels = verif.util.parse_label(arg_next).split(',')
             elif arg == "-agg":
                aggregator_name = arg_next
             elif arg == "-aspect":
@@ -469,29 +469,29 @@ def run(argv):
 
    # Create thresholds if needed
    if thresholds is None:
-      type = None
+      ttype = None
       if plot_type == "impact":
-         type = "deterministic"
+         ttype = "deterministic"
       elif pl.require_threshold_type == "deterministic":
-         type = "deterministic"
+         ttype = "deterministic"
       elif pl.require_threshold_type == "threshold":
-         type = "threshold"
+         ttype = "threshold"
       elif pl.require_threshold_type == "quantile":
-         type = "quantile"
+         ttype = "quantile"
       elif m is not None:
          if m.require_threshold_type == "deterministic":
-            type = "deterministic"
+            ttype = "deterministic"
          elif m.require_threshold_type == "threshold":
-            type = "threshold"
+            ttype = "threshold"
          elif m.require_threshold_type == "quantile":
-            type = "quantile"
+            ttype = "quantile"
          elif m.require_threshold_type is not None:
             verif.util.error("Internal error for metric %s: Cannot understand required threshold type '%s'" % (m.name(), m.require_threshold_type))
       elif pl.require_threshold_type is not None:
          verif.util.error("Internal error for output %s: Cannot understand required threshold type '%s'" % (pl.name(), pl.require_threshold_type))
 
-      if type is not None:
-         if type == "deterministic":
+      if ttype is not None:
+         if ttype == "deterministic":
             smin = np.inf
             smax = -np.inf
             if verif.field.Obs() in data.get_fields():
@@ -505,10 +505,10 @@ def run(argv):
             num_default_thresholds = 20
             thresholds = np.linspace(smin, smax, num_default_thresholds)
             verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
-         elif type == "threshold":
+         elif ttype == "threshold":
             thresholds = data.thresholds
             verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
-         elif type == "quantile":
+         elif ttype == "quantile":
             thresholds = data.quantiles
             verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
          if len(thresholds) == 0:

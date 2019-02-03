@@ -582,3 +582,10 @@ def proj4_string_to_dict(string):
          pass
       r[key] = value
    return r
+
+
+def parse_label(string):
+   """
+   Replaces newlines
+   """
+   return str(string).replace('\\n', '\n')
