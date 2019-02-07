@@ -20,6 +20,11 @@ verification figures.
 Verif version 1.0 has been released (see "Installation Instruction" below). We welcome suggestions
 for improvements. Verif is developed by Thomas Nipen, David Siuta, and Tim Chui.
 
+Documentation
+-------------
+
+For more information on how to use Verif, check out the wiki at https://github.com/WFRT/verif/wiki.
+
 Features
 --------
 
@@ -34,11 +39,6 @@ Features
 * Options to adjust font sizes, label positions, tick marks, legends, etc (``-labfs 14``)
 * Anomaly statistics relative to a baseline like climatology (``-c climfile.txt``)
 * Output to png, jpeg, eps, etc and specify dimensions and resolution (``-f image.png -dpi 300``)
-
-More information
-----------------
-
-For more information on how to use Verif, check out the wiki at https://github.com/WFRT/verif/wiki.
 
 .. image:: other/image.jpg
     :alt: Example plots
