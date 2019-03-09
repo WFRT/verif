@@ -9,14 +9,24 @@ import scipy.signal
 
 
 """ Convolves the Verif array across the leadtime dimension """
-def convolve(array, window, ignore_missing):
+def convolve(array, window, ignore_missing, axis):
    assert(len(array.shape) == 3)
-   c = np.ones([1, window, 1])
-   if ignore_missing:
-      # Does this work?
-      array[np.isnan(array)] = 0
-   new_array = np.nan*np.zeros(array.shape)
-   new_array[:, (window-1):, :] = scipy.signal.convolve(array, c, "valid")
+   if axis == 'leadtime':
+       c = np.ones([1, window, 1])
+       if ignore_missing:
+          # Does this work?
+          array[np.isnan(array)] = 0
+       new_array = np.nan*np.zeros(array.shape)
+       new_array[:, (window-1):, :] = scipy.signal.convolve(array, c, "valid")
+   elif axis == 'time':
+       c = np.ones([window, 1, 1])
+       if ignore_missing:
+          # Does this work?
+          array[np.isnan(array)] = 0
+       new_array = np.nan*np.zeros(array.shape)
+       new_array[(window-1):, :, :] = scipy.signal.convolve(array, c, "valid")
+   else:
+       verif.util.error('Invalid axis %s' % axis)
    return new_array
 
 
@@ -26,6 +36,7 @@ def main():
    parser.add_argument('ofile', help="Verif NetCDF file (output)")
    parser.add_argument('-w', type=int, help="Accumulation window (in number of timesteps). If omitted, accumulate the whole leadtime axis.", dest="w")
    parser.add_argument('-i', help="Ignore missing values in the sum", action="store_true", dest="ignore")
+   parser.add_argument('-x', default="leadtime", help="Axis", choices=["leadtime", "time"], dest="axis")
 
    if len(sys.argv) == 1:
       parser.print_help()
@@ -44,18 +55,22 @@ def main():
 
    fcst = copy.deepcopy(ifile.fcst)
    obs = copy.deepcopy(ifile.obs)
+   if args.axis == 'leadtime':
+       axis = 1
+   elif args.axis == 'time':
+       axis = 0
 
    if args.w is None:
       if args.ignore:
-         fcst = np.nancumsum(fcst, axis=1)
-         obs = np.nancumsum(obs, axis=1)
+         fcst = np.nancumsum(fcst, axis=axis)
+         obs = np.nancumsum(obs, axis=axis)
       else:
-         fcst = np.cumsum(fcst, axis=1)
-         obs = np.cumsum(obs, axis=1)
+         fcst = np.cumsum(fcst, axis=axis)
+         obs = np.cumsum(obs, axis=axis)
 
    elif args.w > 1:
-      fcst = convolve(fcst, args.w, args.ignore)
-      obs = convolve(obs, args.w, args.ignore)
+      fcst = convolve(fcst, args.w, args.ignore, args.axis)
+      obs = convolve(obs, args.w, args.ignore, args.axis)
 
    file = netCDF4.Dataset(args.ofile, 'w', format="NETCDF4")
    file.createDimension("leadtime", len(ifile.leadtimes))
