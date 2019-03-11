@@ -2922,7 +2922,7 @@ class Taylor(Output):
       for R in Rs:
          if R > 0:
             self._draw_circle(R, xcenter=stdobs, ycenter=0, maxradius=maxstd, style="-", color="gray", lw=3)
-            x = stdobs
+            x = np.sin(-np.pi / 4) * R + stdobs
             y = np.cos(np.pi / 4) * R
             if x ** 2 + y ** 2 < maxstd ** 2:
                mpl.text(x, y, str(R), horizontalalignment="right",
