@@ -666,6 +666,7 @@ def show_description(data=None):
    s += format_argument("-latrange range", "Limit the verification to locations within minlat,maxlat.") + "\n"
    s += format_argument("-lonrange range", "Limit the verification to locations within minlon,maxlon.") + "\n"
    s += format_argument("-o leadtimes", "Limit the verification to these leadtimes (in hours).") + "\n"
+   s += format_argument("-obsrange range", "Limit the verification to this range of observation values.") + "\n"
    s += format_argument("-r thresholds", "Compute scores using these thresholds (only used by some metrics).") + "\n"
    s += format_argument("-q quantiles", "Compute scores using these quantiles (only used by some metrics).") + "\n"
    s += format_argument("-t times", "A vector of unix timestamps. Only allow these times.") + "\n"
