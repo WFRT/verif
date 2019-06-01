@@ -1980,6 +1980,9 @@ class TimeSeries(Output):
    def _plot_core(self, data):
       F = data.num_inputs
 
+      if len(data.times) == 0 or len(data.leadtimes) == 0:
+         verif.util.error("No data available")
+
       """
       Draw observation line
 
@@ -1993,8 +1996,9 @@ class TimeSeries(Output):
          times = x0.flatten() * 3600 + x1.flatten()
          all_datenums = [verif.util.unixtime_to_datenum(time) for time in times]
          x, I = np.unique(all_datenums, return_index=True)
-         y = verif.util.nanmean(obs[:, :, :], axis=2).flatten()[I]
-         self._plot_obs(x, y, label="obs")
+         if len(I) > 0:
+            y = verif.util.nanmean(obs[:, :, :], axis=2).flatten()[I]
+            self._plot_obs(x, y, label="obs")
 
       """
       Draw forecast lines: One line per initialization time
@@ -2005,7 +2009,7 @@ class TimeSeries(Output):
             fcst = data.get_scores(verif.field.Fcst(), f)
             color = self._get_color(f, F)
             style = self._get_style(f, F)
-            for d in range(0, len(data.times)):
+            for d in range(len(data.times)):
                x = datenums[d] + data.leadtimes / 24.0
                y = verif.util.nanmean(fcst[d, :, :], axis=1)
                lab = labels[f] if d == 0 else ""
@@ -2021,7 +2025,7 @@ class TimeSeries(Output):
                color = self._get_color(f, F)
                style = self._get_style(f, F, lineOnly=True)
                alpha = 1
-               for d in range(0, len(data.times)):
+               for d in range(len(data.times)):
                   x = datenums[d] + data.leadtimes / 24.0
                   y = verif.util.nanmean(fcst[d, :, :], axis=1)
                   mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, alpha=alpha)
