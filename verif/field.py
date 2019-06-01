@@ -22,7 +22,7 @@ def get(name):
       if name == field[0].lower():
          f = field[1]()
    if f is None:
-      verif.util.error("No field by name '%s'" % name)
+      f = Other(name)
    return f
 
 
