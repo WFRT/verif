@@ -5,10 +5,7 @@ import numpy as np
 import os
 import re
 import time
-try:
-   from netCDF4 import Dataset as netcdf
-except:
-   from scipy.io.netcdf import netcdf_file as netcdf
+import netCDF4
 
 import verif.location
 import verif.util
@@ -122,7 +119,7 @@ class Netcdf(Input):
    def __init__(self, filename):
       self.fullname = filename
       self._filename = os.path.expanduser(filename)
-      self._file = netcdf(self._filename, 'r')
+      self._file = netCDF4.Dataset(self._filename, 'r')
       self.times = self._get_times()
       self.leadtimes = self._get_leadtimes()
       self.locations = self._get_locations()
@@ -136,7 +133,7 @@ class Netcdf(Input):
    def is_valid(filename):
       # First check if the file is a valid Netcdf file
       try:
-         file = netcdf(filename, 'r')
+         file = netCDF4.Dataset(filename, 'r')
          valid = True
 
          # Check required dimensions
@@ -589,7 +586,7 @@ class Comps(Input):
    def __init__(self, filename):
       self.fullname = filename
       self._filename = os.path.expanduser(filename)
-      self._file = netcdf(self._filename, 'r')
+      self._file = netCDF4.Dataset(self._filename, 'r')
 
       # Pre-load these variables, to save time when queried repeatedly
       dates = verif.util.clean(self._file.variables["Date"])
@@ -618,7 +615,7 @@ class Comps(Input):
       """ Checks that 'filename' is a valid object of this type """
       valid = True
       try:
-         file = netcdf(filename, 'r')
+         file = netCDF4.Dataset(filename, 'r')
          required_dimensions = ["Offset", "Date", "Location"]
          for dim in required_dimensions:
             valid = valid & (dim in file.dimensions)
