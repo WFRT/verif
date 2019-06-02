@@ -48,10 +48,11 @@ def run(argv):
    no_margin = False
    bin_type = None
    simple = None
-   marker_size = None
-   line_width = None
+   marker_sizes = None
+   line_widths = None
    line_colors = None
    line_styles = None
+   markers = None
    tick_font_size = None
    lab_font_size = None
    leg_font_size = None
@@ -231,13 +232,15 @@ def run(argv):
                if np.min(quantiles) < 0 or np.max(quantiles) > 1:
                   verif.util.error("Quantiles must be between 0 and 1 inclusive")
             elif arg == "-ms":
-               marker_size = float(arg_next)
+               marker_sizes = verif.util.parse_ints(arg_next)
             elif arg == "-lw":
-               line_width = float(arg_next)
+               line_widths = verif.util.parse_numbers(arg_next)
             elif arg == "-lc":
-               line_colors = arg_next
+               line_colors = verif.util.parse_colors(arg_next)
             elif arg == "-ls":
-               line_styles = arg_next
+               line_styles = arg_next.split(',')
+            elif arg == "-ma":
+               markers = arg_next.split(',')
             elif arg == "-tickfs":
                tick_font_size = float(arg_next)
             elif arg == "-labfs":
@@ -517,14 +520,16 @@ def run(argv):
    # Set plot parameters
    if simple is not None:
       pl.simple = simple
-   if marker_size is not None:
-      pl.ms = marker_size
-   if line_width is not None:
-      pl.lw = line_width
+   if marker_sizes is not None:
+      pl.ms = marker_sizes
+   if line_widths is not None:
+      pl.lw = line_widths
    if line_colors is not None:
       pl.line_colors = line_colors
    if line_styles is not None:
       pl.line_styles = line_styles
+   if markers is not None:
+      pl.markers = markers
    if lab_font_size is not None:
       pl.labfs = lab_font_size
    if leg_font_size is not None:
@@ -702,10 +707,11 @@ def show_description(data=None):
    s += format_argument("-leg titles", "Comma-separated list of legend titles. Use '_' to represent space.") + "\n"
    s += format_argument("-legfs size", "Font size for legend. Set to 0 to hide legend.") + "\n"
    s += format_argument("-legloc loc", "Where should the legend be placed?  Locations such as 'best', 'upper_left', 'lower_right', 'center'. Use underscore when using two words.") + "\n"
-   s += format_argument("-ls styles", "Comma-separated list of line styles, such as -,-o,s,--*. Styles are repeated if there are more lines than styles.") + "\n"
-   s += format_argument("-lw width", "How wide should lines be?") + "\n"
+   s += format_argument("-ls styles", "Comma-separated list of line styles, such as -,--. Styles are repeated if there are more lines than styles.") + "\n"
+   s += format_argument("-lw width", "Comma-separated list of line widths") + "\n"
    s += format_argument("-maptype type", "One of 'simple', 'sat', 'topo', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.") + "\n"
-   s += format_argument("-ms size", "How big should markers be?") + "\n"
+   s += format_argument("-ma markers", "Comma-separated list of markers (e.g.  o,*,x)") + "\n"
+   s += format_argument("-ms size", "Comma-separated list of marker sizes") + "\n"
    s += format_argument("-nogrid", "Turn the grid on the plot off") + "\n"
    s += format_argument("-nomargin", "Remove margins (whitespace) in the plot") + "\n"
    s += format_argument("-obsleg", "Name to put in legend for observations (if applicable)") + "\n"
@@ -799,4 +805,4 @@ def get_text_width():
 
 
 if __name__ == '__main__':
-       main()
+       run(sys.argv)

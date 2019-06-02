@@ -225,6 +225,53 @@ def parse_numbers(numbers, is_date=False):
    return values
 
 
+def parse_ints(numbers):
+   return [int(num) for num in parse_numbers(numbers)]
+
+
+def parse_dates(numbers):
+   return parse_numbers(numbers, True)
+
+
+def parse_colors(colors):
+   """
+   """
+   firstList = colors.split(",")
+   numList = []
+   finalList = []
+
+   for string in firstList:
+      if "[" in string:   # for rgba args
+         if not numList:
+            string = string.replace("[", "")
+            numList.append(float(string))
+         else:
+            verif.util.error("Invalid rgba arg \"{}\"".format(string))
+
+      elif "]" in string:
+         if numList:
+            string = string.replace("]", "")
+            numList.append(float(string))
+            finalList.append(numList)
+            numList = []
+         else:
+            verif.util.error("Invalid rgba arg \"{}\"".format(string))
+
+      # append to rgba lists if present, otherwise grayscale intensity
+      elif verif.util.is_number(string):
+         if numList:
+            numList.append(float(string))
+         else:
+            finalList.append(string)
+
+      else:
+         if not numList:  # string args and hexcodes
+            finalList.append(string)
+         else:
+            verif.util.error("Cannot read color args.")
+   return finalList
+
+
 def subplot(i, N):
    """ Sets up subplot for index i (starts at 0) out of N """
    [X, Y] = get_subplot_size(N)

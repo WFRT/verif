@@ -133,9 +133,6 @@ class Output(object):
       self.clim = None
       self.cmap = mpl.cm.jet
       self.colors = None
-      self.default_colors = ['r', 'b', 'g', [1, 0.73, 0.2], 'k']
-      self.default_lines = ['-', '-', '-', '--']
-      self.default_markers = ['o', '', '.', '']
       self.dpi = 100
       self.figsize = [5, 8]
       self.filename = None
@@ -144,11 +141,12 @@ class Output(object):
       self.left = None
       self.leg_loc = "best"
       self.legfs = 16
-      self.line_colors = None
-      self.line_styles = None
-      self.lw = 2
+      self.line_colors = ['r', 'b', 'g', [1, 0.73, 0.2], 'k']
+      self.line_styles = ['-', '-', '-', '-', '-', '--', '--', '--', '--']
+      self.markers = ['o', 'o', 'o', 'o', 'o', '.', '.', '.', '.', '.']
+      self.lw = [2]
+      self.ms = [8]
       self.map_type = None
-      self.ms = 8
       self.quantiles = None
       self.right = None
       self.show_margin = True
@@ -414,91 +412,31 @@ class Output(object):
    def _plot_rank_core(self, data):
       verif.util.error("This type does not support '-type rank'")
 
-   # Helper functions
-   def _get_color(self, i, total):
-      """ Returns a color specification (e.g. 0.3,0.3,1) that can be used in
-      mpl to specify line color. Determined by looping through a database
-      (self.line_colors). Returns the color for the i'th line in a plot of
-      'total' number of lines.
-
-      _get_color together with _get_style can be used to specify unique
-      color/style combinations for many lines. Color is cycled first, then
-      style. I.e. the following order is default:
-      r-o, b-o, g-o, ..., r-, b-, g-, ...
-
-      Arguments:
-         i (int): Which line is this?
-         total (int): Total number of lines in plot
+   def _get_plot_options(self, i, include_line=True, include_marker=True):
       """
-      if self.line_colors is not None:
-         firstList = self.line_colors.split(",")
-         numList = []
-         finalList = []
-
-         for string in firstList:
-            if "[" in string:   # for rgba args
-               if not numList:
-                  string = string.replace("[", "")
-                  numList.append(float(string))
-               else:
-                  verif.util.error("Invalid rgba arg \"{}\"".format(string))
-
-            elif "]" in string:
-               if numList:
-                  string = string.replace("]", "")
-                  numList.append(float(string))
-                  finalList.append(numList)
-                  numList = []
-               else:
-                  verif.util.error("Invalid rgba arg \"{}\"".format(string))
-
-            # append to rgba lists if present, otherwise grayscale intensity
-            elif verif.util.is_number(string):
-               if numList:
-                  numList.append(float(string))
-               else:
-                  finalList.append(string)
-
-            else:
-               if not numList:  # string args and hexcodes
-                  finalList.append(string)
-               else:
-                  verif.util.error("Cannot read color args.")
-         self.colors = finalList
-         return self.colors[i % len(self.colors)]
-
-      # use default colours if no colour input given
-      else:
-         self.colors = self.default_colors
-         return self.colors[i % len(self.default_colors)]
-
-   def _get_style(self, i, total, connectingLine=True, lineOnly=False):
-      """ Returns a string (e.g. -o) that can be used in mpl to specify line
-      style. Determined by looping through a database (self.line_styles).
-      Returns the style for the i'th line in a plot of 'total' number of lines.
+      Returns a dictionary of plot options that can be used in mpl to specify line
+      style. Returns the style for the i'th line in a plot of 'total' number of lines.
 
       Arguments:
          i (int): Which line is this?
          total (int): Total number of lines in plot
-         connectingLine: If True, add a connecting line (e.g. -o) between the
+         include_line: If True, add a connecting line (e.g. -o) between the
             markers.  Otherwise only a marker will be used (e.g. o)
-         lineOnly: If True, don't include the marker (e.g. -)
+         include_marker: If False, don't include the marker (e.g. -)
       """
-      if self.line_styles is not None:
-         listStyles = self.line_styles.split(",")
-         # loop through input linestyles (independent of colors)
-         I = i % len(listStyles)
-         return listStyles[I]
-
-      else:  # default linestyles
-         I = (i // len(self.colors)) % len(self.default_lines)
-         line = self.default_lines[I]
-         marker = self.default_markers[I]
-         if lineOnly:
-            return line
-         if connectingLine:
-            return line + marker
-         return marker
+      options = dict()
+      options['lw'] = self.lw[i % len(self.lw)]
+      options['ms'] = self.ms[i % len(self.ms)]
+      options['color'] = self.line_colors[i % len(self.line_colors)]
+      if include_line:
+         options['ls'] = self.line_styles[i % len(self.line_styles)]
+      else:
+         options['ls'] = ''
+      if include_marker:
+         options['marker'] = self.markers[i % len(self.markers)]
+      else:
+         options['marker'] = ''
+      return options
 
    # Saves to file, set figure size
    def _save_plot(self, data):
@@ -621,8 +559,7 @@ class Output(object):
       if isCont:
          mpl.plot(x, y, ".-", color="gray", lw=5, label=label, zorder=zorder)
       else:
-         mpl.plot(x, y, "o", color="gray", ms=self.ms, label=label,
-               zorder=zorder)
+         mpl.plot(x, y, "o", color="gray", ms=self.ms[0], label=label, zorder=zorder)
       self._add_annotation(x, y, color="gray")
 
    def _add_annotation(self, x, y, labels=None, color="k", alpha=1):
@@ -688,14 +625,10 @@ class Output(object):
          upper = mean + z * np.sqrt(variance / n)
       elif type == "wilson":
          mean = 1 / (1 + 1.0 / n * z ** 2) * (y + 0.5 * z ** 2 / n)
-         upper = mean + 1 / (1 + 1.0 / n * z ** 2) * z * np.sqrt(variance / n +
-               0.25 * z ** 2 / n ** 2)
-         lower = mean - 1 / (1 + 1.0 / n * z ** 2) * z * np.sqrt(variance / n +
-               0.25 * z ** 2 / n ** 2)
-      mpl.plot(x, upper, style, color=color, lw=self.lw, ms=self.ms,
-            label="")
-      mpl.plot(x, lower, style, color=color, lw=self.lw, ms=self.ms,
-            label="")
+         upper = mean + 1 / (1 + 1.0 / n * z ** 2) * z * np.sqrt(variance / n + 0.25 * z ** 2 / n ** 2)
+         lower = mean - 1 / (1 + 1.0 / n * z ** 2) * z * np.sqrt(variance / n + 0.25 * z ** 2 / n ** 2)
+      mpl.plot(x, upper, style, color=color, lw=self.lw[0], ms=self.ms[0], label="")
+      mpl.plot(x, lower, style, color=color, lw=self.lw[0], ms=self.ms[0], label="")
       verif.util.fill(x, lower, upper, color, alpha=0.3)
 
    @classmethod
@@ -930,19 +863,15 @@ class Standard(Output):
       if self.axis == verif.axis.No():
          w = 0.8
          x = np.linspace(1 - w / 2, F - w / 2, F)
-         mpl.bar(x, y[0, :], color='w', lw=self.lw)
+         mpl.bar(x, y[0, :], color='w', lw=self.lw[0])
          mpl.xticks(range(1, F + 1), labels)
       else:
-         for f in range(0, F):
+         for f in range(F):
             id = ids[f]
-            # colors and styles to follow labels
-            color = self._get_color(id, F)
-            style = self._get_style(id, F, self.axis.is_continuous)
+            opts = self._get_plot_options(id)
             alpha = (1 if self.axis.is_continuous else 0.55)
-            mpl.plot(x, y[:, id], style, color=color,
-                  label=labels[f], lw=self.lw, ms=self.ms,
-                  alpha=alpha)
-            self._add_annotation(x, y[:, id], color=color, alpha=alpha)
+            mpl.plot(x, y[:, id], label=labels[f], alpha=alpha, **opts)
+            self._add_annotation(x, y[:, id], color=opts['color'], alpha=alpha)
 
             if self.show_smoothing_line:
                import scipy.ndimage
@@ -954,7 +883,9 @@ class Standard(Output):
                yy = yy[I]
                N = 21
                yy = scipy.ndimage.convolve(yy, 1.0/N*np.ones(N), mode="mirror")
-               mpl.plot(xx, yy, "--", color=color, lw=self.lw, ms=self.ms)
+               opts['ls'] = '--'
+               opts['marker'] = ''
+               mpl.plot(xx, yy, **opts)
 
          mpl.xlabel(self.axis.label(data.variable))
 
@@ -1015,8 +946,8 @@ class Standard(Output):
       if self._metric.orientation == 1:
          contrib = -contrib
 
-      s = self.ms*self.ms
-      size_scale = 400/np.nanmax(abs(contrib)) * (self.ms / 8.0)**2
+      s = self.ms[0]*self.ms[0]
+      size_scale = 400/np.nanmax(abs(contrib)) * (self.ms[0] / 8.0)**2
       sizes = abs(contrib) * size_scale
       I0 = np.where(contrib < 0)[0]
       I1 = np.where(contrib > 0)[0]
@@ -1093,7 +1024,7 @@ class Standard(Output):
          I1 = np.where(contrib > 0)[0]
          # Compute size (scatter wants area) of marker. Scale using self.ms.
          # The area of the dots should be proportional to the contribution
-         size_scale = 400/np.nanmax(abs(contrib)) * (self.ms / 8.0)**2
+         size_scale = 400/np.nanmax(abs(contrib)) * (self.ms[0] / 8.0)**2
          sizes = abs(contrib) * size_scale
          mpl.scatter(XX[I1], YY[I1], s=sizes[I1], color="r", label="%s is worse" % labels[0])
          mpl.scatter(XX[I0], YY[I0], s=sizes[I0], color="b", label="%s is worse" % labels[1])
@@ -1211,11 +1142,10 @@ class Standard(Output):
             bottoms = np.zeros(F)
             if i > 0:
                bottoms = accum[i-1, :]
-            if i < F:
-               color = self._get_color(i, F)
-            else:
-               color = "w"
-            mpl.bar(left=xx, bottom=bottoms, height=yy[i, :], width=w, color=color, label=labels[i])
+            opts = self._get_plot_options(i)
+            if i == F:
+               opts['color'] = 'w'
+            mpl.bar(left=xx, bottom=bottoms, height=yy[i, :], width=w, color=opts['color'], label=labels[i])
             for j in range(len(xx)):
                curr_x = xx[j] + w / 2.0
                curr_y = bottoms[j] + yy[i, j] / 2.0
@@ -1266,9 +1196,10 @@ class Standard(Output):
          isMin = (y[:, f] == np.amin(y, 1)) &\
                  (y[:, f] < np.mean(y, 1) - minDiff)
          is_valid = (np.isnan(y[:, f]) == 0)
-         s = self.ms*self.ms
-         c0 = self._get_color(0, 2)
-         c1 = self._get_color(1, 2)
+         opts = self._get_plot_options(f)
+         s = opts['ms']**2
+         c0 = 'r'
+         c1 = 'b'
          if self.show_rank:
             lmissing = None
             if self.show_missing and len(I) > 0:
@@ -1342,12 +1273,10 @@ class Hist(Output):
          # Compute how many are with each interval
          for i in range(0, N):
             y[i] = np.sum(intervals[i].within(values[f]))
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
          if self._show_percent:
             y = y * 100.0 / np.sum(y)
 
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
+         mpl.plot(x, y, label=labels[f], **self._get_plot_options(f))
 
       mpl.xlabel(verif.axis.Threshold().label(data.variable))
       if self._show_percent:
@@ -1370,10 +1299,8 @@ class Sort(Output):
 
       for f in range(0, F):
          x = np.sort(data.get_scores(self._field, f, verif.axis.No()))
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
          y = np.linspace(0, 100, x.shape[0])
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
+         mpl.plot(x, y, label=labels[f], **self._get_plot_options(f))
       mpl.xlabel("Sorted " + verif.axis.Threshold().label(data.variable))
       mpl.ylabel("Percentile (%)")
 
@@ -1396,16 +1323,15 @@ class ObsFcst(Output):
       if self.axis == verif.axis.No():
          w = 0.8
          x = np.linspace(1 - w / 2, len(labels) - w / 2, len(labels))
-         mpl.bar(x, y[0, :], color='w', lw=self.lw)
+         mpl.bar(x, y[0, :], color='w', lw=self.lw[0])
          mpl.xticks(range(1, len(labels) + 1), labels)
       else:
          # Obs line
          self._plot_obs(x, y[:, 0], isCont)
          for f in range(0, F):
-            color = self._get_color(f, F)
-            style = self._get_style(f, F, isCont)
-            mpl.plot(x, y[:, f + 1], style, color=color, label=labels[f+1], lw=self.lw, ms=self.ms)
-            self._add_annotation(x, y[:, f + 1], color=color)
+            opts = self._get_plot_options(f, include_line=isCont)
+            mpl.plot(x, y[:, f + 1], label=labels[f+1], **opts)
+            self._add_annotation(x, y[:, f + 1], color=opts['color'])
          mpl.xlabel(self.axis.label(data.variable))
          mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
          if self.axis.is_time_like:
@@ -1457,9 +1383,7 @@ class QQ(Output):
          [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No())
          x = np.sort(x)
          y = np.sort(y)
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
+         mpl.plot(x, y, label=labels[f], **self._get_plot_options(f))
 
       mpl.ylabel("Sorted forecasts (" + data.variable.units + ")")
       mpl.xlabel("Sorted observations (" + data.variable.units + ")")
@@ -1595,11 +1519,10 @@ class Auto(Output):
                      # In some versions of numpy, coffcoef does not give a 2x2
                      # matrix when arrays are length 0
                      corr[i, j] = self.func(x[I], y[I])
-         color = self._get_color(f, F)
-         style = self._get_style(f, F, False)
+         opts = self._get_plot_options(f, include_line=False)
          x = dist.flatten()
          y = corr.flatten()
-         mpl.plot(dist.flatten(), corr.flatten(), style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
+         mpl.plot(dist.flatten(), corr.flatten(), label=labels[f], **opts)
          if self._show_smoothing_line:
             if self.thresholds is None:
                percentiles = np.linspace(0, 100, 21)
@@ -1631,12 +1554,11 @@ class Auto(Output):
                      label = "%d%%-%d%%" % (quantiles[1] * 100, (quantiles[len(quantiles) - 2] * 100))
                   elif q == 1 and len(quantiles) == 3:
                      label = "%d%%" % (quantiles[1] * 100)
-               mpl.plot(xx, yy, style, lw=lw, ms=self.ms,
-                     zorder=100, label=label)
+               mpl.plot(xx, yy, style, lw=lw, ms=opts['ms'], zorder=100, label=label)
             self._plot_obs(x, 0*x, label="")
          if self._show_zero_point:
             I = np.where(dist.flatten() == 0)[0]
-            mpl.plot(0, np.median(corr.flatten()[I]), 's', color=color, ms=self.ms*2)
+            mpl.plot(0, np.median(corr.flatten()[I]), 's', color=opts['color'], ms=opts['ms']*2)
 
       mpl.xlabel(xlabel)
       label = self._get_label(data.variable.units)
@@ -1708,9 +1630,7 @@ class Fss(Output):
 
       x, y, xname, labels, _ = self._get_x_y(data)
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
-         mpl.plot(x, y[:, f], style, lw=self.lw, ms=self.ms, label=labels[f])
+         mpl.plot(x, y[:, f], label=labels[f], **self._get_plot_options(f))
 
       mpl.ylim(bottom=0, top=1)
       mpl.xlabel(xname)
@@ -1736,10 +1656,9 @@ class Scatter(Output):
       for f in range(0, F):
          [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No())
 
-         color = self._get_color(f, F)
-         style = self._get_style(f, F, connectingLine=False)
+         opts = self._get_plot_options(f, include_line=False)
          alpha = 0.2 if self.simple else 1
-         mpl.plot(x, y, ".", color=color, label=labels[f], lw=self.lw, ms=self.ms, alpha=alpha)
+         mpl.plot(x, y, label=labels[f], alpha=alpha, **opts)
          if self._show_quantiles():
             # Determine bin edges for computing quantiles
             # Use those provided by -r
@@ -1837,19 +1756,18 @@ class Change(Output):
 
       for f in range(0, F):
          [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
          change = obs[1:, Ellipsis] - obs[0:-1, Ellipsis]
          err = abs(obs - fcst)
          err = err[1:, Ellipsis]
          x = np.nan * np.zeros(len(bins), 'float')
          y = np.nan * np.zeros(len(bins), 'float')
+         opts = self._get_plot_options(f)
 
          for i in range(0, len(bins)):
             I = (change > edges[i]) & (change <= edges[i + 1])
             y[i] = verif.util.nanmean(err[I])
             x[i] = verif.util.nanmean(change[I])
-         mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=labels[f])
+         mpl.plot(x, y, label=labels[f], **opts)
       self._plot_perfect_score(x, 0)
       mpl.xlabel("Daily obs change (" + data.variable.units + ")")
       mpl.ylabel("MAE (" + data.variable.units + ")")
@@ -1873,8 +1791,7 @@ class Cond(Output):
       labels = data.get_legend()
       F = data.num_inputs
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
+         opts = self._get_plot_options(f)
 
          of = np.zeros(len(intervals), 'float')
          fo = np.zeros(len(intervals), 'float')
@@ -1890,10 +1807,8 @@ class Cond(Output):
             of[i] = mof.compute(data, f, verif.axis.No(), intervals[i])
             xfo[i] = xmfo.compute(data, f, verif.axis.No(), intervals[i])
             xof[i] = xmof.compute(data, f, verif.axis.No(), intervals[i])
-         mpl.plot(xof, of, style, color=color, label=labels[f] + " (F|O)",
-               lw=self.lw, ms=self.ms)
-         mpl.plot(fo, xfo, style, color=color, label=labels[f] + " (O|F)",
-               lw=self.lw, ms=self.ms, alpha=0.5)
+         mpl.plot(xof, of, label=labels[f] + " (F|O)", **opts)
+         mpl.plot(fo, xfo, label=labels[f] + " (O|F)", alpha=0.5, **opts)
       mpl.ylabel("Forecasts (" + data.variable.units + ")")
       mpl.xlabel("Observations (" + data.variable.units + ")")
       lims = verif.util.get_square_axis_limits(mpl.xlim(), mpl.ylim())
@@ -1927,8 +1842,7 @@ class SpreadSkill(Output):
       lower_field = verif.field.Quantile(lower_q)
       upper_field = verif.field.Quantile(upper_q)
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F, connectingLine=False)
+         opts = self._get_plot_options(f)
          [obs, fcst, lower, upper] = data.get_scores([verif.field.Obs(), verif.field.Fcst(), lower_field, upper_field], f, verif.axis.No())
          spread = upper - lower
          skill = (obs - fcst)**2
@@ -1947,8 +1861,7 @@ class SpreadSkill(Output):
                lower[i] = np.percentile(np.sqrt(skill[I]), 5)
                upper[i] = np.percentile(np.sqrt(skill[I]), 95)
 
-         style = self._get_style(f, F)
-         mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=labels[f])
+         mpl.plot(x, y, label=labels[f], **opts)
 
       xlim = mpl.xlim(left=0)
       ylim = mpl.ylim(bottom=0)
@@ -2007,13 +1920,12 @@ class TimeSeries(Output):
          labels = data.get_legend()
          for f in range(0, F):
             fcst = data.get_scores(verif.field.Fcst(), f)
-            color = self._get_color(f, F)
-            style = self._get_style(f, F)
+            opts = self._get_plot_options(f)
             for d in range(len(data.times)):
                x = datenums[d] + data.leadtimes / 24.0
                y = verif.util.nanmean(fcst[d, :, :], axis=1)
                lab = labels[f] if d == 0 else ""
-               mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=lab)
+               mpl.plot(x, y, label=lab, **opts)
 
       """
       Draw probabilistic forecast lines: One line for each quantile specified
@@ -2022,13 +1934,12 @@ class TimeSeries(Output):
          for quantile in self.quantiles:
             for f in range(0, F):
                fcst = data.get_scores(verif.field.Quantile(quantile), f)
-               color = self._get_color(f, F)
-               style = self._get_style(f, F, lineOnly=True)
+               opts = self._get_plot_options(f, include_marker=False)
                alpha = 1
                for d in range(len(data.times)):
                   x = datenums[d] + data.leadtimes / 24.0
                   y = verif.util.nanmean(fcst[d, :, :], axis=1)
-                  mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, alpha=alpha)
+                  mpl.plot(x, y, alpha=alpha, **opts)
 
       mpl.xlabel(self.axis.label(data.variable))
       if self.ylabel is None:
@@ -2238,8 +2149,7 @@ class Discrimination(Output):
       y0 = np.nan * np.zeros([F, len(edges) - 1], 'float')
       n = np.zeros([F, len(edges) - 1], 'float')
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
+         opts = self._get_plot_options(f)
          [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
          obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
@@ -2265,8 +2175,8 @@ class Discrimination(Output):
          shift = barwidth
          label0 = labels[f] + " not observed"
          label1 = labels[f] + " observed"
-         mpl.bar(clustercenter, y0[f, :], barwidth, color="w", ec=color, lw=self.lw, label=label0)
-         mpl.bar(clustercenter-shift, y1[f, :], barwidth, color=color, ec=color, lw=self.lw, label=label1)
+         mpl.bar(clustercenter, y0[f, :], barwidth, color="w", ec=opts['color'], lw=opts['lw'], label=label0)
+         mpl.bar(clustercenter-shift, y1[f, :], barwidth, color=opts['color'], ec=opts['color'], lw=opts['lw'], label=label1)
       mpl.plot([clim, clim], [0, 1], "k-")
 
       mpl.xlim([0, 1])
@@ -2329,8 +2239,7 @@ class Reliability(Output):
          v = np.zeros([F, len(edges) - 1], 'float')  # Variance
          # Draw reliability lines
          for f in range(0, F):
-            color = self._get_color(f, F)
-            style = self._get_style(f, F)
+            opts = self._get_plot_options(f)
             [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
             obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
@@ -2352,23 +2261,22 @@ class Reliability(Output):
             label = labels[f]
             if not t == 0:
                label = ""
-            mpl.plot(x[:, f], y[f], style, color=color, lw=self.lw,
-                  ms=self.ms, label=label)
+            mpl.plot(x[:, f], y[f], label=label, **opts)
 
          # Draw confidence bands (do this separately so that these lines don't
          # sneak into the legend)
          for f in range(0, F):
-            color = self._get_color(f, F)
+            opts = self._get_plot_options(f)
             if self._shade_confidence():
-               self._plot_confidence(x[:, f], y[f], v[f], n[f], color=color)
+               self._plot_confidence(x[:, f], y[f], v[f], n[f], color=opts['color'])
 
          # Draw lines in inset diagram
          if self._show_count():
             if np.max(n) > 1:
                for f in range(0, F):
-                  color = self._get_color(f, F)
-                  axi.plot(x[:, f], n[f], style, color=color, lw=self.lw,
-                        ms=self.ms * 0.75)
+                  opts = self._get_plot_options(f)
+                  opts['ms'] *= 0.75
+                  axi.plot(x[:, f], n[f], **opts)
                axi.xaxis.set_major_locator(mpl.NullLocator())
                axi.set_yscale('log')
                axi.set_title("Number")
@@ -2436,8 +2344,7 @@ class IgnContrib(Output):
 
       # Draw reliability lines
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
+         opts = self._get_plot_options(f)
          [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
          obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
@@ -2459,8 +2366,7 @@ class IgnContrib(Output):
                              np.sum(np.log2(1 - p[I[I0]]))
 
          label = labels[f]
-         mpl.plot(x[f], y[f] / np.sum(n[f]) * len(n[f]), style, color=color,
-               lw=self.lw, ms=self.ms, label=label)
+         mpl.plot(x[f], y[f] / np.sum(n[f]) * len(n[f]), label=label, **opts)
       mpl.ylabel("Ignorance contribution")
 
       # Draw expected sharpness
@@ -2472,9 +2378,8 @@ class IgnContrib(Output):
       # Show number in each bin
       mpl.subplot(2, 1, 2)
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
-         mpl.plot(x[f], n[f], style, color=color, lw=self.lw, ms=self.ms)
+         opts = self._get_plot_options(f)
+         mpl.plot(x[f], n[f], **opts)
       mpl.xlabel("Forecasted probability")
       mpl.ylabel("N")
 
@@ -2532,8 +2437,7 @@ class EconomicValue(Output):
 
       # Draw reliability lines
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
+         opts = self._get_plot_options(f)
          [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
          obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
@@ -2559,8 +2463,7 @@ class EconomicValue(Output):
             y[f, i] = economicValue
 
          label = labels[f]
-         mpl.plot(costLossRatios, y[f], style, color=color,
-               lw=self.lw, ms=self.ms, label=label)
+         mpl.plot(costLossRatios, y[f], label=label, **opts)
       mpl.xlabel("Cost-loss ratio")
       mpl.ylabel("Economic value")
       mpl.xlim([0, 1])
@@ -2591,8 +2494,7 @@ class Roc(Output):
       F = data.num_inputs
       labels = data.get_legend()
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
+         opts = self._get_plot_options(f)
          scores = data.get_scores([verif.field.Obs()] + q_fields, f, verif.axis.No())
          obs = scores[0]
          fcsts = scores[1:]
@@ -2620,7 +2522,7 @@ class Roc(Output):
          y[0] = 0
          x[len(x) - 1] = 1
          y[len(y) - 1] = 1
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
+         mpl.plot(x, y, label=labels[f], **opts)
          if self._label_quantiles():
             for i in range(0, len(quantiles)):
                mpl.text(x[i + 1], y[i + 1], " %g%%" % quantiles[i], verticalalignment='center')
@@ -2675,8 +2577,7 @@ class DRoc(Output):
       f_intervals = verif.util.get_intervals(self.bin_type, f_thresholds)
       interval = verif.util.get_intervals(self.bin_type, [threshold])[0]
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
+         opts = self._get_plot_options(f)
          [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
 
          y = np.nan * np.zeros([len(f_intervals), 1], 'float')
@@ -2701,7 +2602,7 @@ class DRoc(Output):
          # Put text labels on points
          for i in range(len(f_intervals)):
             if self._show_thresholds() and (not np.isnan(x[i]) and not np.isnan(y[i])):
-               mpl.text(x[i], y[i], "%2.1f" % f_intervals[i].center, color=color)
+               mpl.text(x[i], y[i], "%2.1f" % f_intervals[i].center, color=opts['color'])
 
          # Add end points at 0,0 and 1,1:
          if not self.xlog and not self.ylog:
@@ -2715,7 +2616,7 @@ class DRoc(Output):
             y[0] = 1
             x[len(x) - 1] = 0
             y[len(y) - 1] = 0
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw, ms=self.ms)
+         mpl.plot(x, y, label=labels[f], **opts)
       xlim = mpl.xlim()
       ylim = mpl.ylim()
       if self.xlog:
@@ -2782,14 +2683,14 @@ class Against(Output):
                upper = max(max(x), max(y))
 
                # Plot all points (including ones with missing obs)
-               mpl.plot(x, y, "x", mec="k", ms=self.ms / 2, mfc="k", zorder=-10)
+               mpl.plot(x, y, "x", mec="k", ms=self.ms[0] / 2, mfc="k", zorder=-10)
 
                # Show which forecast is better, plot on top of missing
                [obsx, x] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f0, verif.axis.No())
                [obsy, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f1, verif.axis.No())
                obs = obsx
 
-               mpl.plot(x, y, "s", mec="k", ms=self.ms / 2, mfc="w", zorder=-5)
+               mpl.plot(x, y, "s", mec="k", ms=self.ms[0] / 2, mfc="w", zorder=-5)
 
                std = np.std(obs) / 2
                minDiff = self._min_std_diff * std
@@ -2799,8 +2700,8 @@ class Against(Output):
                      Ix = abs(obs - y) > abs(obs - x) + std * k / N
                      Iy = abs(obs - y) + std * k / N < abs(obs - x)
                      alpha = k / 1.0 / N
-                     mpl.plot(x[Ix], y[Ix], "r.", ms=self.ms, alpha=alpha)
-                     mpl.plot(x[Iy], y[Iy], "b.", ms=self.ms, alpha=alpha)
+                     mpl.plot(x[Ix], y[Ix], "r.", ms=self.ms[0], alpha=alpha)
+                     mpl.plot(x[Iy], y[Iy], "b.", ms=self.ms[0], alpha=alpha)
 
                mpl.xlabel(labels[f0], color="r")
                mpl.ylabel(labels[f1], color="b")
@@ -2839,8 +2740,7 @@ class Taylor(Output):
       # Plot points
       maxstd = 0
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F, False)
+         opts = self._get_plot_options(f, include_line=False)
 
          size = data.get_axis_size(self.axis)
          corr = np.zeros(size, 'float')
@@ -2869,8 +2769,7 @@ class Taylor(Output):
          ang = np.arccos(corr)
          x = std * np.cos(ang)
          y = std * np.sin(ang)
-         mpl.plot(x, y, style, color=color, label=labels[f], lw=self.lw,
-               ms=self.ms)
+         mpl.plot(x, y, label=labels[f], **opts)
 
       # Set axis limits
       # Enforce a minimum radius beyond the obs-radius
@@ -2916,7 +2815,8 @@ class Taylor(Output):
       # Draw obs point/lines
       orange = [1, 0.8, 0.4]
       self._draw_circle(stdobs, style='-', lw=5, color=orange)
-      mpl.plot(stdobs, 0, 's-', color=orange, label=self.obs_leg, mew=2, ms=self.ms, clip_on=False)
+      opts = self._get_plot_options(f, include_line=False)
+      mpl.plot(stdobs, 0, 's-', color=orange, label=self.obs_leg, mew=2, ms=opts['ms'], clip_on=False)
 
       # Draw CRMSE rings
       xticks = mpl.xticks()[0]
@@ -2972,10 +2872,8 @@ class Performance(Output):
       # Plot points
       maxstd = 0
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F, False)
-
          size = data.get_axis_size(self.axis)
+         opts = self._get_plot_options(f, include_line=False)
          for t in range(0, len(self.thresholds)):
             threshold = self.thresholds[t]
             sr = np.zeros(size, 'float')
@@ -2992,7 +2890,7 @@ class Performance(Output):
                sr[i] = 1 - fa
                pod[i] = hit
 
-               # Compute the potential that the forecast can attan by using
+               # Compute the potential that the forecast can attain by using
                # different forecast thresholds
                if self._show_potential():
                   x = np.zeros(J, 'float')
@@ -3000,12 +2898,12 @@ class Performance(Output):
                   for j in range(0, J):
                      x[j] = 1 - Far.compute_from_obs_fcst(obs, fcst, interval, f_intervals[j])
                      y[j] = Hit.compute_from_obs_fcst(obs, fcst, interval, f_intervals[j])
-                  mpl.plot(x, y, ".-", color=color, ms=3*self.lw, lw=2*self.lw, zorder=-100, alpha=0.3)
+                  mpl.plot(x, y, ".-", color=opts['color'], ms=3*opts['lw'], lw=2*opts['lw'], zorder=-100, alpha=0.3)
 
             label = ""
             if t == 0:
                label = labels[f]
-            mpl.plot(sr, pod, style, color=color, label=label, lw=self.lw, ms=self.ms)
+            mpl.plot(sr, pod, label=label, **opts)
 
       # Plot bias lines
       biases = [0.3, 0.5, 0.8, 1, 1.3, 1.5, 2, 3, 5, 10]
@@ -3079,8 +2977,7 @@ class Error(Output):
       uerr = np.nan * np.zeros([size, F], 'float')
       rmse = np.nan * np.zeros([size, F], 'float')
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F, connectingLine=False)
+         opts = self._get_plot_options(f, include_line=False)
 
          for i in range(0, size):
             [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis, i)
@@ -3090,16 +2987,14 @@ class Error(Output):
                serr[i, f] = np.mean(obs - fcst)
                rmse[i, f] = np.sqrt(np.mean((obs - fcst) ** 2))
                uerr[i, f] = np.sqrt(rmse[i, f] ** 2 - serr[i, f] ** 2)
-         mpl.plot(uerr[:, f], serr[:, f], style, color=color, label=labels[f],
-               lw=self.lw, ms=self.ms)
+         mpl.plot(uerr[:, f], serr[:, f], label=labels[f], **opts)
       xlim = mpl.xlim()
       ylim = mpl.ylim()
 
       # Draw rings
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F, lineOnly=True)
-         self._draw_circle(verif.util.nanmean(rmse[:, f]), style=style, color=color)
+         opts = self._get_plot_options(f, include_marker=False)
+         self._draw_circle(verif.util.nanmean(rmse[:, f]), style=opts['ls'], color=opts['color'])
 
       # Set axis limits
       maxx = xlim[1]
@@ -3149,11 +3044,10 @@ class Marginal(Output):
             clim[t] = np.mean(obs)
             y[t] = np.mean(p)
 
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
+         opts = self._get_plot_options(f)
 
          label = labels[f]
-         mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=label)
+         mpl.plot(x, y, label=label, **opts)
       self._plot_obs(x, clim)
 
       mpl.ylim([0, 1])
@@ -3180,8 +3074,7 @@ class Freq(Output):
       N = len(intervals)
 
       for f in range(0, F):
-         color = self._get_color(f, F)
-         style = self._get_style(f, F)
+         opts = self._get_plot_options(f)
          y = np.zeros(N, 'float')
          clim = np.zeros(N, 'float')
          obs = None
@@ -3204,7 +3097,7 @@ class Freq(Output):
 
          label = labels[f]
          if fcst is not None:
-            mpl.plot(x, y, style, color=color, lw=self.lw, ms=self.ms, label=label)
+            mpl.plot(x, y, label=label, **opts)
       if obs is not None:
          self._plot_obs(x, clim)
 
@@ -3262,8 +3155,7 @@ class InvReliability(Output):
          v = np.zeros([F, len(edges) - 1], 'float')
          # Draw reliability lines
          for f in range(0, F):
-            color = self._get_color(f, F)
-            style = self._get_style(f, F)
+            opts = self._get_plot_options(f)
             [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
             obs = obs <= p
@@ -3283,18 +3175,17 @@ class InvReliability(Output):
             label = labels[f]
             if not t == 0:
                label = ""
-            mpl.plot(x[:, f], y[f], style, color=color, lw=self.lw,
-                  ms=self.ms, label=label)
+            mpl.plot(x[:, f], y[f], label=label, **opts)
          self._plot_obs(edges, 0 * edges + quantile, label="")
 
          # Draw confidence bands (do this separately so that these lines don't
          # sneak into the legend)
          for f in range(0, F):
-            color = self._get_color(f, F)
+            opts = self._get_plot_options(f)
             if self._shade_confidence():
-               self._plot_confidence(x[:, f], y[f], v[f], n[f], color=color)
+               self._plot_confidence(x[:, f], y[f], v[f], n[f], color=opts['color'])
             if self._show_count():
-               axi.plot(x[:, f], n[f], style, color=color, lw=self.lw, ms=self.ms)
+               axi.plot(x[:, f], n[f], opts)
                axi.xaxis.set_major_locator(mpl.NullLocator())
                axi.set_yscale('log')
                axi.set_title("Number")
