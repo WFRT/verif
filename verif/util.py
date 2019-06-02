@@ -458,6 +458,7 @@ def distance(lat1, lon1, lat2, lon2):
 
 def apply_threshold(array, bin_type, threshold, upper_threshold=None):
    """ Use bin_type to turn array into binary values """
+   I = np.where(np.isnan(array))
    if bin_type == "below":
       array = array < threshold
    elif bin_type == "below=":
@@ -476,6 +477,8 @@ def apply_threshold(array, bin_type, threshold, upper_threshold=None):
       array = (array >= threshold) & (array < upper_threshold)
    elif bin_type == "=within=":
       array = (array >= threshold) & (array <= upper_threshold)
+   array = np.array(array, float)
+   array[I] = np.nan
    return array
 
 

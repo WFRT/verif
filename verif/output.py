@@ -3052,8 +3052,8 @@ class Marginal(Output):
             obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
             p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
 
-            clim[t] = np.mean(obs)
-            y[t] = np.mean(p)
+            clim[t] = np.nanmean(obs)
+            y[t] = np.nanmean(p)
 
          opts = self._get_plot_options(f)
 
