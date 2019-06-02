@@ -868,7 +868,7 @@ class Standard(Output):
       else:
          for f in range(F):
             id = ids[f]
-            opts = self._get_plot_options(id)
+            opts = self._get_plot_options(id, include_line=self.axis.is_continuous)
             alpha = (1 if self.axis.is_continuous else 0.55)
             mpl.plot(x, y[:, id], label=labels[f], alpha=alpha, **opts)
             self._add_annotation(x, y[:, id], color=opts['color'], alpha=alpha)
