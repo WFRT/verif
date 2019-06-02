@@ -280,7 +280,7 @@ class Output(object):
       from past.builtins import basestring
 
       # Loop over rows
-      for i in range(0, len(x)):
+      for i in range(len(x)):
          for w in descs.keys():
             if descs[w] is None:
                s += "%-*s| " % (desc_lengths[w], "All")
@@ -290,7 +290,7 @@ class Output(object):
                # Don't use .4g because this will give unnecessary descimals for
                # location ids
                s += "%-*g| " % (desc_lengths[w], descs[w][i])
-         for f in range(0, y.shape[1]):
+         for f in range(y.shape[1]):
             s += "%-*.4g| " % (lengths[f], y[i, f])
          s += "\n"
 
@@ -322,10 +322,10 @@ class Output(object):
       s = ','.join(descs.keys()) + ',' + ','.join(labels) + '\n'
 
       # Loop over rows
-      for i in range(0, len(x)):
+      for i in range(len(x)):
          line = ""
          line += ','.join(str(descs[k][i]) for k in descs)
-         for f in range(0, y.shape[1]):
+         for f in range(y.shape[1]):
             line = line + ',%g' % y[i, f]
          s += line + "\n"
 
@@ -808,14 +808,14 @@ class Standard(Output):
       ynames = data.get_legend()
       F = data.num_inputs
       y = None
-      for f in range(0, F):
+      for f in range(F):
          yy = np.zeros(len(x), 'float')
          if axis in [verif.axis.Threshold(), verif.axis.Obs(), verif.axis.Fcst()]:
-            for i in range(0, len(intervals)):
+            for i in range(len(intervals)):
                yy[i] = self._metric.compute(data, f, axis, intervals[i])
          else:
             # Average all thresholds
-            for i in range(0, len(intervals)):
+            for i in range(len(intervals)):
                yy = yy + self._metric.compute(data, f, axis, intervals[i])
             yy = yy / len(intervals)
 
@@ -857,7 +857,7 @@ class Standard(Output):
          labels = [labels[i] for i in ids]
 
       else:
-         ids = range(0, F)
+         ids = range(F)
 
       # Show a bargraph with unconditional averages when no axis is specified
       if self.axis == verif.axis.No():
@@ -1008,7 +1008,7 @@ class Standard(Output):
       contrib = np.zeros([len(XX)], float)
       num = np.zeros([len(XX)], float)
 
-      for e in range(0, len(XX)):
+      for e in range(len(XX)):
          I = np.where((x > XX[e] - width) & (x <= XX[e] + width) &
                       (y > YY[e] - width) & (y <= YY[e] + width))[0]
          if len(I) > 0:
@@ -1053,7 +1053,7 @@ class Standard(Output):
       if self._show_impact_marginal:
          contribx = np.zeros([len(centres)], float)
          contriby = np.zeros([len(centres)], float)
-         for e in range(0, len(centres)):
+         for e in range(len(centres)):
             I = np.where((x > centres[e] - width) & (x <= centres[e] + width))[0]
             contribx[e] = np.nansum(error_x[I] - error_y[I])
             I = np.where((y > centres[e] - width) & (y <= centres[e] + width))[0]
@@ -1184,7 +1184,7 @@ class Standard(Output):
 
       if F == 2 and self.show_rank:
          F = 1
-      for f in range(0, F):
+      for f in range(F):
          verif.util.subplot(f, F)
          map, x0, y0 = self._setup_map(data)
          I = np.where(np.isnan(y[:, f]))[0]
@@ -1268,10 +1268,10 @@ class Hist(Output):
       intervals = verif.util.get_intervals(self.bin_type, self.thresholds)
       x = [i.center for i in intervals]
       N = len(intervals)
-      for f in range(0, F):
+      for f in range(F):
          y = np.zeros(N, float)
          # Compute how many are with each interval
-         for i in range(0, N):
+         for i in range(N):
             y[i] = np.sum(intervals[i].within(values[f]))
          if self._show_percent:
             y = y * 100.0 / np.sum(y)
@@ -1297,7 +1297,7 @@ class Sort(Output):
       F = data.num_inputs
       labels = data.get_legend()
 
-      for f in range(0, F):
+      for f in range(F):
          x = np.sort(data.get_scores(self._field, f, verif.axis.No()))
          y = np.linspace(0, 100, x.shape[0])
          mpl.plot(x, y, label=labels[f], **self._get_plot_options(f))
@@ -1328,7 +1328,7 @@ class ObsFcst(Output):
       else:
          # Obs line
          self._plot_obs(x, y[:, 0], isCont)
-         for f in range(0, F):
+         for f in range(F):
             opts = self._get_plot_options(f, include_line=isCont)
             mpl.plot(x, y[:, f + 1], label=labels[f+1], **opts)
             self._add_annotation(x, y[:, f + 1], color=opts['color'])
@@ -1357,7 +1357,7 @@ class ObsFcst(Output):
       y[:, 0] = obs
       if sum(np.isnan(obs)) == len(obs):
          verif.util.warning("No valid observations")
-      for f in range(0, F):
+      for f in range(F):
          yy = mFcst.compute(data, f, self.axis, None)
          if sum(np.isnan(yy)) == len(yy):
             verif.util.warning("No valid scores for " + labels[f])
@@ -1380,7 +1380,7 @@ class QQ(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
       F = data.num_inputs
-      for f in range(0, F):
+      for f in range(F):
          if self.axis == verif.axis.No():
             x, y = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis)
          else:
@@ -1504,7 +1504,7 @@ class Auto(Output):
       else:
          verif.util.error("Axis '%s' not supported in AutCorr output" % self.axis.name())
 
-      for f in range(0, F):
+      for f in range(F):
          corr = np.nan*np.zeros([N, N])
          [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
          error = obs - fcst
@@ -1600,7 +1600,7 @@ class Fss(Output):
 
       F = data.num_inputs
       y = np.nan*np.zeros([len(self.scales), F])
-      for f in range(0, F):
+      for f in range(F):
          """
          The fractions skill score is computed for different spatial scales.
          For each scale, find a set of locations that are spaced close enough
@@ -1640,7 +1640,7 @@ class Fss(Output):
       F = data.num_inputs
 
       x, y, xname, labels, _ = self._get_x_y(data)
-      for f in range(0, F):
+      for f in range(F):
          mpl.plot(x, y[:, f], label=labels[f], **self._get_plot_options(f))
 
       mpl.ylim(bottom=0, top=1)
@@ -1664,7 +1664,7 @@ class Scatter(Output):
    def _plot_core(self, data):
       labels = data.get_legend()
       F = data.num_inputs
-      for f in range(0, F):
+      for f in range(F):
          [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No())
 
          opts = self._get_plot_options(f, include_line=False)
@@ -1709,8 +1709,8 @@ class Scatter(Output):
             # What quantile lines should be drawn?
             quantiles = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
             values = np.nan*np.zeros([len(quantiles), len(bins)], 'float')
-            for q in range(0, len(quantiles)):
-               for i in range(0, len(bins)):
+            for q in range(len(quantiles)):
+               for i in range(len(bins)):
                   I = np.where((y >= edges[i]) & (y < edges[i+1]))[0]
                   if len(I) > 0:
                      values[q, i] = np.percentile(x[I], quantiles[q]*100)
@@ -1732,7 +1732,7 @@ class Scatter(Output):
                   elif q == 1 and len(quantiles) == 3:
                      label = "%d%%" % (quantiles[1] * 100)
                mpl.plot(values[q, :], bins, style, lw=lw, alpha=0.5, label=label)
-            for i in range(0, len(bins)):
+            for i in range(len(bins)):
                mpl.plot([values[1, i], values[-2, i]], [bins[i], bins[i]], 'k-')
       mpl.ylabel("Forecasts (" + data.variable.units + ")")
       mpl.xlabel("Observations (" + data.variable.units + ")")
@@ -1765,7 +1765,7 @@ class Change(Output):
       bins = (edges[1:] + edges[0:-1]) / 2
       F = data.num_inputs
 
-      for f in range(0, F):
+      for f in range(F):
          [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
          change = obs[1:, Ellipsis] - obs[0:-1, Ellipsis]
          err = abs(obs - fcst)
@@ -1774,7 +1774,7 @@ class Change(Output):
          y = np.nan * np.zeros(len(bins), 'float')
          opts = self._get_plot_options(f)
 
-         for i in range(0, len(bins)):
+         for i in range(len(bins)):
             I = (change > edges[i]) & (change <= edges[i + 1])
             y[i] = verif.util.nanmean(err[I])
             x[i] = verif.util.nanmean(change[I])
@@ -1801,7 +1801,7 @@ class Cond(Output):
 
       labels = data.get_legend()
       F = data.num_inputs
-      for f in range(0, F):
+      for f in range(F):
          opts = self._get_plot_options(f)
 
          of = np.zeros(len(intervals), 'float')
@@ -1813,7 +1813,7 @@ class Cond(Output):
          xmof = verif.metric.XConditional(verif.field.Obs(), verif.field.Fcst())  # F | O
          xmfo = verif.metric.XConditional(verif.field.Fcst(), verif.field.Obs())  # O | F
          mof0 = verif.metric.Conditional(verif.field.Obs(), verif.field.Fcst(), np.mean)  # F | O
-         for i in range(0, len(intervals)):
+         for i in range(len(intervals)):
             fo[i] = mfo.compute(data, f, verif.axis.No(), intervals[i])
             of[i] = mof.compute(data, f, verif.axis.No(), intervals[i])
             xfo[i] = xmfo.compute(data, f, verif.axis.No(), intervals[i])
@@ -1852,7 +1852,7 @@ class SpreadSkill(Output):
          upper_q = data.quantiles[-1]
       lower_field = verif.field.Quantile(lower_q)
       upper_field = verif.field.Quantile(upper_q)
-      for f in range(0, F):
+      for f in range(F):
          opts = self._get_plot_options(f)
          [obs, fcst, lower, upper] = data.get_scores([verif.field.Obs(), verif.field.Fcst(), lower_field, upper_field], f, verif.axis.No())
          spread = upper - lower
@@ -1929,7 +1929,7 @@ class TimeSeries(Output):
       """
       if verif.field.Fcst() in data.get_fields():
          labels = data.get_legend()
-         for f in range(0, F):
+         for f in range(F):
             fcst = data.get_scores(verif.field.Fcst(), f)
             opts = self._get_plot_options(f)
             for d in range(len(data.times)):
@@ -1943,7 +1943,7 @@ class TimeSeries(Output):
       """
       if self.quantiles is not None:
          for quantile in self.quantiles:
-            for f in range(0, F):
+            for f in range(F):
                fcst = data.get_scores(verif.field.Quantile(quantile), f)
                opts = self._get_plot_options(f, include_marker=False)
                alpha = 1
@@ -1991,10 +1991,10 @@ class Meteo(Output):
       else:
          quantiles = np.sort(self.quantiles)
       y = np.zeros([len(data.leadtimes), len(quantiles)], 'float')
-      for i in range(0, len(quantiles)):
+      for i in range(len(quantiles)):
          score = data.get_scores(verif.field.Quantile(quantiles[i]), 0)
          y[:, i] = verif.util.nanmean(verif.util.nanmean(score, axis=0), axis=1)
-      for i in range(0, len(quantiles)):
+      for i in range(len(quantiles)):
          style = "k-"
          if i == 0 or i == len(quantiles) - 1:
             style = "k--"
@@ -2003,7 +2003,7 @@ class Meteo(Output):
 
       # Fill areas betweeen lines
       Ncol = (len(quantiles)-1)/2
-      for i in range(0, Ncol):
+      for i in range(Ncol):
          color = [(1 - (i + 0.0) / Ncol)] * 3
          verif.util.fill(x, y[:, i], y[:, len(quantiles) - 1 - i], color,
                zorder=-2)
@@ -2035,7 +2035,7 @@ class Meteo(Output):
 
       # Date labels
       majlabels = [tick.label1 for tick in mpl.gca().xaxis.get_major_ticks()]
-      for i in range(0, len(majlabels)):
+      for i in range(len(majlabels)):
          label = majlabels[i]
          if isSingleTime and i < len(majlabels)-1:
             label.set_horizontalalignment('left')
@@ -2084,7 +2084,7 @@ class PitHist(Output):
          edges = self.thresholds
       num_bins = len(edges)-1
       labels = data.get_legend()
-      for f in range(0, F):
+      for f in range(F):
          verif.util.subplot(f, F)
          [pit] = data.get_scores([verif.field.Pit()], f, verif.axis.No())
 
@@ -2159,7 +2159,7 @@ class Discrimination(Output):
       y1 = np.nan * np.zeros([F, len(edges) - 1], 'float')
       y0 = np.nan * np.zeros([F, len(edges) - 1], 'float')
       n = np.zeros([F, len(edges) - 1], 'float')
-      for f in range(0, F):
+      for f in range(F):
          opts = self._get_plot_options(f)
          [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
@@ -2170,7 +2170,7 @@ class Discrimination(Output):
          I1 = np.where(obs == 1)[0]
          I0 = np.where(obs == 0)[0]
          # Compute frequencies
-         for i in range(0, len(edges) - 1):
+         for i in range(len(edges) - 1):
             y0[f, i] = np.mean((p[I0] >= edges[i]) & (p[I0] < edges[i + 1]))
             y1[f, i] = np.mean((p[I1] >= edges[i]) & (p[I1] < edges[i + 1]))
 
@@ -2239,7 +2239,7 @@ class Reliability(Output):
          axi = mpl.axes([0.3, 0.65, 0.2, 0.2])
       mpl.sca(ax)
 
-      for t in range(0, len(self.thresholds)):
+      for t in range(len(self.thresholds)):
          threshold = self.thresholds[t]
          var = verif.field.Threshold(threshold)
          [obs, p] = data.get_scores([verif.field.Obs(), var], 0, verif.axis.No())
@@ -2249,7 +2249,7 @@ class Reliability(Output):
          n = np.zeros([F, len(edges) - 1], 'float')
          v = np.zeros([F, len(edges) - 1], 'float')  # Variance
          # Draw reliability lines
-         for f in range(0, F):
+         for f in range(F):
             opts = self._get_plot_options(f)
             [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
@@ -2258,7 +2258,7 @@ class Reliability(Output):
 
             clim = np.mean(obs)
             # Compute frequencies
-            for i in range(0, len(edges) - 1):
+            for i in range(len(edges) - 1):
                q = (p >= edges[i]) & (p < edges[i + 1])
                I = np.where(q)[0]
                if len(I) > 0:
@@ -2276,7 +2276,7 @@ class Reliability(Output):
 
          # Draw confidence bands (do this separately so that these lines don't
          # sneak into the legend)
-         for f in range(0, F):
+         for f in range(F):
             opts = self._get_plot_options(f)
             if self._shade_confidence():
                self._plot_confidence(x[:, f], y[f], v[f], n[f], color=opts['color'])
@@ -2284,7 +2284,7 @@ class Reliability(Output):
          # Draw lines in inset diagram
          if self._show_count():
             if np.max(n) > 1:
-               for f in range(0, F):
+               for f in range(F):
                   opts = self._get_plot_options(f)
                   opts['ms'] *= 0.75
                   axi.plot(x[:, f], n[f], **opts)
@@ -2354,7 +2354,7 @@ class IgnContrib(Output):
       n = np.zeros([F, len(edges) - 1], 'float')
 
       # Draw reliability lines
-      for f in range(0, F):
+      for f in range(F):
          opts = self._get_plot_options(f)
          [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
@@ -2363,7 +2363,7 @@ class IgnContrib(Output):
 
          clim = np.mean(obs)
          # Compute frequencies
-         for i in range(0, len(edges) - 1):
+         for i in range(len(edges) - 1):
             q = (p >= edges[i]) & (p < edges[i + 1])
             I = np.where(q)[0]
             if len(I) > 0:
@@ -2388,7 +2388,7 @@ class IgnContrib(Output):
 
       # Show number in each bin
       mpl.subplot(2, 1, 2)
-      for f in range(0, F):
+      for f in range(F):
          opts = self._get_plot_options(f)
          mpl.plot(x[f], n[f], **opts)
       mpl.xlabel("Forecasted probability")
@@ -2447,7 +2447,7 @@ class EconomicValue(Output):
       n = np.zeros([F, len(costLossRatios)], 'float')
 
       # Draw reliability lines
-      for f in range(0, F):
+      for f in range(F):
          opts = self._get_plot_options(f)
          [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
@@ -2456,7 +2456,7 @@ class EconomicValue(Output):
 
          clim = np.mean(obs)
          # Compute frequencies
-         for i in range(0, len(costLossRatios)):
+         for i in range(len(costLossRatios)):
             costLossRatio = costLossRatios[i]
             Icost = np.where(p >= costLossRatio)[0]
             Iloss = np.where((p < costLossRatio) & (obs == 1))[0]
@@ -2504,14 +2504,14 @@ class Roc(Output):
 
       F = data.num_inputs
       labels = data.get_legend()
-      for f in range(0, F):
+      for f in range(F):
          opts = self._get_plot_options(f)
          scores = data.get_scores([verif.field.Obs()] + q_fields, f, verif.axis.No())
          obs = scores[0]
          fcsts = scores[1:]
          y = np.nan * np.zeros([len(quantiles)], 'float')
          x = np.nan * np.zeros([len(quantiles)], 'float')
-         for i in range(0, len(quantiles)):
+         for i in range(len(quantiles)):
             # Compute the hit rate and false alarm rate by using the given
             # quantile from the distribution as the forecast
             fcst = fcsts[i]
@@ -2535,7 +2535,7 @@ class Roc(Output):
          y[len(y) - 1] = 1
          mpl.plot(x, y, label=labels[f], **opts)
          if self._label_quantiles():
-            for i in range(0, len(quantiles)):
+            for i in range(len(quantiles)):
                mpl.text(x[i + 1], y[i + 1], " %g%%" % quantiles[i], verticalalignment='center')
       mpl.plot([0, 1], [0, 1], color="k")
       mpl.axis([0, 1, 0, 1])
@@ -2587,13 +2587,13 @@ class DRoc(Output):
       labels = data.get_legend()
       f_intervals = verif.util.get_intervals(self.bin_type, f_thresholds)
       interval = verif.util.get_intervals(self.bin_type, [threshold])[0]
-      for f in range(0, F):
+      for f in range(F):
          opts = self._get_plot_options(f)
          [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
 
          y = np.nan * np.zeros([len(f_intervals), 1], 'float')
          x = np.nan * np.zeros([len(f_intervals), 1], 'float')
-         for i in range(0, len(f_intervals)):
+         for i in range(len(f_intervals)):
             f_interval = f_intervals[i]
             x[i] = verif.metric.Fa().compute_from_obs_fcst(obs, fcst, interval, f_interval)
             y[i] = verif.metric.Hit().compute_from_obs_fcst(obs, fcst, interval, f_interval)
@@ -2683,8 +2683,8 @@ class Against(Output):
          verif.util.error("Cannot use Against plot with less than 2 input files")
 
       labels = data.get_legend()
-      for f0 in range(0, F):
-         for f1 in range(0, F):
+      for f0 in range(F):
+         for f1 in range(F):
             if f0 != f1 and (F != 2 or f0 == 0):
                if F > 2:
                   mpl.subplot(F, F, f0 + f1 * F + 1)
@@ -2707,7 +2707,7 @@ class Against(Output):
                minDiff = self._min_std_diff * std
                if len(x) == len(y):
                   N = 5
-                  for k in range(0, N):
+                  for k in range(N):
                      Ix = abs(obs - y) > abs(obs - x) + std * k / N
                      Iy = abs(obs - y) + std * k / N < abs(obs - x)
                      alpha = k / 1.0 / N
@@ -2750,14 +2750,14 @@ class Taylor(Output):
 
       # Plot points
       maxstd = 0
-      for f in range(0, F):
+      for f in range(F):
          opts = self._get_plot_options(f, include_line=False)
 
          size = data.get_axis_size(self.axis)
          corr = np.zeros(size, 'float')
          std = np.zeros(size, 'float')
          stdobs = np.zeros(size, 'float')
-         for i in range(0, size):
+         for i in range(size):
             [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis, i)
             if len(obs) > 0 and len(fcst) > 0:
                corr[i] = np.corrcoef(obs, fcst)[1, 0]
@@ -2802,7 +2802,7 @@ class Taylor(Output):
             "Correlation", rotation=-45, fontsize=self.labfs,
             horizontalalignment="center", verticalalignment="bottom")
       corrs = [-1, -0.99, -0.95, -0.9, -0.8, -0.5, 0, 0.5, 0.8, 0.9, 0.95, 0.99]
-      for i in range(0, len(corrs)):
+      for i in range(len(corrs)):
          ang = np.arccos(corrs[i])  # Mathematical angle
          x = np.cos(ang) * maxstd
          y = np.sin(ang) * maxstd
@@ -2882,16 +2882,16 @@ class Performance(Output):
 
       # Plot points
       maxstd = 0
-      for f in range(0, F):
+      for f in range(F):
          size = data.get_axis_size(self.axis)
          opts = self._get_plot_options(f, include_line=False)
-         for t in range(0, len(self.thresholds)):
+         for t in range(len(self.thresholds)):
             threshold = self.thresholds[t]
             sr = np.zeros(size, 'float')
             pod = np.zeros(size, 'float')
             Far = verif.metric.Far()
             Hit = verif.metric.Hit()
-            for i in range(0, size):
+            for i in range(size):
                [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis, i)
                f_intervals = self._get_f_intervals(fcst, self.bin_type, num_max_points, threshold)
                J = len(f_intervals)
@@ -2906,7 +2906,7 @@ class Performance(Output):
                if self._show_potential():
                   x = np.zeros(J, 'float')
                   y = np.zeros(J, 'float')
-                  for j in range(0, J):
+                  for j in range(J):
                      x[j] = 1 - Far.compute_from_obs_fcst(obs, fcst, interval, f_intervals[j])
                      y[j] = Hit.compute_from_obs_fcst(obs, fcst, interval, f_intervals[j])
                   mpl.plot(x, y, ".-", color=opts['color'], ms=3*opts['lw'], lw=2*opts['lw'], zorder=-100, alpha=0.3)
@@ -2918,7 +2918,7 @@ class Performance(Output):
 
       # Plot bias lines
       biases = [0.3, 0.5, 0.8, 1, 1.3, 1.5, 2, 3, 5, 10]
-      for i in range(0, len(biases)):
+      for i in range(len(biases)):
          bias = biases[i]
          label = ""
          if i == 0:
@@ -2931,7 +2931,7 @@ class Performance(Output):
 
       # Plot threat score lines
       threats = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-      for i in range(0, len(threats)):
+      for i in range(len(threats)):
          threat = threats[i]
          x = np.linspace(threat, 1, 100)
          label = ""
@@ -2987,10 +2987,10 @@ class Error(Output):
       serr = np.nan * np.zeros([size, F], 'float')
       uerr = np.nan * np.zeros([size, F], 'float')
       rmse = np.nan * np.zeros([size, F], 'float')
-      for f in range(0, F):
+      for f in range(F):
          opts = self._get_plot_options(f, include_line=False)
 
-         for i in range(0, size):
+         for i in range(size):
             [obs, fcst] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis, i)
             mfcst = np.mean(fcst)
             mobs = np.mean(obs)
@@ -3003,7 +3003,7 @@ class Error(Output):
       ylim = mpl.ylim()
 
       # Draw rings
-      for f in range(0, F):
+      for f in range(F):
          opts = self._get_plot_options(f, include_marker=False)
          self._draw_circle(verif.util.nanmean(rmse[:, f]), style=opts['ls'], color=opts['color'])
 
@@ -3041,10 +3041,10 @@ class Marginal(Output):
       F = data.num_inputs
 
       clim = np.zeros(len(self.thresholds), 'float')
-      for f in range(0, F):
+      for f in range(F):
          x = self.thresholds
          y = np.zeros([len(self.thresholds)], 'float')
-         for t in range(0, len(self.thresholds)):
+         for t in range(len(self.thresholds)):
             threshold = self.thresholds[t]
             var = verif.field.Threshold(threshold)
             [obs, p] = data.get_scores([verif.field.Obs(), var], f)
@@ -3084,7 +3084,7 @@ class Freq(Output):
       F = data.num_inputs
       N = len(intervals)
 
-      for f in range(0, F):
+      for f in range(F):
          opts = self._get_plot_options(f)
          y = np.zeros(N, 'float')
          clim = np.zeros(N, 'float')
@@ -3145,7 +3145,7 @@ class InvReliability(Output):
             axi = mpl.axes([0.66, 0.15, 0.2, 0.2])
       mpl.sca(ax)
 
-      for t in range(0, len(self.quantiles)):
+      for t in range(len(self.quantiles)):
          quantile = self.quantiles[t]
          var = verif.field.Quantile(quantile)
          [obs, p] = data.get_scores([verif.field.Obs(), var], 0, verif.axis.No())
@@ -3165,14 +3165,14 @@ class InvReliability(Output):
          n = np.zeros([F, len(edges) - 1], 'float')
          v = np.zeros([F, len(edges) - 1], 'float')
          # Draw reliability lines
-         for f in range(0, F):
+         for f in range(F):
             opts = self._get_plot_options(f)
             [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
 
             obs = obs <= p
 
             # Compute frequencies
-            for i in range(0, len(edges) - 1):
+            for i in range(len(edges) - 1):
                q = (p >= edges[i]) & (p < edges[i + 1])
                I = np.where(q)[0]
                if len(I) > 0:
@@ -3191,7 +3191,7 @@ class InvReliability(Output):
 
          # Draw confidence bands (do this separately so that these lines don't
          # sneak into the legend)
-         for f in range(0, F):
+         for f in range(F):
             opts = self._get_plot_options(f)
             if self._shade_confidence():
                self._plot_confidence(x[:, f], y[f], v[f], n[f], color=opts['color'])
