@@ -1369,7 +1369,8 @@ class ObsFcst(Output):
 
 class QQ(Output):
    supports_threshold = False
-   supports_x = False
+   supports_x = True
+   default_axis = verif.axis.No()
    name = "Quantile-quantile"
    description = "Quantile-quantile plot of obs vs forecasts"
 
@@ -1380,7 +1381,17 @@ class QQ(Output):
       labels = data.get_legend()
       F = data.num_inputs
       for f in range(0, F):
-         [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No())
+         if self.axis == verif.axis.No():
+            x, y = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis)
+         else:
+            # Aggregate along a dimension
+            size_axis = data.get_axis_size(self.axis)
+            x = np.nan * np.zeros(size_axis)
+            y = np.nan * np.zeros(size_axis)
+            for i in range(size_axis):
+               xtemp, ytemp = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis, i)
+               x[i] = self.aggregator(xtemp)
+               y[i] = self.aggregator(ytemp)
          x = np.sort(x)
          y = np.sort(y)
          mpl.plot(x, y, label=labels[f], **self._get_plot_options(f))
