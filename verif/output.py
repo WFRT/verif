@@ -740,7 +740,7 @@ class Output(object):
          # Draw background map
          if self.map_type != "simple":
             if self.map_type == "sat":
-               service = 'ESRI_Imagery_World_2D'
+               service = 'World_Imagery'
             elif self.map_type == "topo":
                service = 'World_Topo_Map'
             else:
