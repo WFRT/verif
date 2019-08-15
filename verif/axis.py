@@ -268,7 +268,7 @@ class Fcst(Axis):
       return variable.formatter
 
    def label(self, variable):
-      return "Observed " + variable.name + " (" + variable.units + ")"
+      return "Forecasted " + variable.name + " (" + variable.units + ")"
 
 
 class Threshold(Axis):
