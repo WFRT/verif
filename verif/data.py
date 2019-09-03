@@ -145,6 +145,7 @@ class Data(object):
          use_locations = [loc for loc in use_locations if loc not in locations_x]
 
       # Find common indicies
+      # TODO: Merge in information from dates (but these span whole days)
       self._timesI = self._get_common_indices(self._inputs, verif.axis.Time(), times)
       self._leadtimesI = self._get_common_indices(self._inputs, verif.axis.Leadtime(), leadtimes)
       self._locationsI = self._get_common_indices(self._inputs, verif.axis.Location(), use_locations)
@@ -448,8 +449,13 @@ class Data(object):
          for i in range(num_inputs):
             input = self._inputs[i]
             all_fields = input.get_fields()
-            temp = input.obs
             if field in all_fields:
+               if field == verif.field.Obs():
+                  temp = input.obs
+               elif field == verif.field.Fcst():
+                  temp = input.fcst
+               else:
+                  temp = input.other_score(field.name())
                Itimes = self._get_time_indices(i)
                Ileadtimes = self._get_leadtime_indices(i)
                Ilocations = self._get_location_indices(i)
