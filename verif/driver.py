@@ -479,17 +479,11 @@ def run(argv):
          ttype = "deterministic"
       elif pl.require_threshold_type == "threshold":
          ttype = "threshold"
-      elif pl.require_threshold_type == "quantile":
-         ttype = "quantile"
       elif m is not None:
          if m.require_threshold_type == "deterministic":
             ttype = "deterministic"
          elif m.require_threshold_type == "threshold":
             ttype = "threshold"
-         elif m.require_threshold_type == "quantile":
-            ttype = "quantile"
-         elif m.require_threshold_type is not None:
-            verif.util.error("Internal error for metric %s: Cannot understand required threshold type '%s'" % (m.name(), m.require_threshold_type))
       elif pl.require_threshold_type is not None:
          verif.util.error("Internal error for output %s: Cannot understand required threshold type '%s'" % (pl.name(), pl.require_threshold_type))
 
@@ -507,15 +501,27 @@ def run(argv):
                smax = max(np.nanmax(fcst), smax)
             num_default_thresholds = 20
             thresholds = np.linspace(smin, smax, num_default_thresholds)
-            verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+            verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds: %s" % (','.join(["%g" % q for q in thresholds])))
          elif ttype == "threshold":
             thresholds = data.thresholds
-            verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
-         elif ttype == "quantile":
-            thresholds = data.quantiles
-            verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+            verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds: %s"  % (','.join(["%g" % q for q in thresholds])))
          if len(thresholds) == 0:
             verif.util.error("No thresholds available")
+   ttype = None
+   if pl.require_threshold_type == "quantile":
+      ttype = "quantile"
+   elif m is not None:
+      if m.require_threshold_type == "quantile":
+         ttype = "quantile"
+
+   if ttype == "quantile":
+      if quantiles is None:
+         quantiles = data.quantiles
+         verif.util.warning("Missing '-q <quantiles>'. Automatically setting quantiles: %s" % (','.join(["%g" % q for q in quantiles])))
+      # TODO: This is a bit of a hack, using thresholds to hold the
+      # quantiles. But otherwise, the classes in output need to deal with
+      # testing if the metric needs thresholds or quantiles
+      thresholds = quantiles
 
    # Set plot parameters
    if simple is not None:
