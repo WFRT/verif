@@ -1,6 +1,5 @@
 import sys
 import numpy as np
-import verif.driver
 
 
 class Interval(object):

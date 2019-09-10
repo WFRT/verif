@@ -71,6 +71,7 @@ def get_p(data, input_index, axis, axis_index, interval):
             axis, axis_index)
 
    obsP = interval.within(obs)
+   obsP = np.ma.filled(obsP, fill_value=np.nan)
    p = p1 - p0  # Prob of obs within range
    return [obsP, p]
 
