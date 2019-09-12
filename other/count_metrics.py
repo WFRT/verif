@@ -14,8 +14,8 @@ lines = description.split('\n')
 reg = re.compile("^  -")
 lines = [line for line in lines if reg.match(line)]
 for i in range(0, len(lines)):
-   line = lines[i]
-   line = line.split(' ')
-   line = [q for q in line if q != '']
-   lines[i] = line[0]
+    line = lines[i]
+    line = line.split(' ')
+    line = [q for q in line if q != '']
+    lines[i] = line[0]
 print "Options: %d" % len(lines)

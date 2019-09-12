@@ -16,10 +16,10 @@ lines = description.split('\n')
 reg = re.compile("^  -")
 lines = [line for line in lines if reg.match(line)]
 for i in range(0, len(lines)):
-   line = lines[i]
-   line = line.split(' ')
-   line = [q for q in line if q != '']
-   lines[i] = line[0]
+    line = lines[i]
+    line = line.split(' ')
+    line = [q for q in line if q != '']
+    lines[i] = line[0]
 
 metrics = verif.metric.get_all()
 outputs = verif.output.get_all()
@@ -41,7 +41,7 @@ print 'prev="${COMP_WORDS[COMP_CWORD-1]}"'
 print 'if [ "$cur" = "" ] || [[ "$cur" =~ -* ]]; then'
 print "   COMPREPLY=( $( compgen -f -W '",
 for line in lines:
-   print line,
+    print line,
 print "' -- $cur ) )"
 print 'fi'
 
@@ -49,10 +49,10 @@ print 'fi'
 print 'if [ "$prev" = "-m" ]; then'
 print "   COMPREPLY=( $( compgen -W '",
 for m in metricOutputs:
-   name = m[0].lower()
-   if(m[1].is_valid()):
-      desc = m[1].get_class_name()
-      print name + " ",
+    name = m[0].lower()
+    if(m[1].is_valid()):
+        desc = m[1].get_class_name()
+        print name + " ",
 print "' -- $cur ) )"
 
 # Cmap
