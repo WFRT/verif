@@ -1652,7 +1652,8 @@ class Scatter(Output):
    name = "Scatter"
    description = "Scatter plot of forecasts vs obs and lines showing quantiles of obs given forecast (use -r to specify)"
    supports_threshold = False
-   supports_x = False
+   supports_x = True
+   default_axis = verif.axis.No()
 
    def __init__(self):
       Output.__init__(self)
@@ -1665,7 +1666,17 @@ class Scatter(Output):
       labels = data.get_legend()
       F = data.num_inputs
       for f in range(F):
-         [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No())
+         if self.axis == verif.axis.No():
+            [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
+         else:
+            # Aggregate along a dimension
+            size_axis = data.get_axis_size(self.axis)
+            x = np.nan * np.zeros(size_axis)
+            y = np.nan * np.zeros(size_axis)
+            for i in range(size_axis):
+               xtemp, ytemp = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis, i)
+               x[i] = self.aggregator(xtemp)
+               y[i] = self.aggregator(ytemp)
 
          opts = self._get_plot_options(f, include_line=False)
          alpha = 0.2 if self.simple else 1
