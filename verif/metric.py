@@ -1095,6 +1095,86 @@ class Bss(Metric):
         return self.name
 
 
+class BssRel(Metric):
+    default_axis = verif.axis.Threshold()
+    type = verif.metric_type.Probabilistic()
+    name = "Brier skill score, reliability term"
+    description = "Brier skill score, reliability term"
+    min = 0
+    max = 1
+    require_threshold_type = "threshold"
+    supports_threshold = True
+    perfect_score = 1
+    orientation = 1
+
+    def __init__(self, num_edges=11):
+        self._edges = np.linspace(0, 1, num_edges)
+        self._edges[-1] = 1.001
+
+    def compute_single(self, data, input_index, axis, axis_index, interval):
+        [obsP, p] = get_p(data, input_index, axis, axis_index, interval)
+        return self.compute_from_obs_fcst(obsP, p)
+
+    def compute_from_obs_fcst(self, obs, fcst):
+        bsrel = np.nan * np.zeros(len(fcst), 'float')
+        obs_mean = np.mean(obs)
+        for i in range(0, len(self._edges) - 1):
+            I = np.where((fcst >= self._edges[i]) & (fcst < self._edges[i + 1]))[0]
+            if len(I) > 0:
+                obs_mean_I = np.mean(obs[I])
+                bsrel[I] = (fcst[I] - obs_mean_I) ** 2
+        bsunc = np.nanmean((obs_mean - obs)**2)
+        bsrel = np.nanmean(bsrel)
+        if bsunc == 0:
+            bss = np.nan
+        else:
+            bss = bsrel / bsunc
+        return bss
+
+    def label(self, variable):
+        return self.name
+
+
+class BssRes(Metric):
+    default_axis = verif.axis.Threshold()
+    type = verif.metric_type.Probabilistic()
+    name = "Brier skill score, resolution term"
+    description = "Brier skill score, resolution term"
+    min = 0
+    max = 1
+    require_threshold_type = "threshold"
+    supports_threshold = True
+    perfect_score = 1
+    orientation = 1
+
+    def __init__(self, num_edges=11):
+        self._edges = np.linspace(0, 1, num_edges)
+        self._edges[-1] = 1.001
+
+    def compute_single(self, data, input_index, axis, axis_index, interval):
+        [obsP, p] = get_p(data, input_index, axis, axis_index, interval)
+        return self.compute_from_obs_fcst(obsP, p)
+
+    def compute_from_obs_fcst(self, obs, fcst):
+        bsres = np.nan * np.zeros(len(fcst), 'float')
+        obs_mean = np.mean(obs)
+        for i in range(0, len(self._edges) - 1):
+            I = np.where((fcst >= self._edges[i]) & (fcst < self._edges[i + 1]))[0]
+            if len(I) > 0:
+                obs_mean_I = np.mean(obs[I])
+                bsres[I] = (obs_mean_I - obs_mean) ** 2
+        bsres = np.nanmean(bsres)
+        bsunc = np.nanmean((obs_mean - obs)**2)
+        if bsunc == 0:
+            bss = np.nan
+        else:
+            bss = bsres / bsunc
+        return bss
+
+    def label(self, variable):
+        return self.name
+
+
 class QuantileScore(Metric):
     type = verif.metric_type.Probabilistic()
     name = "Quantile score"
