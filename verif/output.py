@@ -2162,7 +2162,11 @@ class Discrimination(Output):
         threshold = self.thresholds[0]
         labels = data.get_legend()
 
-        edges = np.linspace(0, 1, self._num_bins + 1)
+        if self.quantiles is not None:
+            edges = self.quantiles
+        else:
+            edges = np.linspace(0, 1, self._num_bins + 1)
+        num_bins = len(edges) - 1
 
         var = verif.field.Threshold(threshold)
 
@@ -2182,14 +2186,14 @@ class Discrimination(Output):
             I0 = np.where(obs == 0)[0]
             # Compute frequencies
             for i in range(len(edges) - 1):
-                y0[f, i] = np.mean((p[I0] >= edges[i]) & (p[I0] < edges[i + 1]))
-                y1[f, i] = np.mean((p[I1] >= edges[i]) & (p[I1] < edges[i + 1]))
+                y0[f, i] = np.mean((p[I0] >= edges[i]) & (p[I0] < edges[i + 1])) * 100
+                y1[f, i] = np.mean((p[I1] >= edges[i]) & (p[I1] < edges[i + 1])) * 100
 
             # Figure out where to put the bars. Each file will have pairs of
             # bars, so try to space them nicely.
-            width = 1.0 / self._num_bins
-            space = 1.0 / self._num_bins * 0.2
-            shift = (0.5 / self._num_bins - width)
+            width = 1.0 / num_bins
+            space = 1.0 / num_bins * 0.2
+            shift = (0.5 / num_bins - width)
             center = (edges[0:-1]+edges[1:])/2
             clustercenter = edges[0:-1] + 1.0*(f + 1) / (F + 1) * width
             clusterwidth = width * 0.8 / F
@@ -2199,11 +2203,16 @@ class Discrimination(Output):
             label1 = labels[f] + " observed"
             mpl.bar(clustercenter, y0[f, :], barwidth, color="w", ec=opts['color'], lw=opts['lw'], label=label0)
             mpl.bar(clustercenter-shift, y1[f, :], barwidth, color=opts['color'], ec=opts['color'], lw=opts['lw'], label=label1)
-        mpl.plot([clim, clim], [0, 1], "k-")
+            if self.annotate:
+                for i in range(len(clustercenter)):
+                    # Alignment is used so that labels for 100% don't go outside the axes
+                    mpl.text(clustercenter[i], y0[f, i], '%.0f%%' % (y0[f, i]), verticalalignment=('bottom' if y0[f, i] < 50 else 'top'))
+                    mpl.text(clustercenter[i] - shift, y1[f, i], '%.0f%%' % (y1[f, i]), verticalalignment=('bottom' if y0[f, i] < 50 else 'top'))
+        mpl.plot([clim, clim], [0, 100], "k-")
 
         mpl.xlim([0, 1])
         mpl.xlabel("Forecasted probability")
-        mpl.ylabel("Frequency")
+        mpl.ylabel("Frequency (%)")
         units = " " + data.variable.units
         middle = verif.util.get_threshold_string(self.bin_type)
         mpl.title("Discrimination diagram for obs " + middle + " " + str(threshold) + units)
