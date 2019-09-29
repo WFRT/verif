@@ -1,7 +1,9 @@
 import inspect
 import matplotlib.ticker
 import numpy as np
+import re
 import sys
+
 import verif.util
 
 
@@ -18,6 +20,15 @@ def get(name):
     """ Returns an instance of an object with the given class name """
     fields = get_all()
     f = None
+    threshold = re.findall("[Tt]hreshold:([.0-9]*)", name)
+    quantile = re.findall("[Qq]uantile:([.0-9]*)", name)
+    if len(threshold) == 1:
+        threshold = float(threshold[0])
+        return Threshold(threshold)
+    elif len(quantile) == 1:
+        quantile = float(quantile[0])
+        return Quantile(quantile)
+
     for field in fields:
         if name == field[0].lower():
             f = field[1]()
