@@ -4,3 +4,4 @@ matplotlib<2
 coveralls
 pep8
 netCDF4
+future
