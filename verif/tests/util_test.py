@@ -16,6 +16,17 @@ class TestApplyThreshold(unittest.TestCase):
         np.testing.assert_array_equal(np.array([1, 0, 0]), verif.util.apply_threshold(ar, "below", 2))
         np.testing.assert_array_equal(np.array([1, 0, 1]), verif.util.apply_threshold(ar, "below=", 2))
 
+    def test_same_as_intervals(self):
+        ar = np.array([1, 3, 2])
+        interval = verif.interval.Interval(2, np.inf, False, False)
+        np.testing.assert_array_equal(interval.within(ar), verif.util.apply_threshold(ar, "above", 2))
+        interval = verif.interval.Interval(2, np.inf, True, False)
+        np.testing.assert_array_equal(interval.within(ar), verif.util.apply_threshold(ar, "above=", 2))
+        interval = verif.interval.Interval(-np.inf, 2, False, False)
+        np.testing.assert_array_equal(interval.within(ar), verif.util.apply_threshold(ar, "below", 2))
+        interval = verif.interval.Interval(-np.inf, 2, False, True)
+        np.testing.assert_array_equal(interval.within(ar), verif.util.apply_threshold(ar, "below=", 2))
+
 
 class TestParseNumbers(unittest.TestCase):
     def test_simple(self):

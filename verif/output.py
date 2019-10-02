@@ -3120,10 +3120,10 @@ class Freq(Output):
             for i in range(N):
                 interval = intervals[i]
                 if obs is not None:
-                    obs0 = verif.util.apply_threshold(obs, self.bin_type, interval.lower, interval.upper)
+                    obs0 = interval.within(obs)
                     clim[i] = np.nanmean(obs0)
                 if fcst is not None:
-                    fcst0 = verif.util.apply_threshold(fcst, self.bin_type, interval.lower, interval.upper)
+                    fcst0 = interval.within(fcst)
                     y[i] = np.nanmean(fcst0)
 
             label = labels[f]
