@@ -1152,7 +1152,6 @@ class Standard(Output):
                     if yy[i, j] > 0:
                         mpl.text(curr_x, curr_y, "%d%%" % int(yy[i, j] * 100), horizontalalignment="center", verticalalignment="center")
 
-            print(self.tick_font_size)
             mpl.gca().set_xticklabels(range(F), fontsize=self.tick_font_size)
             mpl.gca().set_xticks([0.5, F-0.5])
             if self._metric.orientation == 0:

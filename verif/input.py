@@ -387,7 +387,6 @@ class Text(Input):
                         elev = locationInfo[id].elev
                         if not shownConflictingWarning:
                             if (not np.isnan(currLat) and abs(currLat - lat) > 0.0001) or (not np.isnan(currLon) and abs(currLon - lon) > 0.0001) or (not np.isnan(currElev) and abs(currElev - elev) > 0.001):
-                                print(currLat - lat, currLon - lon, currElev - elev)
                                 verif.util.warning("Conflicting lat/lon/elev information: (%f,%f,%f) does not match (%f,%f,%f)" % (currLat, currLon, currElev, lat, lon, elev))
                                 shownConflictingWarning = True
                     else:
