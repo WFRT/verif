@@ -67,7 +67,11 @@ def main():
     Currently, only approach a) is supported.
     """
     for i, threshold in enumerate(args.thresholds):
-        cdf[:, :, :, i] = np.mean(ens < threshold, axis=3) * (upper_cdf - lower_cdf) + lower_cdf / 2
+        # Equality operator doesn't handle missing values
+        I = np.isnan(ens) == 0
+        cond = np.nan * np.zeros(ens.shape)
+        cond[I] = ens[I] < threshold
+        cdf[:, :, :, i] = np.nanmean(cond, axis=3) * (upper_cdf - lower_cdf) + lower_cdf / 2
 
     """
     Compute values for different quantiles
