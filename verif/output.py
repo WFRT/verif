@@ -1666,7 +1666,7 @@ class Scatter(Output):
         F = data.num_inputs
         for f in range(F):
             if self.axis == verif.axis.No():
-                [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f)
+                [x, y] = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, verif.axis.No())
             else:
                 # Aggregate along a dimension
                 size_axis = data.get_axis_size(self.axis)

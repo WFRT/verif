@@ -222,6 +222,9 @@ class IntegrationTest(unittest.TestCase):
         self.run_with_image("verif examples/raw.txt -m discrimination -r 0")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m discrimination -r 0")
 
+    def test_scatter(self):
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m scatter")
+
     def test_auto(self):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m autocorr")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m autocov")
