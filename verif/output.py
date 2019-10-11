@@ -955,8 +955,8 @@ class Standard(Output):
             label = "higher"
         else:
             label = "worse"
-        map.scatter(x0[I1], y0[I1], s=sizes[I1], color="r", label="%s is %s" % (labels[0], label))
-        map.scatter(x0[I0], y0[I0], s=sizes[I0], color="b", label="%s is %s" % (labels[1], label))
+        map.scatter(x0[I1], y0[I1], s=sizes[I1], color="r", label="%s is %s" % (labels[0], label), edgecolors='k')
+        map.scatter(x0[I0], y0[I0], s=sizes[I0], color="b", label="%s is %s" % (labels[1], label), edgecolors='k')
         if self.legfs > 0:
             mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
 
@@ -1203,11 +1203,11 @@ class Standard(Output):
                 lmissing = None
                 if self.show_missing and len(I) > 0:
                     lmissing = map.scatter(x0[I], y0[I], s=s, c="k", marker="x")
-                lsimilar = map.scatter(x0[is_valid], y0[is_valid], s=s, c="w")
-                lmin = map.scatter(x0[isMin], y0[isMin], s=s, c=c1)
-                lmax = map.scatter(x0[isMax], y0[isMax], s=s, c=c0)
+                lsimilar = map.scatter(x0[is_valid], y0[is_valid], s=s, c="w", edgecolors='k')
+                lmin = map.scatter(x0[isMin], y0[isMin], s=s, c=c1, edgecolors='k')
+                lmax = map.scatter(x0[isMax], y0[isMax], s=s, c=c0, edgecolors='k')
             else:
-                map.scatter(x0, y0, c=y[:, f], s=s, cmap=cmap)
+                map.scatter(x0, y0, c=y[:, f], s=s, cmap=cmap, edgecolors='k')
                 cb = map.colorbar()
                 if self.clabel is None:
                     cb.set_label(self._metric.label(data.variable), fontsize=self.labfs)
