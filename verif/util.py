@@ -458,27 +458,27 @@ def distance(lat1, lon1, lat2, lon2):
 
 def apply_threshold(array, bin_type, threshold, upper_threshold=None):
     """ Use bin_type to turn array into binary values """
-    I = np.where(np.isnan(array))
+    I = np.isnan(array) == 0
+    array = copy.deepcopy(array)
     if bin_type == "below":
-        array = array < threshold
+        array[I] = array[I] < threshold
     elif bin_type == "below=":
-        array = array <= threshold
+        array[I] = array[I] <= threshold
     elif bin_type == "above":
-        array = array > threshold
+        array[I] = array[I] > threshold
     elif bin_type == "above=":
-        array = array >= threshold
+        array[I] = array[I] >= threshold
     elif upper_threshold is None:
         error("Cannot apply thresholding with bin_type '%s'" % bin_type)
     elif bin_type == "within":
-        array = (array > threshold) & (array < upper_threshold)
+        array[I] = (array[I] > threshold) & (array[I] < upper_threshold)
     elif bin_type == "within=":
-        array = (array > threshold) & (array <= upper_threshold)
+        array[I] = (array[I] > threshold) & (array[I] <= upper_threshold)
     elif bin_type == "=within":
-        array = (array >= threshold) & (array < upper_threshold)
+        array[I] = (array[I] >= threshold) & (array[I] < upper_threshold)
     elif bin_type == "=within=":
-        array = (array >= threshold) & (array <= upper_threshold)
+        array[I] = (array[I] >= threshold) & (array[I] <= upper_threshold)
     array = np.array(array, float)
-    array[I] = np.nan
     return array
 
 
