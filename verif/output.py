@@ -1618,19 +1618,22 @@ class Fss(Output):
                 for l in range(L):
                     I = np.where(dist[l, :] < scale*1000)[0]
                     if len(I) > self._min_num:
-                        ffcst = np.mean(fcst[:, :, I], axis=2).flatten()
-                        fobs = np.mean(obs[:, :, I], axis=2).flatten()
-                        curr_bs = np.mean((ffcst - fobs)**2)
+                        # Find the fraction of obs and fcst in interval for the set of locations
+                        ffcst = np.nanmean(fcst[:, :, I], axis=2).flatten()
+                        fobs = np.nanmean(obs[:, :, I], axis=2).flatten()
+
+                        curr_bs = np.nanmean((ffcst - fobs)**2)
                         bs += [curr_bs]
-                        sum_obs += np.mean(fobs)
+                        sum_obs += np.nanmean(fobs)
                         count += 1
 
                 if count > 0:
                     mean_obs = sum_obs / count
                     unc = mean_obs * (1 - mean_obs)
 
-                    # Compute Brier skill score
-                    y[i, f] = (unc - np.mean(np.array(bs))) / unc
+                    if unc > 0:
+                        # Compute Brier skill score
+                        y[i, f] = (unc - np.mean(np.array(bs))) / unc
 
         xname = "Spatial scale (km)"
         return self.scales, y, xname, labels, {xname: [str(s) for s in self.scales]}
