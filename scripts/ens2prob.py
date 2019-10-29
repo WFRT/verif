@@ -26,7 +26,7 @@ def main():
     ifile = verif.input.get_input(args.ifile)
     locations = ifile.locations
     locationids = [loc.id for loc in locations]
-    leadtimes  = ifile.leadtimes
+    leadtimes = ifile.leadtimes
     times = ifile.times
     lats = [loc.lat for loc in locations]
     lons = [loc.lon for loc in locations]
@@ -96,7 +96,7 @@ def main():
         if obs is None:
             print("Error: File is missing obs, and can therefore not compute PIT")
             sys.exit(1)
-        newobs = np.tile(np.expand_dims(obs, 3), [1, 1,1, M])
+        newobs = np.tile(np.expand_dims(obs, 3), [1, 1, 1, M])
         pit = np.mean(ens < newobs, axis=3)
         """
         # approach b)
@@ -115,24 +115,24 @@ def main():
         file.createDimension("threshold", len(args.thresholds))
     if len(args.quantiles) > 0:
         file.createDimension("quantile", len(args.quantiles))
-    vTime=file.createVariable("time", "i4", ("time",))
-    vOffset=file.createVariable("leadtime", "f4", ("leadtime",))
-    vLocation=file.createVariable("location", "f8", ("location",))
-    vLat=file.createVariable("lat", "f4", ("location",))
-    vLon=file.createVariable("lon", "f4", ("location",))
-    vElev=file.createVariable("altitude", "f4", ("location",))
+    vTime = file.createVariable("time", "i4", ("time",))
+    vOffset = file.createVariable("leadtime", "f4", ("leadtime",))
+    vLocation = file.createVariable("location", "f8", ("location",))
+    vLat = file.createVariable("lat", "f4", ("location",))
+    vLon = file.createVariable("lon", "f4", ("location",))
+    vElev = file.createVariable("altitude", "f4", ("location",))
     if fcst is not None:
-        vFcst=file.createVariable("fcst", "f4", ("time", "leadtime", "location"))
+        vFcst = file.createVariable("fcst", "f4", ("time", "leadtime", "location"))
     if obs is not None:
-        vObs=file.createVariable("obs", "f4", ("time", "leadtime", "location"))
+        vObs = file.createVariable("obs", "f4", ("time", "leadtime", "location"))
     if len(args.thresholds) > 0:
-        vCdf=file.createVariable("cdf", "f4", ("time", "leadtime", "location", "threshold"))
-        vThreshold=file.createVariable("threshold", "f4", ("threshold"))
+        vCdf = file.createVariable("cdf", "f4", ("time", "leadtime", "location", "threshold"))
+        vThreshold = file.createVariable("threshold", "f4", ("threshold"))
     if len(args.quantiles) > 0:
-        vX=file.createVariable("x", "f4", ("time", "leadtime", "location", "quantile"))
-        vQuantile=file.createVariable("quantile", "f4", ("quantile"))
+        vX = file.createVariable("x", "f4", ("time", "leadtime", "location", "quantile"))
+        vQuantile = file.createVariable("quantile", "f4", ("quantile"))
     if args.pit:
-        vPit=file.createVariable("pit", "f4", ("time", "leadtime", "location"))
+        vPit = file.createVariable("pit", "f4", ("time", "leadtime", "location"))
     file.long_name = ifile.variable.name
     file.units = unit = ifile.variable.units.replace("$", "")
     file.Convensions = "verif_1.0.0"

@@ -11,3 +11,6 @@ test.csh
 testPlots/
 stdeb.cfg
 devel/
+.tox
+deps
+.vscode

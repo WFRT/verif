@@ -1,10 +1,14 @@
 import argparse
-import sys
-import numpy as np
-import netCDF4
 import copy
+import netCDF4
+import numpy as np
+import sys
 import time as timing
+
+
 import verif.util
+
+
 removeMissing = True
 nc_missing = netCDF4.default_fillvals["f4"]
 
@@ -12,7 +16,7 @@ nc_missing = netCDF4.default_fillvals["f4"]
 def progress_bar(fraction, width, text=""):
     num_x = int(fraction * (width-len(text) - 2))
     num_space = width - num_x - len(text) - 2
-    sys.stdout.write("\r" + text + "[" + "X" *  num_x + " " * num_space + "]")
+    sys.stdout.write("\r" + text + "[" + "X" * num_x + " " * num_space + "]")
     sys.stdout.flush()
 
 
@@ -28,7 +32,7 @@ def main():
 
     if len(sys.argv) == 1:
         parser.print_help()
-        sys.exit(1)
+        sys.exit(0)
 
     args = parser.parse_args()
 
@@ -50,7 +54,7 @@ def main():
     obs = nc_missing * np.ones([len(otimes), len(oleadtimes), len(locations)], float)
     shape = input.obs.shape
     allobs = np.reshape(input.obs, [shape[0]*shape[1], shape[2]])
-    q,w = np.meshgrid(ileadtimes, itimes)
+    q, w = np.meshgrid(ileadtimes, itimes)
     alltimes = q * 3600 + w
 
     for t in range(len(otimes)):
@@ -76,14 +80,14 @@ def main():
         var = output.createVariable("quantile", "f4", ("quantile"))
         var[:] = args.quantiles
         output.createVariable("x", "f4", ("time", "leadtime", "location", "quantile"))
-    vTime=output.createVariable("time", "i4", ("time",))
-    vOffset=output.createVariable("leadtime", "f4", ("leadtime",))
-    vLocation=output.createVariable("location", "i4", ("location",))
-    vLat=output.createVariable("lat", "f4", ("location",))
-    vLon=output.createVariable("lon", "f4", ("location",))
-    vElev=output.createVariable("altitude", "f4", ("location",))
-    vfcst=output.createVariable("fcst", "f4", ("time", "leadtime", "location"))
-    vobs=output.createVariable("obs", "f4", ("time", "leadtime", "location"))
+    vTime = output.createVariable("time", "i4", ("time",))
+    vOffset = output.createVariable("leadtime", "f4", ("leadtime",))
+    vLocation = output.createVariable("location", "i4", ("location",))
+    vLat = output.createVariable("lat", "f4", ("location",))
+    vLon = output.createVariable("lon", "f4", ("location",))
+    vElev = output.createVariable("altitude", "f4", ("location",))
+    vfcst = output.createVariable("fcst", "f4", ("time", "leadtime", "location"))
+    vobs = output.createVariable("obs", "f4", ("time", "leadtime", "location"))
     output.standard_name = variable.name
     output.units = unit = variable.units.replace("$", "")
 

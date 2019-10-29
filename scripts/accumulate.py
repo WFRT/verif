@@ -8,8 +8,8 @@ import astropy.convolution
 import scipy.signal
 
 
-""" Convolves the Verif array across the leadtime dimension """
 def convolve(array, window, ignore_missing, axis):
+    """ Convolves the Verif array across the leadtime dimension """
     assert(len(array.shape) == 3)
     if axis == 'leadtime':
         c = np.ones([1, window, 1])
@@ -47,11 +47,11 @@ def main():
     ifile = verif.input.get_input(args.ifile)
     locations = ifile.locations
     locationids = [loc.id for loc in locations]
-    leadtimes  = ifile.leadtimes
-    times    = ifile.times
-    lats     = [loc.lat for loc in locations]
-    lons     = [loc.lon for loc in locations]
-    elevs    = [loc.elev for loc in locations]
+    leadtimes = ifile.leadtimes
+    times = ifile.times
+    lats = [loc.lat for loc in locations]
+    lons = [loc.lon for loc in locations]
+    elevs = [loc.elev for loc in locations]
 
     fcst = copy.deepcopy(ifile.fcst)
     obs = copy.deepcopy(ifile.obs)
@@ -76,14 +76,14 @@ def main():
     file.createDimension("leadtime", len(ifile.leadtimes))
     file.createDimension("time", None)
     file.createDimension("location", len(ifile.locations))
-    vTime=file.createVariable("time", "i4", ("time",))
-    vOffset=file.createVariable("leadtime", "f4", ("leadtime",))
-    vLocation=file.createVariable("location", "f8", ("location",))
-    vLat=file.createVariable("lat", "f4", ("location",))
-    vLon=file.createVariable("lon", "f4", ("location",))
-    vElev=file.createVariable("altitude", "f4", ("location",))
-    vfcst=file.createVariable("fcst", "f4", ("time", "leadtime", "location"))
-    vobs=file.createVariable("obs", "f4", ("time", "leadtime", "location"))
+    vTime = file.createVariable("time", "i4", ("time",))
+    vOffset = file.createVariable("leadtime", "f4", ("leadtime",))
+    vLocation = file.createVariable("location", "f8", ("location",))
+    vLat = file.createVariable("lat", "f4", ("location",))
+    vLon = file.createVariable("lon", "f4", ("location",))
+    vElev = file.createVariable("altitude", "f4", ("location",))
+    vfcst = file.createVariable("fcst", "f4", ("time", "leadtime", "location"))
+    vobs =  file.createVariable("obs", "f4", ("time", "leadtime", "location"))
     file.long_name = ifile.variable.name
     file.units = unit = ifile.variable.units.replace("$", "")
     file.Convensions = "verif_1.0.0"
