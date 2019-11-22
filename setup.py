@@ -7,6 +7,9 @@ from codecs import open
 from os import path
 
 here = path.abspath(path.dirname(__file__))
+# flake gets complains about undefined __version__ below, so set it to None here and then
+# overwrite in next line
+__version__ = None
 exec(open('verif/version.py').read())
 
 # Get the long description from the relevant file

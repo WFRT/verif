@@ -206,7 +206,7 @@ class Metric(object):
         s = ""
         if cls.description is not None:
             s = cls.description
-        if cls.orientation is not 0:
+        if cls.orientation != 0:
             s = s + "\n" + verif.util.green("Orientation: ")
             if cls.orientation == 1:
                 s = s + "Positive (higher values are better)"

@@ -12,6 +12,8 @@ def convolve(array, window, ignore_missing, axis):
     """ Convolves the Verif array across the leadtime dimension """
     assert(len(array.shape) == 3)
     if axis == 'leadtime':
+        if window > array.shape[1]:
+            verif.util.error("Window (%d) is longer than dimension size (%d)" % (window, array.shape[1]))
         c = np.ones([1, window, 1])
         if ignore_missing:
             # Does this work?
@@ -19,6 +21,8 @@ def convolve(array, window, ignore_missing, axis):
         new_array = np.nan*np.zeros(array.shape)
         new_array[:, (window-1):, :] = scipy.signal.convolve(array, c, "valid")
     elif axis == 'time':
+        if window > array.shape[0]:
+            verif.util.error("Window (%d) is longer than dimension size (%d)" % (window, array.shape[0]))
         c = np.ones([window, 1, 1])
         if ignore_missing:
             # Does this work?
@@ -69,6 +73,9 @@ def main():
             obs = np.cumsum(obs, axis=axis)
 
     elif args.w > 1:
+        # if args.w % 2 == 0:
+        #     verif.util.error("Window length has to be an odd number")
+
         fcst = convolve(fcst, args.w, args.ignore, args.axis)
         obs = convolve(obs, args.w, args.ignore, args.axis)
 

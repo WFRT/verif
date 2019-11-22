@@ -966,7 +966,7 @@ class Standard(Output):
         names = data.get_legend()
         self._adjust_axis(mpl.gca())
 
-    def _show_impact_marginal():
+    def _show_impact_marginal(self):
         return not self.simple
 
     def _plot_impact_core(self, data):
