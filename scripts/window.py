@@ -4,7 +4,6 @@ import numpy as np
 import verif.input
 import netCDF4
 import copy
-import astropy.convolution
 import scipy.signal
 
 
