@@ -2003,23 +2003,24 @@ class Meteo(Output):
             quantiles = np.sort(data.quantiles)
         else:
             quantiles = np.sort(self.quantiles)
-        y = np.zeros([len(data.leadtimes), len(quantiles)], 'float')
-        for i in range(len(quantiles)):
-            score = data.get_scores(verif.field.Quantile(quantiles[i]), 0)
-            y[:, i] = verif.util.nanmean(verif.util.nanmean(score, axis=0), axis=1)
-        for i in range(len(quantiles)):
-            style = "k-"
-            if i == 0 or i == len(quantiles) - 1:
-                style = "k--"
-            label = "%g%%" % (quantiles[i]*100)
-            mpl.plot(x, y[:, i], style, label=label, zorder=-1)
+        if len(quantiles) > 0:
+            y = np.zeros([len(data.leadtimes), len(quantiles)], 'float')
+            for i in range(len(quantiles)):
+                score = data.get_scores(verif.field.Quantile(quantiles[i]), 0)
+                y[:, i] = verif.util.nanmean(verif.util.nanmean(score, axis=0), axis=1)
+            for i in range(len(quantiles)):
+                style = "k-"
+                if i == 0 or i == len(quantiles) - 1:
+                    style = "k--"
+                label = "%g%%" % (quantiles[i]*100)
+                mpl.plot(x, y[:, i], style, label=label, zorder=-1)
 
-        # Fill areas betweeen lines
-        Ncol = (len(quantiles)-1)/2
-        for i in range(Ncol):
-            color = [(1 - (i + 0.0) / Ncol)] * 3
-            verif.util.fill(x, y[:, i], y[:, len(quantiles) - 1 - i], color,
-                  zorder=-2)
+            # Fill areas betweeen lines
+            Ncol = (len(quantiles)-1)/2
+            for i in range(Ncol):
+                color = [(1 - (i + 0.0) / Ncol)] * 3
+                verif.util.fill(x, y[:, i], y[:, len(quantiles) - 1 - i], color,
+                      zorder=-2)
 
         # Labels and ticks
         if self.ylabel is None:
