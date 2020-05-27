@@ -96,6 +96,9 @@ class Quantile(Field):
             return False
         return np.isclose(self.quantile, other.quantile)
 
+    def __hash__(self):
+        return hash(self.quantile)
+
 
 class Threshold(Field):
     def __init__(self, threshold):
