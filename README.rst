@@ -18,7 +18,7 @@ Since Verif is a command-line tool, it can be used in scripts to automatically c
 verification figures.
 
 Verif version 1.0 has been released (see "Installation Instruction" below). We welcome suggestions
-for improvements. Verif is developed by Thomas Nipen, David Siuta, and Tim Chui.
+for improvements. Verif is developed by Thomas Nipen (thomasn@met.no), David Siuta, and Tim Chui.
 
 Documentation
 -------------
@@ -137,5 +137,5 @@ about the dataset check out the wiki. Here are some example commands to test out
 Copyright and license
 ---------------------
 
-Copyright © 2015-2019 UBC Weather Forecast Research Team. Verif is licensed under the 3-clause
+Copyright © 2015-2020 UBC Weather Forecast Research Team. Verif is licensed under the 3-clause
 BSD license. See LICENSE file.
