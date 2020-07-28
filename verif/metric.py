@@ -1301,7 +1301,7 @@ class Contingency(Metric):
     def _compute_abcd(self, obs, fcst, interval, f_interval=None):
         if f_interval is None:
             f_interval = interval
-        value = np.nan
+        a = b = c = d = np.nan
         if len(fcst) > 0:
             # Compute frequencies
             if self._usingQuantiles:
