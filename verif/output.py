@@ -1145,7 +1145,7 @@ class Standard(Output):
                 opts = self._get_plot_options(i)
                 if i == F:
                     opts['color'] = 'w'
-                mpl.bar(left=xx, bottom=bottoms, height=yy[i, :], width=w, color=opts['color'], label=labels[i])
+                mpl.bar(xx, bottom=bottoms, height=yy[i, :], width=w, color=opts['color'], label=labels[i])
                 for j in range(len(xx)):
                     curr_x = xx[j] + w / 2.0
                     curr_y = bottoms[j] + yy[i, j] / 2.0
