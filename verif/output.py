@@ -1702,7 +1702,7 @@ class Scatter(Output):
                 # Regular variables
                 else:
                     # How many quantile boxes should we make?
-                    N = max(8, min(30, x.shape[0] / 100))
+                    N = max(8, min(30, x.shape[0] // 100))
 
                     # We want the lower bin to cointain at least 50 points, so find
                     # which percentile will give us 50 points
@@ -2369,7 +2369,7 @@ class IgnContrib(Output):
         [obs, p] = data.get_scores([verif.field.Obs(), var], 0, verif.axis.No())
 
         # Determine the number of bins to use # (at least 11, at most 25)
-        N = min(25, max(11, int(len(obs) / 1000)))
+        N = min(25, max(11, int(len(obs) // 1000)))
         edges = np.linspace(0, 1, N + 1)
 
         x = np.nan * np.zeros([F, len(edges) - 1], 'float')
@@ -2458,7 +2458,7 @@ class EconomicValue(Output):
         [obs, p] = data.get_scores([verif.field.Obs(), var], 0, verif.axis.No())
 
         # Determine the number of bins to use # (at least 11, at most 25)
-        N = min(25, max(11, int(len(obs) / 1000)))
+        N = min(25, max(11, int(len(obs) // 1000)))
         N = 20
         costLossRatios = np.linspace(0, 1, N + 1)
         # import scipy.stats
@@ -3175,7 +3175,7 @@ class InvReliability(Output):
 
             # Determine the number of bins to use # (at least 11, at most 25)
             if self.thresholds is None:
-                N = min(25, max(11, int(len(obs) / 1000)))
+                N = min(25, max(11, int(len(obs) // 1000)))
                 if data.variable.name == "Precip":
                     edges = np.linspace(0, np.sqrt(verif.util.nanmax(obs)), N + 1) ** 2
                 else:
