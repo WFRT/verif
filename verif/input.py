@@ -5,6 +5,7 @@ import numpy as np
 import os
 import re
 import time
+import sys
 import netCDF4
 
 import verif.location
@@ -267,7 +268,10 @@ class Text(Input):
     def __init__(self, filename):
         self.fullname = filename
         self._filename = os.path.expanduser(filename)
-        file = open(self._filename, 'rU')
+        if sys.version_info[0] < 3:
+            file = open(self._filename, 'rU')
+        else:
+            file = open(self._filename, 'r')
         self._variable_units = "Unknown units"
         self._variable_name = "Unknown variable"
         self._variable_x0 = None
