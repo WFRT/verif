@@ -1204,7 +1204,7 @@ class Standard(Output):
                 if self.show_missing and len(I) > 0:
                     lmissing = map.scatter(x0[I], y0[I], s=s, c="k", marker="x")
                 lsimilar = map.scatter(x0[is_valid], y0[is_valid], s=s, c="w", edgecolors='k')
-                lmin = map.scatter(x0[isMin], y0[isMin], s=s, c=c1, edgecolors='k')
+                lmin = map.scatter(x0[isMin], y0[isMin], s=s, c=c1, edgecolors='k', )
                 lmax = map.scatter(x0[isMax], y0[isMax], s=s, c=c0, edgecolors='k')
             else:
                 map.scatter(x0, y0, c=y[:, f], s=s, cmap=cmap, edgecolors='k')
@@ -2855,8 +2855,7 @@ class Taylor(Output):
         # Draw CRMSE rings
         xticks = mpl.xticks()[0]
         self._draw_circle(0, style="-", color="gray", lw=3, label=crmseLabel)
-        Rs = np.linspace(0, 2 * max(xticks), 4 * max(xticks) / (xticks[1] -
-           xticks[0]) + 1)
+        Rs = np.linspace(0, 2 * max(xticks), 4 * max(xticks) // (xticks[1] - xticks[0]) + 1)
         for R in Rs:
             if R > 0:
                 self._draw_circle(R, xcenter=stdobs, ycenter=0, maxradius=maxstd, style="-", color="gray", lw=3)
@@ -2973,9 +2972,9 @@ class Performance(Output):
 
     @staticmethod
     def _get_f_intervals(fcst, bin_type, num_max, include_threshold=None):
-        percentiles = np.linspace(0, 10, num_max/3)
-        percentiles = np.append(percentiles, np.linspace(10, 90, num_max/3))
-        percentiles = np.append(percentiles, np.linspace(90, 100, num_max/3))
+        percentiles = np.linspace(0, 10, num_max//3)
+        percentiles = np.append(percentiles, np.linspace(10, 90, num_max//3))
+        percentiles = np.append(percentiles, np.linspace(90, 100, num_max//3))
         percentiles = np.sort(np.unique(percentiles))
         f_thresholds = np.array([np.percentile(np.unique(np.sort(fcst)), p) for p in percentiles])
         # put a point in forecast point (so that the line goes
