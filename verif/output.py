@@ -2853,7 +2853,7 @@ class Taylor(Output):
         # Draw CRMSE rings
         xticks = mpl.xticks()[0]
         self._draw_circle(0, style="-", color="gray", lw=3, label=crmseLabel)
-        Rs = np.linspace(0, 2 * max(xticks), 4 * max(xticks) // (xticks[1] - xticks[0]) + 1)
+        Rs = np.linspace(0, int(2 * max(xticks)), int(4 * max(xticks) / (xticks[1] - xticks[0]) + 1))
         for R in Rs:
             if R > 0:
                 self._draw_circle(R, xcenter=stdobs, ycenter=0, maxradius=maxstd, style="-", color="gray", lw=3)
