@@ -1207,14 +1207,12 @@ class Standard(Output):
                 lmin = map.scatter(x0[isMin], y0[isMin], s=s, c=c1, edgecolors='k', )
                 lmax = map.scatter(x0[isMax], y0[isMax], s=s, c=c0, edgecolors='k')
             else:
-                map.scatter(x0, y0, c=y[:, f], s=s, cmap=cmap, edgecolors='k')
+                map.scatter(x0, y0, c=y[:, f], s=s, vmin=clim[0], vmax=clim[1], cmap=cmap, edgecolors='k')
                 cb = map.colorbar()
                 if self.clabel is None:
                     cb.set_label(self._metric.label(data.variable), fontsize=self.labfs)
                 else:
                     cb.set_label(self.clabel, fontsize=self.labfs)
-                cb.set_clim(clim)
-                mpl.clim(clim)
 
             # Annotate with location id and the colored value, instead of x and y
             self._add_annotation(x0, y0, ["%d %g" % (ids[i], y[i, f]) for i in range(len(ids))])
