@@ -1961,7 +1961,8 @@ class TimeSeries(Output):
                     for d in range(len(data.times)):
                         x = datenums[d] + data.leadtimes / 24.0
                         y = verif.util.nanmean(fcst[d, :, :], axis=1)
-                        mpl.plot(x, y, alpha=alpha, **opts)
+                        lab = "%g%%" % (quantile * 100) if d == 0 else ""
+                        mpl.plot(x, y, label=lab, alpha=alpha, **opts)
 
         mpl.xlabel(self.axis.label(data.variable))
         if self.ylabel is None:
