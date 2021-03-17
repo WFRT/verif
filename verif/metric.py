@@ -1196,6 +1196,27 @@ class QuantileScore(Metric):
         return self.name
 
 
+class Spread(Metric):
+    type = verif.metric_type.Probabilistic()
+    name = "Spread"
+    description = "Spread between two quantiles. Use -q to set which quantiles to use."
+    min = 0
+    default_bin_type = "within"
+    require_threshold_type = "quantile"
+    supports_threshold = True
+    perfect_score = 0
+    orientation = -1
+
+    def compute_single(self, data, input_index, axis, axis_index, interval):
+        var0 = verif.field.Quantile(interval.lower)
+        var1 = verif.field.Quantile(interval.upper)
+        [q0, q1] = data.get_scores([var0, var1], input_index, axis, axis_index)
+        return np.mean(q1 - q0)
+
+    def label(self, variable):
+        return self.name
+
+
 class Ign0(Metric):
     type = verif.metric_type.Probabilistic()
     name = "Binary ignorance"
