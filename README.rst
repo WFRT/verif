@@ -2,8 +2,8 @@ Forecast verification software
 ==============================
 .. image:: https://img.shields.io/github/v/release/WFRT/verif.svg
   :target: https://github.com/WFRT/verif/releases
-.. image:: https://travis-ci.org/WFRT/verif.svg?branch=master
-  :target: https://travis-ci.org/WFRT/verif
+.. image:: https://github.com/WFRT/verif/actions/workflows/python-package.yml/badge.svg
+  :target: https://github.com/WFRT/verif/actions/workflows/python-package.yml
 
 Verif is a command-line tool that lets you verify the quality of weather forecasts for point
 locations. It can also compare forecasts from different forecasting systems (that have different

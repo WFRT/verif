@@ -28,58 +28,58 @@ axes = [axis[0].lower() for axis in verif.axis.get_all()]
 metricOutputs = metrics + outputs
 metricOutputs.sort(key=lambda x: x[0].lower(), reverse=False)
 
-print "# START verif completion"
-print "_verif()"
-print "{"
-print "local cur prev opts"
+print("# START verif completion")
+print("_verif()")
+print("{")
+print("local cur prev opts")
 
-print 'COMPREPLY=()'
-print 'cur="${COMP_WORDS[COMP_CWORD]}"'
-print 'prev="${COMP_WORDS[COMP_CWORD-1]}"'
+print('COMPREPLY=()')
+print('cur="${COMP_WORDS[COMP_CWORD]}"')
+print('prev="${COMP_WORDS[COMP_CWORD-1]}"')
 
 # Files
-print 'if [ "$cur" = "" ] || [[ "$cur" =~ -* ]]; then'
-print "   COMPREPLY=( $( compgen -f -W '",
+print('if [ "$cur" = "" ] || [[ "$cur" =~ -* ]]; then')
+print("   COMPREPLY=( $( compgen -f -W '",  end = '')
 for line in lines:
-    print line,
-print "' -- $cur ) )"
-print 'fi'
+    print(line,  end = '')
+print("' -- $cur ) )")
+print('fi')
 
 # Metrics
-print 'if [ "$prev" = "-m" ]; then'
-print "   COMPREPLY=( $( compgen -W '",
+print('if [ "$prev" = "-m" ]; then')
+print("   COMPREPLY=( $( compgen -W '", end = '')
 for m in metricOutputs:
     name = m[0].lower()
     if(m[1].is_valid()):
         desc = m[1].get_class_name()
-        print name + " ",
-print "' -- $cur ) )"
+        print(name + " ", end = '')
+print("' -- $cur ) )")
 
 # Cmap
-print 'elif [ "$prev" = "-cmap" ]; then'
-print "   COMPREPLY=( $( compgen -W '",
-print ' '.join(mpl.cm.cmap_d.keys()),
-print "' -- $cur ) )"
+print('elif [ "$prev" = "-cmap" ]; then')
+print("   COMPREPLY=( $( compgen -W '", end = '')
+print(' '.join(mpl.cm.cmap_d.keys()), end = '')
+print("' -- $cur ) )")
 
 # Agg
-print 'elif [ "$prev" = "-agg" ]; then'
-print "   COMPREPLY=( $( compgen -W '",
-print ' '.join(aggregators),
-print "' -- $cur ) )"
+print('elif [ "$prev" = "-agg" ]; then')
+print("   COMPREPLY=( $( compgen -W '", end = '')
+print(' '.join(aggregators), end = '')
+print("' -- $cur ) )")
 
 # Type
-print 'elif [ "$prev" = "-type" ]; then'
-print "   COMPREPLY=( $( compgen -W '",
-print 'plot text csv map rank maprank impact mapimpact',
-print "' -- $cur ) )"
+print('elif [ "$prev" = "-type" ]; then')
+print("   COMPREPLY=( $( compgen -W '", end = '')
+print('plot text csv map rank maprank impact mapimpact', end = '')
+print("' -- $cur ) )")
 
 # Axis
-print 'elif [ "$prev" = "-x" ]; then'
-print "   COMPREPLY=( $( compgen -W '",
-print ' '.join(axes),
-print "' -- $cur ) )"
-print 'fi'
-print 'return 0'
-print '}'
-print 'complete -F _verif verif'
-print '# END verif completion'
+print('elif [ "$prev" = "-x" ]; then')
+print("   COMPREPLY=( $( compgen -W '", end = '')
+print(' '.join(axes), end = '')
+print("' -- $cur ) )")
+print('fi')
+print('return 0')
+print('}')
+print('complete -F _verif verif')
+print('# END verif completion')
