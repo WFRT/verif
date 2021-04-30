@@ -1618,8 +1618,9 @@ class BiasFreq(Contingency):
 
 
 class Hss(Contingency):
-    max = None
+    name = "Heidke skill score"
     description = "Heidke skill score"
+    max = 1
     perfect_score = 1
     orientation = 1
 
