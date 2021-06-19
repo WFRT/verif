@@ -49,16 +49,14 @@ Installing on Ubuntu
 
 **Prerequisites**
 
-Verif requires NetCDF as well as the python packages numpy, scipy, and matplotlib. The python
-package mpltoolkits.basemap is optional, but provides a background map when verification scores are
-plotted on a map. Install the packages as follows:
+Verif requires a pip installation and Python 3. The python package "cartopy" is optional, but provides
+a background map when verification scores are plotted on a map. Cartopy requires GEOS and PROJ4 to be
+installed first:
 
 .. code-block:: bash
 
   sudo apt-get update
-  sudo apt-get install netcdf-bin libnetcdf-dev libhdf5-serial-dev
-  sudo apt-get install python-setuptools python-pip
-  sudo apt-get install python-numpy python-scipy python-matplotlib python-mpltoolkits.basemap
+  sudo apt-get install libgeos-dev libproj-dev
 
 **Installing using pip**
 
