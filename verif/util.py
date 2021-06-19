@@ -305,6 +305,27 @@ def get_map_resolution(lats, lons):
     return res
 
 
+def get_cartopy_map_resolution(lats, lons):
+    dlat = (max(lats) - min(lats))
+    dlon = (max(lons) - min(lons))
+    scale = max(dlat, dlon)
+    return 5
+    # TODO: Implement this
+    if np.isnan(scale):
+        res = "c"
+    elif scale > 60:
+        res = "c"
+    elif scale > 1:
+        res = "i"
+    elif scale > 0.001:
+        res = "h"
+    elif scale > 0.0001:
+        res = "f"
+    else:
+        res = "c"
+    return res
+
+
 def fill(x, y_lower, y_upper, col, alpha=1, zorder=0, hatch=''):
     """ Fill an area between two curves
 

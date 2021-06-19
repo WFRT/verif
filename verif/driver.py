@@ -269,6 +269,8 @@ def run(argv):
                     cmap = arg_next
                 elif arg == "-maptype":
                     map_type = arg_next
+                    if map_type not in verif.output.allowedMapTypes:
+                        verif.util.error("Unknown maptype '%s'" % map_type)
                 elif arg == "-proj":
                     proj = arg_next
                 elif arg == "-obs":
@@ -715,7 +717,7 @@ def show_description(data=None):
     s += format_argument("-legloc loc", "Where should the legend be placed?  Locations such as 'best', 'upper_left', 'lower_right', 'center'. Use underscore when using two words.") + "\n"
     s += format_argument("-ls styles", "Comma-separated list of line styles, such as -,--. Styles are repeated if there are more lines than styles.") + "\n"
     s += format_argument("-lw width", "Comma-separated list of line widths") + "\n"
-    s += format_argument("-maptype type", "One of 'simple', 'sat', 'topo', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.") + "\n"
+    s += format_argument("-maptype type", "One of 'simple', 'sat', or 'topo'.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.") + "\n"
     s += format_argument("-ma markers", "Comma-separated list of markers (e.g.  o,*,x)") + "\n"
     s += format_argument("-ms size", "Comma-separated list of marker sizes") + "\n"
     s += format_argument("-nogrid", "Turn the grid on the plot off") + "\n"

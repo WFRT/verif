@@ -16,15 +16,17 @@ import verif.metric
 import verif.metric_type
 import verif.util
 reload_module(sys)
+
+try:
+    import cartopy
+    import cartopy.io.img_tiles
+    has_cartopy = True
+except:
+    has_cartopy = False
+
 # sys.setdefaultencoding('ISO-8859-1')
 
-allowedMapTypes = ["simple", "sat", "topo", "ESRI_Imagery_World_2D",
-         "ESRI_StreetMap_World_2D", "I3_Imagery_Prime_World",
-         "NASA_CloudCover_World", "NatGeo_World_Map", "NGS_Topo_US_2D",
-         "Ocean_Basemap", "USA_Topo_Maps", "World_Imagery",
-         "World_Physical_Map", "World_Shaded_Relief", "World_Street_Map",
-         "World_Terrain_Base", "World_Topo_Map"]
-
+allowedMapTypes = ["simple", "sat", "topo"]
 
 def get_all():
     """
@@ -636,18 +638,10 @@ class Output(object):
         name = cls.__name__
         return name
 
-    def _setup_map(self, data):
+    def _setup_map(self, data, N, Y):
         """
         Creates a map object
         """
-        # Use the Basemap package if it is available
-        hasBasemap = True
-        try:
-            import mpl_toolkits.basemap
-        except ImportError:
-            verif.util.warning("Cannot load Basemap package")
-            hasBasemap = False
-
         lats = np.array([loc.lat for loc in data.locations])
         lons = np.array([loc.lon for loc in data.locations])
         ids = np.array([loc.id for loc in data.locations])
@@ -678,8 +672,7 @@ class Output(object):
             llcrnrlat = self.ylim[0]
             urcrnrlat = self.ylim[1]
 
-        if self.map_type is not None and hasBasemap:
-            res = verif.util.get_map_resolution(lats, lons)
+        if self.map_type is not None and has_cartopy:
             if dlon < 5:
                 dx = 1
             elif dlon < 90:
@@ -694,43 +687,6 @@ class Output(object):
             else:
                 dy = 10
 
-            # Default projection
-            lat_0 = None
-            lat_1 = None
-            lat_2 = None
-            lat_ts = None
-            lon_0 = None
-            proj = "cyl"
-            earth_radius = 6370997.0
-
-            # Read projection parameteres if available
-            if self.proj is not None:
-                proj_attributes = verif.util.proj4_string_to_dict(self.proj)
-                lat_0 = proj_attributes.get("+lat_0")
-                lon_0 = proj_attributes.get("+lon_0")
-                lat_1 = proj_attributes.get("+lat_1")
-                lat_2 = proj_attributes.get("+lat_2")
-                lat_ts = proj_attributes.get("+lat_ts")
-                proj = proj_attributes.get("+proj")
-                er = proj_attributes.get("+R")
-                if er is not None:
-                    earth_radius = er
-                if proj is None:
-                    verif.util.error("Proj string missing a +proj parameter: (%s)" % self.proj)
-            map = mpl_toolkits.basemap.Basemap(llcrnrlon=llcrnrlon, llcrnrlat=llcrnrlat,
-                  urcrnrlon=urcrnrlon, urcrnrlat=urcrnrlat, projection=proj,
-                  lat_0=lat_0, lon_0=lon_0,
-                  lat_1=lat_1, lat_2=lat_2, lat_ts=lat_ts,
-                  rsphere=earth_radius,
-                  resolution=res, fix_aspect=False)
-            map.drawcoastlines(linewidth=0.25)
-            map.drawcountries(linewidth=0.25)
-            map.drawmapboundary()
-            if self.grid:
-                map.drawparallels(np.arange(-90., 120., dy), labels=[1, 0, 0, 0])
-                map.drawmeridians(np.arange(-180., 420., dx), labels=[0, 0, 0, 1])
-            map.fillcontinents(color=[0.7, 0.7, 0.7], zorder=-1)
-
             # Only show labels if specified
             if self.xlabel is not None:
                 mpl.xlabel(self.xlabel, fontsize=self.labfs)
@@ -740,18 +696,40 @@ class Output(object):
             # Draw background map
             if self.map_type != "simple":
                 if self.map_type == "sat":
-                    service = 'World_Imagery'
+                    service = cartopy.io.img_tiles.GoogleTiles(style='satellite')
+                    # service = cartopy.io.img_tiles.StamenTerrain()
                 elif self.map_type == "topo":
-                    service = 'World_Topo_Map'
+                    service = cartopy.io.img_tiles.GoogleTiles()
                 else:
-                    service = self.map_type
-                Npixels = 1000
-                map.arcgisimage(service=service, xpixels=Npixels, verbose=True)
+                    verif.util.error("Unknown maptype '%s'" % self.map_type)
 
-            x0, y0 = map(lons, lats)
+                # Import cartopy.io.img_tiles or cartopy.io?
+                # cartopy.io.img_tiles.Stamen(style='toner', desired_tile_form='RGB')
+                # map = mpl.subplot(1, N, Y, projection=cartopy.crs.PlateCarree())
+                map = mpl.subplot(1, N, Y, projection=service.crs)
+                map.set_extent([llcrnrlon, urcrnrlon, llcrnrlat, urcrnrlat])
+                res = verif.util.get_cartopy_map_resolution(lats, lons)
+                map.add_image(service, res)
+            else:
+                crs = cartopy.crs.PlateCarree()
+                map = mpl.subplot(1, N, Y, projection=crs)
+            map.add_feature(cartopy.feature.NaturalEarthFeature('cultural', 'admin_0_boundary_lines_land',
+                                                                '10m', edgecolor='black', facecolor='none'))
+            map.coastlines(resolution='10m')
+            if self.grid:
+                gl = map.gridlines(draw_labels=True)
+                gl.top_labels = False
+                gl.right_labels = False
+                gl.xformatter = cartopy.mpl.gridliner.LONGITUDE_FORMATTER
+                gl.yformatter = cartopy.mpl.gridliner.LATITUDE_FORMATTER
+
+            x0, y0 = lons, lats
         else:
-            # Use matplotlibs plotting functions, if we do not use Basemap
+            # Draw a map using matplotlibs plotting functions, without using cartopy
+            if self.map_type is not None and not has_cartopy:
+                verif.util.warning("Cartopy is not installed, cannot create -maptype %s" % self.map_type)
             map = mpl
+            map = mpl.subplot(1, N, Y)
             mpl.xlim([llcrnrlon, urcrnrlon])
             mpl.ylim([llcrnrlat, urcrnrlat])
             # Default to show labels
@@ -863,8 +841,11 @@ class Standard(Output):
         if self.axis == verif.axis.No():
             w = 0.8
             x = np.linspace(1 - w / 2, F - w / 2, F)
-            mpl.bar(x, y[0, :], color='w', lw=self.lw[0])
-            mpl.xticks(range(1, F + 1), labels)
+            mpl.bar(x, y[0, :], color='w', edgecolor="k", lw=self.lw[0])
+            mpl.xticks(range(1, F + 1), labels, rotation=90, horizontalalignment='right')
+            # mpl.xticks([])
+            for i in range(len(x)):
+                mpl.text(x[i], mpl.ylim()[0], labels[i], rotation=90, horizontalalignment='left')
         else:
             for f in range(F):
                 id = ids[f]
@@ -912,7 +893,7 @@ class Standard(Output):
         if data.num_inputs != 2:
             verif.util.error("Impact plot requires exactly 2 files")
 
-        map, x0, y0 = self._setup_map(data)
+        map, x0, y0 = self._setup_map(data, 1, 1)
         lats = np.array([loc.lat for loc in data.locations])
         lons = np.array([loc.lon for loc in data.locations])
         ids = np.array([loc.id for loc in data.locations])
@@ -1165,6 +1146,7 @@ class Standard(Output):
         F = data.num_inputs
         lats = np.array([loc.lat for loc in data.locations])
         lons = np.array([loc.lon for loc in data.locations])
+        elevs = np.array([loc.elev for loc in data.locations])
         ids = np.array([loc.id for loc in data.locations])
         x, y, _, labels, _ = self._get_x_y(data, verif.axis.Location())
 
@@ -1184,31 +1166,43 @@ class Standard(Output):
         if F == 2 and self.show_rank:
             F = 1
         for f in range(F):
-            verif.util.subplot(f, F)
-            map, x0, y0 = self._setup_map(data)
-            I = np.where(np.isnan(y[:, f]))[0]
+            map, x0, y0 = self._setup_map(data, F, f+1)
+            is_valid = np.isnan(y[:, f]) == 0
+            is_invalid = np.isnan(y[:, f])
+            opts = self._get_plot_options(f)
             if self.show_missing:
-                map.plot(x0[I], y0[I], 'kx')
+                map.plot(x0[is_invalid], y0[is_invalid], 'kx', ms=0.8 * opts['ms'])
 
             isMax = (y[:, f] == np.amax(y, 1)) &\
                     (y[:, f] > np.mean(y, 1) + minDiff)
             isMin = (y[:, f] == np.amin(y, 1)) &\
                     (y[:, f] < np.mean(y, 1) - minDiff)
-            is_valid = (np.isnan(y[:, f]) == 0)
-            opts = self._get_plot_options(f)
             s = opts['ms']**2
             c0 = 'r'
             c1 = 'b'
+            plotargs = {}
+            if isinstance(mpl.gca(), cartopy.mpl.geoaxes.GeoAxes):
+                plotargs["transform"] = cartopy.crs.PlateCarree()
+
             if self.show_rank:
                 lmissing = None
-                if self.show_missing and len(I) > 0:
-                    lmissing = map.scatter(x0[I], y0[I], s=s, c="k", marker="x")
-                lsimilar = map.scatter(x0[is_valid], y0[is_valid], s=s, c="w", edgecolors='k')
-                lmin = map.scatter(x0[isMin], y0[isMin], s=s, c=c1, edgecolors='k', )
-                lmax = map.scatter(x0[isMax], y0[isMax], s=s, c=c0, edgecolors='k')
+                if self.show_missing and np.sum(is_invalid) > 0:
+                    lmissing = map.scatter(x0[is_invalid], y0[is_invalid], s=s, c="k", marker="x",
+                            **plotargs)
+                lsimilar = map.scatter(x0[is_valid], y0[is_valid], s=s, c="w", edgecolors='k',
+                        **plotargs)
+                lmin = map.scatter(x0[isMin], y0[isMin], s=s, c=c1, edgecolors='k', **plotargs)
+                lmax = map.scatter(x0[isMax], y0[isMax], s=s, c=c0, edgecolors='k', **plotargs)
             else:
-                map.scatter(x0, y0, c=y[:, f], s=s, vmin=clim[0], vmax=clim[1], cmap=cmap, edgecolors='k')
-                cb = map.colorbar()
+                cs = map.scatter(x0[is_valid], y0[is_valid], c=y[is_valid, f], s=s, vmin=clim[0],
+                        vmax=clim[1], cmap=cmap, edgecolors='k', **plotargs)
+                # Use a smaler marker size for missing, since otherwise the x's are a bit dominating
+                # map.scatter(x0[is_invalid], y0[is_invalid], c='k', s=s*0.8, marker="x")
+                import matplotlib
+                # cax,kw = matplotlib.colorbar.make_axes(map,pad=0.05,shrink=0.7)
+                # mpl.gcf().colorbar(cs,cax=cax,extend='both',**kw)
+                cb = mpl.gcf().colorbar(cs)
+                #cb = mpl.colorbar()
                 if self.clabel is None:
                     cb.set_label(self._metric.label(data.variable), fontsize=self.labfs)
                 else:
@@ -1468,6 +1462,9 @@ class Auto(Output):
                 for j in range(N):
                     if self.axis == verif.axis.Location():
                         dist[i, j] = data.locations[i].get_distance(data.locations[j])/1000
+                        # if np.abs(data.locations[i].elev - data.locations[j].elev) > 200:
+                        #     dist[i, j] = 1e6
+                        #     print(1)
                     elif self.axis == verif.axis.Lat():
                         dist[i, j] = np.abs(data.locations[i].lat - data.locations[j].lat)
                     elif self.axis == verif.axis.Lon():
