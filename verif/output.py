@@ -19,6 +19,7 @@ reload_module(sys)
 
 try:
     import cartopy
+    import cartopy.mpl.geoaxes
     import cartopy.io.img_tiles
     has_cartopy = True
 except:
@@ -160,7 +161,6 @@ class Output(object):
         self.title = None
         self.titlefs = 16
         self.top = None
-        self.proj = None
         self.xlabel = None
         self.xlim = None
         self.xlog = False
@@ -1181,7 +1181,7 @@ class Standard(Output):
             c0 = 'r'
             c1 = 'b'
             plotargs = {}
-            if isinstance(mpl.gca(), cartopy.mpl.geoaxes.GeoAxes):
+            if has_cartopy and isinstance(map, cartopy.mpl.geoaxes.GeoAxes):
                 plotargs["transform"] = cartopy.crs.PlateCarree()
 
             if self.show_rank:
@@ -2012,7 +2012,8 @@ class Meteo(Output):
                 mpl.plot(x, y[:, i], style, label=label, zorder=-1)
 
             # Fill areas betweeen lines
-            Ncol = (len(quantiles)-1)/2
+            Ncol = (len(quantiles))//2
+            print(Ncol)
             for i in range(Ncol):
                 color = [(1 - (i + 0.0) / Ncol)] * 3
                 verif.util.fill(x, y[:, i], y[:, len(quantiles) - 1 - i], color,
