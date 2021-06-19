@@ -2012,7 +2012,7 @@ class Meteo(Output):
                 mpl.plot(x, y[:, i], style, label=label, zorder=-1)
 
             # Fill areas betweeen lines
-            Ncol = (len(quantiles)-1)/2
+            Ncol = (len(quantiles))//2
             for i in range(Ncol):
                 color = [(1 - (i + 0.0) / Ncol)] * 3
                 verif.util.fill(x, y[:, i], y[:, len(quantiles) - 1 - i], color,
