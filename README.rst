@@ -16,7 +16,7 @@ files, Verif will discard data points where one or more forecast systems have mi
 Since Verif is a command-line tool, it can be used in scripts to automatically create
 verification figures.
 
-Verif version 1.0 has been released (see "Installation Instruction" below). We welcome suggestions
+Verif version 1.2 has been released (see "Installation Instruction" below). We welcome suggestions
 for improvements. Verif is developed by Thomas Nipen (thomasn@met.no), David Siuta, and Tim Chui.
 
 Documentation
@@ -50,13 +50,14 @@ Installing on Ubuntu
 **Prerequisites**
 
 Verif requires a pip installation and Python 3. The python package "cartopy" is optional, but provides
-a background map when verification scores are plotted on a map. Cartopy requires GEOS and PROJ4 to be
-installed first:
+a background map when verification scores are plotted on a map. To install Cartopy, with its GEOS and
+PROJ4 dependencies, do the following:
 
 .. code-block:: bash
 
   sudo apt-get update
   sudo apt-get install libgeos-dev libproj-dev
+  sudo pip3 install cartopy
 
 **Installing using pip**
 
