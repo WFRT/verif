@@ -25,9 +25,12 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        sudo apt install libgeos-dev libproj-dev
         python -m pip install --upgrade pip
         python -m pip install flake8 nose
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install -r requirements.txt
+        pip install cartopy
+
     - name: Install package
       run: |
         python setup.py install
