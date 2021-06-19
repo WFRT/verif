@@ -72,7 +72,6 @@ def run(argv):
     do_hist = False
     do_sort = False
     do_acc = False
-    proj = None
     xlim = None
     ylim = None
     clim = None
@@ -269,8 +268,8 @@ def run(argv):
                     cmap = arg_next
                 elif arg == "-maptype":
                     map_type = arg_next
-                elif arg == "-proj":
-                    proj = arg_next
+                    if map_type not in verif.output.allowedMapTypes:
+                        verif.util.error("Unknown maptype '%s'" % map_type)
                 elif arg == "-obs":
                     obs_field = verif.field.get(arg_next)
                 elif arg == "-fcst":
@@ -564,8 +563,6 @@ def run(argv):
         pl.bin_type = bin_type
     if show_perfect is not None:
         pl.show_perfect = show_perfect
-    if proj is not None:
-        pl.proj = proj
     if xlim is not None:
         pl.xlim = xlim
     if ylim is not None:
@@ -715,13 +712,12 @@ def show_description(data=None):
     s += format_argument("-legloc loc", "Where should the legend be placed?  Locations such as 'best', 'upper_left', 'lower_right', 'center'. Use underscore when using two words.") + "\n"
     s += format_argument("-ls styles", "Comma-separated list of line styles, such as -,--. Styles are repeated if there are more lines than styles.") + "\n"
     s += format_argument("-lw width", "Comma-separated list of line widths") + "\n"
-    s += format_argument("-maptype type", "One of 'simple', 'sat', 'topo', or any of these http://server.arcgisonline.com/arcgis/rest/services names.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.") + "\n"
+    s += format_argument("-maptype type", "One of 'simple', 'sat', or 'topo'.  'simple' shows a basic ocean/lakes/land map, 'sat' shows a satellite image, and 'topo' a topographical map. Only relevant when '-type map' has been selected.") + "\n"
     s += format_argument("-ma markers", "Comma-separated list of markers (e.g.  o,*,x)") + "\n"
     s += format_argument("-ms size", "Comma-separated list of marker sizes") + "\n"
     s += format_argument("-nogrid", "Turn the grid on the plot off") + "\n"
     s += format_argument("-nomargin", "Remove margins (whitespace) in the plot") + "\n"
     s += format_argument("-obsleg", "Name to put in legend for observations (if applicable)") + "\n"
-    s += format_argument("-proj string", "Proj4 projection string when used with -maptype (experimental)") + "\n"
     s += format_argument("-right value", "Right boundary location for saved figure [range 0-1]. Must be greater than -left.") + "\n"
     s += format_argument("-simple", "Make a simpler plot, without extra lines, subplots, etc.") + "\n"
     s += format_argument("-sp", "Show a line indicating the perfect score") + "\n"
