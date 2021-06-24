@@ -50,7 +50,7 @@ def main():
         output.createVariable("x", "f4", ("time", "leadtime", "location", "quantile"))
         output.variables["x"][:] = input.quantile_scores
 
-    vTime = output.createVariable("time", "i4", ("time",))
+    vTime = output.createVariable("time", "f8", ("time",))
     vOffset = output.createVariable("leadtime", "f4", ("leadtime",))
     vLocation = output.createVariable("location", "i4", ("location",))
     vLat = output.createVariable("lat", "f4", ("location",))
