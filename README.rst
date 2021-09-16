@@ -135,5 +135,5 @@ about the dataset check out the wiki. Here are some example commands to test out
 Copyright and license
 ---------------------
 
-Copyright © 2015-2020 UBC Weather Forecast Research Team. Verif is licensed under the 3-clause
+Copyright © 2015-2021 UBC Weather Forecast Research Team. Verif is licensed under the 3-clause
 BSD license. See LICENSE file.
