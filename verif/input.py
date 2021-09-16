@@ -144,7 +144,7 @@ class Netcdf(Input):
                 valid = valid and required_dim in dims
 
             # Check required variables
-            required_vars = ["time", "location", "leadtime"]
+            required_vars = ["time", "leadtime"]
             vars = [var for var in file.variables]
             for required_var in required_vars:
                 valid = valid and required_var in vars
@@ -203,9 +203,17 @@ class Netcdf(Input):
         return verif.util.clean(self._file.variables["time"])
 
     def _get_locations(self):
-        lat = verif.util.clean(self._file.variables["lat"])
-        lon = verif.util.clean(self._file.variables["lon"])
-        id = verif.util.clean(self._file.variables["location"])
+        num_locations = len(self._file.dimensions['location'])
+        lat = np.zeros(num_locations)
+        lon = np.zeros(num_locations)
+        if "lat" in self._file.variables:
+            lat = verif.util.clean(self._file.variables["lat"])
+        if "lon" in self._file.variables:
+            lon = verif.util.clean(self._file.variables["lon"])
+        if "location" in self._file.variables:
+            id = verif.util.clean(self._file.variables["location"])
+        else:
+            id = np.arange(len(lat))
         if "altitude" not in self._file.variables:
             elev = np.nan * np.zeros(lat.shape)
         else:
