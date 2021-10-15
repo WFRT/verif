@@ -2848,17 +2848,21 @@ class Taylor(Output):
         opts = self._get_plot_options(f, include_line=False)
         mpl.plot(stdobs, 0, 's-', color=orange, label=self.obs_leg, mew=2, ms=opts['ms'], clip_on=False)
 
-        # Draw CRMSE rings
+        # Draw CRMSE rings. Put the labels ialong a line that runs diagonally from the obs point to
+        # the point (0, maxstd).
         xticks = mpl.xticks()[0]
         self._draw_circle(0, style="-", color="gray", lw=3, label=crmseLabel)
         Rs = np.linspace(0, int(2 * max(xticks)), int(4 * max(xticks) / (xticks[1] - xticks[0]) + 1))
+        std_at_0 = np.sqrt(stdobs**2 + maxstd**2)
         for R in Rs:
             if R > 0:
                 self._draw_circle(R, xcenter=stdobs, ycenter=0, maxradius=maxstd, style="-", color="gray", lw=3)
-                x = np.sin(-np.pi / 4) * R + stdobs
-                y = np.cos(np.pi / 4) * R
-                if x ** 2 + y ** 2 < maxstd ** 2:
-                    mpl.text(x, y, str(R), horizontalalignment="right",
+                x = (std_at_0 - R) / std_at_0 * stdobs
+                y = np.sqrt(R**2 - (x - stdobs)**2)
+                if self.xlim is not None and x < self.xlim[0]:
+                    continue
+                if x ** 2 + y ** 2 < maxstd ** 2 and x > 0:
+                    mpl.text(x, y, str(R), horizontalalignment="center",
                           verticalalignment="bottom", fontsize=self.labfs,
                           color="gray")
 
