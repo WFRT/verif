@@ -927,20 +927,6 @@ class Count(Metric):
         return len(I)
 
 
-class Quantile(Metric):
-    type = verif.metric_type.Probabilistic()
-    min = 0
-    max = 1
-
-    def __init__(self, quantile):
-        self._quantile = quantile
-
-    def compute_single(self, data, input_index, axis, axis_index, interval):
-        var = verif.field.Quantile(self._quantile)
-        scores = data.get_scores(var, input_index, axis, axis_index)
-        return verif.util.nanmean(scores)
-
-
 class Bs(Metric):
     type = verif.metric_type.Probabilistic()
     name = "Brier score"
@@ -1175,10 +1161,108 @@ class BssRes(Metric):
         return self.name
 
 
+class QuantileCoverage(Metric):
+    type = verif.metric_type.Probabilistic()
+    name = "Capture"
+    description = "Fraction of observations contained within quantile interval. Use -q to set quantiles, and -b to set interval definition."
+    min = 0
+    # default_bin_type = "within"
+    require_threshold_type = "quantile"
+    supports_threshold = True
+
+    def compute_single(self, data, input_index, axis, axis_index, interval):
+        var0 = verif.field.Quantile(interval.lower)
+        var1 = verif.field.Quantile(interval.upper)
+        if np.isinf(interval.lower):
+            [obs, q1] = data.get_scores([verif.field.Obs(), var1], input_index, axis, axis_index)
+            I = np.where((np.isnan(obs) == 0) & (np.isnan(q1) == 0))[0]
+            if interval.upper_eq:
+                return np.mean(q1[I] >= obs[I])
+            else:
+                return np.mean(q1[I] > obs[I])
+        elif np.isinf(interval.upper):
+            [obs, q0] = data.get_scores([verif.field.Obs(), var0], input_index, axis, axis_index)
+            I = np.where((np.isnan(obs) == 0) & (np.isnan(q0) == 0))[0]
+            if interval.lower_eq:
+                return np.mean(q0[I] <= obs[I])
+            else:
+                return np.mean(q0[I] < obs[I])
+        else:
+            [obs, q0, q1] = data.get_scores([verif.field.Obs(), var0, var1], input_index, axis, axis_index)
+            I = np.where((np.isnan(obs) == 0) & (np.isnan(q0) == 0) & (np.isnan(q1) == 0))[0]
+            if interval.lower_eq:
+                c0 = q0[I] <= obs[I]
+            else:
+                c0 = q0[I] < obs[I]
+            if interval.upper_eq:
+                c1 = q1[I] >= obs[I]
+            else:
+                c1 = q1[I] > obs[I]
+            return np.mean(c0 & c1)
+
+    def label(self, variable):
+        return self.name
+
+
+class Quantile(Metric):
+    type = verif.metric_type.Probabilistic()
+    name = "Quantile"
+    description = "Mean value of a quantile forecast. Use -q to set quantile."
+    require_threshold_type = "quantile"
+    supports_threshold = True
+
+    def compute_single(self, data, input_index, axis, axis_index, interval):
+        if not np.isinf(interval.lower) and not np.isinf(interval.upper):
+            var0 = verif.field.Quantile(interval.lower)
+            var1 = verif.field.Quantile(interval.upper)
+            t0, t1 = data.get_scores([var0, var1], input_index, axis, axis_index)
+            I = np.where((np.isnan(t0) == 0) & (np.isnan(t1) == 0))[0]
+            return np.mean(t1[I] - t0[I])
+        elif np.isinf(interval.lower):
+            var = verif.field.Quantile(interval.upper)
+        elif np.isinf(interval.upper):
+            var = verif.field.Quantile(interval.lower)
+
+        t = data.get_scores(var, input_index, axis, axis_index)
+        I = np.where(np.isnan(t) == 0)[0]
+        return np.mean(t[I])
+
+    def label(self, variable):
+        return self.aggregator.name().title() + " of quantile forecast (" + variable.units + ")"
+
+
+class Threshold(Metric):
+    type = verif.metric_type.Probabilistic()
+    name = "Threshold"
+    description = "Mean value of threshold forecast. Use -r to set threshold."
+    min = 0
+    require_threshold_type = "thresholds"
+    supports_threshold = True
+
+    def compute_single(self, data, input_index, axis, axis_index, interval):
+        var0 = verif.field.Threshold(interval.lower)
+        var1 = verif.field.Threshold(interval.upper)
+        if not np.isinf(interval.lower) and not np.isinf(interval.upper):
+            t0, t1 = data.get_scores([var0, var1], input_index, axis, axis_index)
+            I = np.where((np.isnan(t0) == 0) & (np.isnan(t1) == 0))[0]
+            return np.mean(t1[I] - t0[I])
+        elif np.isinf(interval.lower):
+            use_var = var1
+        elif np.isinf(interval.upper):
+            use_var = var0
+
+        t = data.get_scores(use_var, input_index, axis, axis_index)
+        I = np.where(np.isnan(t) == 0)[0]
+        return np.mean(t[I])
+
+    def label(self, variable):
+        return self.aggregator.name().title() + " of threshold probability"
+
+
 class QuantileScore(Metric):
     type = verif.metric_type.Probabilistic()
     name = "Quantile score"
-    description = "Quantile score. Use -q to set which quantiles to use."
+    description = "Quantile score. Use -q to set which quantiles to use, and -b to set interval definition."
     min = 0
     require_threshold_type = "quantile"
     supports_threshold = True
