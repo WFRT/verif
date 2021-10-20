@@ -1323,6 +1323,12 @@ class ObsFcst(Output):
                 opts = self._get_plot_options(f, include_line=isCont)
                 mpl.plot(x, y[:, f + 1], label=labels[f+1], **opts)
                 self._add_annotation(x, y[:, f + 1], color=opts['color'])
+                if self.quantiles is not None:
+                    for q in range(len(self.quantiles)):
+                        opts = self._get_plot_options(f, include_line=isCont)
+                        opts['ls'] = '--'
+                        mpl.plot(x, y[:, F + f + 1 + F*q], label=labels[F + f + 1 + F*q], **opts)
+                        self._add_annotation(x, y[:, F + f + 1 + F*q], color=opts['color'])
             mpl.xlabel(self.axis.label(data.variable))
             mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
             if self.axis.is_time_like:
@@ -1336,15 +1342,20 @@ class ObsFcst(Output):
         if self.axis.is_time_like:
             x = [verif.util.unixtime_to_datenum(xx) for xx in x]
 
+        Nlines = 1 + F
+        if self.quantiles is not None:
+            Nlines += len(self.quantiles) * F
+
         # Obs line
         mObs = verif.metric.FromField(verif.field.Obs(), aux=verif.field.Fcst())
         mObs.aggregator = self.aggregator
         obs = mObs.compute(data, 0, self.axis, None)
 
+        # Fcst line
         mFcst = verif.metric.FromField(verif.field.Fcst(), aux=verif.field.Obs())
         mFcst.aggregator = self.aggregator
         labels = data.get_legend()
-        y = np.zeros([len(x), F + 1], float)
+        y = np.zeros([len(x), Nlines], float)
         y[:, 0] = obs
         if sum(np.isnan(obs)) == len(obs):
             verif.util.warning("No valid observations")
@@ -1353,6 +1364,19 @@ class ObsFcst(Output):
             if sum(np.isnan(yy)) == len(yy):
                 verif.util.warning("No valid scores for " + labels[f])
             y[:, f + 1] = yy
+
+        # Quantile lines
+        if self.quantiles is not None:
+            for q, quantile in enumerate(self.quantiles):
+                mQuantile = verif.metric.FromField(verif.field.Quantile(quantile), aux=verif.field.Obs())
+                mQuantile.aggregator = self.aggregator
+                for f in range(F):
+                    yy = mQuantile.compute(data, f, self.axis, None)
+                    if sum(np.isnan(yy)) == len(yy):
+                        verif.util.warning("No valid scores for " + labels[f])
+                    y[:, F + f + 1 + q * F] = yy
+                    labels += [labels[f] + " %g%%" % (quantile * 100)]
+
 
         labels = ["obs"] + labels
         return x, y, axis.name(), labels, None
