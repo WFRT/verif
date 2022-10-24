@@ -1323,12 +1323,22 @@ class ObsFcst(Output):
                 opts = self._get_plot_options(f, include_line=isCont)
                 mpl.plot(x, y[:, f + 1], label=labels[f+1], **opts)
                 self._add_annotation(x, y[:, f + 1], color=opts['color'])
+
                 if self.quantiles is not None:
+                    opts = self._get_plot_options(f, include_line=isCont, include_marker=False)
+                    opts['ls'] = '--'
                     for q in range(len(self.quantiles)):
-                        opts = self._get_plot_options(f, include_line=isCont)
-                        opts['ls'] = '--'
                         mpl.plot(x, y[:, F + f + 1 + F*q], label=labels[F + f + 1 + F*q], **opts)
                         self._add_annotation(x, y[:, F + f + 1 + F*q], color=opts['color'])
+
+                    # Fill areas betweeen lines
+                    Ncol = (len(self.quantiles))//2
+                    for i in range(Ncol):
+                        color = opts["color"] # [(1 - (i + 0.0) / Ncol)] * 3
+                        I0 = F + f + 1 + i * F
+                        I1 = F + f + 1 + F * (len(self.quantiles) - 1 - i)
+                        verif.util.fill(x, y[:, I0], y[:, I1], color, zorder=-2, alpha=0.3)
+
             mpl.xlabel(self.axis.label(data.variable))
             mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
             if self.axis.is_time_like:
@@ -1376,7 +1386,6 @@ class ObsFcst(Output):
                         verif.util.warning("No valid scores for " + labels[f])
                     y[:, F + f + 1 + q * F] = yy
                     labels += [labels[f] + " %g%%" % (quantile * 100)]
-
 
         labels = ["obs"] + labels
         return x, y, axis.name(), labels, None
