@@ -644,7 +644,7 @@ class Comps(Input):
 
     @property
     def fcst(self):
-        if "obs" in self._file.variables:
+        if "fcst" in self._file.variables:
             return verif.util.clean(self._file.variables["fcst"])
         else:
             return None
