@@ -946,8 +946,8 @@ class Bs(Metric):
         return self.compute_from_obs_fcst(obsP, p)
 
     def compute_from_obs_fcst(self, obs, fcst):
-        bs = np.nan * np.zeros(len(obs), 'float')
-        return np.nanmean((fcst-obs)**2)
+        bs = np.nanmean((fcst-obs)**2)
+        return bs
 
     def label(self, variable):
         return self.name
