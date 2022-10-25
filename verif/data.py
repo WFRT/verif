@@ -40,7 +40,9 @@ class Data(object):
           lat_range=None, lon_range=None, elev_range=None, clim=None, clim_type="subtract",
           obs_range=None, legend=None, remove_missing_across_all=True,
           obs_field=verif.field.Obs(),
-          fcst_field=verif.field.Fcst()):
+          fcst_field=verif.field.Fcst(),
+          agg_time=None,
+          ):
 
         """
         Arguments:
@@ -59,6 +61,7 @@ class Data(object):
                        observations from the other files.
         clim_type      Operation to apply with climatology. Either 'subtract', or
                        'divide'
+        agg_time       Aggregate obs and fcst across this many leadtimes
         """
 
         if not isinstance(inputs, list):
@@ -190,6 +193,8 @@ class Data(object):
         for axis in verif.axis.get_leadtime_axes():
             self.axis_cache[axis] = axis.compute_from_leadtimes(self.leadtimes)
             self.axis_cache_unique[axis] = np.unique(self.axis_cache[axis])
+
+        self.agg_time = agg_time
 
     def get_fields(self):
         """ Get a list of fields that all inputs have
@@ -462,6 +467,14 @@ class Data(object):
                     temp = temp[Itimes, :, :]
                     temp = temp[:, Ileadtimes, :]
                     temp = temp[:, :, Ilocations]
+                    if self.agg_time is not None:
+                        temp = np.cumsum(temp, axis=1)
+                        print(temp.shape)
+                        if self.agg_time > temp.shape[1]:
+                            raise RuntimeError("Cannot aggregate {self.agg_time} leadtimes, since there are only {temp.shape[1]} leadtimes available")
+                        temp[:, self.agg_time:, :] = temp[:, self.agg_time:, :] - temp[:, 0:-self.agg_time, :]
+                        temp[:, 0:self.agg_time, :] = np.nan
+
                     self._get_score_cache[i][field] = temp
                     found_obs = True
             if not found_obs:
@@ -523,6 +536,14 @@ class Data(object):
                     temp = temp[Itimes, :, :]
                     temp = temp[:, Ileadtimes, :]
                     temp = temp[:, :, Ilocations]
+
+                    if self.agg_time is not None:
+                        temp = np.cumsum(temp, axis=1)
+                        if self.agg_time > temp.shape[1]:
+                            verif.util.error(f"Cannot aggregate {self.agg_time} leadtimes, since there are only {temp.shape[1]} leadtimes available")
+                        temp[:, self.agg_time:, :] = temp[:, self.agg_time:, :] - temp[:, 0:-self.agg_time, :]
+                        temp[:, 0:self.agg_time, :] = np.nan
+
                     self._get_score_cache[i][field] = temp
 
         """
@@ -603,6 +624,9 @@ class Data(object):
             if available_values is None:
                 available_values = curr_values
             else:
+                #if axis == verif.axis.Leadtime():
+                #    available_values = np.intersect1d(available_values, curr_values * 1000 // 1 / 1000)
+                #else:
                 available_values = np.intersect1d(available_values, curr_values)
 
         # Sort values, since for example, times may not be in an ascending order

@@ -93,6 +93,7 @@ def run(argv):
     obs_leg = None
     obs_field = verif.field.Obs()
     fcst_field = verif.field.Fcst()
+    agg_time = None
 
     # Parse config files
     i = 1
@@ -278,6 +279,8 @@ def run(argv):
                     obs_leg = arg_next
                 elif arg == "-m":
                     metric = arg_next
+                elif arg == "-T":
+                    agg_time = int(arg_next)
                 elif arg == "--config":
                     pass
                 else:
@@ -309,13 +312,17 @@ def run(argv):
     if obs_range is not None and len(obs_range) != 2:
         verif.util.error("-obsrange <values> must have exactly 2 values")
 
+    if agg_time is not None and agg_time <= 0:
+        verif.util.error("-T <value> must be greater than 0")
+
     if len(ifiles) > 0:
         inputs = [verif.input.get_input(filename) for filename in ifiles]
         data = verif.data.Data(inputs, clim=clim_file, clim_type=clim_type,
               times=times, dates=dates, tods=tods, leadtimes=leadtimes, locations=locations,
               locations_x=locations_x,
               lat_range=lat_range, lon_range=lon_range, elev_range=elev_range,
-              obs_range=obs_range, legend=leg, obs_field=obs_field, fcst_field=fcst_field)
+              obs_range=obs_range, legend=leg, obs_field=obs_field, fcst_field=fcst_field,
+              agg_time=agg_time)
     else:
         data = None
 
