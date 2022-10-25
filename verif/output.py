@@ -1621,7 +1621,7 @@ class Fss(Output):
     supports_threshold = True
     supports_x = True
     name = "Fractions skill score"
-    description = "Plots the fractions skill score for different spatial scales.  Use -r to specify a threshold and -b to define the event."
+    description = "Plots the fractions skill score for different spatial scales. Use -r to specify a threshold, -b to define the event, and '-x leadtime' to specify temporal FSS."
     default_axis = verif.axis.Location()
 
     def __init__(self):
