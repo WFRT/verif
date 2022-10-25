@@ -205,6 +205,9 @@ class IntegrationTest(unittest.TestCase):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m fss -r 5")
         self.run_with_image("verif verif/tests/files/file3.txt -m fss -r 5")
         self.run_with_image("verif verif/tests/files/file3.txt -m fss -r 100")
+        self.run_with_image("verif verif/tests/files/file3.txt -m fss -r 0.1 -x leadtime")
+        with self.assertRaises(SystemExit):
+            self.run_with_image("verif verif/tests/files/file3.txt -m fss -r 0.1 -x time")
 
     def test_taylor(self):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m taylor -xlim 0,2")

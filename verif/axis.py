@@ -38,6 +38,9 @@ def get_leadtime_axes():
     return [axis[1]() for axis in get_all() if hasattr(axis[1], "compute_from_leadtimes")]
     return [verif.axis.Leadtime(), verif.axis.Leadtimeday()]
 
+def get_spatial_axes():
+    return [axis[1]() for axis in get_all() if axis[1]().is_location_like]
+
 
 class Axis(object):
     """ Represents axes that data can be arranged by

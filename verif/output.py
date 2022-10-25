@@ -1606,14 +1606,15 @@ class Auto(Output):
 
 class Fss(Output):
     supports_threshold = True
-    supports_x = False
+    supports_x = True
     name = "Fractions skill score"
     description = "Plots the fractions skill score for different spatial scales.  Use -r to specify a threshold and -b to define the event."
+    default_axis = verif.axis.Location()
 
     def __init__(self):
         Output.__init__(self)
         self._min_num = 3
-        self.scales = np.array([2, 4, 8, 16, 32, 64, 128, 256, 512, 1024])
+        self.spatial_scales = np.array([2, 4, 8, 16, 32, 64, 128, 256, 512, 1024])
 
     def _get_x_y(self, data, axis=None):
         if self.thresholds is None or len(self.thresholds) != 1:
@@ -1621,13 +1622,26 @@ class Fss(Output):
         if re.compile(".*within.*").match(self.bin_type):
             verif.util.error("A 'within' bin type cannot be used in this diagram")
 
-        dist = verif.util.get_distance_matrix(data.locations)
-        L = len(data.locations)
         threshold = self.thresholds[0]
         labels = data.get_legend()
 
+        if axis == verif.axis.Leadtime():
+            leadtimes = data.get_axis_values(axis)
+            x, y = np.meshgrid(leadtimes, leadtimes)
+            scales = np.sort(np.unique(np.abs(x - y)))
+            xname = "Temporal scale (h)"
+        elif axis.is_location_like:
+            dist = verif.util.get_distance_matrix(data.locations)
+            L = len(data.locations)
+            scales = self.spatial_scales
+            xname = "Spatial scale (km)"
+        else:
+            acceptable_dimensions = [verif.axis.Leadtime()] + verif.axis.get_spatial_axes()
+            acceptable_dimensions = ' '.join([i.name().lower() for i in acceptable_dimensions])
+            verif.util.error(f"-m fss can only be run with -x {acceptable_dimensions}")
+
         F = data.num_inputs
-        y = np.nan*np.zeros([len(self.scales), F])
+        y = np.nan*np.zeros([len(scales), F])
         for f in range(F):
             """
             The fractions skill score is computed for different spatial scales.
@@ -1639,22 +1653,46 @@ class Fss(Output):
             obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
             fcst = verif.util.apply_threshold(fcst, self.bin_type, threshold)
 
-            for i in range(len(self.scales)):
-                scale = self.scales[i]
-                bs = list()
-                sum_obs = 0
-                count = 0
-                for l in range(L):
-                    I = np.where(dist[l, :] < scale*1000)[0]
-                    if len(I) > self._min_num:
-                        # Find the fraction of obs and fcst in interval for the set of locations
-                        ffcst = np.nanmean(fcst[:, :, I], axis=2).flatten()
-                        fobs = np.nanmean(obs[:, :, I], axis=2).flatten()
+            for i, scale in enumerate(scales):
+                scale = scales[i]
+                if axis == verif.axis.Leadtime():
+                    if scale == 0:
+                        continue
 
-                        curr_bs = np.nanmean((ffcst - fobs)**2)
-                        bs += [curr_bs]
-                        sum_obs += np.nanmean(fobs)
-                        count += 1
+                    # Find which leadtime combinations have the current scale
+                    leadtimes = data.get_axis_values(axis)
+                    lx, ly = np.meshgrid(leadtimes, leadtimes)
+                    I = np.where(lx - ly == scale)
+                    I0 = I[0]
+                    I1 = I[1]
+
+                    # Aggregate observations and forecasts
+                    fobs = np.nan * np.zeros([obs.shape[0], len(I1), obs.shape[2]], np.float32)
+                    ffcst = np.nan * np.zeros([obs.shape[0], len(I1), obs.shape[2]], np.float32)
+                    for j in range(fobs.shape[1]):
+                        fobs[:, j, :] = np.nanmean(obs[:, I0[j]:I1[j]+1, :], axis=1)
+                        ffcst[:, j, :] = np.nanmean(fcst[:, I0[j]:I1[j]+1, :], axis=1)
+
+                    # Compute brier score
+                    curr_errors = (fobs - ffcst)
+                    bs = [np.nanmean(curr_errors**2)]
+                    sum_obs = np.nanmean(fobs)
+                    count = 1
+                else:
+                    sum_obs = 0
+                    count = 0
+                    bs = np.nan * np.zeros(L, np.float32)
+                    for l in range(L):
+                        I = np.where(dist[l, :] < scale*1000)[0]
+                        if len(I) > self._min_num:
+                            # Find the fraction of obs and fcst in interval for the set of locations
+                            ffcst = np.nanmean(fcst[:, :, I], axis=2).flatten()
+                            fobs = np.nanmean(obs[:, :, I], axis=2).flatten()
+
+                            curr_bs = np.nanmean((ffcst - fobs)**2)
+                            bs[l] = curr_bs
+                            sum_obs += np.nanmean(fobs)
+                            count += 1
 
                 if count > 0:
                     mean_obs = sum_obs / count
@@ -1662,15 +1700,14 @@ class Fss(Output):
 
                     if unc > 0:
                         # Compute Brier skill score
-                        y[i, f] = (unc - np.mean(np.array(bs))) / unc
+                        y[i, f] = (unc - np.nanmean(bs)) / unc
 
-        xname = "Spatial scale (km)"
-        return self.scales, y, xname, labels, {xname: [str(s) for s in self.scales]}
+        return scales, y, xname, labels, {xname: [str(s) for s in scales]}
 
     def _plot_core(self, data):
         F = data.num_inputs
 
-        x, y, xname, labels, _ = self._get_x_y(data)
+        x, y, xname, labels, _ = self._get_x_y(data, self.axis)
         for f in range(F):
             mpl.plot(x, y[:, f], label=labels[f], **self._get_plot_options(f))
 
