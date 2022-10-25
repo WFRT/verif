@@ -455,7 +455,8 @@ class Output(object):
                 mpl.savefig(self.filename, dpi=self.dpi)
         else:
             fig = mpl.gcf()
-            fig.canvas.set_window_title(data.get_names()[0])
+            if fig.canvas.manager is not None:
+                fig.canvas.manager.set_window_title(data.get_names()[0])
             mpl.show()
 
     def _legend(self, data, names=None):
