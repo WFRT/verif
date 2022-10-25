@@ -143,6 +143,9 @@ class IntegrationTest(unittest.TestCase):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -dpi 50")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -dpi 300")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -fs 10,2")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -gc red")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -gs -")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -gw 2")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -labfs 0")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -labfs 11")
         # -lc tests are in separate functions
@@ -187,6 +190,14 @@ class IntegrationTest(unittest.TestCase):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticks 0:3 -yticklabels 0,test,1,2")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticklabels 0,test,1")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticklabels ''")
+
+    def test_leadtime_aggregation(self):
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -T 1")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -T 2")
+        with self.assertRaises(SystemExit):
+            self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -T 0")
+        with self.assertRaises(SystemExit):
+            self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -T 100")
 
     def test_against(self):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m against")
