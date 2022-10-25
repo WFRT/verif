@@ -1675,7 +1675,7 @@ class Fss(Output):
 
         mpl.ylim(bottom=0, top=1)
         mpl.xlabel(xname)
-        mpl.ylabel("Fractional skill score")
+        mpl.ylabel("Fractions skill score")
 
 
 class Scatter(Output):
