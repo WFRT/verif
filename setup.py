@@ -82,6 +82,7 @@ setup(
     extras_require={
     #    'dev': ['check-manifest'],
         'test': ['coverage', 'pep8'],
+        'cartopy': ['cartopy'],
     #    'test': ['pytest'],
     },
 
