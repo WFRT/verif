@@ -21,12 +21,19 @@ for i in range(0, len(lines)):
     line = [q for q in line if q != '']
     lines[i] = line[0]
 
+aggregators = [agg.name() for agg in verif.aggregator.get_all()]
+aggregators.sort()
+
+axes = [axis[0].lower() for axis in verif.axis.get_all()]
+axes.sort()
+
 metrics = verif.metric.get_all()
 outputs = verif.output.get_all()
-aggregators = [agg.name() for agg in verif.aggregator.get_all()]
-axes = [axis[0].lower() for axis in verif.axis.get_all()]
 metricOutputs = metrics + outputs
 metricOutputs.sort(key=lambda x: x[0].lower(), reverse=False)
+
+types = ["csv", "plot", "text", "map", "rank", "maprank", "impact", "mapimpact"]
+types.sort()
 
 print("# START verif completion")
 print("_verif()")
@@ -40,8 +47,8 @@ print('prev="${COMP_WORDS[COMP_CWORD-1]}"')
 # Files
 print('if [ "$cur" = "" ] || [[ "$cur" =~ -* ]]; then')
 print("   COMPREPLY=( $( compgen -f -W '",  end = '')
-for line in lines:
-    print(line,  end = '')
+string = ' '.join(lines)
+print(string, end = '')
 print("' -- $cur ) )")
 print('fi')
 
@@ -58,7 +65,9 @@ print("' -- $cur ) )")
 # Cmap
 print('elif [ "$prev" = "-cmap" ]; then')
 print("   COMPREPLY=( $( compgen -W '", end = '')
-print(' '.join(mpl.cm.cmap_d.keys()), end = '')
+cmaps = list(mpl.cm.cmap_d.keys())
+cmaps.sort()
+print(' '.join(cmaps), end = '')
 print("' -- $cur ) )")
 
 # Agg
@@ -70,7 +79,7 @@ print("' -- $cur ) )")
 # Type
 print('elif [ "$prev" = "-type" ]; then')
 print("   COMPREPLY=( $( compgen -W '", end = '')
-print('plot text csv map rank maprank impact mapimpact', end = '')
+print(' '.join(types), end = '')
 print("' -- $cur ) )")
 
 # Axis
@@ -81,5 +90,5 @@ print("' -- $cur ) )")
 print('fi')
 print('return 0')
 print('}')
-print('complete -F _verif verif')
+print('complete -ofilenames -F _verif verif')
 print('# END verif completion')
