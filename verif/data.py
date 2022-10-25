@@ -469,9 +469,8 @@ class Data(object):
                     temp = temp[:, :, Ilocations]
                     if self.agg_time is not None:
                         temp = np.cumsum(temp, axis=1)
-                        print(temp.shape)
                         if self.agg_time > temp.shape[1]:
-                            raise RuntimeError("Cannot aggregate {self.agg_time} leadtimes, since there are only {temp.shape[1]} leadtimes available")
+                            verif.util.error(f"Cannot aggregate {self.agg_time} leadtimes, since there are only {temp.shape[1]} leadtimes available")
                         temp[:, self.agg_time:, :] = temp[:, self.agg_time:, :] - temp[:, 0:-self.agg_time, :]
                         temp[:, 0:self.agg_time, :] = np.nan
 

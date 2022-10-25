@@ -714,6 +714,7 @@ def show_description(data=None):
     s += format_argument("-hist", "Plot values as histogram. Only works for any field that can be specified with -fcst.") + "\n"
     s += format_argument("-obs field", "What variable should be used as the observation? See -fcst.") + "\n"
     s += format_argument("-sort", "Plot values sorted. Only works for any field than can be specified with -fcst.") + "\n"
+    s += format_argument("-T value", "Aggregate observations and forecasts across this many leadtimes.") + "\n"
 
     # Plot options
     s += verif.util.green("  Plotting options:") + "\n"
