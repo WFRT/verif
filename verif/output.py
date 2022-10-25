@@ -82,6 +82,9 @@ class Output(object):
     leg_loc           Where should the legend be placed?
     line_colors
     line_styles
+    grid_color
+    grid_style
+    grid_width
     xlog
     ylog
     clabel
@@ -146,6 +149,9 @@ class Output(object):
         self.legfs = 16
         self.line_colors = ['r', 'b', 'g', [1, 0.73, 0.2], 'k']
         self.line_styles = ['-', '-', '-', '-', '-', '--', '--', '--', '--']
+        self.grid_style = None
+        self.grid_color = None
+        self.grid_lw = None
         self.markers = ['o', 'o', 'o', 'o', 'o', '.', '.', '.', '.', '.']
         self.lw = [2]
         self.ms = [8]
@@ -497,7 +503,14 @@ class Output(object):
             ax.set_aspect(self.aspect)
 
         if self.grid:
-            ax.grid('on')
+            args = dict()
+            if self.grid_style is not None:
+                args["linestyle"] = self.grid_style
+            if self.grid_color is not None:
+                args["color"] = self.grid_color
+            if self.grid_lw is not None:
+                args["lw"] = self.grid_lw
+            ax.grid('on', **args)
 
         # Tick lines
         for label in ax.get_xticklabels():
@@ -1199,7 +1212,7 @@ class Standard(Output):
                         vmax=clim[1], cmap=cmap, edgecolors='k', **plotargs)
                 # Use a smaler marker size for missing, since otherwise the x's are a bit dominating
                 # map.scatter(x0[is_invalid], y0[is_invalid], c='k', s=s*0.8, marker="x")
-                import matplotlib
+                # import matplotlib
                 # cax,kw = matplotlib.colorbar.make_axes(map,pad=0.05,shrink=0.7)
                 # mpl.gcf().colorbar(cs,cax=cax,extend='both',**kw)
                 cb = mpl.gcf().colorbar(cs)

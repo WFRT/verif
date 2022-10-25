@@ -52,6 +52,9 @@ def run(argv):
     line_widths = None
     line_colors = None
     line_styles = None
+    grid_style = None
+    grid_color = None
+    grid_width = None
     markers = None
     tick_font_size = None
     lab_font_size = None
@@ -239,6 +242,12 @@ def run(argv):
                     line_colors = verif.util.parse_colors(arg_next)
                 elif arg == "-ls":
                     line_styles = arg_next.split(',')
+                elif arg == "-gs":
+                    grid_style = arg_next
+                elif arg == "-gc":
+                    grid_color = arg_next
+                elif arg == "-gw":
+                    grid_width = arg_next
                 elif arg == "-ma":
                     markers = arg_next.split(',')
                 elif arg == "-tickfs":
@@ -540,6 +549,12 @@ def run(argv):
         pl.line_colors = line_colors
     if line_styles is not None:
         pl.line_styles = line_styles
+    if grid_style is not None:
+        pl.grid_style = grid_style
+    if grid_color is not None:
+        pl.grid_color = grid_color
+    if grid_width is not None:
+        pl.grid_width = grid_width
     if markers is not None:
         pl.markers = markers
     if lab_font_size is not None:
@@ -709,6 +724,9 @@ def show_description(data=None):
     s += format_argument("-clim limits", "Force colorbar limits to the two values lower,upper. Only used in combination with -type map.") + "\n"
     s += format_argument("-cmap colormap", "Use this colormap when possible (e.g. jet, inferno, RdBu). Only used in combination with -type map.") + "\n"
     s += format_argument("-dpi value", "Resolution of image in dots per inch (default 100)") + "\n"
+    s += format_argument("-gc color", "Color for grid lines. E.g red,[0.3,0,0],0.3.") + "\n"
+    s += format_argument("-gs style", "Line styles for gri, such as -, --, or :.") + "\n"
+    s += format_argument("-gw width", "Line width for grid") + "\n"
     s += format_argument("-f file", "Save image to this filename") + "\n"
     s += format_argument("-fs size", "Set figure size width,height (in inches). Default 8x6.") + "\n"
     s += format_argument("-labfs size", "Font size for axis labels") + "\n"
