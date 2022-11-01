@@ -17,7 +17,7 @@ Since Verif is a command-line tool, it can be used in scripts to automatically c
 verification figures.
 
 Verif version 1.2 has been released (see "Installation Instruction" below). We welcome suggestions
-for improvements. Verif is developed by Thomas Nipen (thomasn@met.no), David Siuta, and Tim Chui.
+for improvements. Verif is developed by Thomas Nipen (thomasn@met.no), with contributions from many.
 
 Documentation
 -------------
