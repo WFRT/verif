@@ -1666,7 +1666,7 @@ class Fss(Output):
         else:
             acceptable_dimensions = [verif.axis.Leadtime()] + verif.axis.get_spatial_axes()
             acceptable_dimensions = ' '.join([i.name().lower() for i in acceptable_dimensions])
-            verif.util.error(f"-m fss can only be run with -x {acceptable_dimensions}")
+            verif.util.error("-m fss can only be run with -x %s" % acceptable_dimensions)
 
         F = data.num_inputs
         y = np.nan*np.zeros([len(scales), F])
