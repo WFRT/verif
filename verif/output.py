@@ -588,13 +588,25 @@ class Output(object):
         if self.annotate:
             if len(x) != len(y) or (labels is not None and len(labels) != len(x)):
                 verif.util.error("Cannot add annotation. Missmatch in length of input arrays.")
+
+            plotargs = self._get_transform_args()
             for i in range(len(x)):
                 if not np.isnan(x[i]) and not np.isnan(y[i]):
                     if labels is not None:
                         label = labels[i]
                     else:
                         label = "%g %g" % (x[i], y[i])
-                    mpl.text(x[i], y[i], label, color=color, alpha=alpha)
+
+                    mpl.text(x[i], y[i], label, color=color, alpha=alpha, **plotargs)
+
+    def _get_transform_args(self, ax=None):
+        if ax is None:
+            # Don't put this in the default argument, since it gets evaluated when the module loads
+            ax = mpl.gca()
+        plotargs = {}
+        if has_cartopy and isinstance(ax, cartopy.mpl.geoaxes.GeoAxes):
+            plotargs["transform"] = cartopy.crs.PlateCarree()
+        return plotargs
 
     def _draw_circle(self, radius, xcenter=0, ycenter=0, maxradius=np.inf,
           style="--", color="k", lw=1, label="", zorder=-100):
@@ -950,8 +962,12 @@ class Standard(Output):
             label = "higher"
         else:
             label = "worse"
-        map.scatter(x0[I1], y0[I1], s=sizes[I1], color="r", label="%s is %s" % (labels[0], label), edgecolors='k')
-        map.scatter(x0[I0], y0[I0], s=sizes[I0], color="b", label="%s is %s" % (labels[1], label), edgecolors='k')
+
+        plotargs = self._get_transform_args()
+        plotargs["edgecolors"] = 'k'
+
+        map.scatter(x0[I1], y0[I1], s=sizes[I1], color="r", label="%s is %s" % (labels[0], label), **plotargs)
+        map.scatter(x0[I0], y0[I0], s=sizes[I0], color="b", label="%s is %s" % (labels[1], label), **plotargs)
         if self.legfs > 0:
             mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
 
@@ -1184,8 +1200,10 @@ class Standard(Output):
             is_valid = np.isnan(y[:, f]) == 0
             is_invalid = np.isnan(y[:, f])
             opts = self._get_plot_options(f)
+            plotargs = self._get_transform_args()
+
             if self.show_missing:
-                map.plot(x0[is_invalid], y0[is_invalid], 'kx', ms=0.8 * opts['ms'])
+                map.plot(x0[is_invalid], y0[is_invalid], 'kx', ms=0.8 * opts['ms'], **plotargs)
 
             isMax = (y[:, f] == np.amax(y, 1)) &\
                     (y[:, f] > np.mean(y, 1) + minDiff)
@@ -1194,9 +1212,6 @@ class Standard(Output):
             s = opts['ms']**2
             c0 = 'r'
             c1 = 'b'
-            plotargs = {}
-            if has_cartopy and isinstance(map, cartopy.mpl.geoaxes.GeoAxes):
-                plotargs["transform"] = cartopy.crs.PlateCarree()
 
             if self.show_rank:
                 lmissing = None
