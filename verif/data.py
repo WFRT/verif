@@ -8,6 +8,7 @@ import calendar
 import verif.input
 import matplotlib.dates
 import matplotlib.ticker
+import verif.aggregator
 import verif.field
 import verif.util
 import verif.variable
@@ -41,7 +42,9 @@ class Data(object):
           obs_range=None, legend=None, remove_missing_across_all=True,
           obs_field=verif.field.Obs(),
           fcst_field=verif.field.Fcst(),
-          agg_time=None,
+          dim_agg_length=None,
+          dim_agg_axis=verif.axis.Leadtime(),
+          dim_agg_method=verif.aggregator.Mean(),
           ):
 
         """
@@ -61,7 +64,7 @@ class Data(object):
                        observations from the other files.
         clim_type      Operation to apply with climatology. Either 'subtract', or
                        'divide'
-        agg_time       Aggregate obs and fcst across this many leadtimes
+        dim_agg_length Aggregate obs and fcst across this many leadtimes
         """
 
         if not isinstance(inputs, list):
@@ -194,7 +197,9 @@ class Data(object):
             self.axis_cache[axis] = axis.compute_from_leadtimes(self.leadtimes)
             self.axis_cache_unique[axis] = np.unique(self.axis_cache[axis])
 
-        self.agg_time = agg_time
+        self.dim_agg_length = dim_agg_length
+        self.dim_agg_axis = dim_agg_axis
+        self.dim_agg_method = dim_agg_method
 
     def get_fields(self):
         """ Get a list of fields that all inputs have
@@ -461,18 +466,22 @@ class Data(object):
                         temp = input.fcst
                     else:
                         temp = input.other_score(field.name())
+
+                    # Pre-aggregate observations
+                    if self.dim_agg_length is not None:
+                        if self.dim_agg_axis == verif.axis.Time():
+                            temp = preaggregate_time(temp, input.times, self.dim_agg_method, self.dim_agg_length)
+                        elif self.dim_agg_axis == verif.axis.Leadtime():
+                            temp = preaggregate_leadtime(temp, input.leadtimes, self.dim_agg_method, self.dim_agg_length)
+                        else:
+                            verif.util.error("Dimension aggregation has to be one of 'time' or 'leadtime'")
+
                     Itimes = self._get_time_indices(i)
                     Ileadtimes = self._get_leadtime_indices(i)
                     Ilocations = self._get_location_indices(i)
                     temp = temp[Itimes, :, :]
                     temp = temp[:, Ileadtimes, :]
                     temp = temp[:, :, Ilocations]
-                    if self.agg_time is not None:
-                        temp = np.cumsum(temp, axis=1)
-                        if self.agg_time > temp.shape[1]:
-                            verif.util.error(f"Cannot aggregate {self.agg_time} leadtimes, since there are only {temp.shape[1]} leadtimes available")
-                        temp[:, self.agg_time:, :] = temp[:, self.agg_time:, :] - temp[:, 0:-self.agg_time, :]
-                        temp[:, 0:self.agg_time, :] = np.nan
 
                     self._get_score_cache[i][field] = temp
                     found_obs = True
@@ -529,19 +538,22 @@ class Data(object):
 
                     else:
                         temp = input.other_score(field.name())
+
+                    # Pre-aggregate forecasts
+                    if self.dim_agg_length is not None:
+                        if self.dim_agg_axis == verif.axis.Time():
+                            temp = preaggregate_time(temp, input.times, self.dim_agg_method, self.dim_agg_length)
+                        elif self.dim_agg_axis == verif.axis.Leadtime():
+                            temp = preaggregate_leadtime(temp, input.leadtimes, self.dim_agg_method, self.dim_agg_length)
+                        else:
+                            verif.util.error("Dimension aggregation has to be one of 'time' or 'leadtime'")
+
                     Itimes = self._get_time_indices(i)
                     Ileadtimes = self._get_leadtime_indices(i)
                     Ilocations = self._get_location_indices(i)
                     temp = temp[Itimes, :, :]
                     temp = temp[:, Ileadtimes, :]
                     temp = temp[:, :, Ilocations]
-
-                    if self.agg_time is not None:
-                        temp = np.cumsum(temp, axis=1)
-                        if self.agg_time > temp.shape[1]:
-                            verif.util.error(f"Cannot aggregate {self.agg_time} leadtimes, since there are only {temp.shape[1]} leadtimes available")
-                        temp[:, self.agg_time:, :] = temp[:, self.agg_time:, :] - temp[:, 0:-self.agg_time, :]
-                        temp[:, 0:self.agg_time, :] = np.nan
 
                     self._get_score_cache[i][field] = temp
 
@@ -740,3 +752,38 @@ class Data(object):
             verif.util.error("data.py: unrecognized axis: " + axis.name())
 
         return output
+
+def preaggregate_time(array, times, aggregator, length):
+    """ Aggregate array across time
+
+    Args:
+        array (np.array): 3D array of observations or forecasts
+        times (np.array): 1D array of unixtimes (seconds)
+        aggregator (verif.aggregator.Aggregator): Aggregate with this function
+        length (float): Aggregate across this many hours in time
+    """
+    assert len(times) == array.shape[0]
+    new_array = np.nan * np.zeros(array.shape, np.float32)
+    for t in range(array.shape[0]):
+        start = times[t] - length * 3600
+        I = range(np.where(times > start)[0][0], t+1)
+        new_array[t, :, :] = aggregator(array[I, :, :], axis=0)
+    return new_array
+
+
+def preaggregate_leadtime(array, leadtimes, aggregator, length):
+    """ Aggregate array across leadtime
+
+    Args:
+        array (np.array): 3D array of observations or forecasts
+        leadtimes (np.array): 1D array of leadtimes (hours)
+        aggregator (verif.aggregator.Aggregator): Aggregate with this function
+        length (float): Aggregate across this many hours in leadtime
+    """
+    assert len(leadtimes) == array.shape[1]
+    new_array = np.nan * np.zeros(array.shape, np.float32)
+    for t in range(array.shape[1]):
+        start = leadtimes[t] - length
+        I = range(np.where(leadtimes > start)[0][0], t+1)
+        new_array[:, t, :] = aggregator(array[:, I, :], axis=1)
+    return new_array

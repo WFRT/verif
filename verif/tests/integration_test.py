@@ -192,12 +192,11 @@ class IntegrationTest(unittest.TestCase):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticklabels ''")
 
     def test_leadtime_aggregation(self):
-        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -T 1")
-        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -T 2")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -P 1 -Px leadtime")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -P 2 -Px leadtime")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -P 2 -Px time")
         with self.assertRaises(SystemExit):
-            self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -T 0")
-        with self.assertRaises(SystemExit):
-            self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -T 100")
+            self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -P 1 -Px location")
 
     def test_against(self):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m against")

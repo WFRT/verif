@@ -96,7 +96,9 @@ def run(argv):
     obs_leg = None
     obs_field = verif.field.Obs()
     fcst_field = verif.field.Fcst()
-    agg_time = None
+    dim_agg_axis = verif.axis.Leadtime()
+    dim_agg_method = verif.aggregator.Mean()
+    dim_agg_length = None
 
     # Parse config files
     i = 1
@@ -288,8 +290,13 @@ def run(argv):
                     obs_leg = arg_next
                 elif arg == "-m":
                     metric = arg_next
-                elif arg == "-T":
-                    agg_time = int(arg_next)
+                elif arg == "-P":
+                    dim_agg_length = int(arg_next)
+                elif arg == "-Pagg":
+                    dim_agg_method = verif.aggregator.get(arg_next)
+                elif arg == "-Px":
+                    axisname = arg_next
+                    dim_agg_axis = verif.axis.get(axisname)
                 elif arg == "--config":
                     pass
                 else:
@@ -321,7 +328,7 @@ def run(argv):
     if obs_range is not None and len(obs_range) != 2:
         verif.util.error("-obsrange <values> must have exactly 2 values")
 
-    if agg_time is not None and agg_time <= 0:
+    if dim_agg_length is not None and dim_agg_length <= 0:
         verif.util.error("-T <value> must be greater than 0")
 
     if len(ifiles) > 0:
@@ -331,7 +338,9 @@ def run(argv):
               locations_x=locations_x,
               lat_range=lat_range, lon_range=lon_range, elev_range=elev_range,
               obs_range=obs_range, legend=leg, obs_field=obs_field, fcst_field=fcst_field,
-              agg_time=agg_time)
+              dim_agg_length=dim_agg_length,
+              dim_agg_axis=dim_agg_axis,
+              dim_agg_method=dim_agg_method)
     else:
         data = None
 
@@ -713,8 +722,10 @@ def show_description(data=None):
     s += format_argument("-fcst field", "What variable should be used as the forecast? 'obs', 'fcst' (default), threshold:<threshold>, quantile:<quantile>, 'pit', or the name of any other field in the input files.") + "\n"
     s += format_argument("-hist", "Plot values as histogram. Only works for any field that can be specified with -fcst.") + "\n"
     s += format_argument("-obs field", "What variable should be used as the observation? See -fcst.") + "\n"
+    s += format_argument("-P num", "Pre-aggregate observations and forecasts across this many hours in time and leadtime.") + "\n"
+    s += format_argument("-Pagg type", "Pre-aggregate with this function (see -agg).") + "\n"
+    s += format_argument("-Pax axis", "Pre-aggregate across this axis (time or leadtime).") + "\n"
     s += format_argument("-sort", "Plot values sorted. Only works for any field than can be specified with -fcst.") + "\n"
-    s += format_argument("-T value", "Aggregate observations and forecasts across this many leadtimes.") + "\n"
 
     # Plot options
     s += verif.util.green("  Plotting options:") + "\n"
