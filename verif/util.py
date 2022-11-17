@@ -429,13 +429,12 @@ def nanpercentile(data, pers):
     return p
 
 
-def numvalid(data, **args):
-    I = np.where(np.isnan(data.flatten()) == 0)[0]
-    return len(I)
+def numvalid(data, axis=None):
+    return np.sum(np.isnan(data) == 0, axis=axis)
 
 
-def nprange(data):
-    return np.max(data) - np.min(data)
+def nprange(data, axis=None):
+    return np.max(data, axis=axis) - np.min(data, axis=axis)
 
 
 def intersect(list1, list2):
