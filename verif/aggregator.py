@@ -43,11 +43,12 @@ class Aggregator(object):
        name: A string representing the name of the aggregator
     """
 
-    def __call__(self, array):
+    def __call__(self, array, axis=None):
         """ Compute the aggregated value. Returns a scalar value.
 
         Arguments:
            array (np.array): A 1D numpy array
+           axis (int): Axis to aggregate across
         """
         raise NotImplementedError()
 
@@ -67,65 +68,65 @@ class Aggregator(object):
 
 
 class Mean(Aggregator):
-    def __call__(self, array):
-        return np.mean(array)
+    def __call__(self, array, axis=None):
+        return np.mean(array, axis=axis)
 
 
 class Median(Aggregator):
-    def __call__(self, array):
-        return np.median(array)
+    def __call__(self, array, axis=None):
+        return np.median(array, axis=axis)
 
 
 class Min(Aggregator):
-    def __call__(self, array):
-        return np.min(array)
+    def __call__(self, array, axis=None):
+        return np.min(array, axis=axis)
 
 
 class Max(Aggregator):
-    def __call__(self, array):
-        return np.max(array)
+    def __call__(self, array, axis=None):
+        return np.max(array, axis=axis)
 
 
 class Std(Aggregator):
-    def __call__(self, array):
-        return np.std(array)
+    def __call__(self, array, axis=None):
+        return np.std(array, axis=axis)
 
 
 class Variance(Aggregator):
-    def __call__(self, array):
-        return np.var(array)
+    def __call__(self, array, axis=None):
+        return np.var(array, axis=axis)
 
 
 class Iqr(Aggregator):
-    def __call__(self, array):
-        return np.percentile(array, 75) - np.percentile(array, 25)
+    def __call__(self, array, axis=None):
+        return np.percentile(array, 75, axis=axis) - np.percentile(array, 25, axis=axis)
 
 
 class Range(Aggregator):
-    def __call__(self, array):
-        return verif.util.nprange(array)
+    def __call__(self, array, axis=None):
+        return verif.util.nprange(array, axis=axis)
 
 
 class Count(Aggregator):
-    def __call__(self, array):
-        return verif.util.numvalid(array)
+    def __call__(self, array, axis=None):
+        return verif.util.numvalid(array, axis=axis)
 
 
 class Sum(Aggregator):
-    def __call__(self, array):
-        return np.sum(array)
+    def __call__(self, array, axis=None):
+        return np.sum(array, axis=axis)
 
 
 class Meanabs(Aggregator):
     """ The mean of the absolute values of the array """
-    def __call__(self, array):
-        return np.mean(np.abs(array))
+    def __call__(self, array, axis=None):
+        return np.mean(np.abs(array), axis=axis)
 
 
 class Absmean(Aggregator):
     """ Absolute value of the mean of the array """
-    def __call__(self, array):
-        return np.abs(np.mean(array))
+    def __call__(self, array, axis=None):
+        return np.abs(np.mean(array, axis=axis))
 
 
 class Quantile(Aggregator):
@@ -139,8 +140,8 @@ class Quantile(Aggregator):
         if self.quantile < 0 or self.quantile > 1:
             verif.util.error("Quantile must be between 0 and 1")
 
-    def __call__(self, array):
-        return np.percentile(array, self.quantile*100)
+    def __call__(self, array, axis=None):
+        return np.percentile(array, self.quantile*100, axis=axis)
 
     def __eq__(self, other):
         return (self.__class__ == other.__class__) and (self.quantile == other.quantile)
