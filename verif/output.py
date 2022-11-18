@@ -77,6 +77,7 @@ class Output(object):
                       auto-detected.
     grid              When True, show a grid on the plot
     labfs
+    afs
     left
     legfs
     leg_loc           Where should the legend be placed?
@@ -132,6 +133,7 @@ class Output(object):
     def __init__(self):
         self.aggregator = verif.aggregator.Mean()
         self.annotate = False
+        self.annotation_format = None
         self.axis = self.default_axis
         self.bin_type = self.default_bin_type
         self.bottom = None
@@ -144,6 +146,7 @@ class Output(object):
         self.filename = None
         self.grid = True
         self.labfs = 16
+        self.afs = 12
         self.left = None
         self.leg_loc = "best"
         self.legfs = 16
@@ -586,18 +589,35 @@ class Output(object):
            labels (list): Use these labels, otherwise use "x y"
         """
         if self.annotate:
-            if len(x) != len(y) or (labels is not None and len(labels) != len(x)):
-                verif.util.error("Cannot add annotation. Missmatch in length of input arrays.")
+            if len(x) != len(y):
+                verif.util.error("Cannot add annotation. Missmatch in length of x and y arrays.")
+            if isinstance(labels, dict):
+                for k,v in labels.items():
+                    if len(v) != len(x):
+                        verif.util.error("Cannot add annotation. Missmatch in length of input arrays.")
+            else:
+                if labels is not None and len(labels) != len(x):
+                    verif.util.error("Cannot add annotation. Missmatch in length of input arrays.")
 
             plotargs = self._get_transform_args()
             for i in range(len(x)):
                 if not np.isnan(x[i]) and not np.isnan(y[i]):
                     if labels is not None:
-                        label = labels[i]
+                        if isinstance(labels, dict):
+                            if self.annotation_format is not None:
+                                label = ""
+                                for k in self.annotation_format:
+                                    if k not in labels:
+                                        verif.util.error("'%s' not available as an annotation field" % k)
+                                    label += "%g " % labels[k][i]
+                            else:
+                                label = "%g %g" % (labels["value"][i], labels["key"][i])
+                        else:
+                            label = labels[i]
                     else:
                         label = "%g %g" % (x[i], y[i])
 
-                    mpl.text(x[i], y[i], label, color=color, alpha=alpha, **plotargs)
+                    mpl.text(x[i], y[i], label, color=color, alpha=alpha, fontsize=self.afs, **plotargs)
 
     def _get_transform_args(self, ax=None):
         if ax is None:
@@ -922,6 +942,7 @@ class Standard(Output):
         map, x0, y0 = self._setup_map(data, 1, 1)
         lats = np.array([loc.lat for loc in data.locations])
         lons = np.array([loc.lon for loc in data.locations])
+        elevs = np.array([loc.elev for loc in data.locations])
         ids = np.array([loc.id for loc in data.locations])
         labels = data.get_legend()
 
@@ -971,8 +992,14 @@ class Standard(Output):
         if self.legfs > 0:
             mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
 
-        # Annotate with location id and the colored value, instead of x and y
-        self._add_annotation(x0, y0, ["%d %g" % (ids[i], contrib[i]) for i in range(len(ids))])
+        alabels = dict()
+        alabels["lat"] = lats
+        alabels["lon"] = lats
+        alabels["elev"] = elevs
+        alabels["location"] = ids
+        alabels["value"] = contrib
+        alabels["key"] = ids
+        self._add_annotation(x0, y0, alabels)
 
         names = data.get_legend()
         self._adjust_axis(mpl.gca())
@@ -1237,8 +1264,14 @@ class Standard(Output):
                 else:
                     cb.set_label(self.clabel, fontsize=self.labfs)
 
-            # Annotate with location id and the colored value, instead of x and y
-            self._add_annotation(x0, y0, ["%d %g" % (ids[i], y[i, f]) for i in range(len(ids))])
+            alabels = dict()
+            alabels["lat"] = lats
+            alabels["lon"] = lats
+            alabels["elev"] = elevs
+            alabels["location"] = ids
+            alabels["value"] = y[:, f]
+            alabels["key"] = ids
+            self._add_annotation(x0, y0, alabels)
 
             names = data.get_legend()
             if self.title is not None:

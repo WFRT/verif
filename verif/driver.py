@@ -60,6 +60,7 @@ def run(argv):
     lab_font_size = None
     leg_font_size = None
     title_font_size = None
+    annotation_font_size = None
     leg_loc = None
     plot_type = "plot"
     grid = True
@@ -79,6 +80,7 @@ def run(argv):
     ylim = None
     clim = None
     annotate = False
+    annotation_format = None
     xticks = None
     xticklabels = None
     yticks = None
@@ -297,6 +299,10 @@ def run(argv):
                 elif arg == "-Px":
                     axisname = arg_next
                     dim_agg_axis = verif.axis.get(axisname)
+                elif arg == "-af":
+                    annotation_format = arg_next.split(',')
+                elif arg == "-afs":
+                    annotation_font_size = float(arg_next)
                 elif arg == "--config":
                     pass
                 else:
@@ -572,6 +578,8 @@ def run(argv):
         pl.legfs = leg_font_size
     if title_font_size is not None:
         pl.title_font_size = title_font_size
+    if annotation_font_size is not None:
+        pl.afs = annotation_font_size
     if leg_loc is not None:
         pl.leg_loc = leg_loc
     if tick_font_size is not None:
@@ -614,6 +622,8 @@ def run(argv):
         pl.ylog = ylog
     if annotate is not None:
         pl.annotate = annotate
+    if annotation_format is not None:
+        pl.annotation_format = annotation_format
     pl.grid = grid
     if cmap is not None:
         pl.cmap = cmap
@@ -730,6 +740,8 @@ def show_description(data=None):
     # Plot options
     s += verif.util.green("  Plotting options:") + "\n"
     s += format_argument("-a", "Annotate graph by labeling each data point. Not supported by all metrics.") + "\n"
+    s += format_argument("-af fields", "Show these fields in the annotation. Comma-separated list of: value,lat,lon,elev,location") + "\n"
+    s += format_argument("-afs size", "Set font size of annotations") + "\n"
     s += format_argument("-aspect ratio", "Force the aspect ratio of the plot. A value greater than 1 will stretch out the y-axis.") + "\n"
     s += format_argument("-bottom value", "Bottom boundary location for saved figure [range 0-1]") + "\n"
     s += format_argument("-clabel text", "Custom colorbar label") + "\n"

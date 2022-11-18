@@ -134,6 +134,9 @@ class IntegrationTest(unittest.TestCase):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -a")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -a -x location")
 
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -a -type map -afmt value,location")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -a -type map -afs 4")
+
     def test_plotting_options(self):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 0.1")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -aspect 2.1")
