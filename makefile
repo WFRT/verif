@@ -1,9 +1,4 @@
-# Use this file to build debian packages
-# Create a file called stdb.cfg in this directory with the following
-# contents, where # "precise" is your linux version:
-# [DEFAULT]
-# Suite: precise
-.PHONY: other/verif.sh dist
+.PHONY: test other/verif.sh dist
 
 default: nothing
 
@@ -11,21 +6,22 @@ nothing:
 	@ echo "This makefile does not build verif, use setup.py"
 
 VERSION=$(shell grep __version__ verif/version.py | cut -d"=" -f2 | sed s"/ //g" | sed s"/'//g")
-coverage:
-	#nosetests --with-coverage --cover-erase --cover-package=verif --cover-html --cover-branches
-	nosetests --with-coverage --cover-erase --cover-package=verif --cover-html
-
 test:
-	nosetests
+	coverage run --source verif -m unittest discover
+
+coverage: test
+	coverage report --precision 2
+	coverage html -d pages/coverage
+	@echo "Coverage created in pages/coverage"
 
 # Creating distribution for pip
 dist:
 	echo $(VERSION)
 	rm -rf dist
-	python3 setup.py sdist
-	python3 setup.py bdist_wheel
+	python3.8 setup.py sdist
+	python3.8 setup.py bdist_wheel
 	@ echo "Next, run 'twine upload dist/*'"
-	@ echo "Next, run 'twine upload dist/*'"
+
 clean:
 	python setup.py clean
 	rm -rf build/
@@ -34,7 +30,8 @@ clean:
 	rm -rf verif.egg-info
 
 lint:
-	python verif/tests/pep8_test.py
+	# python verif/tests/pep8_test.py
+	pylint -d C,R,W verif/*.py verif/tests/*.py
 
 count:
 	@wc -l verif/*.py | tail -1
