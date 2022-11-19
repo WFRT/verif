@@ -5,10 +5,13 @@ import verif.metric_type
 import numpy as np
 
 
-def get():
-    inputs = [verif.input.get_input(file) for file in ["examples/raw.txt", "examples/kf.txt"]]
+def get(filenames):
+    inputs = [verif.input.get_input(file) for file in ["verif/tests/files/" + f for f in filenames]]
     data = verif.data.Data(inputs=inputs)
     return data
+
+interval6 = verif.interval.Interval(5.5, 6.5, True, True)
+interval100 = verif.interval.Interval(99.5, 100.5, True, True)
 
 
 class MetricTest(unittest.TestCase):
@@ -24,8 +27,28 @@ class MetricTest(unittest.TestCase):
         value = metric.compute_from_obs_fcst(np.array([2, np.nan, 2]), np.array([2, 3, 1]))
         self.assertEqual(value, 0.5)
 
+    def test_get_all(self):
+        types = verif.metric.get_all()
+        self.assertTrue(verif.metric.Mae in [t[1] for t in types])
+
     def test_get_all_by_type(self):
         types = verif.metric.get_all_by_type(verif.metric_type.Deterministic())
+        self.assertTrue(verif.metric.Mae in [t[1] for t in types])
+
+        types = verif.metric.get_all_by_type(float)
+        self.assertEqual(len(types), 0)
+
+    def test_get(self):
+        metric = verif.metric.get('mae')
+        self.assertTrue(isinstance(metric, verif.metric.Mae))
+
+        # with self.assertRaises(ValueError):
+        metric = verif.metric.get('not_exist')
+        self.assertEqual(metric, None)
+
+    def test_get_all_obs_fcst_based(self):
+        types = verif.metric.get_all_obs_fcst_based()
+        self.assertTrue(verif.metric.Mae in [t[1] for t in types])
 
     def test_name(self):
         mae = verif.metric.Mae()
@@ -46,10 +69,36 @@ class MetricTest(unittest.TestCase):
         for i in range(0, len(fthresholds)):
             q[i] = metric.compute_from_obs_fcst(obs, fcst, fthresholds[i])
 
+    def test_label(self):
+        variable = verif.variable.Variable("test", "C")
+        metric = verif.metric.Mae()
+        self.assertEqual(metric.label(variable), "MAE (C)")
+
+    def test_is_valid(self):
+        metric = verif.metric.Mae()
+        self.assertTrue(metric.is_valid())
+
+        metric = verif.metric.Metric()
+        self.assertFalse(metric.is_valid())
+
+        metric = verif.metric.XConditional()
+        self.assertFalse(metric.is_valid())
+
+    def test_help_and_label(self):
+        """Check that all metrics have a help text and a label"""
+        variable = verif.variable.Variable("test", "C")
+        for name, metric in verif.metric.get_all():
+            if metric.is_valid():
+                with self.subTest(metric=name):
+                    string = metric.help()
+                    self.assertTrue(len(string) > 0)
+                    metric = metric()
+                    label = metric.label(variable)
+                    self.assertTrue(len(label) > 0)
+
 
 class TestObsFcstBased(unittest.TestCase):
     def test_basic(self):
-        data = get()
         # Try ObsFcstBased metrics here only
         metrics = [verif.metric.Rmse(),
                    verif.metric.Mae(),
@@ -79,11 +128,44 @@ class TestObsFcstBased(unittest.TestCase):
                 else:
                     self.assertAlmostEqual(expected[m][i], value)
 
+    def test_obs_axis(self):
+        data = get(["file1.txt"])
+        metric = verif.metric.Mae()
+        value = metric.compute_single(data, 0, verif.axis.Obs(), 0, interval6)
+        # Check that the MAE when obs == 6 is indeed 7
+        self.assertEqual(value, 1)
+
+        value = metric.compute_single(data, 0, verif.axis.Obs(), 0, interval100)
+        self.assertTrue(np.isnan(value))
+
+    def test_fcst_axis(self):
+        data = get(["file1.txt"])
+        metric = verif.metric.Mae()
+        value = metric.compute_single(data, 0, verif.axis.Fcst(), 0, interval6)
+        # Check that the MAE when fcst == 6 is indeed 3
+        self.assertEqual(value, 3)
+
+        value = metric.compute_single(data, 0, verif.axis.Fcst(), 0, interval100)
+        self.assertTrue(np.isnan(value))
+
+class TestFromField(unittest.TestCase):
+    def test_obs_axis(self):
+        data = get(["file1.txt"])
+        metric = verif.metric.Fcst()
+        value = metric.compute_single(data, 0, verif.axis.Obs(), 0, interval6)
+        # Check that the average forecast when obs == 6 is indeed 7
+        self.assertEqual(value, 7)
+
+    def test_fcst_axis(self):
+        data = get(["file1.txt"])
+        metric = verif.metric.Mae()
+        value = metric.compute_single(data, 0, verif.axis.Fcst(), 0, interval6)
+        # Check that the average obs when fcst == 6 is indeed 3
+        self.assertEqual(value, 3)
 
 class TestThresholdBased(unittest.TestCase):
     def test_basic(self):
         """ Test the basic threshold-based metrics """
-        data = get()
         metrics = [verif.metric.Within(),
                    verif.metric.A(),  # Hit
                    verif.metric.B(),  # FA
@@ -184,7 +266,6 @@ class TestBrierScore(unittest.TestCase):
             o = np.array(obs[i])
             f = np.array(fcst[i])
             for key in ans:
-                print(key, i)
                 calculated = key.compute_from_obs_fcst(o, f)
                 expected = ans[key][i]
                 if np.isnan(expected):
