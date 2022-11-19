@@ -187,6 +187,7 @@ class Output(object):
         # axes, useful if the class handles log axes internally
         self.skip_log = False
         self.obs_leg = "Observed"
+        self._minLatLonRange = 0.001  # What is the smallest map size allowed (in degrees)
 
     class ClassProperty(property):
         def __get__(self, cls, owner):
@@ -816,7 +817,6 @@ class Standard(Output):
         # Settings
         self._mapLowerPerc = 0    # Lower percentile (%) to show in colourmap
         self._mapUpperPerc = 100  # Upper percentile (%) to show in colourmap
-        self._minLatLonRange = 0.001  # What is the smallest map size allowed (in degrees)
 
     def _get_x_y(self, data, axis):
         thresholds = self.thresholds
@@ -1932,9 +1932,6 @@ class Cond(Output):
     require_threshold_type = "deterministic"
     supports_threshold = True
     supports_x = False
-
-    def supports_threshold(self):
-        return True
 
     def _plot_core(self, data):
         intervals = verif.util.get_intervals(self.bin_type, self.thresholds)
