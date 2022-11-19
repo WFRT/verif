@@ -83,7 +83,7 @@ setup(
     # $ pip install -e .[dev,test]
     extras_require={
     #    'dev': ['check-manifest'],
-        'test': ['coverage', 'pep8'],
+        'test': ['coverage', 'pep8', 'pylint'],
         'cartopy': ['cartopy'],
     #    'test': ['pytest'],
     },
