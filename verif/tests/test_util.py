@@ -34,6 +34,13 @@ class TestParseNumbers(unittest.TestCase):
         with self.assertRaises(SystemExit):
             verif.util.parse_numbers("test")
 
+    def test_empty(self):
+        invalids = ["", "1,", "1,,2"]
+        for invalid in invalids:
+            with self.assertRaises(SystemExit):
+                verif.util.parse_numbers(invalid)
+
+
     def test_vector(self):
         self.assertEqual([2, 3, 4, 5], verif.util.parse_numbers("2:5"))
         self.assertEqual([], verif.util.parse_numbers("2:1"))
@@ -95,6 +102,9 @@ class TestParseNumbers(unittest.TestCase):
     def test_date(self):
         self.assertEqual([20141230, 20141231, 20150101, 20150102, 20150103], verif.util.parse_numbers("20141230:20150103", True))
         self.assertEqual([20141230, 20150101, 20150103], verif.util.parse_numbers("20141230:2:20150104", True))
+
+        self.assertEqual([20141230, 20141231, 20150101, 20150102, 20150103], verif.util.parse_dates("20141230:20150103"))
+        self.assertEqual([20141230, 20150101, 20150103], verif.util.parse_dates("20141230:2:20150104"))
 
     def test_unixtime_to_datenum(self):
         unixtimes = np.array([1331856000, -2180131200])

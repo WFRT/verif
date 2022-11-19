@@ -191,6 +191,9 @@ def parse_numbers(numbers, is_date=False):
     commaLists = numbers.split(',')
     for commaList in commaLists:
         colonList = commaList.split(':')
+        for w in colonList:
+            if w == "":
+                verif.util.error("Could not parse '%s'. Empty value." % (numbers))
         if len(colonList) == 1:
             values.append(float(colonList[0]))
         elif len(colonList) <= 3:
