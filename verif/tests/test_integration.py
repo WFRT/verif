@@ -134,7 +134,7 @@ class IntegrationTest(unittest.TestCase):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -a")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -a -x location")
 
-        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -a -type map -afmt value,location")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -a -type map -af value,location")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -a -type map -afs 4")
 
     def test_plotting_options(self):
@@ -195,11 +195,11 @@ class IntegrationTest(unittest.TestCase):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -yticklabels ''")
 
     def test_leadtime_aggregation(self):
-        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -P 1 -Px leadtime")
-        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -P 2 -Px leadtime")
-        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -P 2 -Px time")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -T 1 -Tx leadtime")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -T 2 -Tx leadtime")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -T 2 -Tx time")
         with self.assertRaises(SystemExit):
-            self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -P 1 -Px location")
+            self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -T 1 -Tx location")
 
     def test_against(self):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m against")

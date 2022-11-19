@@ -292,11 +292,11 @@ def run(argv):
                     obs_leg = arg_next
                 elif arg == "-m":
                     metric = arg_next
-                elif arg == "-P":
+                elif arg == "-T":
                     dim_agg_length = int(arg_next)
-                elif arg == "-Pagg":
+                elif arg == "-Tagg":
                     dim_agg_method = verif.aggregator.get(arg_next)
-                elif arg == "-Px":
+                elif arg == "-Tx":
                     axisname = arg_next
                     dim_agg_axis = verif.axis.get(axisname)
                 elif arg == "-af":
@@ -732,10 +732,10 @@ def show_description(data=None):
     s += format_argument("-fcst field", "What variable should be used as the forecast? 'obs', 'fcst' (default), threshold:<threshold>, quantile:<quantile>, 'pit', or the name of any other field in the input files.") + "\n"
     s += format_argument("-hist", "Plot values as histogram. Only works for any field that can be specified with -fcst.") + "\n"
     s += format_argument("-obs field", "What variable should be used as the observation? See -fcst.") + "\n"
-    s += format_argument("-P num", "Pre-aggregate observations and forecasts across this many hours in time and leadtime.") + "\n"
-    s += format_argument("-Pagg type", "Pre-aggregate with this function (see -agg).") + "\n"
-    s += format_argument("-Pax axis", "Pre-aggregate across this axis (time or leadtime).") + "\n"
     s += format_argument("-sort", "Plot values sorted. Only works for any field than can be specified with -fcst.") + "\n"
+    s += format_argument("-T num", "Time-aggregate observations and forecasts across this many hours in time and leadtime.") + "\n"
+    s += format_argument("-Tagg type", "Time-aggregate with this function (see -agg).") + "\n"
+    s += format_argument("-Tax axis", "Time-aggregate across this axis (time or leadtime).") + "\n"
 
     # Plot options
     s += verif.util.green("  Plotting options:") + "\n"
