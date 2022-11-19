@@ -2703,9 +2703,8 @@ class DRoc(Output):
           "forecast thresholds to create points."
     supports_x = False
 
-    def __init__(self, fthresholds=None, doNorm=False, doClassic=False):
+    def __init__(self, fthresholds=None, doClassic=False):
         Output.__init__(self)
-        self._doNorm = doNorm
         self._fthresholds = fthresholds
         self._doClassic = doClassic
         self.skip_log = True
@@ -2811,7 +2810,7 @@ class DRoc0(DRoc):
        "same\n threshold for forecast and obs."
 
     def __init__(self):
-        DRoc.__init__(self, doNorm=False, doClassic=True)
+        DRoc.__init__(self, doClassic=True)
 
 
 class Against(Output):

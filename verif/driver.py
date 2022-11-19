@@ -443,8 +443,6 @@ def run(argv):
         pl = verif.output.DRoc()
     elif metric == "droc0":
         pl = verif.output.DRoc0()
-    elif metric == "drocnorm":
-        pl = verif.output.DRocNorm()
     elif metric == "reliability":
         pl = verif.output.Reliability()
     elif metric == "discrimination":
