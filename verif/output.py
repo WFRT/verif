@@ -1265,13 +1265,13 @@ class Standard(Output):
                     cb.set_label(self.clabel, fontsize=self.labfs)
 
             alabels = dict()
-            alabels["lat"] = lats
-            alabels["lon"] = lats
-            alabels["elev"] = elevs
-            alabels["location"] = ids
-            alabels["value"] = y[:, f]
-            alabels["key"] = ids
-            self._add_annotation(x0, y0, alabels)
+            alabels["lat"] = lats[is_valid]
+            alabels["lon"] = lats[is_valid]
+            alabels["elev"] = elevs[is_valid]
+            alabels["location"] = ids[is_valid]
+            alabels["value"] = y[is_valid, f]
+            alabels["key"] = ids[is_valid]
+            self._add_annotation(x0[is_valid], y0[is_valid], alabels)
 
             names = data.get_legend()
             if self.title is not None:
