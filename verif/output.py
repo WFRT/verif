@@ -7,6 +7,7 @@ import inspect
 import os
 import re
 import sys
+import folium
 import matplotlib.dates as mpldates
 import matplotlib.pyplot as mpl
 import numpy as np
@@ -243,14 +244,27 @@ class Output(object):
         self._legend(data)
         self._save_plot(data)
 
+    def is_html(self):
+        is_html = False
+        if self.filename is not None:
+            basename = os.path.basename(self.filename)
+            words = basename.split('.')
+            if len(words) > 1:
+                if words[-1] == "html":
+                    is_html = True
+        return is_html
+
     def plot_mapimpact(self, data):
         """ Call this to create a impact plot
         """
-        mpl.clf()
-        self._plot_mapimpact_core(data)
-        self._adjust_axes(data)
-        self._legend(data)
-        self._save_plot(data)
+        if self.is_html():
+            self._plot_mapimpact_core_html(data)
+        else:
+            mpl.clf()
+            self._plot_mapimpact_core(data)
+            self._adjust_axes(data)
+            self._legend(data)
+            self._save_plot(data)
 
     def text(self, data):
         """ Call this to create nicely formatted text output
@@ -419,6 +433,9 @@ class Output(object):
         verif.util.error("This type does not support '-type impact'")
 
     def _plot_mapimpact_core(self, data):
+        verif.util.error("This type does not support '-type mapimpact'")
+
+    def _plot_mapimpact_core_html(self, data):
         verif.util.error("This type does not support '-type mapimpact'")
 
     def _plot_rank_core(self, data):
@@ -1003,6 +1020,48 @@ class Standard(Output):
 
         names = data.get_legend()
         self._adjust_axis(mpl.gca())
+
+    def _plot_mapimpact_core_html(self, data):
+        lats = np.array([loc.lat for loc in data.locations])
+        lons = np.array([loc.lon for loc in data.locations])
+        elevs = np.array([loc.elev for loc in data.locations])
+        ids = np.array([loc.id for loc in data.locations])
+        map = folium.Map([np.mean(lats), np.mean(lons)])
+
+        thresholds = self.thresholds
+        edges = self.thresholds
+        intervals = verif.util.get_intervals(self.bin_type, thresholds)
+
+        error_x = np.zeros(len(lats), 'float')
+        error_y = np.zeros(len(lats), 'float')
+        for i in range(len(intervals)):
+            error_x += self._metric.compute(data, 0, verif.axis.Location(), intervals[i])
+            error_y += self._metric.compute(data, 1, verif.axis.Location(), intervals[i])
+        error_x = error_x / len(intervals)
+        error_y = error_y / len(intervals)
+
+        XX = np.array([loc.lon for loc in data.locations])
+        YY = np.array([loc.lat for loc in data.locations])
+        contrib = error_x - error_y
+
+        for i in range(len(contrib)):
+            if contrib[i] > 0:
+                color = 'blue'
+            elif contrib[i] == 0:
+                color = 'red'
+            else:
+                color =  'white'
+            folium.CircleMarker(
+                    radius=contrib[i] * 15 + 3,
+                    location=[lats[i], lons[i]],
+                    popup="diff=%g id=%g" % (contrib[i], ids[i]), # show station id on click
+                    color="black", # border color
+                    weight=1, # border weight
+                    fill=True,
+                    fill_opacity=1,
+                    fill_color=color,
+                    ).add_to(map)
+            map.save(self.filename)
 
     def _show_impact_marginal(self):
         return not self.simple
