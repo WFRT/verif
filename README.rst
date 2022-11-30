@@ -19,10 +19,12 @@ verification figures.
 Verif version 1.2 has been released (see "Installation Instruction" below). We welcome suggestions
 for improvements. Verif is developed by Thomas Nipen (thomasn@met.no), with contributions from many.
 
-Documentation
--------------
+Resources
+---------
 
-For more information on how to use Verif, check out the wiki at https://github.com/WFRT/verif/wiki.
+For more information on how to use Verif, **check out the wiki** at https://github.com/WFRT/verif/wiki.
+Found a bug? Please report it in the **issue tracker** at https://github.com/WFRT/verif/issues. Reach
+out to the Verif community in the **discussions** at https://github.com/WFRT/verif/discussions.
 
 Features
 --------
