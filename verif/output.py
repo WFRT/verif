@@ -1464,23 +1464,50 @@ class QQ(Output):
         Output.__init__(self)
 
     def _plot_core(self, data):
-        labels = data.get_legend()
+        fields = [verif.field.Obs(), verif.field.Fcst()]
+        if self.quantiles is not None:
+            fields += [verif.field.Quantile(q) for q in self.quantiles]
+
         F = data.num_inputs
         for f in range(F):
+            # Retrieve the observations, forecasts, and quantiles
             if self.axis == verif.axis.No():
-                x, y = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis)
+                scores = data.get_scores(fields, f, self.axis)
+                x, y = scores[0], scores[1]
+                quantile_scores = scores[2:]
             else:
                 # Aggregate along a dimension
                 size_axis = data.get_axis_size(self.axis)
                 x = np.nan * np.zeros(size_axis)
                 y = np.nan * np.zeros(size_axis)
+                quantile_scores = list()
+                if self.quantiles is not None:
+                    for quantile in self.quantiles:
+                        quantile_scores += [np.nan * np.zeros(size_axis)]
+
                 for i in range(size_axis):
-                    xtemp, ytemp = data.get_scores([verif.field.Obs(), verif.field.Fcst()], f, self.axis, i)
+                    scores = data.get_scores(fields, f, self.axis, i)
+                    xtemp, ytemp = scores[0], scores[1]
                     x[i] = self.aggregator(xtemp)
                     y[i] = self.aggregator(ytemp)
+                    for qi in range(len(quantile_scores)):
+                        qtemp = scores[2 + qi]
+                        quantile_scores[qi][i] = self.aggregator(qtemp)
+
             x = np.sort(x)
             y = np.sort(y)
-            mpl.plot(x, y, label=labels[f], **self._get_plot_options(f))
+
+            labels = data.get_legend()
+            label = labels[f]
+            if len(quantile_scores) > 0:
+                label += " (deterministic)"
+            mpl.plot(x, y, label=label, **self._get_plot_options(f))
+            for i, quantile_score in enumerate(quantile_scores):
+                y = np.sort(quantile_score)
+                label = labels[f] + " (" + "%g" % (self.quantiles[i] * 100) + "%)"
+                opts = self._get_plot_options(f, include_marker=False)
+                opts['ls'] = '--'
+                mpl.plot(x, y, label=label, **opts)
 
         mpl.ylabel("Sorted forecasts (" + data.variable.units + ")")
         mpl.xlabel("Sorted observations (" + data.variable.units + ")")
