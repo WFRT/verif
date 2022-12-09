@@ -733,7 +733,7 @@ def show_description(data=None):
     s += format_argument("-sort", "Plot values sorted. Only works for any field than can be specified with -fcst.") + "\n"
     s += format_argument("-T num", "Time-aggregate observations and forecasts across this many hours in time and leadtime.") + "\n"
     s += format_argument("-Tagg type", "Time-aggregate with this function (see -agg).") + "\n"
-    s += format_argument("-Tax axis", "Time-aggregate across this axis (time or leadtime).") + "\n"
+    s += format_argument("-Tx axis", "Time-aggregate across this axis (time or leadtime).") + "\n"
 
     # Plot options
     s += verif.util.green("  Plotting options:") + "\n"
