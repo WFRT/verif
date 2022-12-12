@@ -2711,7 +2711,7 @@ class Roc(Output):
             mpl.plot(x, y, label=labels[f], **opts)
             if self._label_quantiles():
                 for i in range(len(quantiles)):
-                    mpl.text(x[i + 1], y[i + 1], " %g%%" % quantiles[i], verticalalignment='center')
+                    mpl.text(x[i + 1], y[i + 1], " %g%%" % (quantiles[i] * 100), verticalalignment='center')
         mpl.plot([0, 1], [0, 1], color="k")
         mpl.axis([0, 1, 0, 1])
         mpl.xlabel("False alarm rate")
