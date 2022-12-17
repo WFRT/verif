@@ -466,7 +466,7 @@ class Output(object):
         else:
             fig = mpl.gcf()
             if fig.canvas.manager is not None:
-                fig.canvas.manager.set_window_title(data.get_names()[0])
+                fig.canvas.manager.set_window_title(' '.join(data.get_names()))
             mpl.show()
 
     def _legend(self, data, names=None):
