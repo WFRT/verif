@@ -101,6 +101,7 @@ def run(argv):
     dim_agg_axis = verif.axis.Leadtime()
     dim_agg_method = verif.aggregator.Mean()
     dim_agg_length = None
+    show_help = False
 
     # Parse config files
     i = 1
@@ -161,6 +162,8 @@ def run(argv):
                 annotate = True
             elif arg == "-nogrid":
                 grid = False
+            elif arg == "--help":
+                show_help = True
             else:
                 if len(argv) <= i + 1:
                     verif.util.error("Missing value after %s" % argv[i])
@@ -392,7 +395,7 @@ def run(argv):
             if m is not None:
                 print(m.help())
         return
-    elif len(argv) == 1 or len(ifiles) == 0 or metric is None:
+    elif len(argv) == 1 or len(ifiles) == 0 or metric is None or show_help:
         print(show_description(data))
         return
 
@@ -702,6 +705,8 @@ def show_description(data=None):
     s += format_argument("--list-locations", "Prints what locations are available in the files") + "\n"
     s += format_argument("--list-quantiles", "Prints what quantiles are available in the files") + "\n"
     s += format_argument("--list-thresholds", "Prints what thresholds are available in the files") + "\n"
+    s += format_argument("--help", "Print this help message")
+
     s += format_argument("--version", "Prints what version of verif this is") + "\n"
     # Dimensions
     s += verif.util.green("  Dimensions and subset:") + "\n"

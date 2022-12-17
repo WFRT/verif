@@ -63,6 +63,7 @@ class IntegrationTest(unittest.TestCase):
 
     def test_valid(self):
         self.run_command("verif")
+        self.run_command("verif --help")
         self.run_command("verif --version")
         self.run_command("verif examples/raw.txt examples/kf.txt --list-thresholds")
         self.run_command("verif examples/raw.txt examples/kf.txt --list-quantiles")
