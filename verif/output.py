@@ -2531,14 +2531,17 @@ class Roc(Output):
             fcsts = scores[1:]
             y = np.nan * np.zeros([len(quantiles)], 'float')
             x = np.nan * np.zeros([len(quantiles)], 'float')
+            interval = verif.util.get_intervals(self.bin_type, self.thresholds)[0]
+
+            # for i, interval in enumerate(intervals):
             for i in range(len(quantiles)):
                 # Compute the hit rate and false alarm rate by using the given
                 # quantile from the distribution as the forecast
                 fcst = fcsts[i]
-                a = np.ma.sum((fcst >= threshold) & (obs >= threshold))  # Hit
-                b = np.ma.sum((fcst >= threshold) & (obs < threshold))   # FA
-                c = np.ma.sum((fcst < threshold) & (obs >= threshold))   # Miss
-                d = np.ma.sum((fcst < threshold) & (obs < threshold))    # CR
+                a = np.ma.sum(interval.within(fcst) & interval.within(obs))  # Hit
+                b = np.ma.sum(interval.within(fcst) & (interval.within(obs) == 0))  # FA
+                c = np.ma.sum((interval.within(fcst) == 0) & interval.within(obs))  # Miss
+                d = np.ma.sum((interval.within(fcst) == 0) & (interval.within(obs) == 0))  # CR
                 if a + c > 0 and b + d > 0:
                     y[i] = a / 1.0 / (a + c)
                     x[i] = b / 1.0 / (b + d)
@@ -2549,10 +2552,17 @@ class Roc(Output):
             y = np.zeros([len(quantiles) + 2], 'float')
             x[1:-1] = xx
             y[1:-1] = yy
-            x[0] = 0
-            y[0] = 0
-            x[len(x) - 1] = 1
-            y[len(y) - 1] = 1
+
+            # We don't know which way the curve is oriented
+            # And we can't just sort them, because we need the quantile labels to match the right
+            # points
+            if np.argmin(xx) == 0:
+                x[len(x) - 1] = 1
+                y[len(y) - 1] = 1
+            else:
+                x[0] = 1
+                y[0] = 1
+
             mpl.plot(x, y, label=labels[f], **opts)
             if self._label_quantiles():
                 for i in range(len(quantiles)):
@@ -2563,7 +2573,8 @@ class Roc(Output):
         mpl.ylabel("Hit rate")
         self._plot_perfect_score([0, 0, 1], [0, 1, 1])
         units = " " + data.variable.units
-        mpl.title("Threshold: " + str(threshold) + units)
+        title = "Event: " + verif.util.get_threshold_string(self.bin_type) + str(threshold) + units
+        mpl.title(title)
 
 
 # doClassic: Use the classic definition, by not varying the forecast threshold
