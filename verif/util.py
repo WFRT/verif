@@ -520,7 +520,7 @@ def apply_threshold_prob(array, bin_type, upper_array=None):
     elif bin_type == "above=":
         array = 1 - array
     elif upper_array is None:
-        error("Cannoot apply thresholding with bin_type '%s'" % bin_type)
+        error("Cannot apply thresholding with bin_type '%s'" % bin_type)
     elif re.compile("within").match(bin_type):
         array = upper_array - array
     return array
