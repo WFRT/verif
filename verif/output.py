@@ -2515,7 +2515,14 @@ class Roc(Output):
     def _plot_core(self, data):
         if self.thresholds is None or len(self.thresholds) != 1:
             verif.util.error("Roc plot needs a threshold (use -r)")
+        if re.compile(".*within.*").match(self.bin_type):
+            verif.util.error("A 'within' bin type cannot be used in this diagram")
         threshold = self.thresholds[0]
+
+        if self.quantiles is not None:
+            levels = self.quantiles
+        else:
+            levels = np.linspace(0, 1, 11)
 
         F = data.num_inputs
         labels = data.get_legend()
@@ -2528,14 +2535,12 @@ class Roc(Output):
             # Flip the probabilities so that they match the event
             fcst = verif.util.apply_threshold_prob(fcst, self.bin_type, threshold)
 
-            levels = np.linspace(0, 1, 11)
             y = np.nan * np.zeros([len(levels)], 'float')
             x = np.nan * np.zeros([len(levels)], 'float')
+            o_interval = verif.util.get_intervals(self.bin_type, self.thresholds)[0]
             f_intervals = verif.util.get_intervals("above=", levels)
 
-            # for i, interval in enumerate(intervals):
             for i, f_interval in enumerate(f_intervals):
-                o_interval = verif.util.get_intervals(self.bin_type, self.thresholds)[0]
                 # Compute the hit rate and false alarm rate
                 a = np.ma.sum(f_interval.within(fcst) & o_interval.within(obs))  # Hit
                 b = np.ma.sum(f_interval.within(fcst) & (o_interval.within(obs) == 0))  # FA
@@ -2552,7 +2557,9 @@ class Roc(Output):
             mpl.plot(x, y, label=labels[f], **opts)
             if self._label_points():
                 for i in range(len(levels)):
-                    mpl.text(x[i+1], y[i+1], " %g%%" % (levels[i] * 100), verticalalignment='center')
+                    if not np.isnan(x[i]) and not np.isnan(y[i]):
+                        mpl.text(x[i+1], y[i+1], " %g%%" % (levels[i] * 100), verticalalignment='center')
+
         mpl.plot([0, 1], [0, 1], color="k")
         mpl.axis([0, 1, 0, 1])
         mpl.xlabel("False alarm rate")
