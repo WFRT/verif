@@ -970,7 +970,7 @@ class Bs(Metric):
 class BsRel(Metric):
     default_axis = verif.axis.Threshold()
     type = verif.metric_type.Probabilistic()
-    name = "brier skill score, reliability term"
+    name = "Brier score, reliability term"
     description = "Brier score, reliability term"
     min = 0
     max = 1
