@@ -2509,7 +2509,7 @@ class Roc(Output):
     def __init__(self):
         Output.__init__(self)
 
-    def _label_quantiles(self):
+    def _label_points(self):
         return not self.simple
 
     def _plot_core(self, data):
@@ -2517,56 +2517,42 @@ class Roc(Output):
             verif.util.error("Roc plot needs a threshold (use -r)")
         threshold = self.thresholds[0]
 
-        q_fields = [verif.field.Quantile(i) for i in data.quantiles]
-        quantiles = data.quantiles
-        if len(quantiles) == 0:
-            verif.util.error("Your files do not have any quantiles")
-
         F = data.num_inputs
         labels = data.get_legend()
         for f in range(F):
             opts = self._get_plot_options(f)
-            scores = data.get_scores([verif.field.Obs()] + q_fields, f, verif.axis.No())
+            scores = data.get_scores([verif.field.Obs(), verif.field.Threshold(threshold)], f, verif.axis.No())
             obs = scores[0]
-            fcsts = scores[1:]
-            y = np.nan * np.zeros([len(quantiles)], 'float')
-            x = np.nan * np.zeros([len(quantiles)], 'float')
-            interval = verif.util.get_intervals(self.bin_type, self.thresholds)[0]
+            fcst = scores[1]
+
+            # Flip the probabilities so that they match the event
+            fcst = verif.util.apply_threshold_prob(fcst, self.bin_type, threshold)
+
+            levels = np.linspace(0, 1, 11)
+            y = np.nan * np.zeros([len(levels)], 'float')
+            x = np.nan * np.zeros([len(levels)], 'float')
+            f_intervals = verif.util.get_intervals("above=", levels)
 
             # for i, interval in enumerate(intervals):
-            for i in range(len(quantiles)):
-                # Compute the hit rate and false alarm rate by using the given
-                # quantile from the distribution as the forecast
-                fcst = fcsts[i]
-                a = np.ma.sum(interval.within(fcst) & interval.within(obs))  # Hit
-                b = np.ma.sum(interval.within(fcst) & (interval.within(obs) == 0))  # FA
-                c = np.ma.sum((interval.within(fcst) == 0) & interval.within(obs))  # Miss
-                d = np.ma.sum((interval.within(fcst) == 0) & (interval.within(obs) == 0))  # CR
+            for i, f_interval in enumerate(f_intervals):
+                o_interval = verif.util.get_intervals(self.bin_type, self.thresholds)[0]
+                # Compute the hit rate and false alarm rate
+                a = np.ma.sum(f_interval.within(fcst) & o_interval.within(obs))  # Hit
+                b = np.ma.sum(f_interval.within(fcst) & (o_interval.within(obs) == 0))  # FA
+                c = np.ma.sum((f_interval.within(fcst) == 0) & o_interval.within(obs))  # Miss
+                d = np.ma.sum((f_interval.within(fcst) == 0) & (o_interval.within(obs) == 0))  # CR
                 if a + c > 0 and b + d > 0:
                     y[i] = a / 1.0 / (a + c)
                     x[i] = b / 1.0 / (b + d)
-            # Add end points at 0,0 and 1,1:
-            xx = x
-            yy = y
-            x = np.zeros([len(quantiles) + 2], 'float')
-            y = np.zeros([len(quantiles) + 2], 'float')
-            x[1:-1] = xx
-            y[1:-1] = yy
 
-            # We don't know which way the curve is oriented
-            # And we can't just sort them, because we need the quantile labels to match the right
-            # points
-            if np.argmin(xx) == 0:
-                x[len(x) - 1] = 1
-                y[len(y) - 1] = 1
-            else:
-                x[0] = 1
-                y[0] = 1
+            # Add end points at 0,0 and 1,1:
+            x = np.concatenate([[1], x, [0]])
+            y = np.concatenate([[1], y, [0]])
 
             mpl.plot(x, y, label=labels[f], **opts)
-            if self._label_quantiles():
-                for i in range(len(quantiles)):
-                    mpl.text(x[i + 1], y[i + 1], " %g%%" % (quantiles[i] * 100), verticalalignment='center')
+            if self._label_points():
+                for i in range(len(levels)):
+                    mpl.text(x[i+1], y[i+1], " %g%%" % (levels[i] * 100), verticalalignment='center')
         mpl.plot([0, 1], [0, 1], color="k")
         mpl.axis([0, 1, 0, 1])
         mpl.xlabel("False alarm rate")
