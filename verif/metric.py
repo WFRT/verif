@@ -1090,8 +1090,8 @@ class BssRel(Metric):
     max = 1
     require_threshold_type = "threshold"
     supports_threshold = True
-    perfect_score = 1
-    orientation = 1
+    perfect_score = 0
+    orientation = -1
 
     def __init__(self, num_edges=11):
         self._edges = np.linspace(0, 1, num_edges)
