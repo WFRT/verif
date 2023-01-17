@@ -1001,7 +1001,7 @@ class BsRes(Metric):
     max = 1
     require_threshold_type = "threshold"
     supports_threshold = True
-    perfect_score = 1
+    perfect_score = None  # Perfect score equals BsUnc
     orientation = 1
 
     def __init__(self, num_edges=11):
