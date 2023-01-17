@@ -248,6 +248,10 @@ class IntegrationTest(unittest.TestCase):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m autocorr")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m autocov")
 
+    def test_roc(self):
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m roc -r 0")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m roc -r 0 -b below")
+
     def test_autocorr(self):
         self.run_with_image("verif examples/raw.txt -m autocorr")
         self.run_with_image("verif examples/raw.txt -m autocorr -x location")

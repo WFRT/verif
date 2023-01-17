@@ -2664,61 +2664,65 @@ class Roc(Output):
     def __init__(self):
         Output.__init__(self)
 
-    def _label_quantiles(self):
+    def _label_points(self):
         return not self.simple
 
     def _plot_core(self, data):
         if self.thresholds is None or len(self.thresholds) != 1:
             verif.util.error("Roc plot needs a threshold (use -r)")
+        if re.compile(".*within.*").match(self.bin_type):
+            verif.util.error("A 'within' bin type cannot be used in this diagram")
         threshold = self.thresholds[0]
 
-        q_fields = [verif.field.Quantile(i) for i in data.quantiles]
-        quantiles = data.quantiles
-        if len(quantiles) == 0:
-            verif.util.error("Your files do not have any quantiles")
+        if self.quantiles is not None:
+            levels = self.quantiles
+        else:
+            levels = np.linspace(0, 1, 11)
 
         F = data.num_inputs
         labels = data.get_legend()
         for f in range(F):
             opts = self._get_plot_options(f)
-            scores = data.get_scores([verif.field.Obs()] + q_fields, f, verif.axis.No())
+            scores = data.get_scores([verif.field.Obs(), verif.field.Threshold(threshold)], f, verif.axis.No())
             obs = scores[0]
-            fcsts = scores[1:]
-            y = np.nan * np.zeros([len(quantiles)], 'float')
-            x = np.nan * np.zeros([len(quantiles)], 'float')
-            for i in range(len(quantiles)):
-                # Compute the hit rate and false alarm rate by using the given
-                # quantile from the distribution as the forecast
-                fcst = fcsts[i]
-                a = np.ma.sum((fcst >= threshold) & (obs >= threshold))  # Hit
-                b = np.ma.sum((fcst >= threshold) & (obs < threshold))   # FA
-                c = np.ma.sum((fcst < threshold) & (obs >= threshold))   # Miss
-                d = np.ma.sum((fcst < threshold) & (obs < threshold))    # CR
+            fcst = scores[1]
+
+            # Flip the probabilities so that they match the event
+            fcst = verif.util.apply_threshold_prob(fcst, self.bin_type, threshold)
+
+            y = np.nan * np.zeros([len(levels)], 'float')
+            x = np.nan * np.zeros([len(levels)], 'float')
+            o_interval = verif.util.get_intervals(self.bin_type, self.thresholds)[0]
+            f_intervals = verif.util.get_intervals("above=", levels)
+
+            for i, f_interval in enumerate(f_intervals):
+                # Compute the hit rate and false alarm rate
+                a = np.ma.sum(f_interval.within(fcst) & o_interval.within(obs))  # Hit
+                b = np.ma.sum(f_interval.within(fcst) & (o_interval.within(obs) == 0))  # FA
+                c = np.ma.sum((f_interval.within(fcst) == 0) & o_interval.within(obs))  # Miss
+                d = np.ma.sum((f_interval.within(fcst) == 0) & (o_interval.within(obs) == 0))  # CR
                 if a + c > 0 and b + d > 0:
                     y[i] = a / 1.0 / (a + c)
                     x[i] = b / 1.0 / (b + d)
+
             # Add end points at 0,0 and 1,1:
-            xx = x
-            yy = y
-            x = np.zeros([len(quantiles) + 2], 'float')
-            y = np.zeros([len(quantiles) + 2], 'float')
-            x[1:-1] = xx
-            y[1:-1] = yy
-            x[0] = 0
-            y[0] = 0
-            x[len(x) - 1] = 1
-            y[len(y) - 1] = 1
+            x = np.concatenate([[1], x, [0]])
+            y = np.concatenate([[1], y, [0]])
+
             mpl.plot(x, y, label=labels[f], **opts)
-            if self._label_quantiles():
-                for i in range(len(quantiles)):
-                    mpl.text(x[i + 1], y[i + 1], " %g%%" % (quantiles[i] * 100), verticalalignment='center')
+            if self._label_points():
+                for i in range(len(levels)):
+                    if not np.isnan(x[i]) and not np.isnan(y[i]):
+                        mpl.text(x[i+1], y[i+1], " %g%%" % (levels[i] * 100), verticalalignment='center')
+
         mpl.plot([0, 1], [0, 1], color="k")
         mpl.axis([0, 1, 0, 1])
         mpl.xlabel("False alarm rate")
         mpl.ylabel("Hit rate")
         self._plot_perfect_score([0, 0, 1], [0, 1, 1])
         units = " " + data.variable.units
-        mpl.title("Threshold: " + str(threshold) + units)
+        title = "Event: " + verif.util.get_threshold_string(self.bin_type) + str(threshold) + units
+        mpl.title(title)
 
 
 # doClassic: Use the classic definition, by not varying the forecast threshold
