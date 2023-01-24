@@ -969,6 +969,9 @@ class Standard(Output):
         x0 = x0[Ivalid]
         y0 = y0[Ivalid]
         ids = ids[Ivalid]
+        lats = lats[Ivalid]
+        lons = lons[Ivalid]
+        elevs = elevs[Ivalid]
 
         # Flip the contribution for positively-oriented scores
         if self._metric.orientation == 1:
