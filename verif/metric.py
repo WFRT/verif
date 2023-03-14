@@ -1270,10 +1270,9 @@ class QuantileScore(Metric):
     orientation = -1
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
-        [obs, q] = get_q(data, input_index, axis, axis_index, interval)
-        qs = np.nan * np.zeros(len(q), 'float')
-        v = q - obs
-        qs = v * (interval.lower - (v < 0))
+        [obs, pred_q] = get_q(data, input_index, axis, axis_index, interval)
+        err = obs - pred_q
+        qs = err * (interval.lower - (err < 0))
         return np.mean(qs)
 
     def label(self, variable):
