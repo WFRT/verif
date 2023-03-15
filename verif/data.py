@@ -678,6 +678,7 @@ class Data(object):
                 thresholds = set(thresholds) & set(currThresholds)
 
         thresholds = sorted(thresholds)
+        thresholds = np.array(thresholds)
         return thresholds
 
     def _get_quantiles(self):
@@ -690,6 +691,7 @@ class Data(object):
                 quantiles = set(quantiles) & set(currQuantiles)
 
         quantiles = sorted(quantiles)
+        quantiles = np.array(quantiles)
         return quantiles
 
     def _get_time_indices(self, input_index):
