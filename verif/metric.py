@@ -492,7 +492,6 @@ class Cmae(ObsFcstBased):
 class Nsec(ObsFcstBased):
     name = "Nash-Sutcliffe efficiency coefficient"
     description = "Nash-Sutcliffe efficiency coefficient"
-    min = 0
     max = 1
     perfect_score = 1
     orientation = 1
