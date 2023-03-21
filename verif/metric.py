@@ -529,6 +529,34 @@ class Nnsec(ObsFcstBased):
     def label(self, variable):
         return "NNSEC"
 
+class Kge(ObsFcstBased):
+    name = "Kling-Gupta efficiency"
+    description = "Kling-Gupta efficiency"
+    max = 1
+    perfect_score = 1
+    orientation = 1
+
+    def _compute_from_obs_fcst(self, obs, fcst):
+        # Based on https://agrimetsoft.com/calculators/Kling-Gupta%20efficiency
+        meanobs = np.mean(obs)
+        meanfcst = np.mean(fcst)
+        stdobs = np.std(obs)
+        stdfcst = np.std(fcst)
+        if stdobs == 0 or stdfcst == 0:
+            return np.nan
+
+        corr = np.corrcoef(obs, fcst)[1, 0]
+        if np.nan in [stdobs, stdfcst, corr]:
+            return np.nan
+        else:
+            c = corr - 1
+            m = meanfcst / meanobs - 1
+            s = stdfcst / stdobs - 1
+            return 1 - np.sqrt(c**2 + m**2 + s**2)
+
+    def label(self, variable):
+        return "KGE"
+
 class Alphaindex(ObsFcstBased):
     name = "Alpha index"
     description = "Alpha index"
