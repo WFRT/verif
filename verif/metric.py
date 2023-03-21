@@ -508,6 +508,26 @@ class Nsec(ObsFcstBased):
     def label(self, variable):
         return "NSEC"
 
+class Nnsec(ObsFcstBased):
+    name = "Normalized Nash-Sutcliffe efficiency coefficient"
+    description = "Normalized Nash-Sutcliffe efficiency coefficient"
+    min = 0
+    max = 1
+    perfect_score = 1
+    orientation = 1
+
+    def _compute_from_obs_fcst(self, obs, fcst):
+        meanobs = np.mean(obs)
+        num = np.sum((fcst - obs) ** 2)
+        denom = np.sum((obs - meanobs) ** 2)
+        if denom == 0:
+            return np.nan
+        else:
+            nsec = 1 - num / denom
+            return 1 / (2 - nsec)
+
+    def label(self, variable):
+        return "NNSEC"
 
 class Alphaindex(ObsFcstBased):
     name = "Alpha index"
