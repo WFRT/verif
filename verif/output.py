@@ -977,6 +977,9 @@ class Standard(Output):
         if self._metric.orientation == 1:
             contrib = -contrib
 
+        # TODO: Integrate clim here. Use it to set the scale the size. Both an offset and a scale.
+        # Clim would be in terms of fractional size. Not sure how one would make a legend out of
+        # this.
         s = self.ms[0]*self.ms[0]
         size_scale = 400/np.nanmax(abs(contrib)) * (self.ms[0] / 8.0)**2
         sizes = abs(contrib) * size_scale
@@ -1363,10 +1366,12 @@ class Sort(Output):
 
 class ObsFcst(Output):
     supports_threshold = False
+    supports_acc = True
     name = "Observations and forecasts"
     description = "Plot observations and forecasts"
 
     def __init__(self):
+        self.show_acc = False
         Output.__init__(self)
 
     def _plot_core(self, data):
@@ -1453,6 +1458,9 @@ class ObsFcst(Output):
                     labels += [labels[f] + " %g%%" % (quantile * 100)]
 
         labels = ["obs"] + labels
+        if self.show_acc:
+            y = np.nan_to_num(y)
+            y = np.cumsum(y, axis=0)
         return x, y, axis.name(), labels, None
 
 

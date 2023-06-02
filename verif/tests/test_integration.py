@@ -118,6 +118,10 @@ class IntegrationTest(unittest.TestCase):
         for axis in all_axes:
             self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -x %s" % axis)
 
+    def test_obsfcst_option_acc(self):
+        for axis in all_axes:
+            self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -x %s -acc" % axis)
+
     def test_pithist(self):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithistdev")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithistslope")
