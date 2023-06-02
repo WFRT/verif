@@ -115,24 +115,24 @@ Follow the proceedure as for Ubuntu (either installing with pip or from source).
 source, then look for the line "Installing verif script to <some directory>", as this will indicate
 what folder Verif is installed into. Add the folder to your PATH environment variable if necessary.
 
-Example
+Examples
 --------
-A sample dataset for testing the program is found in ``./examples/``. There is one "raw" forecast file and
-one "calibrated" forecast file (where statistical methods have been applied). For more information
-about the dataset check out the wiki. Here are some example commands to test out:
+To test Verif, you can download example datasets from the github
+`discussion page <https://github.com/WFRT/verif/discussions>`_. For example, download the following two files from the wind speed dataset: `MEPS.nc <https://thredds.met.no/thredds/fileServer/metusers/thomasn/verif_datasets/short_range_wind/MEPS.nc>`_ (2.5 km regional model; 20MB file size) and `ECMWF.nc <https://thredds.met.no/thredds/fileServer/metusers/thomasn/verif_datasets/short_range_wind/ECMWF.nc>`_ (0.2° global model; 24MB file size). Then run the following
+commands to test out the software:
 
 .. code-block:: bash
 
    # Shows mean absolute error as a function of lead-time
-   verif examples/raw.txt examples/kf.txt -m mae
+   verif MEPS.nc ECMWF.nc -m mae
    # Shows average observed and forecasted values as a function on time
-   verif examples/raw.txt examples/kf.txt -m obsfcst -x time
+   verif MEPS.nc ECMWF.nc -m obsfcst -x time
    # Shows equitable threat score as a function of threshold
-   verif examples/raw.txt examples/kf.txt -m ets
-   # Shows a reliability diagram for a threshold of 0 °C
-   verif examples/raw.txt examples/kf.txt -m reliability -r 0
+   verif MEPS.nc ECMWF.nc -m ets
+   # Shows a reliability diagram for a threshold of 13.9 m/s (gale force winds)
+   verif MEPS.nc ECMWF.nc -m reliability -r 13.9
    # Shows Brier skill score as a function of threshold
-   verif examples/raw.txt examples/kf.txt -m bss -x threshold
+   verif MEPS.nc ECMWF.nc -m bss -x threshold
 
 Copyright and license
 ---------------------
