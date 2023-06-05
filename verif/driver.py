@@ -325,6 +325,9 @@ def run(argv):
         for i in range(0, len(leg)):
             leg[i] = leg[i].replace('_', ' ')
 
+    if title is not None:
+        title = title.replace('_', ' ')
+
     if lat_range is not None and len(lat_range) != 2:
         verif.util.error("-latrange <values> must have exactly 2 values")
 

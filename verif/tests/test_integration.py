@@ -179,6 +179,7 @@ class IntegrationTest(unittest.TestCase):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -tickfs 0")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -tickfs 10")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -title title")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -title title_with_underscores")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -titlefs 0")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -titlefs 10")
         # Same as for -right above
