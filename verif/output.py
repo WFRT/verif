@@ -3400,3 +3400,51 @@ class InvReliability(Output):
         units = " " + data.variable.units
         if len(self.quantiles) == 1:
             mpl.title("Quantile: " + str(self.quantiles[0] * 100) + "%")
+
+class Murphy(Output):
+    name = "Murphy diagram"
+    description = "Murphy diagram for a certain threshold (-r)"
+    reference = "https://arxiv.org/abs/2301.10803"
+    supports_x = False
+
+    def __init__(self):
+        Output.__init__(self)
+
+    def _plot_core(self, data):
+        labels = data.get_legend()
+
+        F = data.num_inputs
+        if self.thresholds is None or len(self.thresholds) != 1:
+            verif.util.error("Murphy plot needs a single threshold (use -r)")
+        threshold = self.thresholds[0]
+        var = verif.field.Threshold(threshold)
+
+        edges = np.array([0, 0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1])
+        edges = np.linspace(0, 1, 21)
+        for f in range(F):
+            [obs, p] = data.get_scores([verif.field.Obs(), var], f, verif.axis.No())
+            obs = verif.util.apply_threshold(obs, self.bin_type, threshold)
+            p = verif.util.apply_threshold_prob(p, self.bin_type, threshold)
+
+            opts = self._get_plot_options(f)
+            y = np.zeros(len(edges), np.float32)
+
+            for t in range(len(edges)):
+                edge = edges[t]
+                q0 = (p >= edges[t]) & (obs == 0)
+                q1 = (p >= edges[t]) & (obs == 1)
+                I0 = np.where(q0)[0]
+                I1 = np.where(q1)[0]
+                y[t] += 2 * edge * np.mean((p > edge) & (obs == 0))
+                y[t] += 2 * (1 - edge) * np.mean((p < edge) & (obs == 1))
+                y[t] += 2 * edge * (1 - edge) * np.mean((p == edge))
+
+            mpl.plot(edges, y, label=labels[f], **opts)
+
+        mpl.xlabel("Probability threshold")
+        mpl.ylabel("Mean elementary score")
+        units = data.variable.units
+        mpl.title("Murphy diagram for threshold: " + str(threshold) + " " + units)
+        mpl.ylim(bottom=0)
+        mpl.xlim(0, 1)
+

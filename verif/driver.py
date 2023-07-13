@@ -457,6 +457,8 @@ def run(argv):
         pl = verif.output.Performance()
     elif metric == "invreliability":
         pl = verif.output.InvReliability()
+    elif metric == "murphy":
+        pl = verif.output.Murphy()
     elif metric == "igncontrib":
         pl = verif.output.IgnContrib()
     elif metric == "economicvalue":
