@@ -3448,3 +3448,94 @@ class Murphy(Output):
         mpl.ylim(bottom=0)
         mpl.xlim(0, 1)
 
+class BsDecomp(Output):
+    name = "Brier score decomposition diagram"
+    description = "Brier score decomposition diagram for a certain threshold (-r)"
+    reference = "https://arxiv.org/abs/2301.10803"
+    supports_threshold = True
+    supports_x = True
+    default_axis = verif.axis.No()
+
+    def __init__(self):
+        Output.__init__(self)
+
+    def _plot_core(self, data):
+        if self.thresholds is None or len(self.thresholds) != 1:
+            verif.util.error("Murphy plot needs a single threshold (use -r)")
+
+        bsrel = verif.metric.BsRel()
+        bsres = verif.metric.BsRes()
+        bsunc = verif.metric.BsUnc()
+        interval = verif.util.get_intervals(self.bin_type, self.thresholds)[0]
+        threshold = self.thresholds[0]
+
+        labels = data.get_legend()
+        F = data.num_inputs
+        for f in range(F):
+            opts = self._get_plot_options(f, False)
+
+            x = bsrel.compute(data, f, self.axis, interval)
+            y = bsres.compute(data, f, self.axis, interval)
+
+            mpl.plot(x, y, label=labels[f], **opts)
+
+            # This will be the same value for all files
+            unc = bsunc.compute(data, f, verif.axis.No(), interval)
+
+        mpl.xlabel("Miscalibration")
+        mpl.ylabel("Discrimination")
+
+        units = data.variable.units
+        mpl.title("Brier score decomposition for threshold: %g %s" % (threshold, units))
+
+        # Fix the axis limits
+        mpl.ylim(bottom=0)
+        mpl.ylim(top=min(mpl.ylim()[1]*1.1, 1))
+        if mpl.xlim()[1] < 0.1:
+            mpl.xlim(right=0.1)
+        if mpl.ylim()[1] < 0.1:
+            mpl.ylim(top=0.1)
+        mpl.xlim(left=0)
+        mpl.gca().set_aspect(1)
+        xlim = mpl.xlim()
+        ylim = mpl.ylim()
+
+        def get_lab_pos(xx, yy, xlim, ylim):
+            if yy[1] < ylim[1]:
+                xlab = xlim[1]
+                ylab = yy[1]
+            else:
+                ylab = ylim[1]
+                xlab = np.interp(ylab, yy, xx)
+            return xlab, ylab
+
+        # Plot diagnoal uncertainty line
+        lab_opts = {"rotation": 45, "horizontalalignment": "right", "verticalalignment": "top",
+                "backgroundcolor": "white", "zorder": 1}
+        xx = xlim
+        yy = [0, xlim[1]]
+        mpl.plot(xx, yy, '-', color="orange", lw=3, zorder=0)
+        xlab, ylab = get_lab_pos(xx, yy, xlim, ylim)
+        mpl.text(xlab, ylab, "unc: %.3g" % unc, lab_opts)
+
+        # Plot diagonal Brier Score lines
+        for bs in np.linspace(0, 1, 101):
+            xx = np.array(xlim)
+            yy = xx - bs + unc
+            mpl.plot(xx, yy, 'k--', lw=0.5, zorder=0)
+            label = bs
+            if yy[1] < ylim[1]:
+                xlab = xlim[1]
+                ylab = yy[1]
+            else:
+                ylab = ylim[1]
+                xlab = np.interp(ylab, yy, xx)
+            if ylab <= ylim[0]:
+                continue
+            if xlab <= xlim[0]:
+                continue
+            mpl.text(xlab, ylab, "%g" % (label), lab_opts)
+
+        mpl.xlim(xlim)
+        mpl.ylim(ylim)
+        mpl.gca().set_zorder(2)
