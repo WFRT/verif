@@ -3482,8 +3482,8 @@ class BsDecomp(Output):
             # This will be the same value for all files
             unc = bsunc.compute(data, f, verif.axis.No(), interval)
 
-        mpl.xlabel("Miscalibration")
-        mpl.ylabel("Discrimination")
+        mpl.xlabel("Reliability component")
+        mpl.ylabel("Resolution component")
 
         units = data.variable.units
         mpl.title("Brier score decomposition for threshold: %g %s" % (threshold, units))
