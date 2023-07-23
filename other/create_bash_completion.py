@@ -65,7 +65,7 @@ print("' -- $cur ) )")
 # Cmap
 print('elif [ "$prev" = "-cmap" ]; then')
 print("   COMPREPLY=( $( compgen -W '", end = '')
-cmaps = list(mpl.cm.cmap_d.keys())
+cmaps = list(mpl.colormaps.keys())
 cmaps.sort()
 print(' '.join(cmaps), end = '')
 print("' -- $cur ) )")
