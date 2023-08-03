@@ -10,12 +10,15 @@ print("Outputs: %d" % len(outputs))
 print("Total: %d" % (len(metrics) + len(outputs)))
 
 description = verif.driver.show_description()
-lines = description.split('\n')
+lines0 = description.split('\n')
 reg = re.compile("^  -")
-lines = [line for line in lines if reg.match(line)]
-for i in range(0, len(lines)):
-    line = lines[i]
+lines0 = [line for line in lines0 if reg.match(line)]
+lines = list()
+for i, line in enumerate(lines0):
     line = line.split(' ')
     line = [q for q in line if q != '']
-    lines[i] = line[0]
-print("Options: %d" % len(lines))
+    line = line[0]
+    if line[0:2] == '--':
+        continue
+    lines += [line]
+print("(real) options: %d" % len(lines))
