@@ -150,12 +150,12 @@ class Output(object):
         self.left = None
         self.leg_loc = "best"
         self.legfs = 16
-        self.line_colors = ['r', 'b', 'g', [1, 0.73, 0.2], 'k']
-        self.line_styles = ['-', '-', '-', '-', '-', '--', '--', '--', '--']
+        self.line_colors = ['r', 'b', 'g', [1, 0.73, 0.2], 'k', 'm']
+        self.line_styles = ['-', '-', '-', '-', '-', '-', '--', '--', '--', '--', '--', '--']
         self.grid_style = None
         self.grid_color = None
         self.grid_lw = None
-        self.markers = ['o', 'o', 'o', 'o', 'o', '.', '.', '.', '.', '.']
+        self.markers = ['o', 'o', 'o', 'o', 'o', 'o', '.', '.', '.', '.', '.', '.']
         self.lw = [2]
         self.ms = [8]
         self.map_type = None
