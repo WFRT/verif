@@ -573,14 +573,14 @@ class Output(object):
         # Margins
         mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
 
-    def _plot_obs(self, x, y, isCont=True, zorder=0, label=None):
+    def _plot_obs(self, x, y, alabels=None, isCont=True, zorder=0, label=None):
         if label is None:
             label = self.obs_leg
         if isCont:
             mpl.plot(x, y, ".-", color="gray", lw=5, label=label, zorder=zorder)
         else:
             mpl.plot(x, y, "o", color="gray", ms=self.ms[0], label=label, zorder=zorder)
-        self._add_annotation(x, y, color="gray")
+        self._add_annotation(x, y, alabels, color="gray")
 
     def _add_annotation(self, x, y, labels=None, color="k", alpha=1):
         """
@@ -898,7 +898,21 @@ class Standard(Output):
                 opts = self._get_plot_options(id, include_line=self.axis.is_continuous)
                 alpha = (1 if self.axis.is_continuous else 0.55)
                 mpl.plot(x, y[:, id], label=labels[f], alpha=alpha, **opts)
-                self._add_annotation(x, y[:, id], color=opts['color'], alpha=alpha)
+
+                # Gather annotation information
+                alabels = dict()
+                alabels["score"] = y[:, id]
+                alabels["key"] = x
+                if self.axis.is_location_like:
+                    lats = np.array([loc.lat for loc in data.locations])
+                    lons = np.array([loc.lon for loc in data.locations])
+                    elevs = np.array([loc.elev for loc in data.locations])
+                    loc_ids = np.array([loc.id for loc in data.locations])
+                    alabels["lat"] = lats
+                    alabels["lon"] = lats
+                    alabels["elev"] = elevs
+                    alabels["location"] = loc_ids
+                self._add_annotation(x, y[:, id], alabels, color=opts['color'], alpha=alpha)
 
                 if self.show_smoothing_line:
                     import scipy.ndimage
@@ -1003,7 +1017,7 @@ class Standard(Output):
         alabels["lon"] = lats
         alabels["elev"] = elevs
         alabels["location"] = ids
-        alabels["value"] = contrib
+        alabels["score"] = contrib
         alabels["key"] = ids
         self._add_annotation(x0, y0, alabels)
 
@@ -1275,7 +1289,7 @@ class Standard(Output):
             alabels["lon"] = lats[is_valid]
             alabels["elev"] = elevs[is_valid]
             alabels["location"] = ids[is_valid]
-            alabels["value"] = y[is_valid, f]
+            alabels["score"] = y[is_valid, f]
             alabels["key"] = ids[is_valid]
             self._add_annotation(x0[is_valid], y0[is_valid], alabels)
 
@@ -1387,19 +1401,36 @@ class ObsFcst(Output):
             mpl.bar(x, y[0, :], color='w', lw=self.lw[0])
             mpl.xticks(range(1, len(labels) + 1), labels)
         else:
+            # Gather annotation information
+            alabels = dict()
+            alabels["key"] = x
+            if self.axis.is_location_like:
+                lats = np.array([loc.lat for loc in data.locations])
+                lons = np.array([loc.lon for loc in data.locations])
+                elevs = np.array([loc.elev for loc in data.locations])
+                loc_ids = np.array([loc.id for loc in data.locations])
+                alabels["lat"] = lats
+                alabels["lon"] = lats
+                alabels["elev"] = elevs
+                alabels["location"] = loc_ids
+
             # Obs line
-            self._plot_obs(x, y[:, 0], isCont)
+            alabels["score"] = y[:, 0]
+            self._plot_obs(x, y[:, 0], alabels, isCont)
             for f in range(F):
                 opts = self._get_plot_options(f, include_line=isCont)
                 mpl.plot(x, y[:, f + 1], label=labels[f+1], **opts)
-                self._add_annotation(x, y[:, f + 1], color=opts['color'])
+
+                alabels["score"] = y[:, f + 1]
+                self._add_annotation(x, y[:, f + 1], alabels, color=opts['color'])
 
                 if self.quantiles is not None:
                     opts = self._get_plot_options(f, include_line=isCont, include_marker=False)
                     opts['ls'] = '--'
                     for q in range(len(self.quantiles)):
                         mpl.plot(x, y[:, F + f + 1 + F*q], label=labels[F + f + 1 + F*q], **opts)
-                        self._add_annotation(x, y[:, F + f + 1 + F*q], color=opts['color'])
+                        alabels["score"] = y[:, F + f + 1 + F*q]
+                        self._add_annotation(x, y[:, F + f + 1 + F*q], alabels, color=opts['color'])
 
                     # Fill areas betweeen lines
                     Ncol = (len(self.quantiles))//2

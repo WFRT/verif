@@ -750,7 +750,7 @@ def show_description(data=None):
     # Plot options
     s += verif.util.green("  Plotting options:") + "\n"
     s += format_argument("-a", "Annotate graph by labeling each data point. Not supported by all metrics.") + "\n"
-    s += format_argument("-af fields", "Show these fields in the annotation. Comma-separated list of: value,lat,lon,elev,location") + "\n"
+    s += format_argument("-af fields", "Show these fields in the annotation. Comma-separated list of one or more of: score,key,lat,lon,elev,location. 'score' is the metric's value, 'key' is the x-axis coordinate, and the others are valid for maps and where the x-axis is location related.") + "\n"
     s += format_argument("-afs size", "Set font size of annotations") + "\n"
     s += format_argument("-aspect ratio", "Force the aspect ratio of the plot. A value greater than 1 will stretch out the y-axis.") + "\n"
     s += format_argument("-bottom value", "Bottom boundary location for saved figure [range 0-1]") + "\n"
