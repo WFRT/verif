@@ -808,6 +808,7 @@ class Standard(Output):
             self.axis = metric.default_axis
         if metric.default_bin_type is not None:
             self.bin_type = metric.default_bin_type
+        self.metric = metric
         self.show_rank = False
         self.show_acc = False
         self.leg_sort = False
@@ -929,6 +930,11 @@ class Standard(Output):
                     mpl.plot(xx, yy, **opts)
 
             mpl.xlabel(self.axis.label(data.variable))
+            if self.axis == verif.axis.Threshold():
+                # Verif doesn't distinguish between quantile and threshold when using the threshold
+                # dimension. Only the metric knows what type of threshold dimension we have.
+                if self.metric.require_threshold_type == "quantile":
+                    mpl.xlabel("Quantile level")
 
             if self.axis.is_time_like:
                 # Note that if the above plotted lines all have nan y'values, then
@@ -1441,9 +1447,23 @@ class ObsFcst(Output):
                         verif.util.fill(x, y[:, I0], y[:, I1], color, zorder=-2, alpha=0.3)
 
             mpl.xlabel(self.axis.label(data.variable))
-            mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
+            if self.axis == verif.axis.Threshold():
+                # Verif doesn't distinguish between quantile and threshold when using the threshold
+                # dimension. Only the metric knows what type of threshold dimension we have.
+                if self.metric.require_threshold_type == "quantile":
+                    mpl.xlabel("Quantile level")
+
             if self.axis.is_time_like:
+                # Note that if the above plotted lines all have nan y'values, then
+                # xaxis_date() will cause an error, since the x-axis limits are set
+                # such that the plot is around 0. Override the x-limits so that the
+                # user at least does not get a cryptic error message.
+                if np.sum(np.isnan(y) == 0) == 0:
+                    mpl.xlim([min(x), max(x)])
                 mpl.gca().xaxis_date()
+            else:
+                # NOTE: Don't call the locator on a date axis
+                mpl.gca().xaxis.set_major_formatter(self.axis.formatter(data.variable))
 
         mpl.ylabel(data.get_variable_and_units())
 
