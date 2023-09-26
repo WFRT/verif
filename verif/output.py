@@ -612,7 +612,7 @@ class Output(object):
                                         verif.util.error("'%s' not available as an annotation field" % k)
                                     label += "%g " % labels[k][i]
                             else:
-                                label = "%g %g" % (labels["value"][i], labels["key"][i])
+                                label = "%g %g" % (labels["score"][i], labels["key"][i])
                         else:
                             label = labels[i]
                     else:
