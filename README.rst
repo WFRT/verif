@@ -2,8 +2,13 @@ Forecast verification software
 ==============================
 .. image:: https://img.shields.io/github/v/release/WFRT/verif.svg
   :target: https://github.com/WFRT/verif/releases
+  :alt: Release badge
 .. image:: https://github.com/WFRT/verif/actions/workflows/python-package.yml/badge.svg
   :target: https://github.com/WFRT/verif/actions/workflows/python-package.yml
+  :alt: CI badge
+.. image:: https://img.shields.io/badge/DOI-10.1175%2FBAMS--D--22--0253.1-blue
+  :target: https://doi.org/10.1175/BAMS-D-22-0253.1
+  :alt: Bams Article
 
 Verif is a command-line tool that lets you verify the quality of weather forecasts for point
 locations. It can also compare forecasts from different forecasting systems (that have different
@@ -16,15 +21,8 @@ files, Verif will discard data points where one or more forecast systems have mi
 Since Verif is a command-line tool, it can be used in scripts to automatically create
 verification figures.
 
-Verif version 1.2 has been released (see "Installation Instruction" below). We welcome suggestions
+Verif version 1.3 has been released (see "Installation Instruction" below). We welcome suggestions
 for improvements. Verif is developed by Thomas Nipen (thomasn@met.no), with contributions from many.
-
-Resources
----------
-
-For more information on how to use Verif, **check out the wiki** at https://github.com/WFRT/verif/wiki.
-Found a bug? Please report it in the **issue tracker** at https://github.com/WFRT/verif/issues. Reach
-out to the Verif community in the **discussions** at https://github.com/WFRT/verif/discussions.
 
 Features
 --------
@@ -41,79 +39,43 @@ Features
 * Anomaly statistics relative to a baseline like climatology (``-c climfile.txt``)
 * Output to png, jpeg, eps, etc and specify dimensions and resolution (``-f image.png -dpi 300``)
 
+Resources
+---------
+
+* Check out the **wiki** at https://github.com/WFRT/verif/wiki.
+* Found a bug? Please report it in the **issue tracker** at https://github.com/WFRT/verif/issues.
+* Reach out to the Verif community in the **discussions** at https://github.com/WFRT/verif/discussions.
+* Check out our `article <https://journals.ametsoc.org/view/journals/bams/104/9/BAMS-D-22-0253.1.xml>`_ published in BAMS.
+
 .. image:: other/image.jpg
     :alt: Example plots
     :width: 400
     :align: center
 
-Installing on Ubuntu
---------------------
+Getting started
+---------------
 
-**Prerequisites**
-
-Verif requires a pip installation and Python 3. The python package "cartopy" is optional, but provides
-a background map when verification scores are plotted on a map. To install Cartopy, with its GEOS and
-PROJ4 dependencies, do the following:
+The easiest way to get started is to install verif with pip:
 
 .. code-block:: bash
 
-  sudo apt-get update
-  sudo apt-get install libgeos-dev libproj-dev
-  sudo pip3 install cartopy
+    pip3 install verif
 
-**Installing using pip**
+The `verif` command-line program should then be available.
 
-After this, the easiest is to install the lastest version of Verif using pip:
-
-.. code-block:: bash
-
-   sudo pip install verif
-
-Verif should then be accessible by typing ``verif`` on the command-line. If you do not have
-sudo-rights, then install verif as follows:
+Note that the python package "cartopy" is optional and not installed by default when verif is
+installed, Verif uses "cartopy" for creating a background map when verification scores are plotted
+on a map. To install Cartopy run
 
 .. code-block:: bash
 
-   pip install verif --user
-
-This will create the executable ``~/.local/bin/verif``. Add this to your PATH environment
-variable if necessary (i.e add ``export PATH=$PATH:~/.local/bin`` to ``~/.bashrc``).
+    pip3 install cartopy
 
 To upgrade to a newer version of Verif, run the following:
 
 .. code-block:: bash
 
-   pip install verif --upgrade
-
-**Installing from source**
-
-Alternatively, to install from source, download the source code of the latest version:
-https://github.com/WFRT/verif/releases/. Unzip the file and navigate into the extracted folder.
-
-Then install Verif by executing the following inside the extracted folder:
-
-.. code-block:: bash
-
-  sudo pip install -r requirements.txt
-  sudo python setup.py install
-
-This will create the executable ``/usr/local/bin/verif``. Add ``/usr/local/bin`` to your PATH environment
-variable if necessary. If you do not have sudo privileges do:
-
-.. code-block:: bash
-
-  pip install -r requirements.txt --user
-  python setup.py install --user
-
-This will create the executable ``~/.local/bin/verif``. Add ``~/.local/bin`` to your PATH environment
-variable.
-
-Installing on Mac OSX
----------------------
-
-Follow the proceedure as for Ubuntu (either installing with pip or from source). If installing from
-source, then look for the line "Installing verif script to <some directory>", as this will indicate
-what folder Verif is installed into. Add the folder to your PATH environment variable if necessary.
+   pip3 install verif --upgrade
 
 Examples
 --------
@@ -133,6 +95,10 @@ commands to test out the software:
    verif MEPS.nc ECMWF.nc -m reliability -r 13.9
    # Shows Brier skill score as a function of threshold
    verif MEPS.nc ECMWF.nc -m bss -x threshold
+
+How to cite
+-----------
+Nipen, T. N., R. B. Stull, C. Lussana, and I. A. Seierstad, 2023: `Verif: A Weather-Prediction Verification Tool for Effective Product Development <https://journals.ametsoc.org/view/journals/bams/104/9/BAMS-D-22-0253.1.xml>`_. Bull. Amer. Meteor.  Soc., 104, E1610–E1618, https://doi.org/10.1175/BAMS-D-22-0253.1.
 
 Copyright and license
 ---------------------
