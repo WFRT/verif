@@ -82,10 +82,8 @@ setup(
     # for example:
     # $ pip install -e .[dev,test]
     extras_require={
-    #    'dev': ['check-manifest'],
-        'test': ['coverage', 'pep8', 'pylint'],
+        'test': ['coverage', 'pep8', 'pylint', 'flake8'],
         'cartopy': ['cartopy'],
-    #    'test': ['pytest'],
     },
 
     test_suite="verif.tests",

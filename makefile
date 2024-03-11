@@ -8,6 +8,7 @@ nothing:
 VERSION=$(shell grep __version__ verif/version.py | cut -d"=" -f2 | sed s"/ //g" | sed s"/'//g")
 test:
 	coverage run --source verif -m unittest discover
+	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
 coverage: test
 	coverage report --precision 2
@@ -18,12 +19,12 @@ coverage: test
 dist:
 	echo $(VERSION)
 	rm -rf dist
-	python3.8 setup.py sdist
-	python3.8 setup.py bdist_wheel
+	python3 setup.py sdist
+	python3 setup.py bdist_wheel
 	@ echo "Next, run 'twine upload dist/*'"
 
 clean:
-	python setup.py clean
+	python3 setup.py clean
 	rm -rf build/
 	find . -name '*.pyc' -delete
 	rm -rf deb_dist
