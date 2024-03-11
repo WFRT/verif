@@ -28,10 +28,9 @@ jobs:
         sudo apt install libgeos-dev libproj-dev
         python -m pip install --upgrade pip
         python -m pip install flake8 nose
-        pip install -r requirements.txt
     - name: Install package
       run: |
-        python setup.py install
+        python -m pip install . --only-binary=:all:
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
