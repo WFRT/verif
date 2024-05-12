@@ -145,3 +145,25 @@ class Quantile(Aggregator):
 
     def __eq__(self, other):
         return (self.__class__ == other.__class__) and (self.quantile == other.quantile)
+
+
+class Change(Aggregator):
+    """Difference between the last and the first element. Is most useful
+    when used with -Tagg since it implies an array representing a sequence
+    such as time.
+    """
+    def __call__(self, array, axis=None):
+        if axis is None:
+            return array.flatten()[-1] - array.flatten()[0]
+        elif axis == 0:
+            return array[-1, ...] - array[0, ...]
+        elif axis == 1:
+            return array[:, -1, ...] - array[:, 0, ...]
+        elif axis == 2:
+            return array[:, :, -1, ...] - array[:, :, 0, ...]
+        elif axis == 3:
+            return array[:, :, :, -1, ...] - array[:, :, :, 0, ...]
+        elif axis == 4:
+            return array[:, :, :, :, -1, ...] - array[:, :, :, :, 0, ...]
+        else:
+            raise NotImplementedError(f"This function not implemented for axis {axis}")
