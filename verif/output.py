@@ -2165,6 +2165,24 @@ class TimeSeries(Output):
                     mpl.plot(x, y, label=lab, **opts)
 
         """
+        Draw ensemble members
+        """
+        for f in range(F):
+            opts = self._get_plot_options(f, include_marker=False)
+            opts["lw"] /= 2
+            for member in range(data.get_num_members(f)):
+                fcst = data.get_scores(verif.field.Ensemble(member), f)
+                for d in range(len(data.times)):
+                    if member == 0 and d == 0 and verif.field.Fcst() not in data.get_fields():
+                        lab = data.get_legend()[f]
+                    else:
+                        lab = None
+
+                    x = datenums[d] + data.leadtimes / 24.0
+                    y = verif.util.nanmean(fcst[d, :, :], axis=1)
+                    mpl.plot(x, y, label=lab, **opts)
+
+        """
         Draw probabilistic forecast lines: One line for each quantile specified
         """
         if self.quantiles is not None:

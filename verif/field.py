@@ -83,6 +83,14 @@ class Ensemble(Field):
     def __init__(self, member):
         self.member = member
 
+    def __eq___(self, other):
+        if self.__class__ != other.__class__:
+            return False
+        return self.member == other.member
+
+    def __hash__(self):
+        return hash(self.member)
+
 
 class Quantile(Field):
     def __init__(self, quantile):

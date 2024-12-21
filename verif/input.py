@@ -91,6 +91,9 @@ class Input(object):
             fields.append(verif.field.Fcst())
         if self.pit is not None:
             fields.append(verif.field.Pit())
+        if self.ensemble is not None:
+            for member in range(self.num_members):
+                fields.append(verif.field.Ensemble(member))
         for name in self.other_fields:
             fields.append(verif.field.Other(name))
         thresholds = [verif.field.Threshold(threshold) for threshold in self.thresholds]
@@ -114,6 +117,14 @@ class Input(object):
     def get_regular_names(self):
         """ Standard names of fields in dataset """
         return ["obs", "fcst", "id", "location", "lat", "lon", "elev", "altitude", "hour", "date", "unixtime", "leadtime", "offset"]
+
+    @property
+    def num_members(self):
+        """Number of ensemble members available"""
+        if self.ensemble is not None:
+            return self.ensemble.shape[3]
+        else:
+            return 0
 
 
 class Netcdf(Input):
@@ -178,7 +189,7 @@ class Netcdf(Input):
     @property
     def ensemble(self):
         if "ensemble" in self._file.variables:
-            return verif.util.clean(self._file.variables["ens"])
+            return verif.util.clean(self._file.variables["ensemble"])
         else:
             return None
 

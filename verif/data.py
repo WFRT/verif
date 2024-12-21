@@ -402,6 +402,9 @@ class Data(object):
             names = names[0:-1]
         return names
 
+    def get_num_members(self, f):
+        return self._inputs[f].num_members
+
     def get_legend(self):
         if self._legend is None:
             legend = self.get_names()
