@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=61", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "verif"
+authors = [
+    {name = "Thomas Nipen", email = "thomasn@met.no"}
+]
+description='A verification program for meteorological forecasts and observations'
+keywords=['meteorology', 'verification', 'weather prediction']
+
+license = {file = 'BSD-3'}
+readme = "README.md"
+
+requires-python = ">=3.9"
+classifiers = [
+      "License :: OSI Approved :: BSD License",
+      'Intended Audience :: Science/Research',
+      'Topic :: Scientific/Engineering :: Atmospheric Science',
+      'Topic :: Scientific/Engineering :: Information Analysis',
+      "Operating System :: OS Independent",
+      "Programming Language :: Python :: 3 :: Only",
+      "Programming Language :: Python :: 3.9",
+      "Programming Language :: Python :: 3.10",
+      "Programming Language :: Python :: 3.11",
+      "Programming Language :: Python :: 3.12",
+      "Programming Language :: Python :: Implementation :: CPython",
+      "Programming Language :: Python :: Implementation :: PyPy",
+      "Development Status :: 5 - Production/Stable",
+    ]
+dependencies = [
+    'numpy>=1.7',
+    'matplotlib',
+    'scipy',
+    'netCDF4',
+    'six',
+    'future',
+]
+dynamic = ["version"]
+optional-dependencies.test = ['coverage', 'pep8', 'pylint', 'flake8']
+
+optional-dependencies.cartopy = ['cartopy']
+
+[project.urls]
+Homepage='https://github.com/WFRT/verif'
+
+[tool.setuptools]
+# Any setuptools-specific configuration (e.g., package data, entry points) goes here
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["verif"]
+
+[tool.setuptools.dynamic]
+version = {attr = "verif.version.__version__"}
+
+[project.scripts]
+verif = "verif:main"
