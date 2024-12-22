@@ -143,6 +143,8 @@ class Metric(object):
     aggregator = verif.aggregator.Mean()
     supports_aggregator = False
     type = verif.metric_type.Deterministic()
+    min_num_thresholds = None
+    max_num_thresholds = None
 
     def compute(self, data, input_index, axis, interval):
         """ Compute the score along an axis
@@ -1216,6 +1218,8 @@ class QuantileCoverage(Metric):
     # default_bin_type = "within"
     require_threshold_type = "quantile"
     supports_threshold = True
+    min_num_thresholds = 1
+    max_num_thresholds = 2
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
         var0 = verif.field.Quantile(interval.lower)
@@ -1336,6 +1340,8 @@ class Spread(Metric):
     supports_threshold = True
     perfect_score = 0
     orientation = -1
+    min_num_thresholds = 2
+    max_num_thresholds = 2
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
         var0 = verif.field.Quantile(interval.lower)
@@ -1357,6 +1363,8 @@ class SpreadSkillRatio(Metric):
     supports_threshold = True
     perfect_score = 1
     orientation = 0
+    min_num_thresholds = 2
+    max_num_thresholds = 2
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
         var0 = verif.field.Quantile(interval.lower)
