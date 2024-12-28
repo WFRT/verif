@@ -510,7 +510,29 @@ class Data(object):
                 if field not in self._get_score_cache[i]:
                     input = self._inputs[i]
                     all_fields = input.get_fields()
-                    if field not in all_fields:
+                    if field.__class__ is verif.field.Threshold:
+                        I = np.where(np.isclose(input.thresholds,  field.threshold))[0]
+                        if len(I) == 0:
+                            if input.ensemble is None:
+                                verif.util.error("%s does not contain '%s'" % (self.get_names()[i], field.name()))
+                            # Get from ensemble
+                            temp = np.mean(input.ensemble <= field.threshold, axis=-1)
+                        else:
+                            assert(len(I) == 1)
+                            temp = input.threshold_scores[:, :, :, I[0]]
+
+                    elif field.__class__ is verif.field.Quantile:
+                        I = np.where(np.isclose(input.quantiles, field.quantile))[0]
+                        if len(I) == 0:
+                            if input.ensemble is None:
+                                verif.util.error("%s does not contain '%s'" % (self.get_names()[i], field.name()))
+                            # Get from ensemble
+                            temp = np.percentile(input.ensemble, field.quantile * 100, axis=-1)
+                        else:
+                            assert(len(I) == 1)
+                            temp = input.quantile_scores[:, :, :, I[0]]
+
+                    elif field not in all_fields:
                         verif.util.error("%s does not contain '%s'" % (self.get_names()[i], field.name()))
 
                     elif field == verif.field.Obs():
@@ -528,16 +550,6 @@ class Data(object):
 
                     elif field.__class__ is verif.field.Ensemble:
                         temp = input.ensemble[:, :, :, field.member]
-
-                    elif field.__class__ is verif.field.Threshold:
-                        I = np.where(np.isclose(input.thresholds,  field.threshold))[0]
-                        assert(len(I) == 1)
-                        temp = input.threshold_scores[:, :, :, I[0]]
-
-                    elif field.__class__ is verif.field.Quantile:
-                        I = np.where(np.isclose(input.quantiles, field.quantile))[0]
-                        assert(len(I) == 1)
-                        temp = input.quantile_scores[:, :, :, I[0]]
 
                     else:
                         temp = input.other_score(field.name())
