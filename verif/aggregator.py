@@ -167,3 +167,24 @@ class Change(Aggregator):
             return array[:, :, :, :, -1, ...] - array[:, :, :, :, 0, ...]
         else:
             raise NotImplementedError(f"This function not implemented for axis {axis}")
+
+class AbsChange(Aggregator):
+    """Absolute value of difference between the last and the first element. Is most useful
+    when used with -Tagg since it implies an array representing a sequence
+    such as time.
+    """
+    def __call__(self, array, axis=None):
+        if axis is None:
+            return np.abs(array.flatten()[-1] - array.flatten()[0])
+        elif axis == 0:
+            return np.abs(array[-1, ...] - array[0, ...])
+        elif axis == 1:
+            return np.abs(array[:, -1, ...] - array[:, 0, ...])
+        elif axis == 2:
+            return np.abs(array[:, :, -1, ...] - array[:, :, 0, ...])
+        elif axis == 3:
+            return np.abs(array[:, :, :, -1, ...] - array[:, :, :, 0, ...])
+        elif axis == 4:
+            return np.abs(array[:, :, :, :, -1, ...] - array[:, :, :, :, 0, ...])
+        else:
+            raise NotImplementedError(f"This function not implemented for axis {axis}")
