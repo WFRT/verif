@@ -12,6 +12,7 @@ import verif.aggregator
 import verif.field
 import verif.util
 import verif.variable
+import scipy
 
 
 class Data(object):
@@ -471,13 +472,7 @@ class Data(object):
                         temp = input.other_score(field.name())
 
                     # Pre-aggregate observations
-                    if self.dim_agg_length is not None:
-                        if self.dim_agg_axis == verif.axis.Time():
-                            temp = preaggregate_time(temp, input.times, self.dim_agg_method, self.dim_agg_length)
-                        elif self.dim_agg_axis == verif.axis.Leadtime():
-                            temp = preaggregate_leadtime(temp, input.leadtimes, self.dim_agg_method, self.dim_agg_length)
-                        else:
-                            verif.util.error("Dimension aggregation has to be one of 'time' or 'leadtime'")
+                    temp = self.preaggregate(temp, input)
 
                     Itimes = self._get_time_indices(i)
                     Ileadtimes = self._get_leadtime_indices(i)
@@ -510,58 +505,68 @@ class Data(object):
                 if field not in self._get_score_cache[i]:
                     input = self._inputs[i]
                     all_fields = input.get_fields()
-                    if field.__class__ is verif.field.Threshold:
+                    if isinstance(field, verif.field.Threshold):
                         I = np.where(np.isclose(input.thresholds,  field.threshold))[0]
-                        if len(I) == 0:
+                        if len(I) == 0 or self.dim_agg_length is not None:
+                            # Try to get probabilities from ensemble
                             if input.ensemble is None:
                                 verif.util.error("%s does not contain '%s'" % (self.get_names()[i], field.name()))
-                            # Get from ensemble
-                            temp = np.mean(input.ensemble <= field.threshold, axis=-1)
+                            temp = self.preaggregate(input.ensemble, input)
+
+                            # TODO: Use interpolation here, which is better for small ensemble
+                            # sizes, and would be more consistent with how this is done with
+                            # computing quantiles. The problem is that there is no function
+                            # available in scipy or numpy for interpolating where x is
+                            # multi-dimensoinal and y is a vector.
+                            temp = np.mean(temp <= field.threshold, axis=-1)
                         else:
+                            if self.dim_agg_length is not None:
+                                verif.util.error("Cannot pre-aggregate threshold probabilities without an ensemble")
                             assert(len(I) == 1)
                             temp = input.threshold_scores[:, :, :, I[0]]
 
-                    elif field.__class__ is verif.field.Quantile:
+                    elif isinstance(field, verif.field.Quantile):
                         I = np.where(np.isclose(input.quantiles, field.quantile))[0]
-                        if len(I) == 0:
+                        if len(I) == 0 or self.dim_agg_length is not None:
                             if input.ensemble is None:
                                 verif.util.error("%s does not contain '%s'" % (self.get_names()[i], field.name()))
-                            # Get from ensemble
-                            temp = np.percentile(input.ensemble, field.quantile * 100, axis=-1)
+                            num_members = input.ensemble.shape[-1]
+                            if field.quantile < get_lower_cdf(num_members) or field.quantile > get_upper_cdf(num_members):
+                                verif.util.warning("In %s, ensemble doesn't have enough members to accurately get quantile level %s" % (self.get_names()[i], field.quantile))
+
+                            temp = self.preaggregate(input.ensemble, input)
+                            temp = np.quantile(input.ensemble, field.quantile, axis=3, method="normal_unbiased")
                         else:
+                            if self.dim_agg_length is not None:
+                                verif.util.error("Cannot pre-aggregate threshold probabilities without an ensemble")
                             assert(len(I) == 1)
                             temp = input.quantile_scores[:, :, :, I[0]]
 
-                    elif field not in all_fields:
-                        verif.util.error("%s does not contain '%s'" % (self.get_names()[i], field.name()))
-
-                    elif field == verif.field.Obs():
-                        temp = input.obs
-
-                    elif field == verif.field.Fcst():
-                        temp = input.fcst
-
-                    elif field == verif.field.Pit():
-                        temp = input.pit
-                        x0 = self.variable.x0
-                        x1 = self.variable.x1
-                        if x0 is not None or x1 is not None:
-                            temp = verif.field.Pit.randomize(input.obs, temp, x0, x1)
-
-                    elif field.__class__ is verif.field.Ensemble:
-                        temp = input.ensemble[:, :, :, field.member]
-
                     else:
-                        temp = input.other_score(field.name())
+                        if field not in all_fields:
+                            verif.util.error("%s does not contain '%s'" % (self.get_names()[i], field.name()))
 
-                    # Pre-aggregate forecasts
-                    if self.dim_agg_length is not None:
-                        if self.dim_agg_axis == verif.axis.Time():
-                            temp = preaggregate_time(temp, input.times, self.dim_agg_method, self.dim_agg_length)
-                        elif self.dim_agg_axis == verif.axis.Leadtime():
-                            temp = preaggregate_leadtime(temp, input.leadtimes, self.dim_agg_method, self.dim_agg_length)
+                        elif field == verif.field.Obs():
+                            temp = input.obs
+
+                        elif field == verif.field.Fcst():
+                            temp = input.fcst
+
+                        elif field == verif.field.Pit():
+                            temp = input.pit
+                            x0 = self.variable.x0
+                            x1 = self.variable.x1
+                            if x0 is not None or x1 is not None:
+                                temp = verif.field.Pit.randomize(input.obs, temp, x0, x1)
+
+                        elif isinstance(field, verif.field.Ensemble):
+                            temp = input.ensemble[:, :, :, field.member]
+
                         else:
-                            verif.util.error("Dimension aggregation has to be one of 'time' or 'leadtime'")
+                            temp = input.other_score(field.name())
+
+                        # Pre-aggregate forecasts
+                        temp = self.preaggregate(temp, input)
 
                     Itimes = self._get_time_indices(i)
                     Ileadtimes = self._get_leadtime_indices(i)
@@ -770,6 +775,18 @@ class Data(object):
 
         return output
 
+    def preaggregate(self, array, input):
+        temp = array
+        if self.dim_agg_length is not None:
+            if self.dim_agg_axis == verif.axis.Time():
+                temp = preaggregate_time(temp, input.times, self.dim_agg_method, self.dim_agg_length)
+            elif self.dim_agg_axis == verif.axis.Leadtime():
+                temp = preaggregate_leadtime(temp, input.leadtimes, self.dim_agg_method, self.dim_agg_length)
+            else:
+                verif.util.error("Dimension aggregation has to be one of 'time' or 'leadtime'")
+        return temp
+
+
 def preaggregate_time(array, times, aggregator, length):
     """ Aggregate array across time
 
@@ -804,3 +821,27 @@ def preaggregate_leadtime(array, leadtimes, aggregator, length):
         I = range(np.where(leadtimes > start)[0][0], t+1)
         new_array[:, t, :] = aggregator(array[:, I, :], axis=1)
     return new_array
+
+def get_lower_cdf(num_members):
+    """Returns the CDF corresponding to the lowest ensemble member"""
+    return 0
+    # return 1 / (num_members + 1)
+    # return 0.5 / num_members
+
+def get_upper_cdf(num_members):
+    return 1 - get_lower_cdf(num_members)
+
+def get_quantile_function(ensemble):
+    assert len(ensemble.shape) == 4
+
+    num_members = ensemble.shape[3]
+    lower_cdf = get_lower_cdf(num_members)
+    upper_cdf = get_upper_cdf(num_members)
+    ensemble = np.sort(ensemble, axis=-1)
+
+    x = np.linspace(lower_cdf, upper_cdf, num_members)
+
+    f = scipy.interpolate.interp1d(x,
+            ensemble, bounds_error=True,
+            axis=3, kind='zero')
+    return f
