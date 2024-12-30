@@ -268,6 +268,20 @@ class IntegrationTest(unittest.TestCase):
         self.run_with_image("verif examples/raw.txt -m autocorr -r 0:100:1000")
         self.run_with_image("verif examples/raw.txt -m autocorr -r 0:100:1000 -xlim 0,100")
 
+    def test_cond(self):
+        self.run_with_image("verif examples/raw.txt -m cond -r 1:10")
+
+    def test_qq(self):
+        self.run_with_image("verif examples/raw.txt -m qq -sp")
+        self.run_with_image("verif examples/raw.txt -m qq -x location")
+
+    def test_spreadskill(self):
+        self.run_with_image("verif verif/tests/files/file1_quantiles.txt -m spreadskill -sp -q 0.1,0.9")
+
+    def test_timeseries(self):
+        self.run_with_image("verif examples/raw.txt -m timeseries")
+        self.run_with_image("verif examples/raw.txt -m meteo")
+
     def test_murphy(self):
         self.run_with_image("verif examples/raw.txt -m murphy -r 0")
 
@@ -287,13 +301,24 @@ class IntegrationTest(unittest.TestCase):
         pass
 
     def test_type(self):
-        self.run_with_text("verif examples/raw.txt examples/kf.txt -m mae -type text")
-        self.run_with_text("verif examples/raw.txt examples/kf.txt -m mae -type csv")
+        self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type rank")
         # These cause a FutureWarning in mpl, but not much we can do about that
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type map -clim 0,11")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type map -cmap RdBu")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type map")
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m mae -type maprank")
+
+    def test_text(self):
+        self.run_with_text("verif examples/raw.txt examples/kf.txt -m mae -type text")
+        self.run_with_text("verif examples/raw.txt examples/kf.txt -m ets -r 0,1,2 -x threshold -type text")
+        self.run_with_text("verif examples/raw.txt examples/kf.txt -m mae -x fcst -type text")
+        self.run_with_text("verif examples/raw.txt examples/kf.txt -m mae -x obs -type text")
+
+    def test_csv(self):
+        self.run_with_text("verif examples/raw.txt examples/kf.txt -m mae -type csv")
+        self.run_with_text("verif examples/raw.txt examples/kf.txt -m ets -r 0,1,2 -x threshold -type csv")
+        self.run_with_text("verif examples/raw.txt examples/kf.txt -m mae -x fcst -type csv")
+        self.run_with_text("verif examples/raw.txt examples/kf.txt -m mae -x obs -type csv")
 
     def test_freq(self):
         self.run_with_image("verif verif/tests/files/file1.txt -m freq")

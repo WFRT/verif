@@ -188,5 +188,18 @@ class InputTextTest(unittest.TestCase):
         self.assertTrue(np.isnan(obs[0, 4, 0]))
         self.assertTrue(np.isnan(fcst[0, 4, 0]))
 
+    def test_ensemble(self):
+        input = verif.input.Text("verif/tests/files/file1_ens.txt")
+
+        self.assertEqual(input.ensemble.shape, (3, 3, 2, 3))
+        Iloc = [l.id for l in input.locations].index(3)
+        np.testing.assert_array_almost_equal(input.ensemble[0, 0, Iloc, :], [3, 4, 5])
+
+        data = verif.data.Data([input])
+        ens = data.get_scores(verif.field.Ensemble(0), 0)
+
+        self.assertEqual(ens.shape, (3, 3, 2))
+        self.assertEqual(ens[0, 0, 0], 3)
+
 if __name__ == '__main__':
     unittest.main()
