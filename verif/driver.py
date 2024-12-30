@@ -556,6 +556,16 @@ def run(argv):
         if quantiles is None:
             quantiles = data.quantiles
             verif.util.warning("Missing '-q <quantiles>'. Automatically setting quantiles: %s" % (','.join(["%g" % q for q in quantiles])))
+
+        # Check that we have the right number of quantiles
+        if m is not None:
+            if m.min_num_thresholds is not None:
+                if len(quantiles) < m.min_num_thresholds:
+                    verif.util.error(f"Need to specify at least {m.min_num_thresholds} quantiles (-q)")
+            if m.max_num_thresholds is not None:
+                if len(quantiles) > m.max_num_thresholds:
+                    verif.util.error(f"Need to specify at most {m.max_num_thresholds} quantiles (-q)")
+
         # TODO: This is a bit of a hack, using thresholds to hold the
         # quantiles. But otherwise, the classes in output need to deal with
         # testing if the metric needs thresholds or quantiles

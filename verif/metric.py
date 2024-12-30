@@ -143,6 +143,8 @@ class Metric(object):
     aggregator = verif.aggregator.Mean()
     supports_aggregator = False
     type = verif.metric_type.Deterministic()
+    min_num_thresholds = None
+    max_num_thresholds = None
 
     def compute(self, data, input_index, axis, interval):
         """ Compute the score along an axis
@@ -1216,6 +1218,8 @@ class QuantileCoverage(Metric):
     # default_bin_type = "within"
     require_threshold_type = "quantile"
     supports_threshold = True
+    min_num_thresholds = 1
+    max_num_thresholds = 2
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
         var0 = verif.field.Quantile(interval.lower)
@@ -1336,12 +1340,45 @@ class Spread(Metric):
     supports_threshold = True
     perfect_score = 0
     orientation = -1
+    min_num_thresholds = 2
+    max_num_thresholds = 2
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
         var0 = verif.field.Quantile(interval.lower)
         var1 = verif.field.Quantile(interval.upper)
         [q0, q1] = data.get_scores([var0, var1], input_index, axis, axis_index)
         return np.mean(q1 - q0)
+
+    def label(self, variable):
+        return self.name
+
+
+class SpreadSkillRatio(Metric):
+    type = verif.metric_type.Probabilistic()
+    name = "Spread-skill ratio"
+    description = "Ratio of spread to skill (RMSE). Use -q to set which quantiles to use for spread."
+    min = 0
+    default_bin_type = "within"
+    require_threshold_type = "quantile"
+    supports_threshold = True
+    perfect_score = 1
+    orientation = 0
+    min_num_thresholds = 2
+    max_num_thresholds = 2
+
+    def compute_single(self, data, input_index, axis, axis_index, interval):
+        var0 = verif.field.Quantile(interval.lower)
+        var1 = verif.field.Quantile(interval.upper)
+        fields = [var0, var1,verif.field.Fcst(), verif.field.Obs()]
+        q0, q1, obs, fcst = data.get_scores(fields, input_index, axis, axis_index)
+
+        spread = np.mean(q1 - q0)
+        skill = np.sqrt(np.mean(np.abs(obs - fcst)**2))
+
+        num_std = 0.5 * (scipy.stats.norm.ppf(interval.upper) - scipy.stats.norm.ppf(interval.lower))
+        adjusted_spread = spread / num_std
+
+        return adjusted_spread / skill
 
     def label(self, variable):
         return self.name

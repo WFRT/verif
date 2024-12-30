@@ -759,7 +759,7 @@ class Comps(Input):
             variable_name = variable_name.replace("m", "-")
             variable_name = variable_name.replace("p0", "0.")
             variable_name = variable_name.replace("p", "")
-            assert(len(np.where(variable_name == ".")) < 2)
+            assert variable_name.count(".") < 2
             if verif.util.is_number(variable_name):
                 threshold = float(variable_name)
         return threshold
