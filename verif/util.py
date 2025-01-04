@@ -130,6 +130,12 @@ def unixtime_to_date(unixtime):
     return date
 
 
+def unixtime_to_datetime(unixtime):
+   x = verif.util.unixtime_to_datenum(unixtime)
+   x = datetime.datetime.fromordinal(int(x))
+   return x
+
+
 def red(text):
     """ Print text in red to the console """
     return "\033[31m" + text + "\033[0m"

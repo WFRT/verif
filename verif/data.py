@@ -815,6 +815,8 @@ def preaggregate_leadtime(array, leadtimes, aggregator, length):
         length (float): Aggregate across this many hours in leadtime
     """
     assert len(leadtimes) == array.shape[1]
+    assert length > 0
+
     new_array = np.nan * np.zeros(array.shape, np.float32)
     for t in range(array.shape[1]):
         start = leadtimes[t] - length

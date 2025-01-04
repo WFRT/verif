@@ -30,6 +30,7 @@ classifiers = [
       "Development Status :: 5 - Production/Stable",
     ]
 dependencies = [
+    'bokeh',
     'numpy>=1.7',
     'matplotlib',
     'scipy',
@@ -57,3 +58,4 @@ version = {attr = "verif.version.__version__"}
 
 [project.scripts]
 verif = "verif:main"
+webverif = "verif:web"

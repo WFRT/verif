@@ -875,5 +875,53 @@ def get_text_width():
     return 80
 
 
+def get_type(pl, m):
+   type = None
+   if pl.require_threshold_type == "deterministic":
+      type = "deterministic"
+   elif pl.require_threshold_type == "threshold":
+      type = "threshold"
+   elif pl.require_threshold_type == "quantile":
+      type = "quantile"
+   elif m is not None:
+      if m.require_threshold_type == "deterministic":
+         type = "deterministic"
+      elif m.require_threshold_type == "threshold":
+         type = "threshold"
+      elif m.require_threshold_type == "quantile":
+         type = "quantile"
+      elif m.require_threshold_type is not None:
+         verif.util.error("Internal error for metric %s: Cannot understand required threshold type '%s'" % (m.name(), m.require_threshold_type))
+   elif pl.require_threshold_type is not None:
+      verif.util.error("Internal error for output %s: Cannot understand required threshold type '%s'" % (pl.name(), pl.require_threshold_type))
+   return type
+
+
+def get_thresholds(type, data):
+   if type == "deterministic":
+      smin = np.inf
+      smax = -np.inf
+      if verif.field.Obs() in data.get_fields():
+         obs = data.get_scores(verif.field.Obs(), 0)
+         smin = min(np.nanmin(obs), smin)
+         smax = max(np.nanmax(obs), smax)
+      if verif.field.Fcst() in data.get_fields():
+         fcst = data.get_scores(verif.field.Fcst(), 0)
+         smin = min(np.nanmin(fcst), smin)
+         smax = max(np.nanmax(fcst), smax)
+      thresholds = np.linspace(smin, smax, 10)
+      print(thresholds)
+      verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+   elif type == "threshold":
+      thresholds = data.thresholds
+      verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+   elif type == "quantile":
+      thresholds = data.quantiles
+      verif.util.warning("Missing '-r <thresholds>'. Automatically setting thresholds.")
+   if len(thresholds) == 0:
+      verif.util.error("No thresholds available")
+   return thresholds
+
+
 if __name__ == '__main__':
     run(sys.argv)
