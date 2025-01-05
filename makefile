@@ -6,9 +6,10 @@ nothing:
 	@ echo "This makefile does not build verif, use setup.py"
 
 VERSION=$(shell grep __version__ verif/version.py | cut -d"=" -f2 | sed s"/ //g" | sed s"/'//g")
+
 test:
 	coverage run --source verif -m unittest discover
-	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+	flake8 verif --count --select=E9,F63,F7,F82 --show-source --statistics
 
 coverage: test
 	coverage report --precision 2
