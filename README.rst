@@ -103,5 +103,5 @@ Nipen, T. N., R. B. Stull, C. Lussana, and I. A. Seierstad, 2023: `Verif: A Weat
 Copyright and license
 ---------------------
 
-Copyright © 2013-2024 UBC Weather Forecast Research Team. Verif is licensed under the 3-clause
+Copyright © 2013-2025 UBC Weather Forecast Research Team. Verif is licensed under the 3-clause
 BSD license. See LICENSE file.
