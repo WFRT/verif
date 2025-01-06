@@ -1400,7 +1400,10 @@ class SpreadSkillRatio(Metric):
         num_std = 0.5 * (scipy.stats.norm.ppf(interval.upper) - scipy.stats.norm.ppf(interval.lower))
         adjusted_spread = spread / num_std
 
-        return adjusted_spread / skill
+        if np.isclose(skill, 0, atol=1e-7):
+            return np.nan
+        else:
+            return adjusted_spread / skill
 
     def label(self, variable):
         return self.name
