@@ -446,6 +446,28 @@ class StdError(ObsFcstBased):
         return np.mean((obs - fcst - bias) ** 2) ** 0.5
 
 
+class ObsStdDev(ObsFcstBased):
+    name = "Observation Standard Deviation"
+    description = "Standard deviation calculated for observations"
+    min = 0
+    perfect_score = 0
+    orientation = -1
+
+    def _compute_from_obs_fcst(self, obs, fcst):
+        return np.std(obs)
+
+
+class FcstStdDev(ObsFcstBased):
+    name = "Forecast Standard Deviation"
+    description = "Standard deviation calculated for forecasts"
+    min = 0
+    perfect_score = 0
+    orientation = -1
+
+    def _compute_from_obs_fcst(self, obs, fcst):
+        return np.std(fcst)
+
+
 class Rmse(ObsFcstBased):
     name = "Root mean squared error"
     description = "Root mean squared error"
