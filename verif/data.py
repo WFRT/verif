@@ -517,8 +517,13 @@ class Data(object):
                             # sizes, and would be more consistent with how this is done with
                             # computing quantiles. The problem is that there is no function
                             # available in scipy or numpy for interpolating where x is
-                            # multi-dimensoinal and y is a vector.
-                            temp = np.mean(temp <= field.threshold, axis=-1)
+                            # multi-dimensional and y is a vector.
+
+                            # NOTE: <= operator does not handle nans
+                            is_missing = np.isnan(temp)
+                            temp = (temp <= field.threshold).astype(np.float32)
+                            temp[is_missing] = np.nan
+                            temp = np.nanmean(temp, axis=-1)
                         else:
                             if self.dim_agg_length is not None:
                                 verif.util.error("Cannot pre-aggregate threshold probabilities without an ensemble")
