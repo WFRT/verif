@@ -414,7 +414,7 @@ class Data(object):
 
     def get_legend(self):
         if self._legend is None:
-            legend = self.get_names()
+            legend = self.get_short_names()
         else:
             legend = self._legend
         return legend

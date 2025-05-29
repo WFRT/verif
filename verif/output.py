@@ -466,7 +466,7 @@ class Output(object):
         else:
             fig = mpl.gcf()
             if fig.canvas.manager is not None:
-                fig.canvas.manager.set_window_title(' '.join(data.get_names()))
+                fig.canvas.manager.set_window_title(' '.join(data.get_legend()))
             mpl.show()
 
     def _legend(self, data, names=None):
@@ -1343,7 +1343,7 @@ class Hist(Output):
         F = data.num_inputs
         values = [data.get_scores(self._field, f, verif.axis.No()) for f in range(F)]
 
-        labels = data.get_names()
+        labels = data.get_legend()
         intervals = verif.util.get_intervals(self.bin_type, self.thresholds)
         x = [i.center for i in intervals]
         N = len(intervals)

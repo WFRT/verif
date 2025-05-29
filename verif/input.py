@@ -115,6 +115,7 @@ class Input(object):
         """ Default to setting the name to the filename without the path and extension"""
         I = self.name.rfind('.')
         name = self.name[:I]
+        name = name.replace('_', ' ')
         return name
 
     def get_regular_names(self):
