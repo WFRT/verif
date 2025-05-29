@@ -196,7 +196,20 @@ class InputTextTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(input.ensemble[0, 0, Iloc, :], [3, 4, 5])
 
         data = verif.data.Data([input])
-        ens = data.get_scores(verif.field.Ensemble(0), 0)
+        ens = data.get_scores(verif.field.Ensemble(), 0)
+
+        self.assertEqual(ens.shape, (3, 3, 2, 3))
+        self.assertEqual(ens[0, 0, 0, 0], 3)
+
+    def test_ensemble_member(self):
+        input = verif.input.Text("verif/tests/files/file1_ens.txt")
+
+        self.assertEqual(input.ensemble.shape, (3, 3, 2, 3))
+        Iloc = [l.id for l in input.locations].index(3)
+        np.testing.assert_array_almost_equal(input.ensemble[0, 0, Iloc, :], [3, 4, 5])
+
+        data = verif.data.Data([input])
+        ens = data.get_scores(verif.field.EnsembleMember(0), 0)
 
         self.assertEqual(ens.shape, (3, 3, 2))
         self.assertEqual(ens[0, 0, 0], 3)

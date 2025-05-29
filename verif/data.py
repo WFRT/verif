@@ -296,7 +296,13 @@ class Data(object):
         if axis == verif.axis.All():
             I = np.where(valid == 0)
             for i in range(0, len(fields)):
-                scores[i][I[0], I[1], I[2]] = np.nan
+                if len(I) == 3:
+                    scores[i][I[0], I[1], I[2]] = np.nan
+                elif len(I) == 4:
+                    # Ensemble forecasts
+                    scores[i][I[0], I[1], I[2], I[3]] = np.nan
+                else:
+                    raise Exception("Internal error")
         else:
             I = np.where(valid)
             for i in range(0, len(fields)):
@@ -564,8 +570,11 @@ class Data(object):
                             if x0 is not None or x1 is not None:
                                 temp = verif.field.Pit.randomize(input.obs, temp, x0, x1)
 
-                        elif isinstance(field, verif.field.Ensemble):
+                        elif isinstance(field, verif.field.EnsembleMember):
                             temp = input.ensemble[:, :, :, field.member]
+
+                        elif isinstance(field, verif.field.Ensemble):
+                            temp = input.ensemble
 
                         else:
                             temp = input.other_score(field.name())
@@ -576,9 +585,9 @@ class Data(object):
                     Itimes = self._get_time_indices(i)
                     Ileadtimes = self._get_leadtime_indices(i)
                     Ilocations = self._get_location_indices(i)
-                    temp = temp[Itimes, :, :]
-                    temp = temp[:, Ileadtimes, :]
-                    temp = temp[:, :, Ilocations]
+                    temp = temp[Itimes, ...]
+                    temp = temp[:, Ileadtimes, ...]
+                    temp = temp[:, :, Ilocations, ...]
 
                     self._get_score_cache[i][field] = temp
 

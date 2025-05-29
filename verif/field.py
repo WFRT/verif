@@ -79,7 +79,8 @@ class Fcst(Field):
     pass
 
 
-class Ensemble(Field):
+class EnsembleMember(Field):
+    """Represents data from a single ensemble member"""
     def __init__(self, member):
         self.member = member
 
@@ -90,6 +91,12 @@ class Ensemble(Field):
 
     def __hash__(self):
         return hash(self.member)
+
+
+class Ensemble(Field):
+    """Represents the full ensemble with all members. This field is different than the others in
+    that it represents 4D data (time, leadtime, location, member)."""
+    pass
 
 
 class Quantile(Field):

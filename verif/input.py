@@ -94,8 +94,9 @@ class Input(object):
         if self.pit is not None:
             fields.append(verif.field.Pit())
         if self.ensemble is not None:
+            fields.append(verif.field.Ensemble())
             for member in range(self.num_members):
-                fields.append(verif.field.Ensemble(member))
+                fields.append(verif.field.EnsembleMember(member))
         for name in self.other_fields:
             fields.append(verif.field.Other(name))
         thresholds = [verif.field.Threshold(threshold) for threshold in self.thresholds]
@@ -171,6 +172,8 @@ class Netcdf(Input):
             file.close()
             return valid
 
+        # TODO: Invalid file if we have a threshold dimension, but no threshold probabilities (same
+        # with quantiles)
         except:
             return False
 

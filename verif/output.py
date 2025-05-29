@@ -2171,7 +2171,7 @@ class TimeSeries(Output):
             opts = self._get_plot_options(f, include_marker=False)
             opts["lw"] /= 2
             for member in range(data.get_num_members(f)):
-                fcst = data.get_scores(verif.field.Ensemble(member), f)
+                fcst = data.get_scores(verif.field.EnsembleMember(member), f)
                 for d in range(len(data.times)):
                     if member == 0 and d == 0 and verif.field.Fcst() not in data.get_fields():
                         lab = data.get_legend()[f]
