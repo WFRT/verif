@@ -872,7 +872,7 @@ class Standard(Output):
         if self.leg_sort:
             if not self.show_acc:
                 # averaging for non-acc plots
-                averages = (verif.util.nanmean(y, axis=1))
+                averages = (np.nanmean(y, axis=1))
                 ids = averages.argsort()[::-1]
 
             else:
@@ -1186,7 +1186,7 @@ class Standard(Output):
             if self._metric.orientation == 1:
                 R = R[:, ::-1]
 
-            std = verif.util.nanstd(y)
+            std = np.nanstd(y)
             minDiff = std / 50
             Ieven = np.where(np.abs(y[:, 0] - y[:, 1]) < minDiff)[0]
             R[Ieven, :] = -1
@@ -1234,7 +1234,7 @@ class Standard(Output):
         x, y, _, labels, _ = self._get_x_y(data, verif.axis.Location())
 
         # Colorbar limits should be the same for all subplots
-        clim = [verif.util.nanpercentile(y.flatten(), self._mapLowerPerc),
+        clim = [np.nanpercentile(y.flatten(), self._mapLowerPerc),
                 verif.util.nanpercentile(y.flatten(), self._mapUpperPerc)]
 
         cmap = self.cmap
@@ -1243,7 +1243,7 @@ class Standard(Output):
         if self.clim is not None:
             clim = self.clim
 
-        std = verif.util.nanstd(y)
+        std = np.nanstd(y)
         minDiff = std / 50
 
         if F == 2 and self.show_rank:
@@ -2005,8 +2005,8 @@ class Change(Output):
 
             for i in range(len(bins)):
                 I = (change > edges[i]) & (change <= edges[i + 1])
-                y[i] = verif.util.nanmean(err[I])
-                x[i] = verif.util.nanmean(change[I])
+                y[i] = np.nanmean(err[I])
+                x[i] = np.nanmean(change[I])
             mpl.plot(x, y, label=labels[f], **opts)
         self._plot_perfect_score(x, 0)
         mpl.xlabel("Daily obs change (" + data.variable.units + ")")
@@ -2147,7 +2147,7 @@ class TimeSeries(Output):
             all_datenums = [verif.util.unixtime_to_datenum(time) for time in times]
             x, I = np.unique(all_datenums, return_index=True)
             if len(I) > 0:
-                y = verif.util.nanmean(obs[:, :, :], axis=2).flatten()[I]
+                y = np.nanmean(obs[:, :, :], axis=2).flatten()[I]
                 self._plot_obs(x, y, label="obs")
 
         """
@@ -2160,7 +2160,7 @@ class TimeSeries(Output):
                 opts = self._get_plot_options(f)
                 for d in range(len(data.times)):
                     x = datenums[d] + data.leadtimes / 24.0
-                    y = verif.util.nanmean(fcst[d, :, :], axis=1)
+                    y = np.nanmean(fcst[d, :, :], axis=1)
                     lab = labels[f] if d == 0 else ""
                     mpl.plot(x, y, label=lab, **opts)
 
@@ -2179,7 +2179,7 @@ class TimeSeries(Output):
                         lab = None
 
                     x = datenums[d] + data.leadtimes / 24.0
-                    y = verif.util.nanmean(fcst[d, :, :], axis=1)
+                    y = np.nanmean(fcst[d, :, :], axis=1)
                     mpl.plot(x, y, label=lab, **opts)
 
         """
@@ -2193,7 +2193,7 @@ class TimeSeries(Output):
                     alpha = 1
                     for d in range(len(data.times)):
                         x = datenums[d] + data.leadtimes / 24.0
-                        y = verif.util.nanmean(fcst[d, :, :], axis=1)
+                        y = np.nanmean(fcst[d, :, :], axis=1)
                         lab = "%g%%" % (quantile * 100) if d == 0 else ""
                         mpl.plot(x, y, label=lab, alpha=alpha, **opts)
 
@@ -2222,12 +2222,12 @@ class Meteo(Output):
 
         # Plot obs line
         obs = data.get_scores(verif.field.Obs(), 0)
-        obs = verif.util.nanmean(verif.util.nanmean(obs, axis=0), axis=1)
+        obs = np.nanmean(np.nanmean(obs, axis=0), axis=1)
         mpl.plot(x, obs, "o-", color=self._obs_col, lw=2, ms=8, label=self.obs_leg)
 
         # Plot deterministic forecast
         fcst = data.get_scores(verif.field.Fcst(), 0)
-        fcst = verif.util.nanmean(verif.util.nanmean(fcst, axis=0), axis=1)
+        fcst = np.nanmean(np.nanmean(fcst, axis=0), axis=1)
         mpl.plot(x, fcst, "o-", color=self._fcst_col, lw=2, ms=8, label="Forecast")
 
         # Plot quantiles
@@ -2239,7 +2239,7 @@ class Meteo(Output):
             y = np.zeros([len(data.leadtimes), len(quantiles)], 'float')
             for i in range(len(quantiles)):
                 score = data.get_scores(verif.field.Quantile(quantiles[i]), 0)
-                y[:, i] = verif.util.nanmean(verif.util.nanmean(score, axis=0), axis=1)
+                y[:, i] = np.nanmean(np.nanmean(score, axis=0), axis=1)
             for i in range(len(quantiles)):
                 style = "k-"
                 if i == 0 or i == len(quantiles) - 1:
@@ -3029,7 +3029,7 @@ class Taylor(Output):
                 crmseLabel = "Norm CRMSE"
                 minCrmseLabel = "Min norm CRMSE"
             else:
-                stdobs = verif.util.nanmean(stdobs)
+                stdobs = np.nanmean(stdobs)
                 xlabel = "Standard deviation (" + data.variable.units + ")"
                 crmseLabel = "CRMSE"
                 minCrmseLabel = "Min CRMSE"
@@ -3266,7 +3266,7 @@ class Error(Output):
         # Draw rings
         for f in range(F):
             opts = self._get_plot_options(f, include_marker=False)
-            self._draw_circle(verif.util.nanmean(rmse[:, f]), style=opts['ls'], color=opts['color'])
+            self._draw_circle(np.nanmean(rmse[:, f]), style=opts['ls'], color=opts['color'])
 
         # Set axis limits
         maxx = xlim[1]
@@ -3415,9 +3415,9 @@ class InvReliability(Output):
             if self.thresholds is None:
                 N = min(25, max(11, int(len(obs) // 1000)))
                 if data.variable.name == "Precip":
-                    edges = np.linspace(0, np.sqrt(verif.util.nanmax(obs)), N + 1) ** 2
+                    edges = np.linspace(0, np.sqrt(np.nanmax(obs)), N + 1) ** 2
                 else:
-                    edges = np.linspace(verif.util.nanmin(obs), verif.util.nanmax(obs), N + 1)
+                    edges = np.linspace(np.nanmin(obs), np.nanmax(obs), N + 1)
             else:
                 edges = np.array(self.thresholds)
 

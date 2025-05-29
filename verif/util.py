@@ -396,31 +396,6 @@ def get_date(date, diff):
     return int(date2.strftime('%Y%m%d'))
 
 
-def nanmean(data, **args):
-    return np.ma.filled(np.ma.masked_array(data, np.isnan(data)).mean(**args),
-          fill_value=np.nan)
-
-
-def nanmedian(data, **args):
-    I = np.where(np.isnan(data.flatten()) == 0)[0]
-    return np.median(data.flatten()[I])
-
-
-def nanmin(data, **args):
-    return np.ma.filled(np.ma.masked_array(data, np.isnan(data)).min(**args),
-          fill_value=np.nan)
-
-
-def nanmax(data, **args):
-    return np.ma.filled(np.ma.masked_array(data, np.isnan(data)).max(**args),
-          fill_value=np.nan)
-
-
-def nanstd(data, **args):
-    return np.ma.filled(np.ma.masked_array(data, np.isnan(data)).std(**args),
-          fill_value=np.nan)
-
-
 def nanpercentile(data, pers):
     I = np.where(np.isnan(data.flatten()) == 0)[0]
     p = np.nan
