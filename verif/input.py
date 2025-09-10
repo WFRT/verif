@@ -7,6 +7,8 @@ import re
 import time
 import sys
 import netCDF4
+from functools import cached_property
+
 
 import verif.location
 import verif.util
@@ -168,45 +170,46 @@ class Netcdf(Input):
 
             file.close()
             return valid
+
         except:
             return False
 
-    @property
+    @cached_property
     def obs(self):
         if "obs" in self._file.variables:
             return verif.util.clean(self._file.variables["obs"])
         else:
             return None
 
-    @property
+    @cached_property
     def fcst(self):
         if "fcst" in self._file.variables:
             return verif.util.clean(self._file.variables["fcst"])
         else:
             return None
 
-    @property
+    @cached_property
     def pit(self):
         if "pit" in self._file.variables:
             return verif.util.clean(self._file.variables["pit"])
         else:
             return None
 
-    @property
+    @cached_property
     def ensemble(self):
         if "ensemble" in self._file.variables:
             return verif.util.clean(self._file.variables["ensemble"])
         else:
             return None
 
-    @property
+    @cached_property
     def threshold_scores(self):
         if "cdf" in self._file.variables:
             return verif.util.clean(self._file.variables["cdf"])
         else:
             return None
 
-    @property
+    @cached_property
     def quantile_scores(self):
         if "x" in self._file.variables:
             return verif.util.clean(self._file.variables["x"])
