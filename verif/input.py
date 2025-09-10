@@ -160,6 +160,12 @@ class Netcdf(Input):
             for required_var in required_vars:
                 valid = valid and required_var in vars
 
+            if "threshold" in dims and "threshold" not in vars:
+                valid = False
+
+            if "quantile" in dims and "threshold" not in vars:
+                valid = False
+
             file.close()
             return valid
         except:
