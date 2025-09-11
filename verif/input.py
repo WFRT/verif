@@ -165,7 +165,7 @@ class Netcdf(Input):
             if "threshold" in dims and "threshold" not in vars:
                 valid = False
 
-            if "quantile" in dims and "threshold" not in vars:
+            if "quantile" in dims and "quantile" not in vars:
                 valid = False
 
             file.close()
