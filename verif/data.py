@@ -571,10 +571,13 @@ class Data(object):
                                 temp = verif.field.Pit.randomize(input.obs, temp, x0, x1)
 
                         elif isinstance(field, verif.field.EnsembleMember):
-                            temp = input.ensemble[:, :, :, field.member]
+                            if field.member >= input.num_members:
+                                temp = np.nan * np.zeros(input.ensemble[:, :, :, 0].shape)
+                            else:
+                                temp = input.ensemble[:, :, :, field.member]
 
                         elif isinstance(field, verif.field.Ensemble):
-                            temp = input.ensemble
+                            temp = input.ensemble[:, :, :, :]
 
                         else:
                             temp = input.other_score(field.name())
