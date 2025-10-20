@@ -546,7 +546,8 @@ class Data(object):
                                 verif.util.warning("In %s, ensemble doesn't have enough members to accurately get quantile level %s" % (self.get_names()[i], field.quantile))
 
                             temp = self.preaggregate(input.ensemble, input)
-                            temp = np.quantile(input.ensemble, field.quantile, axis=3, method="normal_unbiased")
+                            #temp = np.quantile(input.ensemble, field.quantile, axis=3, method="normal_unbiased")
+                            temp = np.nanquantile(input.ensemble, field.quantile, axis=3, method="normal_unbiased")
                         else:
                             if self.dim_agg_length is not None:
                                 verif.util.error("Cannot pre-aggregate threshold probabilities without an ensemble")
