@@ -467,6 +467,61 @@ class FcstStdDev(ObsFcstBased):
     def _compute_from_obs_fcst(self, obs, fcst):
         return np.std(fcst)
 
+class RmseFromEnsembleMean(Metric):
+    name = "Root mean squared error"
+    description = "Root mean squared error"
+    min = 0
+    perfect_score = 0
+    supports_aggregator = True
+    orientation = -1
+
+    def __init__(self, field=verif.field.Other("ens-mean")):
+        self.field = field
+
+    def compute_single(self, data, input_index, axis, axis_index, interval):
+        [obs, fcst] = data.get_scores([verif.field.Obs(), self.field], input_index, axis, axis_index)
+        assert(obs.shape[0] == fcst.shape[0])
+        if axis == verif.axis.Obs():
+            I = np.where(interval.within(obs))
+            obs = obs[I]
+            fcst = fcst[I]
+        elif axis == verif.axis.Fcst():
+            I = np.where(interval.within(fcst))
+            obs = obs[I]
+            fcst = fcst[I]
+
+        return self.compute_from_obs_fcst(obs, fcst, interval)
+
+    def compute_from_obs_fcst(self, obs, fcst, interval=None):
+        """ Compute the score using only the observations and forecasts
+
+        obs and fcst must have the same length, but may contain nan values
+
+        Arguments:
+           obs (np.array): 1D array of observations
+           fcst (np.array): 1D array of forecasts
+
+        Returns:
+           float: Value of score
+        """
+
+        # Remove missing values
+        I = np.where((np.isnan(obs) | np.isnan(fcst)) == 0)[0]
+        obs = obs[I]
+        fcst = fcst[I]
+
+        if obs.shape[0] > 0:
+            return self._compute_from_obs_fcst(obs, fcst)
+        else:
+            return np.nan
+
+
+    def _compute_from_obs_fcst(self, obs, fcst):
+        return self.aggregator((obs - fcst) ** 2) ** 0.5
+
+    def label(self, variable):
+        return "RMSE (" + variable.units + ")"
+
 
 class Rmse(ObsFcstBased):
     name = "Root mean squared error"
