@@ -554,6 +554,7 @@ class Data(object):
                             temp = input.quantile_scores[:, :, :, I[0]]
 
                     else:
+                        print(field, all_fields)
                         if field not in all_fields:
                             verif.util.error("%s does not contain '%s'" % (self.get_names()[i], field.name()))
 
@@ -598,13 +599,27 @@ class Data(object):
         Remove missing. If one configuration has a missing value, set all
         configurations to missing. This can happen when the times are
         available, but have missing values.
+
+        Ensembles can have different number of members and some members can be missing on some days.
+        For this field, only remove cases where one or more input files are missing all members.
         """
         if self._remove_missing_across_all:
-            is_missing = np.isnan(self._get_score_cache[0][field])
-            for i in range(1, num_inputs):
-                is_missing = is_missing | (np.isnan(self._get_score_cache[i][field]))
-            for i in range(num_inputs):
-                self._get_score_cache[i][field][is_missing] = np.nan
+            if isinstance(field, verif.field.Ensemble):
+                # Check if all members are missing (axis 3)
+                is_missing = np.all(np.isnan(self._get_score_cache[0][field]), axis=3)
+                for i in range(1, num_inputs):
+                    is_missing = is_missing | (np.all(np.isnan(self._get_score_cache[i][field]), axis=3))
+                for i in range(num_inputs):
+                    temp = self._get_score_cache[i][field]
+                    # Remove all members by broadcasting the True/False to all members
+                    I = np.repeat(is_missing[..., None], temp.shape[-1], 3)
+                    self._get_score_cache[i][field][I] = np.nan
+            else:
+                is_missing = np.isnan(self._get_score_cache[0][field])
+                for i in range(1, num_inputs):
+                    is_missing = is_missing | (np.isnan(self._get_score_cache[i][field]))
+                for i in range(num_inputs):
+                    self._get_score_cache[i][field][is_missing] = np.nan
 
         return self._get_score_cache[input_index][field]
 
