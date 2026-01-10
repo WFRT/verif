@@ -173,8 +173,6 @@ class Netcdf(Input):
             file.close()
             return valid
 
-        # TODO: Invalid file if we have a threshold dimension, but no threshold probabilities (same
-        # with quantiles)
         except:
             return False
 
@@ -204,7 +202,7 @@ class Netcdf(Input):
         if "ensemble" in self._file.variables:
             return verif.util.clean(self._file.variables["ensemble"])
         else:
-            return None
+            return self.fcst[:, :, :, None]
 
     @cached_property
     def threshold_scores(self):
