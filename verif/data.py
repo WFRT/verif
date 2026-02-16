@@ -468,27 +468,25 @@ class Data(object):
             found_obs = False
             for i in range(num_inputs):
                 input = self._inputs[i]
-                all_fields = input.get_fields()
-                if field in all_fields:
-                    if field == verif.field.Obs():
-                        temp = input.obs
-                    elif field == verif.field.Fcst():
-                        temp = input.fcst
-                    else:
-                        temp = input.other_score(field.name())
+                if field == verif.field.Obs():
+                    temp = input.obs
+                elif field == verif.field.Fcst():
+                    temp = input.fcst
+                else:
+                    temp = input.other_score(field.name())
 
-                    # Pre-aggregate observations
-                    temp = self.preaggregate(temp, input)
+                # Pre-aggregate observations
+                temp = self.preaggregate(temp, input)
 
-                    Itimes = self._get_time_indices(i)
-                    Ileadtimes = self._get_leadtime_indices(i)
-                    Ilocations = self._get_location_indices(i)
-                    temp = temp[Itimes, :, :]
-                    temp = temp[:, Ileadtimes, :]
-                    temp = temp[:, :, Ilocations]
+                Itimes = self._get_time_indices(i)
+                Ileadtimes = self._get_leadtime_indices(i)
+                Ilocations = self._get_location_indices(i)
+                temp = temp[Itimes, :, :]
+                temp = temp[:, Ileadtimes, :]
+                temp = temp[:, :, Ilocations]
 
-                    self._get_score_cache[i][field] = temp
-                    found_obs = True
+                self._get_score_cache[i][field] = temp
+                found_obs = True
             if not found_obs:
                 verif.util.error("No files have observations")
 
@@ -554,15 +552,17 @@ class Data(object):
                             temp = input.quantile_scores[:, :, :, I[0]]
 
                     else:
-                        print(field, all_fields)
-                        if field not in all_fields:
-                            verif.util.error("%s does not contain '%s'" % (self.get_names()[i], field.name()))
-
-                        elif field == verif.field.Obs():
+                        if field == verif.field.Obs():
                             temp = input.obs
 
                         elif field == verif.field.Fcst():
                             temp = input.fcst
+
+                        elif field == verif.field.EnsembleMean():
+                            temp = input.ensemble_mean
+
+                        elif field == verif.field.EnsembleVariance():
+                            temp = input.ensemble_variance
 
                         elif field == verif.field.Pit():
                             temp = input.pit

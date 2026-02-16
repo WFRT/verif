@@ -99,6 +99,15 @@ class Ensemble(Field):
     pass
 
 
+class EnsembleMean(Field):
+    pass
+
+
+class EnsembleVariance(Field):
+    def units(self, variable):
+        return "(" + variable.units + ") ^ 2"
+
+
 class Quantile(Field):
     def __init__(self, quantile):
         self.quantile = quantile
@@ -135,11 +144,6 @@ class Threshold(Field):
 
     def __hash__(self):
         return hash(self.threshold)
-
-
-class Spread(Field):
-    def label(self, variable):
-        return "Ensemble spread"
 
 
 class Other(Field):
