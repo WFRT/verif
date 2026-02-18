@@ -287,6 +287,14 @@ class Data(object):
 
             # Remove missing values
             currValid = (np.isnan(curr) == 0) & (np.isinf(curr) == 0)
+
+            # Collapse the ensemble dimension
+            if field == verif.field.Ensemble():
+                if axis == verif.axis.All():
+                    currValid = np.product(currValid, axis=3)
+                else:
+                    currValid = np.product(currValid, axis=1)
+
             if valid is None:
                 valid = currValid
             else:
@@ -304,13 +312,21 @@ class Data(object):
                 else:
                     raise Exception("Internal error")
         else:
-            I = np.where(valid)
+            I = np.where(valid)[0]
             for i in range(0, len(fields)):
-                scores[i] = scores[i][I]
+                # Use ... as this might be an ensemble field
+                scores[i] = scores[i][I, ...]
 
         # No valid data. Therefore return a list of nans instead of an empty list
         if scores[0].shape[0] == 0:
-            scores = [np.nan * np.zeros(1, float) for i in range(0, len(fields))]
+            new_scores = list()
+            for i,field  in enumerate(fields):
+                if field == verif.field.Ensemble():
+                    num_members = scores[i].shape[-1]
+                    new_scores = [np.nan * np.zeros([1, num_members], float)]
+                else:
+                    new_scores += [np.nan * np.zeros(1, float)]
+            scores = new_scores
 
         self._get_scores_cache[key] = scores
 
@@ -470,13 +486,14 @@ class Data(object):
                 input = self._inputs[i]
                 if field == verif.field.Obs():
                     temp = input.obs
+                    temp = self.preaggregate(temp, input)
                 elif field == verif.field.Fcst():
                     temp = input.fcst
+                    temp = self.preaggregate(temp, input)
                 else:
                     temp = input.other_score(field.name())
-
-                # Pre-aggregate observations
-                temp = self.preaggregate(temp, input)
+                    if self.dim_agg_length is not None:
+                        verif.util.warning("Cannot preaggregate " + field.name() + "since I'm unsure it makes sense")
 
                 Itimes = self._get_time_indices(i)
                 Ileadtimes = self._get_leadtime_indices(i)
@@ -508,7 +525,6 @@ class Data(object):
             for i in range(num_inputs):
                 if field not in self._get_score_cache[i]:
                     input = self._inputs[i]
-                    all_fields = input.get_fields()
                     if isinstance(field, verif.field.Threshold):
                         I = np.where(np.isclose(input.thresholds,  field.threshold))[0]
                         if len(I) == 0 or self.dim_agg_length is not None:
@@ -551,40 +567,49 @@ class Data(object):
                             assert(len(I) == 1)
                             temp = input.quantile_scores[:, :, :, I[0]]
 
+                    elif field == verif.field.EnsembleVariance():
+                        if self.dim_agg_length is not None:
+                            temp = self.preaggregate(input.ensemble, input)
+                            temp =  np.nanvar(temp, axis=-1)
+                        else:
+                            temp = input.ensemble_variance
+
+                    elif field == verif.field.Pit():
+                        temp = input.pit
+                        x0 = self.variable.x0
+                        x1 = self.variable.x1
+                        if x0 is not None or x1 is not None:
+                            temp = verif.field.Pit.randomize(input.obs, temp, x0, x1)
+
                     else:
+                        # Fields that can be preaggregated
                         if field == verif.field.Obs():
                             temp = input.obs
+                            temp = self.preaggregate(temp, input)
 
                         elif field == verif.field.Fcst():
                             temp = input.fcst
+                            temp = self.preaggregate(temp, input)
 
                         elif field == verif.field.EnsembleMean():
                             temp = input.ensemble_mean
-
-                        elif field == verif.field.EnsembleVariance():
-                            temp = input.ensemble_variance
-
-                        elif field == verif.field.Pit():
-                            temp = input.pit
-                            x0 = self.variable.x0
-                            x1 = self.variable.x1
-                            if x0 is not None or x1 is not None:
-                                temp = verif.field.Pit.randomize(input.obs, temp, x0, x1)
+                            temp = self.preaggregate(temp, input)
 
                         elif isinstance(field, verif.field.EnsembleMember):
                             if field.member >= input.num_members:
                                 temp = np.nan * np.zeros(input.ensemble[:, :, :, 0].shape)
                             else:
                                 temp = input.ensemble[:, :, :, field.member]
+                            temp = self.preaggregate(temp, input)
 
                         elif isinstance(field, verif.field.Ensemble):
                             temp = input.ensemble[:, :, :, :]
+                            temp = self.preaggregate(temp, input)
 
                         else:
                             temp = input.other_score(field.name())
-
-                        # Pre-aggregate forecasts
-                        temp = self.preaggregate(temp, input)
+                            if self.dim_agg_length is not None:
+                                verif.util.warning("Cannot preaggregate " + field.name() + "since I'm unsure it makes sense")
 
                     Itimes = self._get_time_indices(i)
                     Ileadtimes = self._get_leadtime_indices(i)
@@ -784,26 +809,35 @@ class Data(object):
         axis_index  Index along the axis to slice
         """
         output = None
-        if axis == verif.axis.Time():
-            output = array[axis_index, :, :].flatten()
-        elif axis in verif.axis.get_time_axes():
-            axis_values = self.axis_cache[axis]
-            axis_values_unique = self.axis_cache_unique[axis]
-            I = np.where(axis_values == axis_values_unique[axis_index])
-            output = array[I, :, :].flatten()
-        elif axis in verif.axis.get_leadtime_axes():
-            axis_values = self.axis_cache[axis]
-            axis_values_unique = self.axis_cache_unique[axis]
-            I = np.where(axis_values == axis_values_unique[axis_index])
-            output = array[:, I, :].flatten()
-        elif axis.is_location_like:
-            output = array[:, :, axis_index].flatten()
-        elif axis in [verif.axis.No(), verif.axis.Threshold(), verif.axis.Obs(), verif.axis.Fcst()]:
-            output = array.flatten()
-        elif axis == verif.axis.All() or axis is None:
+        if axis == verif.axis.All() or axis is None:
             output = array
         else:
-            verif.util.error("data.py: unrecognized axis: " + axis.name())
+            is_ensemble = len(array.shape) == 4
+            if axis == verif.axis.Time():
+                output = array[axis_index, ...]
+            elif axis in verif.axis.get_time_axes():
+                axis_values = self.axis_cache[axis]
+                axis_values_unique = self.axis_cache_unique[axis]
+                I = np.where(axis_values == axis_values_unique[axis_index])
+                output = array[I, ...]
+            elif axis in verif.axis.get_leadtime_axes():
+                axis_values = self.axis_cache[axis]
+                axis_values_unique = self.axis_cache_unique[axis]
+                I = np.where(axis_values == axis_values_unique[axis_index])
+                output = array[:, I, ...]
+            elif axis.is_location_like:
+                output = array[:, :, axis_index, ...]
+            elif axis in [verif.axis.No(), verif.axis.Threshold(), verif.axis.Obs(), verif.axis.Fcst()]:
+                output = array
+            else:
+                verif.util.error("data.py: unrecognized axis: " + axis.name())
+            if is_ensemble:
+                # Put into (N, members)
+                num_members = array.shape[-1]
+                output = np.array([output[..., i].flatten() for i in range(num_members)])
+                output = output.transpose()
+            else:
+                output = output.flatten()
 
         return output
 
@@ -833,7 +867,7 @@ def preaggregate_time(array, times, aggregator, length):
     for t in range(array.shape[0]):
         start = times[t] - length * 3600
         I = range(np.where(times > start)[0][0], t+1)
-        new_array[t, :, :] = aggregator(array[I, :, :], axis=0)
+        new_array[t, ...] = aggregator(array[I, ...], axis=0)
     return new_array
 
 
@@ -851,7 +885,7 @@ def preaggregate_leadtime(array, leadtimes, aggregator, length):
     for t in range(array.shape[1]):
         start = leadtimes[t] - length
         I = range(np.where(leadtimes > start)[0][0], t+1)
-        new_array[:, t, :] = aggregator(array[:, I, :], axis=1)
+        new_array[:, t, ...] = aggregator(array[:, I, ...], axis=1)
     return new_array
 
 def get_lower_cdf(num_members):
