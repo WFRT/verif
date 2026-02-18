@@ -220,7 +220,10 @@ class Netcdf(Input):
         if "ensemble" in self._file.variables:
             return verif.util.clean(self._file.variables["ensemble"])
         else:
-            return self.fcst[:, :, :, None]
+            num_times = len(self.times)
+            num_leadtimes = len(self.leadtimes)
+            num_locations = len(self.locations)
+            return np.zeros([num_times, num_leadtimes, num_locations, 0], 'float')
 
     @cached_property
     def threshold_scores(self):

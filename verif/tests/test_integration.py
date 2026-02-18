@@ -293,9 +293,14 @@ class IntegrationTest(unittest.TestCase):
         self.run_with_image("verif examples/raw.txt -m mae --config verif/tests/files/configEmpty.txt")
 
     def test_other_fields(self):
-        self.run_with_image("verif verif/tests/files/file1_crps.txt -m crps")
-        self.run_with_image("verif verif/tests/files/file1_crps.txt -m crps -x time")
-        self.run_with_image("verif verif/tests/files/file1_crps.txt -m crps -agg median")
+        self.run_with_image("verif verif/tests/files/file1_crps.txt -m ensemble_crps")
+        self.run_with_image("verif verif/tests/files/file1_crps.txt -m ensemble_crps -x time")
+        self.run_with_image("verif verif/tests/files/file1_crps.txt -m ensemble_crps -agg median")
+
+    def test_crps(self):
+        self.run_with_image("verif verif/tests/files/file1_ens.txt -m crps")
+        self.run_with_image("verif verif/tests/files/file1_ens.txt -m crps -x time")
+        self.run_with_image("verif verif/tests/files/file1_ens.txt -m crps -agg median")
 
     def test_map_type(self):
         pass

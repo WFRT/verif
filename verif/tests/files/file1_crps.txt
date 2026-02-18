@@ -1,4 +1,4 @@
-date     leadtime location  lat   lon   crps  obs   fcst
+date     leadtime location  lat   lon   ensemble_crps  obs   fcst
 20120101 0        3         50    10    12    3     6
 20120101 6        3         50    10    12    5     7
 20120101 12       3         50    10    12    6     7

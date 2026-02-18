@@ -288,12 +288,16 @@ class Data(object):
             # Remove missing values
             currValid = (np.isnan(curr) == 0) & (np.isinf(curr) == 0)
 
-            # Collapse the ensemble dimension
+            # Collapse the ensemble dimension, by checking that all members are available
             if field == verif.field.Ensemble():
-                if axis == verif.axis.All():
-                    currValid = np.product(currValid, axis=3)
+                num_members = currValid.shape[-1]
+                if num_members == 0:
+                    currValid = np.ones(currValid.shape[:-1], int)
                 else:
-                    currValid = np.product(currValid, axis=1)
+                    if axis == verif.axis.All():
+                        currValid = np.product(currValid, axis=3)
+                    else:
+                        currValid = np.product(currValid, axis=1)
 
             if valid is None:
                 valid = currValid
@@ -495,6 +499,10 @@ class Data(object):
                     if self.dim_agg_length is not None:
                         verif.util.warning("Cannot preaggregate " + field.name() + "since I'm unsure it makes sense")
 
+                if temp is None:
+                    # This can happen if for example obs is missing
+                    continue
+
                 Itimes = self._get_time_indices(i)
                 Ileadtimes = self._get_leadtime_indices(i)
                 Ilocations = self._get_location_indices(i)
@@ -629,11 +637,20 @@ class Data(object):
         For this field, only remove cases where one or more input files are missing all members.
         """
         if self._remove_missing_across_all:
+            def compute_is_missing(array):
+                if array.shape[-1] == 0:
+                    # When an ensemble has no members, it's technically never missing
+                    return np.zeros(array.shape[0:-1]) > 1
+                else:
+                    return np.all(np.isnan(array), axis=3)
+
             if isinstance(field, verif.field.Ensemble):
+                curr_values = self._get_score_cache[0][field]
+                num_members = curr_values.shape[3]
                 # Check if all members are missing (axis 3)
-                is_missing = np.all(np.isnan(self._get_score_cache[0][field]), axis=3)
+                is_missing = compute_is_missing(curr_values)
                 for i in range(1, num_inputs):
-                    is_missing = is_missing | (np.all(np.isnan(self._get_score_cache[i][field]), axis=3))
+                    is_missing = is_missing | (compute_is_missing(self._get_score_cache[i][field]))
                 for i in range(num_inputs):
                     temp = self._get_score_cache[i][field]
                     # Remove all members by broadcasting the True/False to all members
@@ -804,7 +821,7 @@ class Data(object):
         """ Slice an array along a certain axis and return an extract array
 
         Arguments:
-        array       3D numpy array
+        array       3D/4D numpy array
         axis        Of type verif.axis.Axis
         axis_index  Index along the axis to slice
         """
@@ -831,11 +848,16 @@ class Data(object):
                 output = array
             else:
                 verif.util.error("data.py: unrecognized axis: " + axis.name())
+
             if is_ensemble:
                 # Put into (N, members)
                 num_members = array.shape[-1]
-                output = np.array([output[..., i].flatten() for i in range(num_members)])
-                output = output.transpose()
+                if num_members == 0:
+                    N = np.product(output.shape[:-1])
+                    output = np.zeros([N, num_members], 'float')
+                else:
+                    output = np.array([output[..., i].flatten() for i in range(num_members)])
+                    output = output.transpose()
             else:
                 output = output.flatten()
 
