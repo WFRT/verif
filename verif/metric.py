@@ -797,6 +797,8 @@ class Crps(Metric):
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
         ensemble, obs = data.get_scores([verif.field.Ensemble(), verif.field.Obs()], input_index, axis, axis_index)
+        if ensemble.shape[1] < 2:
+            verif.util.error("Cannot compute CRPS with less than 2 members")
         crps = self.compute_crps(ensemble, obs)
         crps = self.aggregator(crps)
         return crps
