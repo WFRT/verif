@@ -2060,7 +2060,7 @@ class SpreadSkill(Output):
     supports_x = False
     require_threshold_type = "deterministic"
     name = "Spread skill"
-    description = "Spread/skill plot showing RMSE of ensemble mean as a function of ensemble spread (use -r to specify spread thresholds and -q to specify a lower and upper quantile to represent spread)"
+    description = "Spread/skill plot showing RMSE of ensemble mean as a function of ensemble spread"
 
     def __init__(self):
         Output.__init__(self)
@@ -2068,25 +2068,14 @@ class SpreadSkill(Output):
     def _plot_core(self, data):
         labels = data.get_legend()
         F = data.num_inputs
-        if self.quantiles is not None:
-            lower_q = np.min(self.quantiles)
-            upper_q = np.max(self.quantiles)
-        else:
-            if len(data.quantiles) < 2:
-                verif.util.error("Spread-skill diagram needs input files to have at least 2 quantiles")
-            lower_q = data.quantiles[0]
-            upper_q = data.quantiles[-1]
-        lower_field = verif.field.Quantile(lower_q)
-        upper_field = verif.field.Quantile(upper_q)
         for f in range(F):
             opts = self._get_plot_options(f)
-            [obs, fcst, lower, upper] = data.get_scores([verif.field.Obs(), verif.field.Fcst(), lower_field, upper_field], f, verif.axis.No())
-            spread = upper - lower
-            skill = (obs - fcst)**2
+            [obs, mean, variance] = data.get_scores([verif.field.Obs(), verif.field.EnsembleMean(),
+                verif.field.EnsembleVariance()], f, verif.axis.No())
+            spread = variance ** 0.5
+            skill = (obs - mean)**2
             x = np.nan*np.zeros(len(self.thresholds), 'float')
             y = np.nan*np.zeros(len(x), 'float')
-            lower = np.nan*np.zeros(len(x), 'float')
-            upper = np.nan*np.zeros(len(x), 'float')
             for i in range(1, len(self.thresholds)):
                 I = np.where((np.isnan(spread) == 0) &
                              (np.isnan(skill) == 0) &
@@ -2095,8 +2084,6 @@ class SpreadSkill(Output):
                 if len(I) > 0:
                     x[i] = np.mean(spread[I])
                     y[i] = np.sqrt(np.mean(skill[I]))
-                    lower[i] = np.percentile(np.sqrt(skill[I]), 5)
-                    upper[i] = np.percentile(np.sqrt(skill[I]), 95)
 
             mpl.plot(x, y, label=labels[f], **opts)
 
@@ -2107,14 +2094,9 @@ class SpreadSkill(Output):
         mpl.xlim(lims)
         mpl.ylim(lims)
 
-        # The perfect score depends on how far the quantiles are apart. Compute
-        # the number of standard deviations that the quantile interval would
-        # contain assuming a Gaussian distribution. The ideal line will then be
-        # scaled by this number.
-        num_std = scipy.stats.norm.ppf(upper_q) - scipy.stats.norm.ppf(lower_q)
-        self._plot_perfect_score(lims, 1.0/num_std*lims)
+        self._plot_perfect_score(lims, lims)
 
-        mpl.xlabel("Width of the %g%% - %g%% interval (%s)" % (upper_q*100, lower_q*100, data.variable.units))
+        mpl.xlabel("Ensemble standard deviation (" + data.variable.units + ")")
         mpl.ylabel("RMSE (" + data.variable.units + ")")
 
 
