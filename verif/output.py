@@ -2361,6 +2361,76 @@ class PitHist(Output):
         mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
 
 
+class RankHist(Output):
+    name = "Rank histogram"
+    description = "Histogram of ensemble ranks."
+    supports_threshold = False
+    supports_x = False
+
+    def __init__(self):
+        Output.__init__(self)
+        self._bar_color = "gray"
+
+    def _show_expected_line(self):
+        return not self.simple
+
+    def _legend(self, data, names=None):
+        pass
+
+    def _plot_core(self, data):
+        F = data.num_inputs
+        labels = data.get_legend()
+        for f in range(F):
+            verif.util.subplot(f, F)
+            ens, obs = data.get_scores([verif.field.Ensemble(), verif.field.Obs()], f, verif.axis.No())
+            num_members = ens.shape[1]
+
+            # Only keep samples where all members are available, otherwise the ranks have different
+            # meanings for different times.
+            Ivalid = np.where(np.sum(np.isnan(ens), axis=1) == 0)[0]
+            rank = np.sum([ens[Ivalid, e] > obs[Ivalid] for e in range(num_members)], axis=0).astype(np.int32)
+            edges = np.arange(num_members+2) - 0.5
+            middles = (edges[0:-1] + edges[1:]) / 2
+
+            N = np.histogram(rank, edges)[0]
+            y = N * 1.0 / sum(N) * 100
+            width = 0.85
+            mpl.bar(middles, y, width=width, color=self._bar_color)
+
+            # Plot expected mean line
+            xlim = [-0.5, num_members+0.5]
+            mpl.plot(xlim, [100.0 / num_members, 100.0 / num_members], 'k--')
+
+            # Axes and labels
+            mpl.title(labels[f])
+            ytop = 200.0 / num_members
+            mpl.ylim([0, ytop])
+            mpl.xlim(xlim)
+            if f == 0:
+                mpl.ylabel("Frequency (%)")
+
+            # Draw red confidence band
+            if self._show_expected_line():
+                # Multiply by 100 to get to percent
+                std = verif.metric.PitHistDev.deviation_std(rank, num_members) * 100
+
+                mpl.plot(xlim, [100.0 / num_members - 2 * std, 100.0 / num_members - 2 * std], "r-")
+                mpl.plot(xlim, [100.0 / num_members + 2 * std, 100.0 / num_members + 2 * std], "r-")
+                lower = [100.0 / num_members - 2 * std, 100.0 / num_members - 2 * std]
+                upper = [100.0 / num_members + 2 * std, 100.0 / num_members + 2 * std]
+                verif.util.fill(xlim, lower, upper, "r", zorder=100, alpha=0.5)
+
+            mpl.xlabel("Ensemble rank")
+
+    def _adjust_axes(self, data):
+        # Apply adjustements to all subplots
+        for ax in mpl.gcf().get_axes():
+            self._adjust_axis(ax)
+
+        # Margins
+        mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
+
+
 class Discrimination(Output):
     name = "Discrimination"
     description = "Discrimination diagram for a certain threshold (-r)"
