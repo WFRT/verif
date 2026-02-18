@@ -787,6 +787,58 @@ class DError(ObsFcstBased):
         return np.mean(np.abs(sortedobs - sortedfcst))
 
 
+class Crps(Metric):
+    """ Continuous ranked probability score """
+    type = verif.metric_type.Probabilistic()
+    name = "Continuous ranked probability score"
+    description = "Continuous ranked probability score"
+    supports_aggregator = True
+    orientation = -1
+
+    def compute_single(self, data, input_index, axis, axis_index, interval):
+        ensemble, obs = data.get_scores([verif.field.Ensemble(), verif.field.Obs()], input_index, axis, axis_index)
+        crps = self.compute_crps(ensemble, obs)
+        crps = self.aggregator(crps)
+        return crps
+
+    def label(self, variable):
+        return "CRPS (" + variable.units + ")"
+
+    @staticmethod
+    def compute_crps(ensemble, obs, fair=True):
+        """Continuous Ranked Probability Score (CRPS).
+
+        Args:
+            ensemble: numpy.ndarray
+                Predictions, shape (time, leadtime, location, ens_size)
+            obs: numpy.ndarray
+                Targets, shape (time, leadtime, location)
+            fair: bool
+                Defaults to true
+
+        Returns:
+            crps: numpy.ndarray
+                Shape (time, leadtime, location)
+        """
+        num_members = ensemble.shape[-1]
+
+        coef = (
+            -1.0 / (num_members * (num_members - 1))
+            if fair
+            else -1.0 / (num_members**2)
+        )
+
+        mae = np.mean(np.abs(obs[..., None] - ensemble), axis=-1)
+
+        # var = np.abs(ensemble[..., None] - ensemble[..., None, :])
+        var = np.zeros(ensemble.shape[:-1])
+        for i in range(num_members):  # loop version to reduce memory usage
+            var += np.sum(np.abs(ensemble[..., i, None] - ensemble[..., i + 1 :]), axis=-1)
+        var *= coef
+        return mae + var
+
+
+
 class Pit(Metric):
     """ Retrives the PIT-value corresponding to the observation """
     type = verif.metric_type.Probabilistic()
