@@ -1462,21 +1462,16 @@ class QuantileScore(Metric):
 class Spread(Metric):
     type = verif.metric_type.Probabilistic()
     name = "Spread"
-    description = "Spread between two quantiles. Use -q to set which quantiles to use."
+    description = "Ensemble spread (standard deviation of members)."
     min = 0
-    default_bin_type = "within"
-    require_threshold_type = "quantile"
     supports_threshold = True
+    supports_aggregator = True
     perfect_score = 0
     orientation = -1
-    min_num_thresholds = 2
-    max_num_thresholds = 2
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
-        var0 = verif.field.Quantile(interval.lower)
-        var1 = verif.field.Quantile(interval.upper)
-        [q0, q1] = data.get_scores([var0, var1], input_index, axis, axis_index)
-        return np.mean(q1 - q0)
+        [variance] = data.get_scores([verif.field.EnsembleVariance()], input_index, axis, axis_index)
+        return self.aggregator(np.sqrt(variance))
 
     def label(self, variable):
         return self.name
@@ -1485,32 +1480,23 @@ class Spread(Metric):
 class SpreadSkillRatio(Metric):
     type = verif.metric_type.Probabilistic()
     name = "Spread-skill ratio"
-    description = "Ratio of spread to skill (RMSE). Use -q to set which quantiles to use for spread."
+    description = "Ratio of spread (standard deviation of memebrs) to skill (RMSE of ensemble mean)."
+    supports_threshold = False
     min = 0
-    default_bin_type = "within"
-    require_threshold_type = "quantile"
-    supports_threshold = True
     perfect_score = 1
     orientation = 0
-    min_num_thresholds = 2
-    max_num_thresholds = 2
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
-        var0 = verif.field.Quantile(interval.lower)
-        var1 = verif.field.Quantile(interval.upper)
-        fields = [var0, var1,verif.field.Fcst(), verif.field.Obs()]
-        q0, q1, obs, fcst = data.get_scores(fields, input_index, axis, axis_index)
+        fields = [verif.field.EnsembleMean(), verif.field.EnsembleVariance(), verif.field.Obs()]
+        mean, variance, obs = data.get_scores(fields, input_index, axis, axis_index)
 
-        spread = np.mean(q1 - q0)
-        skill = np.sqrt(np.mean(np.abs(obs - fcst)**2))
-
-        num_std = 0.5 * (scipy.stats.norm.ppf(interval.upper) - scipy.stats.norm.ppf(interval.lower))
-        adjusted_spread = spread / num_std
+        spread = np.mean(np.sqrt(variance))
+        skill = np.sqrt(np.mean(np.abs(obs - mean)**2))
 
         if np.isclose(skill, 0, atol=1e-7):
             return np.nan
         else:
-            return adjusted_spread / skill
+            return spread / skill
 
     def label(self, variable):
         return self.name
