@@ -134,8 +134,8 @@ class Input(object):
     def ensemble_mean(self):
         if self.ensemble is not None:
             return np.nanmean(self.ensemble, axis=-1)
-        elif "ens-mean" in self.other_fields:
-            return self.other_fields["ens-mean"]
+        elif "ensemble_mean" in self.other_fields:
+            return self.other_fields["ensemble_mean"]
         else:
             return self.fcst
 
@@ -143,8 +143,8 @@ class Input(object):
     def ensemble_variance(self):
         if self.ensemble is not None:
             return np.nanvar(self.ensemble, axis=-1)
-        elif "ens-var" in self.other_fields:
-            return self.other_fields["ens-var"]
+        elif "ensemble_variance" in self.other_fields:
+            return self.other_fields["ensemble_variance"]
         else:
             raise ValueError("Input does not have ensemble. Cannot compute ensemble variable")
 
