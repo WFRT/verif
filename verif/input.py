@@ -283,7 +283,7 @@ class Netcdf(Input):
         return verif.util.clean(self._file.variables[name])
 
     def _get_times(self):
-        return verif.util.clean(self._file.variables["time"])
+        return verif.util.clean(self._file.variables["time"], np.float64)
 
     def _get_locations(self):
         num_locations = len(self._file.dimensions['location'])

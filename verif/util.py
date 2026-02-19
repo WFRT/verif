@@ -357,7 +357,7 @@ def fill(x, y_lower, y_upper, col, alpha=1, zorder=0, hatch=''):
               hatch=hatch)
 
 
-def clean(data):
+def clean(data, dtype=np.float32):
     """ Copy and sanitize data from a netCDF4 variable
 
     Arguments:
@@ -370,7 +370,7 @@ def clean(data):
     if len(data.shape) == 1 and data.shape[0] == 0:
         return np.zeros(0)
 
-    data = data[:].astype(float)
+    data = data[:].astype(dtype)
     q = np.ma.filled(data, fill_value=-999)
     # Remove missing values. Convert to -999 and then back to nan to avoid
     # warning messages when doing <, >, and == comparisons with nan.
