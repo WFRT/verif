@@ -219,9 +219,9 @@ class Netcdf(Input):
         elif field == verif.field.EnsembleVariance():
             return "ensemble_variance" in self._file.variables or self.num_members > 1
         elif isinstance(field, verif.field.Threshold):
-            return field.threshold in self._get_thresholds()
+            return field.threshold in self.thresholds
         elif isinstance(field, verif.field.Quantile):
-            return field.quantile in self._get_quantiles()
+            return field.quantile in self.quantiles
         elif isinstance(field, verif.field.Other):
             return field.name() in self._file.variables
         else:

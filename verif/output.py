@@ -29,6 +29,7 @@ except:
 
 allowedMapTypes = ["simple", "sat", "topo"]
 
+
 def get_all():
     """
     Returns a dictionary of all output classes where the key is the class
@@ -593,7 +594,7 @@ class Output(object):
             if len(x) != len(y):
                 verif.util.error("Cannot add annotation. Missmatch in length of x and y arrays.")
             if isinstance(labels, dict):
-                for k,v in labels.items():
+                for k, v in labels.items():
                     if len(v) != len(x):
                         verif.util.error("Cannot add annotation. Missmatch in length of input arrays.")
             else:
@@ -837,7 +838,7 @@ class Standard(Output):
             yy = np.zeros(len(x), 'float')
             if axis in [verif.axis.Threshold(), verif.axis.Obs(), verif.axis.Fcst()]:
                 for i in range(len(intervals)):
-                    yy[i] = self._metric.compute(data, f, axis, intervals[i])
+                    yy[i] = self._metric.compute(data, f, axis, intervals[i])[0]
             else:
                 # Average all thresholds
                 for i in range(len(intervals)):
@@ -1284,7 +1285,6 @@ class Standard(Output):
                 # cax,kw = matplotlib.colorbar.make_axes(map,pad=0.05,shrink=0.7)
                 # mpl.gcf().colorbar(cs,cax=cax,extend='both',**kw)
                 cb = mpl.gcf().colorbar(cs)
-                #cb = mpl.colorbar()
                 if self.clabel is None:
                     cb.set_label(self._metric.label(data.variable), fontsize=self.labfs)
                 else:
@@ -1441,7 +1441,7 @@ class ObsFcst(Output):
                     # Fill areas betweeen lines
                     Ncol = (len(self.quantiles))//2
                     for i in range(Ncol):
-                        color = opts["color"] # [(1 - (i + 0.0) / Ncol)] * 3
+                        color = opts["color"]
                         I0 = F + f + 1 + i * F
                         I1 = F + f + 1 + F * (len(self.quantiles) - 1 - i)
                         verif.util.fill(x, y[:, I0], y[:, I1], color, zorder=-2, alpha=0.3)
@@ -2040,10 +2040,10 @@ class Cond(Output):
             xmfo = verif.metric.XConditional(verif.field.Fcst(), verif.field.Obs())  # O | F
             mof0 = verif.metric.Conditional(verif.field.Obs(), verif.field.Fcst(), np.mean)  # F | O
             for i in range(len(intervals)):
-                fo[i] = mfo.compute(data, f, verif.axis.No(), intervals[i])
-                of[i] = mof.compute(data, f, verif.axis.No(), intervals[i])
-                xfo[i] = xmfo.compute(data, f, verif.axis.No(), intervals[i])
-                xof[i] = xmof.compute(data, f, verif.axis.No(), intervals[i])
+                fo[i] = mfo.compute(data, f, verif.axis.No(), intervals[i])[0]
+                of[i] = mof.compute(data, f, verif.axis.No(), intervals[i])[0]
+                xfo[i] = xmfo.compute(data, f, verif.axis.No(), intervals[i])[0]
+                xof[i] = xmof.compute(data, f, verif.axis.No(), intervals[i])[0]
             mpl.plot(xof, of, label=labels[f] + " (F|O)", **opts)
             mpl.plot(fo, xfo, label=labels[f] + " (O|F)", alpha=0.5, **opts)
         mpl.ylabel("Forecasts (" + data.variable.units + ")")
@@ -2102,12 +2102,16 @@ class SpreadSkill(Output):
 
 class TimeSeries(Output):
     name = "Time series"
-    description = "Plot observations and forecasts as a time series "\
+    description = "Plot observations, deterministic and ensemble forecasts as a time series "\
           "(i.e. by concatinating all leadtimes). '-x <dimension>' has no "\
-          "effect, as it is always shown by date."
+          "effect, as it is always shown by date. Ensemble members can be turned off by using "\
+          "-simple"
     supports_threshold = False
     supports_x = False
     default_axis = verif.axis.Time()
+
+    def show_members(self):
+        return not self.simple
 
     def _plot_core(self, data):
         F = data.num_inputs
@@ -2141,6 +2145,8 @@ class TimeSeries(Output):
                 fcst = data.get_scores(verif.field.Fcst(), f)
                 opts = self._get_plot_options(f)
                 for d in range(len(data.times)):
+                    alpha = 1  # d / len(data.times)
+                    opts["alpha"] = alpha
                     x = datenums[d] + data.leadtimes / 24.0
                     y = np.nanmean(fcst[d, :, :], axis=1)
                     lab = labels[f] if d == 0 else ""
@@ -2149,19 +2155,20 @@ class TimeSeries(Output):
         """
         Draw ensemble members
         """
-        for f in range(F):
-            opts = self._get_plot_options(f, include_marker=False)
-            opts["lw"] /= 2
-            fcst = data.get_scores(verif.field.Ensemble(), f)
-            for d in range(len(data.times)):
-                if d == 0 and verif.field.Fcst() not in data.get_fields():
-                    lab = data.get_legend()[f]
-                else:
-                    lab = None
+        if self._show_members():
+            for f in range(F):
+                opts = self._get_plot_options(f, include_marker=False)
+                opts["lw"] /= 2
+                fcst = data.get_scores(verif.field.Ensemble(), f)
+                for d in range(len(data.times)):
+                    if d == 0 and verif.field.Fcst() not in data.get_fields():
+                        lab = data.get_legend()[f]
+                    else:
+                        lab = None
 
-                x = datenums[d] + data.leadtimes / 24.0
-                y = np.nanmean(fcst[d, :, :, :], axis=1)
-                mpl.plot(x, y, label=lab, **opts)
+                    x = datenums[d] + data.leadtimes / 24.0
+                    y = np.nanmean(fcst[d, :, :, :], axis=1)
+                    mpl.plot(x, y, label=lab, **opts)
 
         """
         Draw probabilistic forecast lines: One line for each quantile specified
@@ -3521,6 +3528,7 @@ class InvReliability(Output):
         if len(self.quantiles) == 1:
             mpl.title("Quantile: " + str(self.quantiles[0] * 100) + "%")
 
+
 class Murphy(Output):
     name = "Murphy diagram"
     description = "Murphy diagram for a certain threshold (-r)"
@@ -3567,6 +3575,7 @@ class Murphy(Output):
         mpl.title("Murphy diagram for threshold: " + str(threshold) + " " + units)
         mpl.ylim(bottom=0)
         mpl.xlim(0, 1)
+
 
 class BsDecomp(Output):
     name = "Brier score decomposition diagram"

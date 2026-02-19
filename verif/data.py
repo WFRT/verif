@@ -45,8 +45,7 @@ class Data(object):
           fcst_field=verif.field.Fcst(),
           dim_agg_length=None,
           dim_agg_axis=verif.axis.Leadtime(),
-          dim_agg_method=verif.aggregator.Mean(),
-          ):
+          dim_agg_method=verif.aggregator.Mean()):
 
         """
         Arguments:
@@ -324,7 +323,7 @@ class Data(object):
         # No valid data. Therefore return a list of nans instead of an empty list
         if scores[0].shape[0] == 0:
             new_scores = list()
-            for i,field  in enumerate(fields):
+            for i, field in enumerate(fields):
                 if field == verif.field.Ensemble():
                     num_members = scores[i].shape[-1]
                     new_scores = [np.nan * np.zeros([1, num_members], float)]
@@ -575,7 +574,7 @@ class Data(object):
                     elif field == verif.field.EnsembleVariance():
                         if self.dim_agg_length is not None:
                             temp = self.preaggregate(input.ensemble, input)
-                            temp =  np.nanvar(temp, axis=-1)
+                            temp = np.nanvar(temp, axis=-1)
                         else:
                             temp = input.ensemble_variance
 
@@ -733,9 +732,9 @@ class Data(object):
             if available_values is None:
                 available_values = curr_values
             else:
-                #if axis == verif.axis.Leadtime():
-                #    available_values = np.intersect1d(available_values, curr_values * 1000 // 1 / 1000)
-                #else:
+                # if axis == verif.axis.Leadtime():
+                #     available_values = np.intersect1d(available_values, curr_values * 1000 // 1 / 1000)
+                # else:
                 available_values = np.intersect1d(available_values, curr_values)
 
         # Sort values, since for example, times may not be in an ascending order
@@ -914,14 +913,17 @@ def preaggregate_leadtime(array, leadtimes, aggregator, length):
         new_array[:, t, ...] = aggregator(array[:, I, ...], axis=1)
     return new_array
 
+
 def get_lower_cdf(num_members):
     """Returns the CDF corresponding to the lowest ensemble member"""
     return 0
     # return 1 / (num_members + 1)
     # return 0.5 / num_members
 
+
 def get_upper_cdf(num_members):
     return 1 - get_lower_cdf(num_members)
+
 
 def get_quantile_function(ensemble):
     assert len(ensemble.shape) == 4

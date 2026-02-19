@@ -467,6 +467,7 @@ class FcstStdDev(ObsFcstBased):
     def _compute_from_obs_fcst(self, obs, fcst):
         return np.std(fcst)
 
+
 class Rmse(ObsFcstBased):
     name = "Root mean squared error"
     description = "Root mean squared error"
@@ -531,6 +532,7 @@ class Nsec(ObsFcstBased):
     def label(self, variable):
         return "NSEC"
 
+
 class Nnsec(ObsFcstBased):
     name = "Normalized Nash-Sutcliffe efficiency coefficient"
     description = "Normalized Nash-Sutcliffe efficiency coefficient"
@@ -551,6 +553,7 @@ class Nnsec(ObsFcstBased):
 
     def label(self, variable):
         return "NNSEC"
+
 
 class Kge(ObsFcstBased):
     name = "Kling-Gupta efficiency"
@@ -579,6 +582,7 @@ class Kge(ObsFcstBased):
 
     def label(self, variable):
         return "KGE"
+
 
 class Alphaindex(ObsFcstBased):
     name = "Alpha index"
@@ -779,10 +783,9 @@ class Crps(Metric):
         # var = np.abs(ensemble[..., None] - ensemble[..., None, :])
         var = np.zeros(ensemble.shape[:-1])
         for i in range(num_members):  # loop version to reduce memory usage
-            var += np.sum(np.abs(ensemble[..., i, None] - ensemble[..., i + 1 :]), axis=-1)
+            var += np.sum(np.abs(ensemble[..., i, None] - ensemble[..., i + 1:]), axis=-1)
         var *= coef
         return mae + var
-
 
 
 class Pit(Metric):
