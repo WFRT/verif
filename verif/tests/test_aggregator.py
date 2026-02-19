@@ -22,8 +22,12 @@ class TestAggregator(unittest.TestCase):
         self.assertFalse(verif.aggregator.Mean() != verif.aggregator.Mean())
 
         self.assertEqual(verif.aggregator.Quantile(0.2), verif.aggregator.Quantile(0.2))
-        self.assertTrue(verif.aggregator.Quantile(0.2) == verif.aggregator.Quantile(0.2))
-        self.assertFalse(verif.aggregator.Quantile(0.2) != verif.aggregator.Quantile(0.2))
+        self.assertTrue(
+            verif.aggregator.Quantile(0.2) == verif.aggregator.Quantile(0.2)
+        )
+        self.assertFalse(
+            verif.aggregator.Quantile(0.2) != verif.aggregator.Quantile(0.2)
+        )
 
     def test_unequal(self):
         self.assertFalse(verif.aggregator.Mean() == verif.aggregator.Absmean())
@@ -31,8 +35,12 @@ class TestAggregator(unittest.TestCase):
         self.assertTrue(verif.aggregator.Mean() != verif.aggregator.Absmean())
         self.assertTrue(verif.aggregator.Mean() != verif.aggregator.Quantile(0.2))
 
-        self.assertFalse(verif.aggregator.Quantile(0.2) == verif.aggregator.Quantile(0.3))
-        self.assertTrue(verif.aggregator.Quantile(0.2) != verif.aggregator.Quantile(0.3))
+        self.assertFalse(
+            verif.aggregator.Quantile(0.2) == verif.aggregator.Quantile(0.3)
+        )
+        self.assertTrue(
+            verif.aggregator.Quantile(0.2) != verif.aggregator.Quantile(0.3)
+        )
 
     def test_call(self):
         aggregators = [verif.aggregator.Mean(), verif.aggregator.Min()]
@@ -53,5 +61,5 @@ class TestAggregator(unittest.TestCase):
             self.assertEqual(value.shape, (2,))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

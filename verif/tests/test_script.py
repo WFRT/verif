@@ -1,10 +1,9 @@
 import unittest
-import verif.driver
 import os
 import sys
 import numpy as np
-import tempfile
-np.seterr('raise')
+
+np.seterr("raise")
 
 
 class ScriptTest(unittest.TestCase):
@@ -15,7 +14,7 @@ class ScriptTest(unittest.TestCase):
 
     @staticmethod
     def run_python(command):
-        """ Runs a verif command line """
+        """Runs a verif command line"""
         command = "%s %s" % (sys.executable, command)
         status = os.system(command)
         if status != 0:
@@ -38,5 +37,5 @@ class ScriptTest(unittest.TestCase):
         """
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

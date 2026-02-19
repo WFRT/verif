@@ -15,13 +15,23 @@ def assert_set_equal(array1, array2):
 class TestData(unittest.TestCase):
     def test_doesnotexist(self):
         with self.assertRaises(SystemExit):
-            inputs = [verif.input.get_input(filename) for filename in ["verif/tests/files/file1.txt",
-               "verif/tests/files/doesnotexist.txt"]]
+            inputs = [
+                verif.input.get_input(filename)
+                for filename in [
+                    "verif/tests/files/file1.txt",
+                    "verif/tests/files/doesnotexist.txt",
+                ]
+            ]
             data = verif.data.Data(inputs=inputs)
 
     def test_simple(self):
-        inputs = [verif.input.get_input(filename) for filename in ["verif/tests/files/file1.txt",
-           "verif/tests/files/file2.txt"]]
+        inputs = [
+            verif.input.get_input(filename)
+            for filename in [
+                "verif/tests/files/file1.txt",
+                "verif/tests/files/file2.txt",
+            ]
+        ]
         data = verif.data.Data(inputs=inputs)
         lats = [loc.lat for loc in data.locations]
         self.assertTrue(len(lats) == 1)
@@ -65,8 +75,13 @@ class TestData(unittest.TestCase):
         self.assertEqual(1, obs[0])
 
     def test_latrange(self):
-        inputs = [verif.input.Text("verif/tests/files/file1.txt"), verif.input.Text("verif/tests/files/file3.txt")]
-        data = verif.data.Data(inputs, lat_range=[44, 60])  # Only 1 common station within the range
+        inputs = [
+            verif.input.Text("verif/tests/files/file1.txt"),
+            verif.input.Text("verif/tests/files/file3.txt"),
+        ]
+        data = verif.data.Data(
+            inputs, lat_range=[44, 60]
+        )  # Only 1 common station within the range
         self.assertEqual(1, len(data.locations))
         self.assertEqual(50, data.locations[0].lat)
         self.assertEqual(10, data.locations[0].lon)
@@ -92,7 +107,10 @@ class TestData(unittest.TestCase):
         self.assertTrue(2 in [loc.id for loc in data.locations])
 
     def test_obsrange(self):
-        inputs = [verif.input.Text("verif/tests/files/file1.txt"), verif.input.Text("verif/tests/files/file3.txt")]
+        inputs = [
+            verif.input.Text("verif/tests/files/file1.txt"),
+            verif.input.Text("verif/tests/files/file3.txt"),
+        ]
         data = verif.data.Data(inputs=inputs, obs_range=[0, 3.5])
 
         fields = [verif.field.Obs(), verif.field.Fcst()]
@@ -133,6 +151,7 @@ class TestRepeated(unittest.TestCase):
     """
     Test that having repeated times, leadtimes, or locations in a file doesn't cause runtime errors
     """
+
     def test_repeated_times(self):
         inputs = [verif.input.get_input("verif/tests/files/netcdf_repeated_times.nc")]
         data = verif.data.Data(inputs=inputs)
@@ -150,7 +169,9 @@ class TestRepeated(unittest.TestCase):
         np.testing.assert_array_equal(np.array([[1, 2, 3]]), obs[:, :, 0])
 
     def test_repeated_leadtimes(self):
-        inputs = [verif.input.get_input("verif/tests/files/netcdf_repeated_leadtimes.nc")]
+        inputs = [
+            verif.input.get_input("verif/tests/files/netcdf_repeated_leadtimes.nc")
+        ]
         data = verif.data.Data(inputs=inputs)
         self.assertEqual(2, len(data.times))
         self.assertEqual(2, len(data.leadtimes))
@@ -168,7 +189,9 @@ class TestRepeated(unittest.TestCase):
         np.testing.assert_array_equal(ar, obs[:, :, 0])
 
     def test_repeated_locations(self):
-        inputs = [verif.input.get_input("verif/tests/files/netcdf_repeated_locations.nc")]
+        inputs = [
+            verif.input.get_input("verif/tests/files/netcdf_repeated_locations.nc")
+        ]
         data = verif.data.Data(inputs=inputs)
         self.assertEqual(2, len(data.times))
         self.assertEqual(2, len(data.leadtimes))
@@ -186,7 +209,10 @@ class TestRepeated(unittest.TestCase):
         np.testing.assert_array_equal(np.array([[1, 4], [7, 10]]), obs[:, :, 0])
 
     def test_repeated_times_two_files(self):
-        inputs = [verif.input.get_input("verif/tests/files/netcdf_repeated_%s.nc" % name) for name in ["times", "leadtimes"]]
+        inputs = [
+            verif.input.get_input("verif/tests/files/netcdf_repeated_%s.nc" % name)
+            for name in ["times", "leadtimes"]
+        ]
         data = verif.data.Data(inputs=inputs)
         self.assertEqual(2, len(data.times))
         self.assertEqual(2, len(data.leadtimes))
@@ -247,6 +273,7 @@ class TestDataRemovingTimes4(unittest.TestCase):
     """
     Check that various combinations of -t -d and -tod remove the correct times
     """
+
     def test_times(self):
         inputs = [verif.input.Text("verif/tests/files/file4.txt")]
         data = verif.data.Data(inputs, times=[1325376000, 1325548800])
@@ -264,7 +291,9 @@ class TestDataRemovingTimes4(unittest.TestCase):
 
     def test_times_dates(self):
         inputs = [verif.input.Text("verif/tests/files/file4.txt")]
-        data = verif.data.Data(inputs, times=[1325376000, 1325548800], dates=[20120101, 20120102])
+        data = verif.data.Data(
+            inputs, times=[1325376000, 1325548800], dates=[20120101, 20120102]
+        )
         self.assertEqual(1, len(data.times))
         self.assertEqual(1325376000, data.times[0])
 
@@ -291,7 +320,12 @@ class TestDataRemovingTimes4(unittest.TestCase):
 
     def test_times_dates_timeofday(self):
         inputs = [verif.input.Text("verif/tests/files/file4.txt")]
-        data = verif.data.Data(inputs, times=[1325462400, 1325548800, 1325570400], dates=[20120101, 20120103], tods=[0])
+        data = verif.data.Data(
+            inputs,
+            times=[1325462400, 1325548800, 1325570400],
+            dates=[20120101, 20120103],
+            tods=[0],
+        )
         self.assertEqual(1, len(data.times))
         self.assertEqual(1325548800, data.times[0])
 
@@ -299,7 +333,10 @@ class TestDataRemovingTimes4(unittest.TestCase):
 class TestShareObs(unittest.TestCase):
     def test_reused(self):
         # Observations from file1 should be reused in file1_no_obs
-        inputs = [verif.input.Text("verif/tests/files/file1.txt"), verif.input.Text("verif/tests/files/file1_no_obs.txt")]
+        inputs = [
+            verif.input.Text("verif/tests/files/file1.txt"),
+            verif.input.Text("verif/tests/files/file1_no_obs.txt"),
+        ]
         data = verif.data.Data(inputs)
         obs0 = data.get_scores(verif.field.Obs(), 0)
         obs1 = data.get_scores(verif.field.Obs(), 1)
@@ -308,7 +345,10 @@ class TestShareObs(unittest.TestCase):
     def test_different_missing(self):
         # The two files are identical, other than some obs and fcst are missing for different times
         # The obs and fcst arrays after retriving through data should be the same
-        inputs = [verif.input.Text("verif/tests/files/file1.txt"), verif.input.Text("verif/tests/files/file1_different_missing.txt")]
+        inputs = [
+            verif.input.Text("verif/tests/files/file1.txt"),
+            verif.input.Text("verif/tests/files/file1_different_missing.txt"),
+        ]
         data = verif.data.Data(inputs)
         fields = [verif.field.Obs(), verif.field.Fcst()]
         obs0, fcst0 = data.get_scores(fields, 0)
@@ -346,7 +386,10 @@ class TestDataFields(unittest.TestCase):
 
     def test_get_fields3(self):
         # Only Obs is common between the two files
-        inputs = [verif.input.Text("verif/tests/files/%s" % file) for file in ["file1.txt", "file1_no_fcst.txt"]]
+        inputs = [
+            verif.input.Text("verif/tests/files/%s" % file)
+            for file in ["file1.txt", "file1_no_fcst.txt"]
+        ]
         data = verif.data.Data(inputs)
         self.assertFalse(verif.field.Fcst() in data.get_fields())
         self.assertTrue(verif.field.Obs() in data.get_fields())
@@ -354,10 +397,14 @@ class TestDataFields(unittest.TestCase):
 
 class TestDataNanTime(unittest.TestCase):
     def test(self):
-        data = verif.data.Data([verif.input.Text("verif/tests/files/file_nan_time.txt")])
-        np.testing.assert_array_equal(np.array([1325376000, 1325462400, 1325548800]), data.times)
+        data = verif.data.Data(
+            [verif.input.Text("verif/tests/files/file_nan_time.txt")]
+        )
+        np.testing.assert_array_equal(
+            np.array([1325376000, 1325462400, 1325548800]), data.times
+        )
         obs = data.get_scores(verif.field.Obs(), 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

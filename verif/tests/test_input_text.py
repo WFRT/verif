@@ -77,22 +77,32 @@ class InputTextTest(unittest.TestCase):
         np.testing.assert_array_equal(input1.leadtimes, input2.leadtimes)
 
     def test_conflictingLocations(self):
-        data = verif.data.Data(inputs=[verif.input.Text("verif/tests/files/fileConflictingInfo.txt")])
+        data = verif.data.Data(
+            inputs=[verif.input.Text("verif/tests/files/fileConflictingInfo.txt")]
+        )
 
     def test_noId(self):
-        data = verif.data.Data(inputs=[verif.input.Text("verif/tests/files/fileNoLocation.txt")])
+        data = verif.data.Data(
+            inputs=[verif.input.Text("verif/tests/files/fileNoLocation.txt")]
+        )
 
     def test_noElev(self):
-        data = verif.data.Data(inputs=[verif.input.Text("verif/tests/files/fileNoElev.txt")])
+        data = verif.data.Data(
+            inputs=[verif.input.Text("verif/tests/files/fileNoElev.txt")]
+        )
         self.assertEqual(2, len(data.locations))
 
     def test_noLat(self):
-        data = verif.data.Data(inputs=[verif.input.Text("verif/tests/files/fileNoLat.txt")])
+        data = verif.data.Data(
+            inputs=[verif.input.Text("verif/tests/files/fileNoLat.txt")]
+        )
         self.assertEqual(2, len(data.locations))
 
     def test_odd_header_names(self):
         # Check that names 'q', 'p', and 'e' can be read
-        data = verif.data.Data(inputs=[verif.input.Text("verif/tests/files/file_odd_header_names.txt")])
+        data = verif.data.Data(
+            inputs=[verif.input.Text("verif/tests/files/file_odd_header_names.txt")]
+        )
 
     def test_hour(self):
         # Check that the hour column works
@@ -150,7 +160,9 @@ class InputTextTest(unittest.TestCase):
         input1 = verif.input.Text("verif/tests/files/file_order1.txt")
         input2 = verif.input.Text("verif/tests/files/file_order2.txt")
         data = verif.data.Data([input1, input2])
-        np.testing.assert_array_equal(np.sort(input1.leadtimes), np.sort(input2.leadtimes))
+        np.testing.assert_array_equal(
+            np.sort(input1.leadtimes), np.sort(input2.leadtimes)
+        )
         np.testing.assert_array_equal(np.sort(data.leadtimes), [0, 6, 12])
         s1 = data.get_scores(verif.field.Fcst(), 0)
         s2 = data.get_scores(verif.field.Fcst(), 1)
@@ -214,5 +226,6 @@ class InputTextTest(unittest.TestCase):
         self.assertEqual(ens.shape, (3, 3, 2))
         self.assertEqual(ens[0, 0, 0], 3)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

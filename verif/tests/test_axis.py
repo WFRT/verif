@@ -1,6 +1,5 @@
 import unittest
 import verif.axis
-import numpy as np
 
 
 class TestAxis(unittest.TestCase):
@@ -16,5 +15,5 @@ class TestAxis(unittest.TestCase):
         self.assertTrue(verif.axis.No() != verif.axis.Time())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

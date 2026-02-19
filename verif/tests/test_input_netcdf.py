@@ -10,7 +10,9 @@ class InputNetcdfTest(unittest.TestCase):
         input = verif.input.Netcdf("verif/tests/files/netcdf_valid2.nc")
         locations = input.locations
         self.assertTrue(1, len(locations))
-        self.assertEqual(verif.location.Location(18700, 59.9423, 10.72, 94), locations[0])
+        self.assertEqual(
+            verif.location.Location(18700, 59.9423, 10.72, 94), locations[0]
+        )
         np.testing.assert_array_equal(np.array([0, 1, 2]), input.leadtimes)
         np.testing.assert_array_equal(np.array([1388534400, 1388620800]), input.times)
         obs = input.obs
@@ -31,17 +33,27 @@ class InputNetcdfTest(unittest.TestCase):
         self.assertFalse(verif.field.Fcst() in input.get_fields())
 
     def test_is_valid(self):
-        self.assertTrue(verif.input.Netcdf.is_valid("verif/tests/files/netcdf_valid1.nc"))
-        self.assertTrue(verif.input.Netcdf.is_valid("verif/tests/files/netcdf_valid2.nc"))
+        self.assertTrue(
+            verif.input.Netcdf.is_valid("verif/tests/files/netcdf_valid1.nc")
+        )
+        self.assertTrue(
+            verif.input.Netcdf.is_valid("verif/tests/files/netcdf_valid2.nc")
+        )
         # Test that if altitude is missing, the file is still valid
-        self.assertTrue(verif.input.Netcdf.is_valid("verif/tests/files/netcdf_valid3.nc"))
+        self.assertTrue(
+            verif.input.Netcdf.is_valid("verif/tests/files/netcdf_valid3.nc")
+        )
         verif.input.Netcdf("verif/tests/files/netcdf_valid1.nc")
         verif.input.Netcdf("verif/tests/files/netcdf_valid2.nc")
         verif.input.Netcdf("verif/tests/files/netcdf_valid3.nc")
 
     def test_invalid(self):
-        self.assertFalse(verif.input.Comps.is_valid("verif/tests/files/netcdf_invalid1.nc"))
-        self.assertFalse(verif.input.Comps.is_valid("verif/tests/files/netcdf_invalid2.nc"))
+        self.assertFalse(
+            verif.input.Comps.is_valid("verif/tests/files/netcdf_invalid1.nc")
+        )
+        self.assertFalse(
+            verif.input.Comps.is_valid("verif/tests/files/netcdf_invalid2.nc")
+        )
 
     def test_has(self):
         input = verif.input.Netcdf("verif/tests/files/netcdf_valid1.nc")
@@ -72,5 +84,7 @@ class InputNetcdfTest(unittest.TestCase):
         self.assertFalse(input.has_field(verif.field.EnsembleVariance()))
         self.assertFalse(input.has_field(verif.field.Threshold(1)))
         self.assertFalse(input.has_field(verif.field.Quantile(1)))
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     unittest.main()
