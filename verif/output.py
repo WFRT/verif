@@ -2110,7 +2110,7 @@ class TimeSeries(Output):
     supports_x = False
     default_axis = verif.axis.Time()
 
-    def show_members(self):
+    def _show_members(self):
         return not self.simple
 
     def _plot_core(self, data):
