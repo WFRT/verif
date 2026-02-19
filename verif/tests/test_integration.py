@@ -276,7 +276,7 @@ class IntegrationTest(unittest.TestCase):
         self.run_with_image("verif examples/raw.txt -m qq -x location")
 
     def test_spreadskill(self):
-        self.run_with_image("verif verif/tests/files/file1_quantiles.txt -m spreadskill -sp -q 0.1,0.9")
+        self.run_with_image("verif verif/tests/files/file1_ens.txt -m spreadskill -sp")
 
     def test_timeseries(self):
         self.run_with_image("verif examples/raw.txt -m timeseries")

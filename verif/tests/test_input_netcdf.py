@@ -25,7 +25,8 @@ class InputNetcdfTest(unittest.TestCase):
         self.assertAlmostEqual(6, obs[1, 2, 0])
         self.assertEqual(0, len(input.thresholds))
         self.assertEqual(0, len(input.quantiles))
-        self.assertTrue(input.ensemble is None)
+        self.assertTrue(input.ensemble is not None)
+        self.assertTrue(input.ensemble.shape[-1] == 0)
         self.assertTrue(verif.field.Obs() in input.get_fields())
         self.assertFalse(verif.field.Fcst() in input.get_fields())
 
@@ -42,5 +43,34 @@ class InputNetcdfTest(unittest.TestCase):
         self.assertFalse(verif.input.Comps.is_valid("verif/tests/files/netcdf_invalid1.nc"))
         self.assertFalse(verif.input.Comps.is_valid("verif/tests/files/netcdf_invalid2.nc"))
 
+    def test_has(self):
+        input = verif.input.Netcdf("verif/tests/files/netcdf_valid1.nc")
+        self.assertTrue(input.has_field(verif.field.Obs()))
+        self.assertTrue(input.has_field(verif.field.Fcst()))
+        self.assertFalse(input.has_field(verif.field.Ensemble()))
+        self.assertFalse(input.has_field(verif.field.EnsembleMean()))
+        self.assertFalse(input.has_field(verif.field.EnsembleVariance()))
+        self.assertFalse(input.has_field(verif.field.Threshold(1)))
+        self.assertFalse(input.has_field(verif.field.Quantile(1)))
+
+    def test_has2(self):
+        input = verif.input.Netcdf("verif/tests/files/netcdf_valid2.nc")
+        self.assertTrue(input.has_field(verif.field.Obs()))
+        self.assertFalse(input.has_field(verif.field.Fcst()))
+        self.assertFalse(input.has_field(verif.field.Ensemble()))
+        self.assertFalse(input.has_field(verif.field.EnsembleMean()))
+        self.assertFalse(input.has_field(verif.field.EnsembleVariance()))
+        self.assertFalse(input.has_field(verif.field.Threshold(1)))
+        self.assertFalse(input.has_field(verif.field.Quantile(1)))
+
+    def test_has_ens(self):
+        input = verif.input.Netcdf("verif/tests/files/netcdf_ens.nc")
+        self.assertTrue(input.has_field(verif.field.Obs()))
+        self.assertTrue(input.has_field(verif.field.Fcst()))
+        self.assertTrue(input.has_field(verif.field.Ensemble()))
+        self.assertTrue(input.has_field(verif.field.EnsembleMean()))
+        self.assertFalse(input.has_field(verif.field.EnsembleVariance()))
+        self.assertFalse(input.has_field(verif.field.Threshold(1)))
+        self.assertFalse(input.has_field(verif.field.Quantile(1)))
 if __name__ == '__main__':
     unittest.main()

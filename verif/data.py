@@ -488,30 +488,27 @@ class Data(object):
             found_obs = False
             for i in range(num_inputs):
                 input = self._inputs[i]
-                if field == verif.field.Obs():
-                    temp = input.obs
-                    temp = self.preaggregate(temp, input)
-                elif field == verif.field.Fcst():
-                    temp = input.fcst
-                    temp = self.preaggregate(temp, input)
-                else:
-                    temp = input.other_score(field.name())
-                    if self.dim_agg_length is not None:
-                        verif.util.warning("Cannot preaggregate " + field.name() + "since I'm unsure it makes sense")
+                if input.has_field(field):
+                    if field == verif.field.Obs():
+                        temp = input.obs
+                        temp = self.preaggregate(temp, input)
+                    elif field == verif.field.Fcst():
+                        temp = input.fcst
+                        temp = self.preaggregate(temp, input)
+                    else:
+                        temp = input.other_score(field.name())
+                        if self.dim_agg_length is not None:
+                            verif.util.warning("Cannot preaggregate " + field.name() + "since I'm unsure it makes sense")
 
-                if temp is None:
-                    # This can happen if for example obs is missing
-                    continue
+                    Itimes = self._get_time_indices(i)
+                    Ileadtimes = self._get_leadtime_indices(i)
+                    Ilocations = self._get_location_indices(i)
+                    temp = temp[Itimes, :, :]
+                    temp = temp[:, Ileadtimes, :]
+                    temp = temp[:, :, Ilocations]
 
-                Itimes = self._get_time_indices(i)
-                Ileadtimes = self._get_leadtime_indices(i)
-                Ilocations = self._get_location_indices(i)
-                temp = temp[Itimes, :, :]
-                temp = temp[:, Ileadtimes, :]
-                temp = temp[:, :, Ilocations]
-
-                self._get_score_cache[i][field] = temp
-                found_obs = True
+                    self._get_score_cache[i][field] = temp
+                    found_obs = True
             if not found_obs:
                 verif.util.error("No files have observations")
 
@@ -589,8 +586,9 @@ class Data(object):
                         if x0 is not None or x1 is not None:
                             temp = verif.field.Pit.randomize(input.obs, temp, x0, x1)
 
-                    else:
+                    elif input.has_field(field):
                         # Fields that can be preaggregated
+
                         if field == verif.field.Obs():
                             temp = input.obs
                             temp = self.preaggregate(temp, input)
@@ -618,6 +616,12 @@ class Data(object):
                             temp = input.other_score(field.name())
                             if self.dim_agg_length is not None:
                                 verif.util.warning("Cannot preaggregate " + field.name() + "since I'm unsure it makes sense")
+                    elif isinstance(field, verif.field.Ensemble):
+                        # An input can potentially not have an ensemble, but we still want to
+                        # process the empy ensemble
+                        temp = input.ensemble
+                    else:
+                        verif.util.error("%s does not contain '%s'" % (self.get_names()[i], field.name()))
 
                     Itimes = self._get_time_indices(i)
                     Ileadtimes = self._get_leadtime_indices(i)
