@@ -294,9 +294,9 @@ class Data(object):
                     currValid = np.ones(currValid.shape[:-1], int)
                 else:
                     if axis == verif.axis.All():
-                        currValid = np.product(currValid, axis=3)
+                        currValid = np.prod(currValid, axis=3)
                     else:
-                        currValid = np.product(currValid, axis=1)
+                        currValid = np.prod(currValid, axis=1)
 
             if valid is None:
                 valid = currValid
@@ -856,7 +856,7 @@ class Data(object):
                 # Put into (N, members)
                 num_members = array.shape[-1]
                 if num_members == 0:
-                    N = np.product(output.shape[:-1])
+                    N = np.prod(output.shape[:-1])
                     output = np.zeros([N, num_members], 'float')
                 else:
                     output = np.array([output[..., i].flatten() for i in range(num_members)])
