@@ -1,5 +1,4 @@
 import unittest
-import numpy as np
 import verif.input
 import verif.location
 import verif.data
@@ -53,7 +52,10 @@ class MyTest(unittest.TestCase):
         self.assertTrue(verif.input.Comps.is_valid("verif/tests/files/comps_valid2.nc"))
 
     def test_invalid(self):
-        self.assertFalse(verif.input.Comps.is_valid("verif/tests/files/comps_invalid1.nc"))
+        self.assertFalse(
+            verif.input.Comps.is_valid("verif/tests/files/comps_invalid1.nc")
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

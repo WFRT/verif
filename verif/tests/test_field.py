@@ -1,6 +1,5 @@
 import unittest
 import verif.field
-import numpy as np
 
 
 class TestField(unittest.TestCase):
@@ -23,5 +22,5 @@ class TestField(unittest.TestCase):
         self.assertTrue(verif.field.Threshold(0) != verif.field.Threshold(1))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

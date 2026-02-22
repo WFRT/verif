@@ -21,7 +21,10 @@ class TestOutput(unittest.TestCase):
 
 class TestStandard(unittest.TestCase):
     def _get(self):
-        inputs = [verif.input.get_input(file) for file in ["examples/raw.txt", "examples/kf.txt"]]
+        inputs = [
+            verif.input.get_input(file)
+            for file in ["examples/raw.txt", "examples/kf.txt"]
+        ]
         data = verif.data.Data(inputs=inputs)
         metric = verif.metric.Mae()
         output = verif.output.Standard(metric)
@@ -37,7 +40,12 @@ class TestStandard(unittest.TestCase):
 
     def test_location(self):
         data, output = self._get()
-        for ax in [verif.axis.Location(), verif.axis.Lat(), verif.axis.Lon(), verif.axis.Elev()]:
+        for ax in [
+            verif.axis.Location(),
+            verif.axis.Lat(),
+            verif.axis.Lon(),
+            verif.axis.Elev(),
+        ]:
             x, y, _, _, _ = output._get_x_y(data, verif.axis.Location())
             loc = data.locations
             self.assertEqual(len(loc), len(x))
@@ -94,5 +102,5 @@ class NameTest(unittest.TestCase):
             self.assertTrue(output.description != "")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

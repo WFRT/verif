@@ -11,21 +11,37 @@ import verif.util
 class TestApplyThreshold(unittest.TestCase):
     def test_1(self):
         ar = np.array([1, 3, 2])
-        np.testing.assert_array_equal(np.array([0, 1, 0]), verif.util.apply_threshold(ar, "above", 2))
-        np.testing.assert_array_equal(np.array([0, 1, 1]), verif.util.apply_threshold(ar, "above=", 2))
-        np.testing.assert_array_equal(np.array([1, 0, 0]), verif.util.apply_threshold(ar, "below", 2))
-        np.testing.assert_array_equal(np.array([1, 0, 1]), verif.util.apply_threshold(ar, "below=", 2))
+        np.testing.assert_array_equal(
+            np.array([0, 1, 0]), verif.util.apply_threshold(ar, "above", 2)
+        )
+        np.testing.assert_array_equal(
+            np.array([0, 1, 1]), verif.util.apply_threshold(ar, "above=", 2)
+        )
+        np.testing.assert_array_equal(
+            np.array([1, 0, 0]), verif.util.apply_threshold(ar, "below", 2)
+        )
+        np.testing.assert_array_equal(
+            np.array([1, 0, 1]), verif.util.apply_threshold(ar, "below=", 2)
+        )
 
     def test_same_as_intervals(self):
         ar = np.array([1, 3, 2])
         interval = verif.interval.Interval(2, np.inf, False, False)
-        np.testing.assert_array_equal(interval.within(ar), verif.util.apply_threshold(ar, "above", 2))
+        np.testing.assert_array_equal(
+            interval.within(ar), verif.util.apply_threshold(ar, "above", 2)
+        )
         interval = verif.interval.Interval(2, np.inf, True, False)
-        np.testing.assert_array_equal(interval.within(ar), verif.util.apply_threshold(ar, "above=", 2))
+        np.testing.assert_array_equal(
+            interval.within(ar), verif.util.apply_threshold(ar, "above=", 2)
+        )
         interval = verif.interval.Interval(-np.inf, 2, False, False)
-        np.testing.assert_array_equal(interval.within(ar), verif.util.apply_threshold(ar, "below", 2))
+        np.testing.assert_array_equal(
+            interval.within(ar), verif.util.apply_threshold(ar, "below", 2)
+        )
         interval = verif.interval.Interval(-np.inf, 2, False, True)
-        np.testing.assert_array_equal(interval.within(ar), verif.util.apply_threshold(ar, "below=", 2))
+        np.testing.assert_array_equal(
+            interval.within(ar), verif.util.apply_threshold(ar, "below=", 2)
+        )
 
 
 class TestParseNumbers(unittest.TestCase):
@@ -39,7 +55,6 @@ class TestParseNumbers(unittest.TestCase):
         for invalid in invalids:
             with self.assertRaises(SystemExit):
                 verif.util.parse_numbers(invalid)
-
 
     def test_vector(self):
         self.assertEqual([2, 3, 4, 5], verif.util.parse_numbers("2:5"))
@@ -67,8 +82,13 @@ class TestParseNumbers(unittest.TestCase):
             verif.util.parse_numbers("test")
 
     def test_decimal(self):
-        self.assertEqual([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7], verif.util.parse_numbers("0.1:0.1:0.7"))
-        self.assertEqual([1e-4, 2e-4, 3e-4, 4e-4, 5e-4, 6e-4, 7e-4], verif.util.parse_numbers("0.0001:0.0001:0.0007"))
+        self.assertEqual(
+            [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7], verif.util.parse_numbers("0.1:0.1:0.7")
+        )
+        self.assertEqual(
+            [1e-4, 2e-4, 3e-4, 4e-4, 5e-4, 6e-4, 7e-4],
+            verif.util.parse_numbers("0.0001:0.0001:0.0007"),
+        )
         self.assertEqual([1e-6, 3e-6], verif.util.parse_numbers("0.000001,0.000003"))
 
     def test_0_step(self):
@@ -100,28 +120,45 @@ class TestParseNumbers(unittest.TestCase):
             verif.util.parse_numbers("test,5:8,3,5")
 
     def test_date(self):
-        self.assertEqual([20141230, 20141231, 20150101, 20150102, 20150103], verif.util.parse_numbers("20141230:20150103", True))
-        self.assertEqual([20141230, 20150101, 20150103], verif.util.parse_numbers("20141230:2:20150104", True))
+        self.assertEqual(
+            [20141230, 20141231, 20150101, 20150102, 20150103],
+            verif.util.parse_numbers("20141230:20150103", True),
+        )
+        self.assertEqual(
+            [20141230, 20150101, 20150103],
+            verif.util.parse_numbers("20141230:2:20150104", True),
+        )
 
-        self.assertEqual([20141230, 20141231, 20150101, 20150102, 20150103], verif.util.parse_dates("20141230:20150103"))
-        self.assertEqual([20141230, 20150101, 20150103], verif.util.parse_dates("20141230:2:20150104"))
+        self.assertEqual(
+            [20141230, 20141231, 20150101, 20150102, 20150103],
+            verif.util.parse_dates("20141230:20150103"),
+        )
+        self.assertEqual(
+            [20141230, 20150101, 20150103],
+            verif.util.parse_dates("20141230:2:20150104"),
+        )
 
     def test_unixtime_to_datenum(self):
         unixtimes = np.array([1331856000, -2180131200])
         datenums = [verif.util.unixtime_to_datenum(unixtime) for unixtime in unixtimes]
-        self.assertEqual(matplotlib.dates.date2num(datetime.datetime(2012, 3, 16, 0, 0)), datenums[0])
-        self.assertEqual(matplotlib.dates.date2num(datetime.datetime(1900, 12, 1, 0, 0)), datenums[1])
+        self.assertEqual(
+            matplotlib.dates.date2num(datetime.datetime(2012, 3, 16, 0, 0)), datenums[0]
+        )
+        self.assertEqual(
+            matplotlib.dates.date2num(datetime.datetime(1900, 12, 1, 0, 0)), datenums[1]
+        )
 
     def test_date_to_unixtime(self):
         import time
+
         s = time.time()
         self.assertEqual(1475280000, verif.util.date_to_unixtime_slow(20161001))
         e = time.time()
-        print (e - s)
+        print(e - s)
         s = time.time()
         self.assertEqual(1475280000, verif.util.date_to_unixtime(20161001))
         e = time.time()
-        print (e - s)
+        print(e - s)
 
     def test_unixtime_to_date(self):
         self.assertEqual(20161001, verif.util.unixtime_to_date(1475280000))
@@ -161,7 +198,7 @@ class TestGetIntervals(unittest.TestCase):
 
 class TestAlmostEqual(unittest.TestCase):
     def test_1(self):
-        for tol in [10**(-i) for i in range(1, 10)]:
+        for tol in [10 ** (-i) for i in range(1, 10)]:
             self.assertTrue(verif.util.almost_equal(0, 0, tol))
             self.assertTrue(verif.util.almost_equal(3, 3, tol))
             self.assertTrue(verif.util.almost_equal(-2.3, -2.3, tol))
@@ -181,7 +218,10 @@ class TestAlmostEqual(unittest.TestCase):
 class TestConvert(unittest.TestCase):
     def test_convert_back_and_forth(self):
         dates = [20150101, 20141231]
-        new_dates = [verif.util.datenum_to_date(verif.util.date_to_datenum(date)) for date in dates]
+        new_dates = [
+            verif.util.datenum_to_date(verif.util.date_to_datenum(date))
+            for date in dates
+        ]
         six.assertCountEqual(self, new_dates, dates)
 
 
@@ -193,7 +233,9 @@ class TestIsValidNc(unittest.TestCase):
 
 class TestProj4(unittest.TestCase):
     def test_1(self):
-        string = "+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+07"
+        string = (
+            "+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+07"
+        )
         r = verif.util.proj4_string_to_dict(string)
         self.assertEqual(r.get("+proj"), "lcc")
         self.assertEqual(r.get("+lat_0"), 63)
@@ -207,7 +249,10 @@ class TestDistance(unittest.TestCase):
         # They only give answer to nearest km, so allow some deviation
         self.assertEqual(0, verif.util.distance(60, 10, 60, 10))
         self.assertLess(abs(1360000 - verif.util.distance(50.5, 3.4, 61.9, 11.5)), 2000)
-        self.assertLess(abs(15712000 - verif.util.distance(-47.2, -24.4, 82.1, 101.5)), 2000)
+        self.assertLess(
+            abs(15712000 - verif.util.distance(-47.2, -24.4, 82.1, 101.5)), 2000
+        )
+
 
 class Test(unittest.TestCase):
     def test_numvalid(self):
@@ -222,5 +267,6 @@ class Test(unittest.TestCase):
         np.testing.assert_array_almost_equal([10, 10, 10], verif.util.nprange(data, 0))
         np.testing.assert_array_almost_equal([2, 2], verif.util.nprange(data, 1))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

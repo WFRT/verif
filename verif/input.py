@@ -80,6 +80,11 @@ class Input(object):
         """
         raise NotImplementedError()
 
+    def has_field(self, field):
+        """ Returns true if the input can provide the field. This function should try to not load
+        the underlying data, just check for existence """
+        raise NotImplementedError()
+
     def get_fields(self):
         """ Get the available fields in this input
 
@@ -102,6 +107,10 @@ class Input(object):
         thresholds = [verif.field.Threshold(threshold) for threshold in self.thresholds]
         quantiles = [verif.field.Quantile(quantile) for quantile in self.quantiles]
         return fields + thresholds + quantiles
+
+    @property
+    def num_members(self):
+        return self.ensemble.shape[-1]
 
     @property
     def name(self):
@@ -129,6 +138,24 @@ class Input(object):
             return self.ensemble.shape[3]
         else:
             return 0
+
+    @property
+    def ensemble_mean(self):
+        if self.ensemble is not None:
+            return np.nanmean(self.ensemble, axis=-1)
+        elif "ensemble_mean" in self.other_fields:
+            return self.other_fields["ensemble_mean"]
+        else:
+            raise ValueError("Input does not have ensemble. Cannot compute ensemble mean")
+
+    @property
+    def ensemble_variance(self):
+        if "ensemble_variance" in self.other_fields:
+            return self.other_fields["ensemble_variance"]
+        elif self.num_members > 1:
+            return np.nanvar(self.ensemble, axis=-1)
+        else:
+            raise ValueError("Input does not have ensemble, or it has less than 2 members. Cannot compute ensemble variable")
 
 
 class Netcdf(Input):
@@ -173,10 +200,39 @@ class Netcdf(Input):
             file.close()
             return valid
 
-        # TODO: Invalid file if we have a threshold dimension, but no threshold probabilities (same
-        # with quantiles)
         except:
             return False
+
+    def has_field(self, field):
+        if field == verif.field.Obs():
+            return "obs" in self._file.variables
+        elif field == verif.field.Fcst():
+            return "fcst" in self._file.variables
+        elif field == verif.field.Pit():
+            return "pit" in self._file.variables
+        elif field == verif.field.Ensemble():
+            return "ensemble" in self._file.variables
+        elif isinstance(field, verif.field.EnsembleMember):
+            return field.member < self.num_members
+        elif field == verif.field.EnsembleMean():
+            return "ensemble_mean" in self._file.variables or self.num_members > 0
+        elif field == verif.field.EnsembleVariance():
+            return "ensemble_variance" in self._file.variables or self.num_members > 1
+        elif isinstance(field, verif.field.Threshold):
+            return field.threshold in self.thresholds
+        elif isinstance(field, verif.field.Quantile):
+            return field.quantile in self.quantiles
+        elif isinstance(field, verif.field.Other):
+            return field.name() in self._file.variables
+        else:
+            raise NotImplementedError()
+
+    @property
+    def num_members(self):
+        if "ensemble" in self._file.variables:
+            # We don't want to load the full ensemble, just to know its size
+            return self._file.variables["ensemble"].shape[-1]
+        return 0
 
     @cached_property
     def obs(self):
@@ -204,7 +260,10 @@ class Netcdf(Input):
         if "ensemble" in self._file.variables:
             return verif.util.clean(self._file.variables["ensemble"])
         else:
-            return None
+            num_times = len(self.times)
+            num_leadtimes = len(self.leadtimes)
+            num_locations = len(self.locations)
+            return np.zeros([num_times, num_leadtimes, num_locations, 0], 'float')
 
     @cached_property
     def threshold_scores(self):
@@ -224,7 +283,7 @@ class Netcdf(Input):
         return verif.util.clean(self._file.variables[name])
 
     def _get_times(self):
-        return verif.util.clean(self._file.variables["time"])
+        return verif.util.clean(self._file.variables["time"], np.float64)
 
     def _get_locations(self):
         num_locations = len(self._file.dimensions['location'])
@@ -555,6 +614,32 @@ class Text(Input):
         self.locations = self._locations
         self.variable = self._get_variable()
 
+    def has_field(self, field):
+        # Unlink NetCDF, all fields are pre-loaded
+        if field == verif.field.Obs():
+            return self.obs is not None
+        elif field == verif.field.Fcst():
+            return self.fcst is not None
+        elif field == verif.field.Pit():
+            return self.pit is not None
+        elif field == verif.field.Ensemble():
+            return self.ensemble.shape[-1] != 0
+        elif field == verif.field.EnsembleMean():
+            return "ensemble_mean" in self._other_scores or self.num_members > 0
+        elif field == verif.field.EnsembleVariance():
+            return "ensemble_variance" in self._other_scores or self.num_members > 1
+        elif isinstance(field, verif.field.EnsembleMember):
+            return field.member < self.num_members
+        elif isinstance(field, verif.field.Threshold):
+            return field.threshold in self._thresholds
+        elif isinstance(field, verif.field.Quantile):
+            return field.quantile in self._quantiles
+        elif isinstance(field, verif.field.Other):
+            return field.name() in self._other_scores
+        else:
+            print("Don't know what", field, "is")
+            raise NotImplementedError()
+
     @property
     def other_fields(self):
         return self._other_scores.keys()
@@ -632,6 +717,24 @@ class Comps(Input):
         self.locations = self._get_locations()
         self.variable = self._get_variable()
         self.other_fields = self._get_other_fields()
+
+    def has_field(self, field):
+        if field == verif.field.Obs():
+            return "obs" in self._file.variables
+        elif field == verif.field.Fcst():
+            return "fcst" in self._file.variables
+        elif field == verif.field.Pit():
+            return "pit" in self._file.variables
+        elif field == verif.field.Ensemble():
+            return False
+        elif isinstance(field, verif.field.Threshold):
+            return field.threshold in self.thresholds
+        elif isinstance(field, verif.field.Quantile):
+            return field.quantile in self.quantiles
+        elif isinstance(field, verif.field.Other):
+            return field.name() in self.other_fields
+        else:
+            raise NotImplementedError()
 
     def _get_other_fields(self):
         regular_names = self.get_regular_names() + ["Location", "Lat", "Lon", "Elev", "Offset", "Date"]
@@ -882,3 +985,6 @@ class Fake(Input):
             self.variable = variable
         self.pit = None
         self.other_fields = list()
+
+    def has_field(self, field):
+        return True

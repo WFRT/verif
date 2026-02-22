@@ -1,5 +1,4 @@
 import unittest
-import numpy as np
 from verif.location import Location
 
 
@@ -10,7 +9,12 @@ class TestLocation(unittest.TestCase):
         self.assertFalse(Location(0, 1, 2, 3) != Location(0, 1, 2, 3))
 
     def test_unequal(self):
-        for location in [Location(0, 1, 2, 2), Location(0, 1, 3, 3), Location(0, 2, 2, 3), Location(1, 1, 2, 3)]:
+        for location in [
+            Location(0, 1, 2, 2),
+            Location(0, 1, 3, 3),
+            Location(0, 2, 2, 3),
+            Location(1, 1, 2, 3),
+        ]:
             self.assertFalse(Location(0, 1, 2, 3) == location)
             self.assertFalse(Location(0, 1, 2, 3) == location)
             self.assertTrue(Location(0, 1, 2, 3) != location)
@@ -25,5 +29,5 @@ class TestLocation(unittest.TestCase):
         self.assertAlmostEqual(loc2.get_distance(loc1), loc1.get_distance(loc2))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

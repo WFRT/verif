@@ -467,61 +467,6 @@ class FcstStdDev(ObsFcstBased):
     def _compute_from_obs_fcst(self, obs, fcst):
         return np.std(fcst)
 
-class RmseFromEnsembleMean(Metric):
-    name = "Root mean squared error"
-    description = "Root mean squared error"
-    min = 0
-    perfect_score = 0
-    supports_aggregator = True
-    orientation = -1
-
-    def __init__(self, field=verif.field.Other("ens-mean")):
-        self.field = field
-
-    def compute_single(self, data, input_index, axis, axis_index, interval):
-        [obs, fcst] = data.get_scores([verif.field.Obs(), self.field], input_index, axis, axis_index)
-        assert(obs.shape[0] == fcst.shape[0])
-        if axis == verif.axis.Obs():
-            I = np.where(interval.within(obs))
-            obs = obs[I]
-            fcst = fcst[I]
-        elif axis == verif.axis.Fcst():
-            I = np.where(interval.within(fcst))
-            obs = obs[I]
-            fcst = fcst[I]
-
-        return self.compute_from_obs_fcst(obs, fcst, interval)
-
-    def compute_from_obs_fcst(self, obs, fcst, interval=None):
-        """ Compute the score using only the observations and forecasts
-
-        obs and fcst must have the same length, but may contain nan values
-
-        Arguments:
-           obs (np.array): 1D array of observations
-           fcst (np.array): 1D array of forecasts
-
-        Returns:
-           float: Value of score
-        """
-
-        # Remove missing values
-        I = np.where((np.isnan(obs) | np.isnan(fcst)) == 0)[0]
-        obs = obs[I]
-        fcst = fcst[I]
-
-        if obs.shape[0] > 0:
-            return self._compute_from_obs_fcst(obs, fcst)
-        else:
-            return np.nan
-
-
-    def _compute_from_obs_fcst(self, obs, fcst):
-        return self.aggregator((obs - fcst) ** 2) ** 0.5
-
-    def label(self, variable):
-        return "RMSE (" + variable.units + ")"
-
 
 class Rmse(ObsFcstBased):
     name = "Root mean squared error"
@@ -587,6 +532,7 @@ class Nsec(ObsFcstBased):
     def label(self, variable):
         return "NSEC"
 
+
 class Nnsec(ObsFcstBased):
     name = "Normalized Nash-Sutcliffe efficiency coefficient"
     description = "Normalized Nash-Sutcliffe efficiency coefficient"
@@ -607,6 +553,7 @@ class Nnsec(ObsFcstBased):
 
     def label(self, variable):
         return "NNSEC"
+
 
 class Kge(ObsFcstBased):
     name = "Kling-Gupta efficiency"
@@ -635,6 +582,7 @@ class Kge(ObsFcstBased):
 
     def label(self, variable):
         return "KGE"
+
 
 class Alphaindex(ObsFcstBased):
     name = "Alpha index"
@@ -785,6 +733,59 @@ class DError(ObsFcstBased):
         sortedobs = np.sort(obs)
         sortedfcst = np.sort(fcst)
         return np.mean(np.abs(sortedobs - sortedfcst))
+
+
+class FCrps(Metric):
+    """ Fair continuous ranked probability score """
+    type = verif.metric_type.Probabilistic()
+    name = "Fair continuous ranked probability score"
+    description = "Fair continuous ranked probability score"
+    supports_aggregator = True
+    orientation = -1
+
+    def compute_single(self, data, input_index, axis, axis_index, interval):
+        ensemble, obs = data.get_scores([verif.field.Ensemble(), verif.field.Obs()], input_index, axis, axis_index)
+        if ensemble.shape[1] < 2:
+            verif.util.error("Cannot compute CRPS with less than 2 members")
+        crps = self.compute_crps(ensemble, obs)
+        crps = self.aggregator(crps)
+        return crps
+
+    def label(self, variable):
+        return "fCRPS (" + variable.units + ")"
+
+    @staticmethod
+    def compute_crps(ensemble, obs, fair=True):
+        """Continuous Ranked Probability Score (CRPS).
+
+        Args:
+            ensemble: numpy.ndarray
+                Predictions, shape (time, leadtime, location, ens_size)
+            obs: numpy.ndarray
+                Targets, shape (time, leadtime, location)
+            fair: bool
+                Defaults to true
+
+        Returns:
+            crps: numpy.ndarray
+                Shape (time, leadtime, location)
+        """
+        num_members = ensemble.shape[-1]
+
+        coef = (
+            -1.0 / (num_members * (num_members - 1))
+            if fair
+            else -1.0 / (num_members**2)
+        )
+
+        mae = np.mean(np.abs(obs[..., None] - ensemble), axis=-1)
+
+        # var = np.abs(ensemble[..., None] - ensemble[..., None, :])
+        var = np.zeros(ensemble.shape[:-1])
+        for i in range(num_members):  # loop version to reduce memory usage
+            var += np.sum(np.abs(ensemble[..., i, None] - ensemble[..., i + 1:]), axis=-1)
+        var *= coef
+        return mae + var
 
 
 class Pit(Metric):
@@ -1410,21 +1411,16 @@ class QuantileScore(Metric):
 class Spread(Metric):
     type = verif.metric_type.Probabilistic()
     name = "Spread"
-    description = "Spread between two quantiles. Use -q to set which quantiles to use."
+    description = "Ensemble spread (standard deviation of members)."
     min = 0
-    default_bin_type = "within"
-    require_threshold_type = "quantile"
     supports_threshold = True
+    supports_aggregator = True
     perfect_score = 0
     orientation = -1
-    min_num_thresholds = 2
-    max_num_thresholds = 2
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
-        var0 = verif.field.Quantile(interval.lower)
-        var1 = verif.field.Quantile(interval.upper)
-        [q0, q1] = data.get_scores([var0, var1], input_index, axis, axis_index)
-        return np.mean(q1 - q0)
+        [variance] = data.get_scores([verif.field.EnsembleVariance()], input_index, axis, axis_index)
+        return self.aggregator(np.sqrt(variance))
 
     def label(self, variable):
         return self.name
@@ -1433,32 +1429,23 @@ class Spread(Metric):
 class SpreadSkillRatio(Metric):
     type = verif.metric_type.Probabilistic()
     name = "Spread-skill ratio"
-    description = "Ratio of spread to skill (RMSE). Use -q to set which quantiles to use for spread."
+    description = "Ratio of spread (standard deviation of memebrs) to skill (RMSE of ensemble mean)."
+    supports_threshold = False
     min = 0
-    default_bin_type = "within"
-    require_threshold_type = "quantile"
-    supports_threshold = True
     perfect_score = 1
     orientation = 0
-    min_num_thresholds = 2
-    max_num_thresholds = 2
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
-        var0 = verif.field.Quantile(interval.lower)
-        var1 = verif.field.Quantile(interval.upper)
-        fields = [var0, var1,verif.field.Fcst(), verif.field.Obs()]
-        q0, q1, obs, fcst = data.get_scores(fields, input_index, axis, axis_index)
+        fields = [verif.field.EnsembleMean(), verif.field.EnsembleVariance(), verif.field.Obs()]
+        mean, variance, obs = data.get_scores(fields, input_index, axis, axis_index)
 
-        spread = np.mean(q1 - q0)
-        skill = np.sqrt(np.mean(np.abs(obs - fcst)**2))
-
-        num_std = 0.5 * (scipy.stats.norm.ppf(interval.upper) - scipy.stats.norm.ppf(interval.lower))
-        adjusted_spread = spread / num_std
+        spread = np.mean(np.sqrt(variance))
+        skill = np.sqrt(np.mean(np.abs(obs - mean)**2))
 
         if np.isclose(skill, 0, atol=1e-7):
             return np.nan
         else:
-            return adjusted_spread / skill
+            return spread / skill
 
     def label(self, variable):
         return self.name

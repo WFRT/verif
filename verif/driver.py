@@ -413,6 +413,8 @@ def run(argv):
     # Handle special plots
     if metric == "pithist":
         pl = verif.output.PitHist()
+    elif metric == "rankhist":
+        pl = verif.output.RankHist()
     elif metric == "obsfcst":
         pl = verif.output.ObsFcst()
     elif metric == "timeseries":

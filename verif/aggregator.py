@@ -168,6 +168,7 @@ class Change(Aggregator):
         else:
             raise NotImplementedError(f"This function not implemented for axis {axis}")
 
+
 class AbsChange(Aggregator):
     """Absolute value of difference between the last and the first element. Is most useful
     when used with -Tagg since it implies an array representing a sequence

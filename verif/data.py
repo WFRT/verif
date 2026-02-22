@@ -45,8 +45,7 @@ class Data(object):
           fcst_field=verif.field.Fcst(),
           dim_agg_length=None,
           dim_agg_axis=verif.axis.Leadtime(),
-          dim_agg_method=verif.aggregator.Mean(),
-          ):
+          dim_agg_method=verif.aggregator.Mean()):
 
         """
         Arguments:
@@ -287,6 +286,18 @@ class Data(object):
 
             # Remove missing values
             currValid = (np.isnan(curr) == 0) & (np.isinf(curr) == 0)
+
+            # Collapse the ensemble dimension, by checking that all members are available
+            if field == verif.field.Ensemble():
+                num_members = currValid.shape[-1]
+                if num_members == 0:
+                    currValid = np.ones(currValid.shape[:-1], int)
+                else:
+                    if axis == verif.axis.All():
+                        currValid = np.prod(currValid, axis=3)
+                    else:
+                        currValid = np.prod(currValid, axis=1)
+
             if valid is None:
                 valid = currValid
             else:
@@ -304,13 +315,21 @@ class Data(object):
                 else:
                     raise Exception("Internal error")
         else:
-            I = np.where(valid)
+            I = np.where(valid)[0]
             for i in range(0, len(fields)):
-                scores[i] = scores[i][I]
+                # Use ... as this might be an ensemble field
+                scores[i] = scores[i][I, ...]
 
         # No valid data. Therefore return a list of nans instead of an empty list
         if scores[0].shape[0] == 0:
-            scores = [np.nan * np.zeros(1, float) for i in range(0, len(fields))]
+            new_scores = list()
+            for i, field in enumerate(fields):
+                if field == verif.field.Ensemble():
+                    num_members = scores[i].shape[-1]
+                    new_scores = [np.nan * np.zeros([1, num_members], float)]
+                else:
+                    new_scores += [np.nan * np.zeros(1, float)]
+            scores = new_scores
 
         self._get_scores_cache[key] = scores
 
@@ -468,17 +487,17 @@ class Data(object):
             found_obs = False
             for i in range(num_inputs):
                 input = self._inputs[i]
-                all_fields = input.get_fields()
-                if field in all_fields:
+                if input.has_field(field):
                     if field == verif.field.Obs():
                         temp = input.obs
+                        temp = self.preaggregate(temp, input)
                     elif field == verif.field.Fcst():
                         temp = input.fcst
+                        temp = self.preaggregate(temp, input)
                     else:
                         temp = input.other_score(field.name())
-
-                    # Pre-aggregate observations
-                    temp = self.preaggregate(temp, input)
+                        if self.dim_agg_length is not None:
+                            verif.util.warning("Cannot preaggregate " + field.name() + "since I'm unsure it makes sense")
 
                     Itimes = self._get_time_indices(i)
                     Ileadtimes = self._get_leadtime_indices(i)
@@ -510,7 +529,6 @@ class Data(object):
             for i in range(num_inputs):
                 if field not in self._get_score_cache[i]:
                     input = self._inputs[i]
-                    all_fields = input.get_fields()
                     if isinstance(field, verif.field.Threshold):
                         I = np.where(np.isclose(input.thresholds,  field.threshold))[0]
                         if len(I) == 0 or self.dim_agg_length is not None:
@@ -553,37 +571,56 @@ class Data(object):
                             assert(len(I) == 1)
                             temp = input.quantile_scores[:, :, :, I[0]]
 
-                    else:
-                        if field not in all_fields:
-                            verif.util.error("%s does not contain '%s'" % (self.get_names()[i], field.name()))
+                    elif field == verif.field.EnsembleVariance():
+                        if self.dim_agg_length is not None:
+                            temp = self.preaggregate(input.ensemble, input)
+                            temp = np.nanvar(temp, axis=-1)
+                        else:
+                            temp = input.ensemble_variance
 
-                        elif field == verif.field.Obs():
+                    elif field == verif.field.Pit():
+                        temp = input.pit
+                        x0 = self.variable.x0
+                        x1 = self.variable.x1
+                        if x0 is not None or x1 is not None:
+                            temp = verif.field.Pit.randomize(input.obs, temp, x0, x1)
+
+                    elif input.has_field(field):
+                        # Fields that can be preaggregated
+
+                        if field == verif.field.Obs():
                             temp = input.obs
+                            temp = self.preaggregate(temp, input)
 
                         elif field == verif.field.Fcst():
                             temp = input.fcst
+                            temp = self.preaggregate(temp, input)
 
-                        elif field == verif.field.Pit():
-                            temp = input.pit
-                            x0 = self.variable.x0
-                            x1 = self.variable.x1
-                            if x0 is not None or x1 is not None:
-                                temp = verif.field.Pit.randomize(input.obs, temp, x0, x1)
+                        elif field == verif.field.EnsembleMean():
+                            temp = input.ensemble_mean
+                            temp = self.preaggregate(temp, input)
 
                         elif isinstance(field, verif.field.EnsembleMember):
                             if field.member >= input.num_members:
                                 temp = np.nan * np.zeros(input.ensemble[:, :, :, 0].shape)
                             else:
                                 temp = input.ensemble[:, :, :, field.member]
+                            temp = self.preaggregate(temp, input)
 
                         elif isinstance(field, verif.field.Ensemble):
                             temp = input.ensemble[:, :, :, :]
+                            temp = self.preaggregate(temp, input)
 
                         else:
                             temp = input.other_score(field.name())
-
-                        # Pre-aggregate forecasts
-                        temp = self.preaggregate(temp, input)
+                            if self.dim_agg_length is not None:
+                                verif.util.warning("Cannot preaggregate " + field.name() + "since I'm unsure it makes sense")
+                    elif isinstance(field, verif.field.Ensemble):
+                        # An input can potentially not have an ensemble, but we still want to
+                        # process the empy ensemble
+                        temp = input.ensemble
+                    else:
+                        verif.util.error("%s does not contain '%s'" % (self.get_names()[i], field.name()))
 
                     Itimes = self._get_time_indices(i)
                     Ileadtimes = self._get_leadtime_indices(i)
@@ -598,13 +635,36 @@ class Data(object):
         Remove missing. If one configuration has a missing value, set all
         configurations to missing. This can happen when the times are
         available, but have missing values.
+
+        Ensembles can have different number of members and some members can be missing on some days.
+        For this field, only remove cases where one or more input files are missing all members.
         """
         if self._remove_missing_across_all:
-            is_missing = np.isnan(self._get_score_cache[0][field])
-            for i in range(1, num_inputs):
-                is_missing = is_missing | (np.isnan(self._get_score_cache[i][field]))
-            for i in range(num_inputs):
-                self._get_score_cache[i][field][is_missing] = np.nan
+            def compute_is_missing(array):
+                if array.shape[-1] == 0:
+                    # When an ensemble has no members, it's technically never missing
+                    return np.zeros(array.shape[0:-1]) > 1
+                else:
+                    return np.all(np.isnan(array), axis=3)
+
+            if isinstance(field, verif.field.Ensemble):
+                curr_values = self._get_score_cache[0][field]
+                num_members = curr_values.shape[3]
+                # Check if all members are missing (axis 3)
+                is_missing = compute_is_missing(curr_values)
+                for i in range(1, num_inputs):
+                    is_missing = is_missing | (compute_is_missing(self._get_score_cache[i][field]))
+                for i in range(num_inputs):
+                    temp = self._get_score_cache[i][field]
+                    # Remove all members by broadcasting the True/False to all members
+                    I = np.repeat(is_missing[..., None], temp.shape[-1], 3)
+                    self._get_score_cache[i][field][I] = np.nan
+            else:
+                is_missing = np.isnan(self._get_score_cache[0][field])
+                for i in range(1, num_inputs):
+                    is_missing = is_missing | (np.isnan(self._get_score_cache[i][field]))
+                for i in range(num_inputs):
+                    self._get_score_cache[i][field][is_missing] = np.nan
 
         return self._get_score_cache[input_index][field]
 
@@ -672,9 +732,9 @@ class Data(object):
             if available_values is None:
                 available_values = curr_values
             else:
-                #if axis == verif.axis.Leadtime():
-                #    available_values = np.intersect1d(available_values, curr_values * 1000 // 1 / 1000)
-                #else:
+                # if axis == verif.axis.Leadtime():
+                #     available_values = np.intersect1d(available_values, curr_values * 1000 // 1 / 1000)
+                # else:
                 available_values = np.intersect1d(available_values, curr_values)
 
         # Sort values, since for example, times may not be in an ascending order
@@ -764,31 +824,45 @@ class Data(object):
         """ Slice an array along a certain axis and return an extract array
 
         Arguments:
-        array       3D numpy array
+        array       3D/4D numpy array
         axis        Of type verif.axis.Axis
         axis_index  Index along the axis to slice
         """
         output = None
-        if axis == verif.axis.Time():
-            output = array[axis_index, :, :].flatten()
-        elif axis in verif.axis.get_time_axes():
-            axis_values = self.axis_cache[axis]
-            axis_values_unique = self.axis_cache_unique[axis]
-            I = np.where(axis_values == axis_values_unique[axis_index])
-            output = array[I, :, :].flatten()
-        elif axis in verif.axis.get_leadtime_axes():
-            axis_values = self.axis_cache[axis]
-            axis_values_unique = self.axis_cache_unique[axis]
-            I = np.where(axis_values == axis_values_unique[axis_index])
-            output = array[:, I, :].flatten()
-        elif axis.is_location_like:
-            output = array[:, :, axis_index].flatten()
-        elif axis in [verif.axis.No(), verif.axis.Threshold(), verif.axis.Obs(), verif.axis.Fcst()]:
-            output = array.flatten()
-        elif axis == verif.axis.All() or axis is None:
+        if axis == verif.axis.All() or axis is None:
             output = array
         else:
-            verif.util.error("data.py: unrecognized axis: " + axis.name())
+            is_ensemble = len(array.shape) == 4
+            if axis == verif.axis.Time():
+                output = array[axis_index, ...]
+            elif axis in verif.axis.get_time_axes():
+                axis_values = self.axis_cache[axis]
+                axis_values_unique = self.axis_cache_unique[axis]
+                I = np.where(axis_values == axis_values_unique[axis_index])
+                output = array[I, ...]
+            elif axis in verif.axis.get_leadtime_axes():
+                axis_values = self.axis_cache[axis]
+                axis_values_unique = self.axis_cache_unique[axis]
+                I = np.where(axis_values == axis_values_unique[axis_index])
+                output = array[:, I, ...]
+            elif axis.is_location_like:
+                output = array[:, :, axis_index, ...]
+            elif axis in [verif.axis.No(), verif.axis.Threshold(), verif.axis.Obs(), verif.axis.Fcst()]:
+                output = array
+            else:
+                verif.util.error("data.py: unrecognized axis: " + axis.name())
+
+            if is_ensemble:
+                # Put into (N, members)
+                num_members = array.shape[-1]
+                if num_members == 0:
+                    N = np.prod(output.shape[:-1])
+                    output = np.zeros([N, num_members], 'float')
+                else:
+                    output = np.array([output[..., i].flatten() for i in range(num_members)])
+                    output = output.transpose()
+            else:
+                output = output.flatten()
 
         return output
 
@@ -818,7 +892,7 @@ def preaggregate_time(array, times, aggregator, length):
     for t in range(array.shape[0]):
         start = times[t] - length * 3600
         I = range(np.where(times > start)[0][0], t+1)
-        new_array[t, :, :] = aggregator(array[I, :, :], axis=0)
+        new_array[t, ...] = aggregator(array[I, ...], axis=0)
     return new_array
 
 
@@ -836,8 +910,9 @@ def preaggregate_leadtime(array, leadtimes, aggregator, length):
     for t in range(array.shape[1]):
         start = leadtimes[t] - length
         I = range(np.where(leadtimes > start)[0][0], t+1)
-        new_array[:, t, :] = aggregator(array[:, I, :], axis=1)
+        new_array[:, t, ...] = aggregator(array[:, I, ...], axis=1)
     return new_array
+
 
 def get_lower_cdf(num_members):
     """Returns the CDF corresponding to the lowest ensemble member"""
@@ -845,8 +920,10 @@ def get_lower_cdf(num_members):
     # return 1 / (num_members + 1)
     # return 0.5 / num_members
 
+
 def get_upper_cdf(num_members):
     return 1 - get_lower_cdf(num_members)
+
 
 def get_quantile_function(ensemble):
     assert len(ensemble.shape) == 4

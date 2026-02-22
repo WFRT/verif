@@ -29,6 +29,7 @@ except:
 
 allowedMapTypes = ["simple", "sat", "topo"]
 
+
 def get_all():
     """
     Returns a dictionary of all output classes where the key is the class
@@ -593,7 +594,7 @@ class Output(object):
             if len(x) != len(y):
                 verif.util.error("Cannot add annotation. Missmatch in length of x and y arrays.")
             if isinstance(labels, dict):
-                for k,v in labels.items():
+                for k, v in labels.items():
                     if len(v) != len(x):
                         verif.util.error("Cannot add annotation. Missmatch in length of input arrays.")
             else:
@@ -837,7 +838,7 @@ class Standard(Output):
             yy = np.zeros(len(x), 'float')
             if axis in [verif.axis.Threshold(), verif.axis.Obs(), verif.axis.Fcst()]:
                 for i in range(len(intervals)):
-                    yy[i] = self._metric.compute(data, f, axis, intervals[i])
+                    yy[i] = self._metric.compute(data, f, axis, intervals[i])[0]
             else:
                 # Average all thresholds
                 for i in range(len(intervals)):
@@ -1284,7 +1285,6 @@ class Standard(Output):
                 # cax,kw = matplotlib.colorbar.make_axes(map,pad=0.05,shrink=0.7)
                 # mpl.gcf().colorbar(cs,cax=cax,extend='both',**kw)
                 cb = mpl.gcf().colorbar(cs)
-                #cb = mpl.colorbar()
                 if self.clabel is None:
                     cb.set_label(self._metric.label(data.variable), fontsize=self.labfs)
                 else:
@@ -1441,7 +1441,7 @@ class ObsFcst(Output):
                     # Fill areas betweeen lines
                     Ncol = (len(self.quantiles))//2
                     for i in range(Ncol):
-                        color = opts["color"] # [(1 - (i + 0.0) / Ncol)] * 3
+                        color = opts["color"]
                         I0 = F + f + 1 + i * F
                         I1 = F + f + 1 + F * (len(self.quantiles) - 1 - i)
                         verif.util.fill(x, y[:, I0], y[:, I1], color, zorder=-2, alpha=0.3)
@@ -2040,10 +2040,10 @@ class Cond(Output):
             xmfo = verif.metric.XConditional(verif.field.Fcst(), verif.field.Obs())  # O | F
             mof0 = verif.metric.Conditional(verif.field.Obs(), verif.field.Fcst(), np.mean)  # F | O
             for i in range(len(intervals)):
-                fo[i] = mfo.compute(data, f, verif.axis.No(), intervals[i])
-                of[i] = mof.compute(data, f, verif.axis.No(), intervals[i])
-                xfo[i] = xmfo.compute(data, f, verif.axis.No(), intervals[i])
-                xof[i] = xmof.compute(data, f, verif.axis.No(), intervals[i])
+                fo[i] = mfo.compute(data, f, verif.axis.No(), intervals[i])[0]
+                of[i] = mof.compute(data, f, verif.axis.No(), intervals[i])[0]
+                xfo[i] = xmfo.compute(data, f, verif.axis.No(), intervals[i])[0]
+                xof[i] = xmof.compute(data, f, verif.axis.No(), intervals[i])[0]
             mpl.plot(xof, of, label=labels[f] + " (F|O)", **opts)
             mpl.plot(fo, xfo, label=labels[f] + " (O|F)", alpha=0.5, **opts)
         mpl.ylabel("Forecasts (" + data.variable.units + ")")
@@ -2060,7 +2060,7 @@ class SpreadSkill(Output):
     supports_x = False
     require_threshold_type = "deterministic"
     name = "Spread skill"
-    description = "Spread/skill plot showing RMSE of ensemble mean as a function of ensemble spread (use -r to specify spread thresholds and -q to specify a lower and upper quantile to represent spread)"
+    description = "Spread/skill plot showing RMSE of ensemble mean as a function of ensemble spread"
 
     def __init__(self):
         Output.__init__(self)
@@ -2068,25 +2068,14 @@ class SpreadSkill(Output):
     def _plot_core(self, data):
         labels = data.get_legend()
         F = data.num_inputs
-        if self.quantiles is not None:
-            lower_q = np.min(self.quantiles)
-            upper_q = np.max(self.quantiles)
-        else:
-            if len(data.quantiles) < 2:
-                verif.util.error("Spread-skill diagram needs input files to have at least 2 quantiles")
-            lower_q = data.quantiles[0]
-            upper_q = data.quantiles[-1]
-        lower_field = verif.field.Quantile(lower_q)
-        upper_field = verif.field.Quantile(upper_q)
         for f in range(F):
             opts = self._get_plot_options(f)
-            [obs, fcst, lower, upper] = data.get_scores([verif.field.Obs(), verif.field.Fcst(), lower_field, upper_field], f, verif.axis.No())
-            spread = upper - lower
-            skill = (obs - fcst)**2
+            [obs, mean, variance] = data.get_scores([verif.field.Obs(), verif.field.EnsembleMean(),
+                verif.field.EnsembleVariance()], f, verif.axis.No())
+            spread = variance ** 0.5
+            skill = (obs - mean)**2
             x = np.nan*np.zeros(len(self.thresholds), 'float')
             y = np.nan*np.zeros(len(x), 'float')
-            lower = np.nan*np.zeros(len(x), 'float')
-            upper = np.nan*np.zeros(len(x), 'float')
             for i in range(1, len(self.thresholds)):
                 I = np.where((np.isnan(spread) == 0) &
                              (np.isnan(skill) == 0) &
@@ -2095,8 +2084,6 @@ class SpreadSkill(Output):
                 if len(I) > 0:
                     x[i] = np.mean(spread[I])
                     y[i] = np.sqrt(np.mean(skill[I]))
-                    lower[i] = np.percentile(np.sqrt(skill[I]), 5)
-                    upper[i] = np.percentile(np.sqrt(skill[I]), 95)
 
             mpl.plot(x, y, label=labels[f], **opts)
 
@@ -2107,25 +2094,24 @@ class SpreadSkill(Output):
         mpl.xlim(lims)
         mpl.ylim(lims)
 
-        # The perfect score depends on how far the quantiles are apart. Compute
-        # the number of standard deviations that the quantile interval would
-        # contain assuming a Gaussian distribution. The ideal line will then be
-        # scaled by this number.
-        num_std = scipy.stats.norm.ppf(upper_q) - scipy.stats.norm.ppf(lower_q)
-        self._plot_perfect_score(lims, 1.0/num_std*lims)
+        self._plot_perfect_score(lims, lims)
 
-        mpl.xlabel("Width of the %g%% - %g%% interval (%s)" % (upper_q*100, lower_q*100, data.variable.units))
-        mpl.ylabel("RMSE (" + data.variable.units + ")")
+        mpl.xlabel("Standard deviation of ensemble (" + data.variable.units + ")")
+        mpl.ylabel("RMSE of ensemble mean (" + data.variable.units + ")")
 
 
 class TimeSeries(Output):
     name = "Time series"
-    description = "Plot observations and forecasts as a time series "\
+    description = "Plot observations, deterministic and ensemble forecasts as a time series "\
           "(i.e. by concatinating all leadtimes). '-x <dimension>' has no "\
-          "effect, as it is always shown by date."
+          "effect, as it is always shown by date. Ensemble members can be turned off by using "\
+          "-simple"
     supports_threshold = False
     supports_x = False
     default_axis = verif.axis.Time()
+
+    def _show_members(self):
+        return not self.simple
 
     def _plot_core(self, data):
         F = data.num_inputs
@@ -2159,6 +2145,8 @@ class TimeSeries(Output):
                 fcst = data.get_scores(verif.field.Fcst(), f)
                 opts = self._get_plot_options(f)
                 for d in range(len(data.times)):
+                    alpha = 1  # d / len(data.times)
+                    opts["alpha"] = alpha
                     x = datenums[d] + data.leadtimes / 24.0
                     y = np.nanmean(fcst[d, :, :], axis=1)
                     lab = labels[f] if d == 0 else ""
@@ -2167,19 +2155,19 @@ class TimeSeries(Output):
         """
         Draw ensemble members
         """
-        for f in range(F):
-            opts = self._get_plot_options(f, include_marker=False)
-            opts["lw"] /= 2
-            for member in range(data.get_num_members(f)):
-                fcst = data.get_scores(verif.field.EnsembleMember(member), f)
+        if self._show_members():
+            for f in range(F):
+                opts = self._get_plot_options(f, include_marker=False)
+                opts["lw"] /= 2
+                fcst = data.get_scores(verif.field.Ensemble(), f)
                 for d in range(len(data.times)):
-                    if member == 0 and d == 0 and verif.field.Fcst() not in data.get_fields():
+                    if d == 0 and verif.field.Fcst() not in data.get_fields():
                         lab = data.get_legend()[f]
                     else:
                         lab = None
 
                     x = datenums[d] + data.leadtimes / 24.0
-                    y = np.nanmean(fcst[d, :, :], axis=1)
+                    y = np.nanmean(fcst[d, :, :, :], axis=1)
                     mpl.plot(x, y, label=lab, **opts)
 
         """
@@ -2370,6 +2358,76 @@ class PitHist(Output):
                       % (D, D0, ign), verticalalignment="top")
 
             mpl.xlabel("Cumulative probability")
+
+    def _adjust_axes(self, data):
+        # Apply adjustements to all subplots
+        for ax in mpl.gcf().get_axes():
+            self._adjust_axis(ax)
+
+        # Margins
+        mpl.gcf().subplots_adjust(bottom=self.bottom, top=self.top, left=self.left, right=self.right)
+
+
+class RankHist(Output):
+    name = "Rank histogram"
+    description = "Histogram of ensemble ranks."
+    supports_threshold = False
+    supports_x = False
+
+    def __init__(self):
+        Output.__init__(self)
+        self._bar_color = "gray"
+
+    def _show_expected_line(self):
+        return not self.simple
+
+    def _legend(self, data, names=None):
+        pass
+
+    def _plot_core(self, data):
+        F = data.num_inputs
+        labels = data.get_legend()
+        for f in range(F):
+            verif.util.subplot(f, F)
+            ens, obs = data.get_scores([verif.field.Ensemble(), verif.field.Obs()], f, verif.axis.No())
+            num_members = ens.shape[1]
+
+            # Only keep samples where all members are available, otherwise the ranks have different
+            # meanings for different times.
+            Ivalid = np.where(np.sum(np.isnan(ens), axis=1) == 0)[0]
+            rank = np.sum([ens[Ivalid, e] > obs[Ivalid] for e in range(num_members)], axis=0).astype(np.int32)
+            edges = np.arange(num_members+2) - 0.5
+            middles = (edges[0:-1] + edges[1:]) / 2
+
+            N = np.histogram(rank, edges)[0]
+            y = N * 1.0 / sum(N) * 100
+            width = 0.85
+            mpl.bar(middles, y, width=width, color=self._bar_color)
+
+            # Plot expected mean line
+            xlim = [-0.5, num_members+0.5]
+            mpl.plot(xlim, [100.0 / num_members, 100.0 / num_members], 'k--')
+
+            # Axes and labels
+            mpl.title(labels[f])
+            ytop = 200.0 / num_members
+            mpl.ylim([0, ytop])
+            mpl.xlim(xlim)
+            if f == 0:
+                mpl.ylabel("Frequency (%)")
+
+            # Draw red confidence band
+            if self._show_expected_line():
+                # Multiply by 100 to get to percent
+                std = verif.metric.PitHistDev.deviation_std(rank, num_members) * 100
+
+                mpl.plot(xlim, [100.0 / num_members - 2 * std, 100.0 / num_members - 2 * std], "r-")
+                mpl.plot(xlim, [100.0 / num_members + 2 * std, 100.0 / num_members + 2 * std], "r-")
+                lower = [100.0 / num_members - 2 * std, 100.0 / num_members - 2 * std]
+                upper = [100.0 / num_members + 2 * std, 100.0 / num_members + 2 * std]
+                verif.util.fill(xlim, lower, upper, "r", zorder=100, alpha=0.5)
+
+            mpl.xlabel("Ensemble rank")
 
     def _adjust_axes(self, data):
         # Apply adjustements to all subplots
@@ -3470,6 +3528,7 @@ class InvReliability(Output):
         if len(self.quantiles) == 1:
             mpl.title("Quantile: " + str(self.quantiles[0] * 100) + "%")
 
+
 class Murphy(Output):
     name = "Murphy diagram"
     description = "Murphy diagram for a certain threshold (-r)"
@@ -3516,6 +3575,7 @@ class Murphy(Output):
         mpl.title("Murphy diagram for threshold: " + str(threshold) + " " + units)
         mpl.ylim(bottom=0)
         mpl.xlim(0, 1)
+
 
 class BsDecomp(Output):
     name = "Brier score decomposition diagram"
