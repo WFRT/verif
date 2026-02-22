@@ -2096,8 +2096,8 @@ class SpreadSkill(Output):
 
         self._plot_perfect_score(lims, lims)
 
-        mpl.xlabel("Ensemble standard deviation (" + data.variable.units + ")")
-        mpl.ylabel("RMSE (" + data.variable.units + ")")
+        mpl.xlabel("Standard deviation of ensemble (" + data.variable.units + ")")
+        mpl.ylabel("RMSE of ensemble mean (" + data.variable.units + ")")
 
 
 class TimeSeries(Output):
