@@ -11,8 +11,11 @@ import scipy.interpolate
 
 def main():
     """
-    It takes an existing Verif file, extracts 6h forecasts, and fills in the intermediate hours with either
-    linearly or splin interpolated values.
+    It takes an existing Verif file, extracts 6h forecasts, and fills in the intermediate hours with
+    either linearly or splin interpolated values.
+
+    Ir interpolates fcst, ensemble, ensemble_mean, ensmble_variable fields and creates
+    ensemble_crps.
     """
     parser = argparse.ArgumentParser(description='This program downsamples a verif file and interpolates the data back using an interpolation method')
     parser.add_argument('ifile', help='')
@@ -39,25 +42,28 @@ def main():
         has_ens = "ensemble" in file.variables
         if has_ens:
             ensemble = file.variables["ensemble"][:]
+            print(np.sum(np.isnan(ensemble)))
 
         if frequency >= num_leadtimes:
             raise ValueError(f"frequency must be < {num_leadtimes}")
 
         fcst = file.variables["fcst"][:]
+        print("Interpolating... ")
 
         if args.interpolator == "linear":
+            # Linear interpolation works, even if there are NaNs in the dataset, the result will
+            # just be NaNs, as expected.
             ends = range(frequency, num_leadtimes+1, frequency)
             for end in ends:
                 start = end - frequency
 
-                fcst[:, (start+1):end, :] = np.nan
                 fcst_start = fcst[:, start, :]
                 fcst_end = fcst[:, end, :]
+                fcst[:, (start+1):end, :] = np.nan  # Erase everything in the middle
                 for i in range(1, frequency):
                     w1 = i / frequency
                     w0 = 1 - w1
                     fcst[:, start + i, :] = w0 * fcst_start + w1 * fcst_end
-                    # print(start, end, i, w0, w1)
 
                 if has_ens:
                     ensemble[:, (start+1):end, :, :] = np.nan
@@ -88,12 +94,20 @@ def main():
                 y = ensemble[:, 0::frequency, :, :]
                 x = leadtimes[0::frequency]
 
+                # Spline can't deal with NaNs in y, so set NaNs to a 0 and then put the Nans back in
+                # later. This means that if a single timestep is missing for a member, the whole
+                # member is NaN for that time/location.
+                is_nan = np.sum(np.isnan(y), axis=1) > 0
+                y[np.isnan(y)] = 0
+
                 interpolator = scipy.interpolate.CubicSpline(x, y, axis=1)
                 xx = set([i for i in leadtimes]) - set([i for i in x])
                 xx = np.array(list(xx))
-                temp = interpolator(xx)
+                interp = interpolator(xx)
                 for i, index in enumerate(xx):
-                    ensemble[:, int(index), :, :] = temp[:, i, :, :]
+                    temp = interp[:, i, :, :]
+                    temp[is_nan] = np.nan
+                    ensemble[:, int(index), :, :] = temp
 
         file.variables["fcst"][:] = fcst
         if has_ens:
@@ -101,15 +115,16 @@ def main():
 
         # These variables are no longer valid, since we cannot derive them for interpolated
         # timeseries
-        invalid_variables = ["x", "cdf", "pdf", "pit"]
+        invalid_variables = ["x", "cdf", "pdf", "pit", "ensemble_mean", "ensemble_variance"]
         for variable in invalid_variables:
             if variable in file.variables:
                 file.variables[variable] = np.nan
 
         # Compute CRPS
         if has_ens:
-            if not "crps" in file.variables:
-                file.createVariable("crps", "f4", ("time", "leadtime", "location"))
+            print("Computing CRPS...")
+            if not "ensemble_crps" in file.variables:
+                file.createVariable("ensemble_crps", "f4", ("time", "leadtime", "location"))
 
             num_members = ensemble.shape[-1]
             crps = compute_crps(ensemble, file.variables["obs"][:], num_members)
@@ -117,7 +132,13 @@ def main():
             num_valid_members = np.sum(~np.isnan(ensemble), axis=3)
             crps[num_valid_members != num_members] = np.nan
 
-            file.variables["crps"][:] = crps
+            file.variables["ensemble_crps"][:] = crps
+
+            if "ensemble_mean" in file.variables:
+                ens_mean = np.nanmean(ensemble, axis=3)
+                file.variables["ensemble_mean"][:] = ens_mean
+            if "ensemble_variance" in file.variables:
+                file.variables["ensemble_mean"][:] = np.nanvar(ensemble, axis=3)
 
 
 def compute_crps(preds, targets, num_members, fair=True) -> np.ndarray:
