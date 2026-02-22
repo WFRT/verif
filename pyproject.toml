@@ -10,12 +10,12 @@ authors = [
 description='A verification program for meteorological forecasts and observations'
 keywords=['meteorology', 'verification', 'weather prediction']
 
-license = {file = 'BSD-3'}
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 readme = "README.md"
 
 requires-python = ">=3.9"
 classifiers = [
-      "License :: OSI Approved :: BSD License",
       'Intended Audience :: Science/Research',
       'Topic :: Scientific/Engineering :: Atmospheric Science',
       'Topic :: Scientific/Engineering :: Information Analysis',

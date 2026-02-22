@@ -19,8 +19,7 @@ coverage: test
 dist:
 	echo $(VERSION)
 	rm -rf dist
-	python3 setup.py sdist
-	python3 setup.py bdist_wheel
+	python3 -m build --sdist --wheel
 	@ echo "Next, run 'twine upload dist/*'"
 
 clean:
