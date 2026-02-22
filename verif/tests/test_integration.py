@@ -422,9 +422,9 @@ class IntegrationTest(unittest.TestCase):
         )
 
     def test_crps(self):
-        self.run_with_image("verif verif/tests/files/file1_ens.txt -m crps")
-        self.run_with_image("verif verif/tests/files/file1_ens.txt -m crps -x time")
-        self.run_with_image("verif verif/tests/files/file1_ens.txt -m crps -agg median")
+        self.run_with_image("verif verif/tests/files/file1_ens.txt -m fcrps")
+        self.run_with_image("verif verif/tests/files/file1_ens.txt -m fcrps -x time")
+        self.run_with_image("verif verif/tests/files/file1_ens.txt -m fcrps -agg median")
 
     def test_map_type(self):
         pass

@@ -735,11 +735,11 @@ class DError(ObsFcstBased):
         return np.mean(np.abs(sortedobs - sortedfcst))
 
 
-class Crps(Metric):
-    """ Continuous ranked probability score """
+class FCrps(Metric):
+    """ Fair continuous ranked probability score """
     type = verif.metric_type.Probabilistic()
-    name = "Continuous ranked probability score"
-    description = "Continuous ranked probability score"
+    name = "Fair continuous ranked probability score"
+    description = "Fair continuous ranked probability score"
     supports_aggregator = True
     orientation = -1
 
@@ -752,7 +752,7 @@ class Crps(Metric):
         return crps
 
     def label(self, variable):
-        return "CRPS (" + variable.units + ")"
+        return "fCRPS (" + variable.units + ")"
 
     @staticmethod
     def compute_crps(ensemble, obs, fair=True):
