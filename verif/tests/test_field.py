@@ -28,6 +28,9 @@ class TestField(unittest.TestCase):
         f = verif.field.get("quantile:0.1")
         self.assertEqual(f, verif.field.Quantile(0.1))
 
+        f = verif.field.get("ensemble:1")
+        self.assertEqual(f, verif.field.EnsembleMember(1))
+
 
 if __name__ == "__main__":
     unittest.main()

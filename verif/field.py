@@ -27,12 +27,16 @@ def get(name):
     f = None
     threshold = re.findall("[Tt]hreshold:([.0-9]*)", name)
     quantile = re.findall("[Qq]uantile:([.0-9]*)", name)
+    member = re.findall("ensemble:([0-9]+)", name)
     if len(threshold) == 1:
         threshold = float(threshold[0])
         return Threshold(threshold)
     elif len(quantile) == 1:
         quantile = float(quantile[0])
         return Quantile(quantile)
+    elif len(member) == 1:
+        member = int(member[0])
+        return EnsembleMember(member)
 
     for field in fields:
         if name == field[0].lower():
@@ -87,7 +91,8 @@ class Fcst(Field):
 class EnsembleMember(Field):
     """Represents data from a single ensemble member"""
     def __init__(self, member):
-        self.member = member
+        if member < 0:
+            raise ValueError(f"member ({member}) must be positive")
 
     def __eq___(self, other):
         if self.__class__ != other.__class__:
