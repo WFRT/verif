@@ -1408,22 +1408,20 @@ class QuantileScore(Metric):
         return self.name
 
 
-class Spread(Metric):
+class Spread(FromField):
     type = verif.metric_type.Probabilistic()
     name = "Spread"
     description = "Ensemble spread (standard deviation of members)."
     min = 0
-    supports_threshold = True
     supports_aggregator = True
     perfect_score = 0
     orientation = -1
 
-    def compute_single(self, data, input_index, axis, axis_index, interval):
-        [variance] = data.get_scores([verif.field.EnsembleVariance()], input_index, axis, axis_index)
-        return self.aggregator(np.sqrt(variance))
+    def __init__(self):
+        super(Spread, self).__init__(verif.field.EnsembleVariance())
 
     def label(self, variable):
-        return self.name
+        return self.aggregator.name().title() + " of ensemble spread (" + variable.units + ")"
 
 
 class SpreadSkillRatio(Metric):
