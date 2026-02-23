@@ -1410,7 +1410,7 @@ class QuantileScore(Metric):
 
 class Spread(FromField):
     type = verif.metric_type.Probabilistic()
-    name = "Spread"
+    name = "Ensemble standard deviation"
     description = "Ensemble spread (standard deviation of members)."
     min = 0
     supports_aggregator = True
