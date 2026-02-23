@@ -755,7 +755,7 @@ class Data(object):
                 temp = np.zeros(len(locations))
                 for i in range(0, len(locations)):
                     temp[i] = locations[i].id
-            I = np.where(np.in1d(temp, available_values))[0]
+            I = np.where(np.isin(temp, available_values))[0]
             II = np.zeros(len(available_values), 'int')
             for i in range(0, len(available_values)):
                 III = np.where(available_values[i] == temp)[0]
