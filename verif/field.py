@@ -93,6 +93,7 @@ class EnsembleMember(Field):
     def __init__(self, member):
         if member < 0:
             raise ValueError(f"member ({member}) must be positive")
+        self.member = member
 
     def __eq___(self, other):
         if self.__class__ != other.__class__:
