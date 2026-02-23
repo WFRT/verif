@@ -21,6 +21,13 @@ class TestField(unittest.TestCase):
         self.assertFalse(verif.field.Threshold(0) == verif.field.Threshold(1))
         self.assertTrue(verif.field.Threshold(0) != verif.field.Threshold(1))
 
+    def test_get(self):
+        f = verif.field.get("threshold:0.1")
+        self.assertEqual(f, verif.field.Threshold(0.1))
+
+        f = verif.field.get("quantile:0.1")
+        self.assertEqual(f, verif.field.Quantile(0.1))
+
 
 if __name__ == "__main__":
     unittest.main()

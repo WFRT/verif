@@ -18,6 +18,11 @@ def get_all():
 
 def get(name):
     """ Returns an instance of an object with the given class name """
+    if name == "ensemble:mean":
+        return EnsembleMean()
+    elif name == "ensemble:variance":
+        return EnsembleVariance()
+
     fields = get_all()
     f = None
     threshold = re.findall("[Tt]hreshold:([.0-9]*)", name)
