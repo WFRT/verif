@@ -34,11 +34,11 @@ dependencies = [
     'matplotlib',
     'scipy',
     'netCDF4',
+    'PyQt6',
+    'cartopy',
 ]
 dynamic = ["version"]
 optional-dependencies.test = ['coverage', 'pep8', 'pylint', 'flake8']
-
-optional-dependencies.cartopy = ['cartopy']
 
 [project.urls]
 Homepage='https://github.com/WFRT/verif'
