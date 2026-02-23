@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import inspect
 from . import metric_type
 import numpy as np

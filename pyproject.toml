@@ -34,8 +34,6 @@ dependencies = [
     'matplotlib',
     'scipy',
     'netCDF4',
-    'six',
-    'future',
 ]
 dynamic = ["version"]
 optional-dependencies.test = ['coverage', 'pep8', 'pylint', 'flake8']

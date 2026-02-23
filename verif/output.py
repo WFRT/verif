@@ -1,7 +1,4 @@
 # -*- coding: ISO-8859-1 -*-
-from __future__ import print_function
-from six.moves import reload_module
-
 import datetime
 import inspect
 import os
@@ -15,7 +12,6 @@ import verif.axis
 import verif.metric
 import verif.metric_type
 import verif.util
-reload_module(sys)
 
 try:
     import cartopy
@@ -289,15 +285,12 @@ class Output(object):
             s += "%-*s| " % (lengths[i], ylabels[i])
         s += "\n"
 
-        # Cannot be imported into the global namespace because it breaks the introspection used in get_all()
-        from past.builtins import basestring
-
         # Loop over rows
         for i in range(len(x)):
             for w in descs.keys():
                 if descs[w] is None:
                     s += "%-*s| " % (desc_lengths[w], "All")
-                elif isinstance(descs[w][i], basestring):
+                elif isinstance(descs[w][i], str):
                     s += "%-*s| " % (desc_lengths[w], descs[w][i])
                 else:
                     # Don't use .4g because this will give unnecessary descimals for
