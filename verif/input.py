@@ -140,17 +140,17 @@ class Input(object):
 
     @property
     def ensemble_mean(self):
-        if self.ensemble is not None:
+        if "ensemble_mean" in self.other_fields:
+            return self.other_score("ensemble_mean")
+        elif self.ensemble is not None:
             return np.nanmean(self.ensemble, axis=-1)
-        elif "ensemble_mean" in self.other_fields:
-            return self.other_fields["ensemble_mean"]
         else:
             raise ValueError("Input does not have ensemble. Cannot compute ensemble mean")
 
     @property
     def ensemble_variance(self):
         if "ensemble_variance" in self.other_fields:
-            return self.other_fields["ensemble_variance"]
+            return self.other_score("ensemble_variance")
         elif self.num_members > 1:
             return np.nanvar(self.ensemble, axis=-1)
         else:

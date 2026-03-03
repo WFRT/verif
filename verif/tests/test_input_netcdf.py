@@ -85,6 +85,11 @@ class InputNetcdfTest(unittest.TestCase):
         self.assertFalse(input.has_field(verif.field.Threshold(1)))
         self.assertFalse(input.has_field(verif.field.Quantile(1)))
 
+    def test_ensemble_variance(self):
+        input = verif.input.Netcdf("verif/tests/files/netcdf_ens2.nc")
+        x = input.ensemble_variance
+        x = input.ensemble_mean
+
 
 if __name__ == "__main__":
     unittest.main()
