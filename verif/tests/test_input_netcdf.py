@@ -90,6 +90,14 @@ class InputNetcdfTest(unittest.TestCase):
         x = input.ensemble_variance
         x = input.ensemble_mean
 
+    def test_time_units_seconds(self):
+        input = verif.input.Netcdf("verif/tests/files/netcdf_second_time_units.nc")
+        np.testing.assert_array_almost_equal(input.times, [86400, 129600])
+
+    def test_time_units_hours(self):
+        input = verif.input.Netcdf("verif/tests/files/netcdf_hour_time_units.nc")
+        np.testing.assert_array_almost_equal(input.times, [3600, 7200])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,3 +1,4 @@
+import cftime
 import csv
 import datetime
 import numpy as np
@@ -282,7 +283,19 @@ class Netcdf(Input):
         return verif.util.clean(self._file.variables[name])
 
     def _get_times(self):
-        return verif.util.clean(self._file.variables["time"], np.float64)
+        var = self._file.variables["time"]
+        times = verif.util.clean(var, np.float64)
+
+        if hasattr(var, "units"):
+            # Convert to unixtime seconds, if needed
+            units = var.units
+            dates = cftime.num2date(times, units)
+            times = np.array([
+                (dt - cftime.DatetimeGregorian(1970, 1, 1)).total_seconds()
+                for dt in dates
+                ], dtype="float64")
+
+        return times
 
     def _get_locations(self):
         num_locations = len(self._file.dimensions['location'])

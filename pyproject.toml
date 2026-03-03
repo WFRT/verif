@@ -35,6 +35,7 @@ dependencies = [
     'scipy',
     'netCDF4',
     'PyQt6',
+    'cftime',
     'cartopy',
 ]
 dynamic = ["version"]
