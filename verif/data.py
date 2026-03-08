@@ -219,6 +219,11 @@ class Data(object):
     def get_scores(self, fields, input_index, axis=verif.axis.All(), axis_index=None):
         """ Retrieves scores from all files
 
+        NOTE: This will return a vector where cases where one of more input have missing data are
+        removed. Thus, you can expect get_scores to give the same vector of cases for any
+        input_index. Take care when using Ensemble data, since one or more members may be missing
+        for some of the input_indices.
+
         Climatology is handled by subtracting clim's fcst field from any
         obs or determinsitic fields.
 
@@ -265,8 +270,7 @@ class Data(object):
             clim = 0
 
         # Load scores and flatten along the correct dimension
-        for i in range(0, len(fields)):
-            field = fields[i]
+        for i, field in enumerate(fields):
             temp = self._get_score(field, input_index)
 
             # Remove observations outside the obsrange
@@ -293,10 +297,11 @@ class Data(object):
                 if num_members == 0:
                     currValid = np.ones(currValid.shape[:-1], int)
                 else:
+                    # A case is valid if it has at least one valid ensemble member
                     if axis == verif.axis.All():
-                        currValid = np.prod(currValid, axis=3)
+                        currValid = np.any(currValid, axis=3)
                     else:
-                        currValid = np.prod(currValid, axis=1)
+                        currValid = np.any(currValid, axis=1)
 
             if valid is None:
                 valid = currValid

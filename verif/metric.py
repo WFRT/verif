@@ -777,12 +777,21 @@ class FCrps(Metric):
             else -1.0 / (num_members**2)
         )
 
-        mae = np.mean(np.abs(obs[..., None] - ensemble), axis=-1)
+        mae = np.nanmean(np.abs(obs[..., None] - ensemble), axis=-1)
 
-        # var = np.abs(ensemble[..., None] - ensemble[..., None, :])
         var = np.zeros(ensemble.shape[:-1])
         for i in range(num_members):  # loop version to reduce memory usage
-            var += np.sum(np.abs(ensemble[..., i, None] - ensemble[..., i + 1:]), axis=-1)
+            temp = np.sum(np.abs(ensemble[..., i, None] - ensemble[..., i + 1:]), axis=-1)
+            # Note that some members can be missing for some cases
+            temp[np.isnan(temp)] = 0
+            var += temp
+
+        num_local_members = np.sum(~np.isnan(ensemble), axis=-1)
+        coef = (
+            -1.0 / (num_local_members * (num_local_members - 1))
+            if fair
+            else -1.0 / (num_local_members**2)
+        )
         var *= coef
         return mae + var
 
