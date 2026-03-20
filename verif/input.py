@@ -306,7 +306,7 @@ class Netcdf(Input):
         if "lon" in self._file.variables:
             lon = verif.util.clean(self._file.variables["lon"])
         if "location" in self._file.variables:
-            id = verif.util.clean(self._file.variables["location"])
+            id = verif.util.clean(self._file.variables["location"], np.int32)
         else:
             id = np.arange(len(lat))
         if "altitude" not in self._file.variables:
