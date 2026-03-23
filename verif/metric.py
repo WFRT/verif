@@ -290,16 +290,18 @@ class FromField(Metric):
     supports_aggregator = True
     supports_field = True
 
-    def __init__(self, field, aux=None):
+    def __init__(self, field, aux=None, pretransform=None):
         """ Compute scores from a field
 
         Arguments:
            field (verif.field.field): Retrive data from this field
            aux (verif.field.Field): When reading field, also pull values for
               this field to ensure only common data points are returned
+           pretransform (function): Apply this function ot the values before aggregating
         """
         self._field = field
         self._aux = aux
+        self._pretransform = pretransform
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
         fields = [self._field]
@@ -316,6 +318,9 @@ class FromField(Metric):
             fields += [self._aux]
         values_array = data.get_scores(fields, input_index, axis, axis_index)
         values = values_array[0]
+
+        if self._pretransform is not None:
+            values = self._pretransform(values)
 
         # Subset if we have a subsetting axis
         if axis_pos is not None:
@@ -1422,15 +1427,15 @@ class Spread(FromField):
     name = "Ensemble standard deviation"
     description = "Ensemble spread (standard deviation of members)."
     min = 0
-    supports_aggregator = True
+    supports_aggregator = False
     perfect_score = 0
     orientation = -1
 
     def __init__(self):
-        super(Spread, self).__init__(verif.field.EnsembleVariance())
+        super(Spread, self).__init__(verif.field.EnsembleVariance(), pretransform=np.sqrt)
 
     def label(self, variable):
-        return self.aggregator.name().title() + " of ensemble spread (" + variable.units + ")"
+        return "Ensemble standard deviation (" + variable.units + ")"
 
 
 class SpreadSkillRatio(Metric):
