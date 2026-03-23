@@ -741,6 +741,7 @@ class FCrps(Metric):
     description = "Fair continuous ranked probability score"
     supports_aggregator = True
     orientation = -1
+    min = 0
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
         ensemble, obs = data.get_scores([verif.field.Ensemble(), verif.field.Obs()], input_index, axis, axis_index)
