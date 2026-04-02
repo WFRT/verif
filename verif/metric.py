@@ -1435,7 +1435,7 @@ class Spread(FromField):
         super(Spread, self).__init__(verif.field.EnsembleVariance(), pretransform=np.sqrt)
 
     def label(self, variable):
-        return "Ensemble standard deviation (" + variable.units + ")"
+        return "Ensemble stdev (" + variable.units + ")"
 
 
 class SpreadSkillRatio(Metric):
