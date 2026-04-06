@@ -3583,7 +3583,7 @@ class BsDecomp(Output):
 
     def _plot_core(self, data):
         if self.thresholds is None or len(self.thresholds) != 1:
-            verif.util.error("Murphy plot needs a single threshold (use -r)")
+            verif.util.error("Brier score decomposition plot needs a single threshold (use -r)")
 
         bsrel = verif.metric.BsRel()
         bsres = verif.metric.BsRes()
