@@ -223,7 +223,7 @@ def run(argv):
                 elif arg == "-clim":
                     clim = verif.util.parse_numbers(arg_next)
                 elif arg == "-xticks":
-                    xticks = verif.util.parse_numbers(arg_next)
+                    xticks = arg_next
                 elif arg == "-xticklabels":
                     xticklabels = verif.util.parse_label(arg_next).split(',')
                 elif arg == "-yticks":
@@ -628,7 +628,10 @@ def run(argv):
     if clim is not None:
         pl.clim = clim
     if xticks is not None:
-        pl.xticks = xticks
+        if axis.is_time_like:
+            pl.xticks = verif.util.parse_dates(xticks)
+        else:
+            pl.xticks = verif.util.parse_numbers(xticks)
     if xticklabels is not None:
         pl.xticklabels = xticklabels
     if yticks is not None:
