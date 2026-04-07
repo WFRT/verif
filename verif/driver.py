@@ -628,7 +628,7 @@ def run(argv):
     if clim is not None:
         pl.clim = clim
     if xticks is not None:
-        if axis.is_time_like:
+        if axis is not None and axis.is_time_like:
             pl.xticks = verif.util.parse_dates(xticks)
         else:
             pl.xticks = verif.util.parse_numbers(xticks)
