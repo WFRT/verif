@@ -59,6 +59,28 @@ def main():
             file.variables["ensemble_mean"][:] = ens_mean
             file.variables["ensemble_variance"][:] = np.nanvar(ensemble, axis=3)
 
+        if "analysis" not in file.variables:
+            var = file.createVariable("analysis", "f4", ("time", "leadtime", "location"))
+        else:
+            var = file.variables["analysis"]
+        analysis = np.nan * np.zeros(var.shape, np.float32)
+        fcst = file.variables["fcst"][:]
+        frts = file.variables["time"][:]
+        first_leadtime = file.variables["leadtime"][0] * 3600
+        analysis_valid_times = frts + first_leadtime
+
+        a, b = np.meshgrid(frts, np.array(file.variables["leadtime"][:] * 3600))
+        valid_times = a + b
+        valid_times = valid_times.transpose()
+        for _t, valid_time in enumerate(frts):
+            print(_t)
+            Itimes, Ileadtimes = np.where(valid_times == valid_time)
+            print(len(Itimes))
+            for i in range(len(Itimes)):
+                analysis[Itimes[i], Ileadtimes[i], :] = fcst[_t, 0, :]
+
+        var[:] = analysis
+
     os.remove(filename_backup)
 
 
