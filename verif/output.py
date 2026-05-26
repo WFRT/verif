@@ -1387,6 +1387,10 @@ class ObsFcst(Output):
         self.show_acc = False
         Output.__init__(self)
 
+        self._mapLowerPerc = 0    # Lower percentile (%) to show in colourmap
+        self._mapUpperPerc = 100  # Upper percentile (%) to show in colourmap
+        self.show_missing = False  # Show missing stations on map
+
     def _plot_core(self, data):
         F = data.num_inputs
         isCont = self.axis.is_continuous
@@ -1462,8 +1466,8 @@ class ObsFcst(Output):
 
     def _get_x_y(self, data, axis):
         F = data.num_inputs
-        x = data.get_axis_values(self.axis)
-        if self.axis.is_time_like:
+        x = data.get_axis_values(axis)
+        if axis.is_time_like:
             x = [verif.util.unixtime_to_datenum(xx) for xx in x]
 
         Nlines = 1 + F
@@ -1473,7 +1477,7 @@ class ObsFcst(Output):
         # Obs line
         mObs = verif.metric.FromField(verif.field.Obs(), aux=verif.field.Fcst())
         mObs.aggregator = self.aggregator
-        obs = mObs.compute(data, 0, self.axis, None)
+        obs = mObs.compute(data, 0, axis, None)
 
         # Fcst line
         mFcst = verif.metric.FromField(verif.field.Fcst(), aux=verif.field.Obs())
@@ -1484,7 +1488,7 @@ class ObsFcst(Output):
         if sum(np.isnan(obs)) == len(obs):
             verif.util.warning("No valid observations")
         for f in range(F):
-            yy = mFcst.compute(data, f, self.axis, None)
+            yy = mFcst.compute(data, f, axis, None)
             if sum(np.isnan(yy)) == len(yy):
                 verif.util.warning("No valid scores for " + labels[f])
             y[:, f + 1] = yy
@@ -1495,7 +1499,7 @@ class ObsFcst(Output):
                 mQuantile = verif.metric.FromField(verif.field.Quantile(quantile), aux=verif.field.Obs())
                 mQuantile.aggregator = self.aggregator
                 for f in range(F):
-                    yy = mQuantile.compute(data, f, self.axis, None)
+                    yy = mQuantile.compute(data, f, axis, None)
                     if sum(np.isnan(yy)) == len(yy):
                         verif.util.warning("No valid scores for " + labels[f])
                     y[:, F + f + 1 + q * F] = yy
@@ -1506,6 +1510,73 @@ class ObsFcst(Output):
             y = np.nan_to_num(y)
             y = np.cumsum(y, axis=0)
         return x, y, axis.name(), labels, None
+
+    def _map_core(self, data):
+        if self.show_rank:
+            verif.util.error("-m obsfcst does not support -type maprank")
+
+        F = data.num_inputs + 1
+        lats = np.array([loc.lat for loc in data.locations])
+        lons = np.array([loc.lon for loc in data.locations])
+        elevs = np.array([loc.elev for loc in data.locations])
+        ids = np.array([loc.id for loc in data.locations])
+        x, y, _, labels, _ = self._get_x_y(data, verif.axis.Location())
+
+        # Colorbar limits should be the same for all subplots
+        clim = [np.nanpercentile(y.flatten(), self._mapLowerPerc),
+                verif.util.nanpercentile(y.flatten(), self._mapUpperPerc)]
+
+        cmap = self.cmap
+
+        # Forced limits
+        if self.clim is not None:
+            clim = self.clim
+
+        std = np.nanstd(y)
+        minDiff = std / 50
+
+        for f in range(F):
+            map, x0, y0 = self._setup_map(data, F, f+1)
+            is_valid = np.isnan(y[:, f]) == 0
+            is_invalid = np.isnan(y[:, f])
+            opts = self._get_plot_options(f)
+            plotargs = self._get_transform_args()
+
+            if self.show_missing:
+                map.plot(x0[is_invalid], y0[is_invalid], 'kx', ms=0.8 * opts['ms'], **plotargs)
+
+            s = opts['ms']**2
+
+            cs = map.scatter(x0[is_valid], y0[is_valid], c=y[is_valid, f], s=s, vmin=clim[0],
+                    vmax=clim[1], cmap=cmap, edgecolors='k', **plotargs)
+            # Use a smaler marker size for missing, since otherwise the x's are a bit dominating
+            # map.scatter(x0[is_invalid], y0[is_invalid], c='k', s=s*0.8, marker="x")
+            # import matplotlib
+            # cax,kw = matplotlib.colorbar.make_axes(map,pad=0.05,shrink=0.7)
+            # mpl.gcf().colorbar(cs,cax=cax,extend='both',**kw)
+            cb = mpl.gcf().colorbar(cs)
+            if self.clabel is None:
+                cb.set_label(data.get_variable_and_units(), fontsize=self.labfs)
+            else:
+                cb.set_label(self.clabel, fontsize=self.labfs)
+
+            alabels = dict()
+            alabels["lat"] = lats[is_valid]
+            alabels["lon"] = lats[is_valid]
+            alabels["elev"] = elevs[is_valid]
+            alabels["location"] = ids[is_valid]
+            alabels["score"] = y[is_valid, f]
+            alabels["key"] = ids[is_valid]
+            self._add_annotation(x0[is_valid], y0[is_valid], alabels)
+
+            names = data.get_legend()
+            if self.title is not None:
+                mpl.title(self.title)
+            elif F > 1:
+                mpl.title(labels[f])
+            elif F == 1 and self.show_rank:
+                mpl.title(self._metric.name)
+            self._adjust_axis(mpl.gca())
 
 
 class QQ(Output):
