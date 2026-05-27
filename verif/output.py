@@ -1390,6 +1390,7 @@ class ObsFcst(Output):
         self._mapLowerPerc = 0    # Lower percentile (%) to show in colourmap
         self._mapUpperPerc = 100  # Upper percentile (%) to show in colourmap
         self.show_missing = False  # Show missing stations on map
+        self.show_rank = False
 
     def _plot_core(self, data):
         F = data.num_inputs

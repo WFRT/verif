@@ -152,7 +152,7 @@ class IntegrationTest(unittest.TestCase):
                 "verif examples/raw.txt examples/kf.txt -m obsfcst -x %s -acc" % axis
             )
     def test_obsfcst_type_map(self):
-            self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -type mapimpact")
+            self.run_with_image("verif examples/raw.txt examples/kf.txt -m obsfcst -type map")
 
     def test_pithist(self):
         self.run_with_image("verif examples/raw.txt examples/kf.txt -m pithistdev")
