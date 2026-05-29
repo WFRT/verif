@@ -21,7 +21,7 @@ files, Verif will discard data points where one or more forecast systems have mi
 Since Verif is a command-line tool, it can be used in scripts to automatically create
 verification figures.
 
-Verif version 1.3 has been released (see "Installation Instruction" below). We welcome suggestions
+Verif version 1.4 has been released (see "Installation Instruction" below). We welcome suggestions
 for improvements. Verif is developed by Thomas Nipen (thomasn@met.no), with contributions from many.
 
 Features
@@ -80,21 +80,21 @@ To upgrade to a newer version of Verif, run the following:
 Examples
 --------
 To test Verif, you can download example datasets from the github
-`discussion page <https://github.com/WFRT/verif/discussions>`_. For example, download the following two files from the wind speed dataset: `MEPS.nc <https://thredds.met.no/thredds/fileServer/metusers/thomasn/verif_datasets/short_range_wind/MEPS.nc>`_ (2.5 km regional model; 20MB file size) and `ECMWF.nc <https://thredds.met.no/thredds/fileServer/metusers/thomasn/verif_datasets/short_range_wind/ECMWF.nc>`_ (0.2° global model; 24MB file size). Then run the following
+`discussion page <https://github.com/WFRT/verif/discussions>`_. For example, download the following two files from the wind speed dataset: `MEPS.nc <https://thredds.met.no/thredds/fileServer/metusers/thomasn/verif_datasets/short_range_wind_ens/MEPS.nc>`_ (2.5 km regional model; 557MB file size) and `IFS.nc <https://thredds.met.no/thredds/fileServer/metusers/thomasn/verif_datasets/short_range_wind_ens/IFS.nc>`_ (9 km global model by ECMWF; 419 MB file size). Then run the following
 commands to test out the software:
 
 .. code-block:: bash
 
    # Shows mean absolute error as a function of lead-time
-   verif MEPS.nc ECMWF.nc -m mae
+   verif MEPS.nc IFS.nc -m mae
    # Shows average observed and forecasted values as a function on time
-   verif MEPS.nc ECMWF.nc -m obsfcst -x time
+   verif MEPS.nc IFS.nc -m obsfcst -x time
    # Shows equitable threat score as a function of threshold
-   verif MEPS.nc ECMWF.nc -m ets
+   verif MEPS.nc IFS.nc -m ets
    # Shows a reliability diagram for a threshold of 13.9 m/s (gale force winds)
-   verif MEPS.nc ECMWF.nc -m reliability -r 13.9
+   verif MEPS.nc IFS.nc -m reliability -r 13.9
    # Shows Brier skill score as a function of threshold
-   verif MEPS.nc ECMWF.nc -m bss -x threshold
+   verif MEPS.nc IFS.nc -m bss -x threshold
 
 How to cite
 -----------
