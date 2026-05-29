@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61", "setuptools_scm"]
+requires = ["setuptools>=68", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -45,11 +45,8 @@ optional-dependencies.test = ['coverage', 'pep8', 'pylint', 'flake8']
 Homepage='https://github.com/WFRT/verif'
 
 [tool.setuptools]
-# Any setuptools-specific configuration (e.g., package data, entry points) goes here
-include-package-data = true
-
-[tool.setuptools.packages.find]
-include = ["verif"]
+include-package-data = false
+packages = ["verif"]
 
 [tool.setuptools.dynamic]
 version = {attr = "verif.version.__version__"}

@@ -1,0 +1,22 @@
+include pyproject.toml
+include README.md
+include LICENSE
+
+recursive-include verif *.py
+
+prune tests
+prune docs
+prune .github
+prune .gitignore
+prune scripts
+prune examples
+prune other
+prune .pytest_cache
+prune build
+prune dist
+prune verif/tests
+
+global-exclude __pycache__/*
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
