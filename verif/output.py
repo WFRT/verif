@@ -1423,6 +1423,8 @@ class ObsFcst(Output):
             self._plot_obs(x, y[:, 0], alabels, isCont)
             for f in range(F):
                 opts = self._get_plot_options(f, include_line=isCont)
+                if not self.axis.is_continuous:
+                    opts["alpha"] = 0.55
                 mpl.plot(x, y[:, f + 1], label=labels[f+1], **opts)
 
                 alabels["score"] = y[:, f + 1]
