@@ -2473,7 +2473,8 @@ class RankHist(Output):
 
             # Plot expected mean line
             xlim = [-0.5, num_members+0.5]
-            mpl.plot(xlim, [100.0 / num_members, 100.0 / num_members], 'k--')
+            expected = 100.0 / (num_members + 1)
+            mpl.plot(xlim, [expected, expected], 'k--')
 
             # Axes and labels
             mpl.title(labels[f])
@@ -2488,10 +2489,10 @@ class RankHist(Output):
                 # Multiply by 100 to get to percent
                 std = verif.metric.PitHistDev.deviation_std(rank, num_members) * 100
 
-                mpl.plot(xlim, [100.0 / num_members - 2 * std, 100.0 / num_members - 2 * std], "r-")
-                mpl.plot(xlim, [100.0 / num_members + 2 * std, 100.0 / num_members + 2 * std], "r-")
-                lower = [100.0 / num_members - 2 * std, 100.0 / num_members - 2 * std]
-                upper = [100.0 / num_members + 2 * std, 100.0 / num_members + 2 * std]
+                lower = [expected - 2 * std, expected - 2 * std]
+                upper = [expected + 2 * std, expected + 2 * std]
+                mpl.plot(xlim, lower, "r-")
+                mpl.plot(xlim, upper, "r-")
                 verif.util.fill(xlim, lower, upper, "r", zorder=100, alpha=0.5)
 
             mpl.xlabel("Ensemble rank")
