@@ -32,7 +32,7 @@ def main():
         if "ens-std" in file.variables:
             file.renameVariable("ens-std", "ensemble_std")
         if "ens-var" in file.variables:
-            file.renameVariable("ens-var", "ensemble_variance")
+            file.renameVariable("ens-var", "ensemble_sample_variance")
 
         if "ensemble" not in file.variables:
             print(f"File does not have ensemble, cannot compute ensemble statistics.")
@@ -50,14 +50,14 @@ def main():
             file.variables["ensemble_crps"][:] = crps
 
             # Compute ensemble moments
-            fields = ["ensemble_mean" , "ensemble_variance"]
+            fields = ["ensemble_mean" , "ensemble_sample_variance"]
             for field in fields:
                 if field not in file.variables:
                     file.createVariable(field, "f4", ("time", "leadtime", "location"))
 
             ens_mean = np.nanmean(ensemble, axis=3)
             file.variables["ensemble_mean"][:] = ens_mean
-            file.variables["ensemble_variance"][:] = np.nanvar(ensemble, axis=3)
+            file.variables["ensemble_sample_variance"][:] = np.nanvar(ensemble, axis=3, ddof=1)
 
         if "analysis" not in file.variables:
             var = file.createVariable("analysis", "f4", ("time", "leadtime", "location"))
