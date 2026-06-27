@@ -712,7 +712,7 @@ def get_aggregation_string():
 
 
 def show_description(data=None):
-    desc = "Program to compute verification scores for weather forecasts. See https://github.com/WFRT/verif/wiki for how to format input files."
+    desc = "Program to compute verification scores for weather forecasts. See https://github.com/WFRT/verif/wiki for how to format input files and further details on metrics."
     s = "usage: verif files -m metric [options]\n"
     s += "\n"
     s += textwrap.fill(desc, get_text_width()) + "\n"
