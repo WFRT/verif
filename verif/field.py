@@ -20,8 +20,8 @@ def get(name):
     """ Returns an instance of an object with the given class name """
     if name == "ensemble:mean":
         return EnsembleMean()
-    elif name == "ensemble:variance":
-        return EnsembleVariance()
+    elif name == "ensemble:sample_variance":
+        return EnsembleSampleVariance()
 
     fields = get_all()
     f = None
@@ -114,7 +114,7 @@ class EnsembleMean(Field):
     pass
 
 
-class EnsembleVariance(Field):
+class EnsembleSampleVariance(Field):
     def units(self, variable):
         return "(" + variable.units + ") ^ 2"
 

@@ -576,12 +576,12 @@ class Data(object):
                             assert(len(I) == 1)
                             temp = input.quantile_scores[:, :, :, I[0]]
 
-                    elif field == verif.field.EnsembleVariance():
+                    elif field == verif.field.EnsembleSampleVariance():
                         if self.dim_agg_length is not None:
                             temp = self.preaggregate(input.ensemble, input)
-                            temp = np.nanvar(temp, axis=-1)
+                            temp = np.nanvar(temp, axis=-1, ddof=1)
                         else:
-                            temp = input.ensemble_variance
+                            temp = input.ensemble_sample_variance
 
                     elif field == verif.field.Pit():
                         temp = input.pit

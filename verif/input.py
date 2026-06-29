@@ -149,11 +149,11 @@ class Input(object):
             raise ValueError("Input does not have ensemble. Cannot compute ensemble mean")
 
     @property
-    def ensemble_variance(self):
-        if "ensemble_variance" in self.other_fields:
-            return self.other_score("ensemble_variance")
+    def ensemble_sample_variance(self):
+        if "ensemble_sample_variance" in self.other_fields:
+            return self.other_score("ensemble_sample_variance")
         elif self.num_members > 1:
-            return np.nanvar(self.ensemble, axis=-1)
+            return np.nanvar(self.ensemble, axis=-1, ddof=1)
         else:
             raise ValueError("Input does not have ensemble, or it has less than 2 members. Cannot compute ensemble variable")
 
@@ -216,8 +216,8 @@ class Netcdf(Input):
             return field.member < self.num_members
         elif field == verif.field.EnsembleMean():
             return "ensemble_mean" in self._file.variables or self.num_members > 0
-        elif field == verif.field.EnsembleVariance():
-            return "ensemble_variance" in self._file.variables or self.num_members > 1
+        elif field == verif.field.EnsembleSampleVariance():
+            return "ensemble_sample_variance" in self._file.variables or self.num_members > 1
         elif isinstance(field, verif.field.Threshold):
             return field.threshold in self.thresholds
         elif isinstance(field, verif.field.Quantile):
@@ -638,8 +638,8 @@ class Text(Input):
             return self.ensemble.shape[-1] != 0
         elif field == verif.field.EnsembleMean():
             return "ensemble_mean" in self._other_scores or self.num_members > 0
-        elif field == verif.field.EnsembleVariance():
-            return "ensemble_variance" in self._other_scores or self.num_members > 1
+        elif field == verif.field.EnsembleSampleVariance():
+            return "ensemble_sample_variance" in self._other_scores or self.num_members > 1
         elif isinstance(field, verif.field.EnsembleMember):
             return field.member < self.num_members
         elif isinstance(field, verif.field.Threshold):

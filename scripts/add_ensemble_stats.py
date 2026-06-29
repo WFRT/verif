@@ -40,6 +40,9 @@ def main():
             ensemble = file.variables["ensemble"][:]
             num_members = ensemble.shape[-1]
 
+            if "ensemble_variance" in file.variables and "ensemble_sample_variance" not in file.variables:
+                file.renameVariable("ensemble_variance", "ensemble_sample_variance")
+
             # Compute CRPS
             if "ensemble_crps" not in file.variables:
                 file.createvariable("ensemble_crps", "f4", ("time", "leadtime", "location"))

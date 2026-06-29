@@ -61,7 +61,7 @@ class InputNetcdfTest(unittest.TestCase):
         self.assertTrue(input.has_field(verif.field.Fcst()))
         self.assertFalse(input.has_field(verif.field.Ensemble()))
         self.assertFalse(input.has_field(verif.field.EnsembleMean()))
-        self.assertFalse(input.has_field(verif.field.EnsembleVariance()))
+        self.assertFalse(input.has_field(verif.field.EnsembleSampleVariance()))
         self.assertFalse(input.has_field(verif.field.Threshold(1)))
         self.assertFalse(input.has_field(verif.field.Quantile(1)))
 
@@ -71,7 +71,7 @@ class InputNetcdfTest(unittest.TestCase):
         self.assertFalse(input.has_field(verif.field.Fcst()))
         self.assertFalse(input.has_field(verif.field.Ensemble()))
         self.assertFalse(input.has_field(verif.field.EnsembleMean()))
-        self.assertFalse(input.has_field(verif.field.EnsembleVariance()))
+        self.assertFalse(input.has_field(verif.field.EnsembleSampleVariance()))
         self.assertFalse(input.has_field(verif.field.Threshold(1)))
         self.assertFalse(input.has_field(verif.field.Quantile(1)))
 
@@ -81,13 +81,13 @@ class InputNetcdfTest(unittest.TestCase):
         self.assertTrue(input.has_field(verif.field.Fcst()))
         self.assertTrue(input.has_field(verif.field.Ensemble()))
         self.assertTrue(input.has_field(verif.field.EnsembleMean()))
-        self.assertFalse(input.has_field(verif.field.EnsembleVariance()))
+        self.assertFalse(input.has_field(verif.field.EnsembleSampleVariance()))
         self.assertFalse(input.has_field(verif.field.Threshold(1)))
         self.assertFalse(input.has_field(verif.field.Quantile(1)))
 
-    def test_ensemble_variance(self):
+    def test_ensemble_sample_variance(self):
         input = verif.input.Netcdf("verif/tests/files/netcdf_ens2.nc")
-        x = input.ensemble_variance
+        x = input.ensemble_sample_variance
         x = input.ensemble_mean
 
     def test_time_units_seconds(self):

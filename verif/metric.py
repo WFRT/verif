@@ -290,18 +290,20 @@ class FromField(Metric):
     supports_aggregator = True
     supports_field = True
 
-    def __init__(self, field, aux=None, pretransform=None):
+    def __init__(self, field, aux=None, pretransform=None, posttransform=None):
         """ Compute scores from a field
 
         Arguments:
            field (verif.field.field): Retrive data from this field
            aux (verif.field.Field): When reading field, also pull values for
               this field to ensure only common data points are returned
-           pretransform (function): Apply this function ot the values before aggregating
+           pretransform (function): Apply this function on the values before aggregating
+           posttransform (function): Apply this function on the values after aggregating
         """
         self._field = field
         self._aux = aux
         self._pretransform = pretransform
+        self._posttransform = posttransform
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
         fields = [self._field]
@@ -327,7 +329,11 @@ class FromField(Metric):
             I = np.where(interval.within(values_array[axis_pos]))[0]
             values = values[I]
 
-        return self.aggregator(values)
+        value = self.aggregator(values)
+        if self._posttransform is not None:
+            value = self._posttransform(value)
+
+        return value
 
     def label(self, variable):
         return self.aggregator.name().title() + " of " + self._field.name()
@@ -1424,35 +1430,41 @@ class QuantileScore(Metric):
 
 class Spread(FromField):
     type = verif.metric_type.Probabilistic()
-    name = "Ensemble standard deviation"
-    description = "Ensemble spread (standard deviation of members)."
+    name = "Root mean ensemble sample variance"
+    description = "Ensemble spread (root mean sample variance of ensemble members)"
     min = 0
     supports_aggregator = False
     perfect_score = 0
     orientation = -1
 
     def __init__(self):
-        super(Spread, self).__init__(verif.field.EnsembleVariance(), pretransform=np.sqrt)
+        super(Spread, self).__init__(verif.field.EnsembleSampleVariance(), posttransform=np.sqrt)
 
     def label(self, variable):
-        return "Ensemble stdev (" + variable.units + ")"
+        return "Ensemble spread (" + variable.units + ")"
 
 
 class SpreadSkillRatio(Metric):
     type = verif.metric_type.Probabilistic()
     name = "Spread-skill ratio"
-    description = "Ratio of spread (standard deviation of memebrs) to skill (RMSE of ensemble mean)."
+    description = "Ratio of spread (standard deviation of memebrs) to skill (RMSE of ensemble mean). See the wiki for details on method."
     supports_threshold = False
     min = 0
     perfect_score = 1
     orientation = 0
 
     def compute_single(self, data, input_index, axis, axis_index, interval):
-        fields = [verif.field.EnsembleMean(), verif.field.EnsembleVariance(), verif.field.Obs()]
+        fields = [verif.field.EnsembleMean(), verif.field.EnsembleSampleVariance(), verif.field.Obs()]
         mean, variance, obs = data.get_scores(fields, input_index, axis, axis_index)
 
-        spread = np.mean(np.sqrt(variance))
+        spread = np.sqrt(np.mean(variance))
         skill = np.sqrt(np.mean(np.abs(obs - mean)**2))
+
+        # The RMSE of the ensemble mean is a biased estimator of the RMSE of an infinitely large
+        # ensemble. Adjust for this here:
+        num_members = data.get_num_members(input_index)
+        adjustment_coeff = np.sqrt(num_members / (num_members + 1))
+        skill *= adjustment_coeff
 
         if np.isclose(skill, 0, atol=1e-7):
             return np.nan
