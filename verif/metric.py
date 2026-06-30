@@ -744,6 +744,24 @@ class DError(ObsFcstBased):
         sortedfcst = np.sort(fcst)
         return np.mean(np.abs(sortedobs - sortedfcst))
 
+class AdjustedEnsembleMeanRmse(Metric):
+    """ Unbiased estimator of RMSE of ensemble mean """
+    type = verif.metric_type.Deterministic()
+    name = "Adj. ensemble mean RMSE"
+    description = "Unbisaed estimator of RMSE of ensemble mean"
+    supports_aggregator = True
+    orientation = -1
+    min = 0
+
+    def compute_single(self, data, input_index, axis, axis_index, interval):
+        ensemble_mean, obs = data.get_scores([verif.field.EnsembleMean(), verif.field.Obs()], input_index, axis, axis_index)
+        rmse = np.sqrt(np.mean((ensemble_mean - obs)**2))
+
+        num_members = data.get_num_members(input_index)
+        adjustment_coeff = np.sqrt(num_members / (num_members + 1))
+        rmse *= adjustment_coeff
+        return rmse
+
 
 class FCrps(Metric):
     """ Fair continuous ranked probability score """
@@ -1426,6 +1444,21 @@ class QuantileScore(Metric):
 
     def label(self, variable):
         return self.name
+
+class EnsembleSampleVariance(FromField):
+    type = verif.metric_type.Probabilistic()
+    name = "Ensemble sample variance"
+    description = "Ensemble sample variance of members"
+    min = 0
+    supports_aggregator = False
+    perfect_score = 0
+    orientation = -1
+
+    def __init__(self):
+        super(EnsembleSampleVariance, self).__init__(verif.field.EnsembleSampleVariance())
+
+    def label(self, variable):
+        return "Ensemble sample variance (" + variable.units + ")"
 
 
 class Spread(FromField):

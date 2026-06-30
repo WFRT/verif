@@ -1319,6 +1319,141 @@ class Standard(Output):
                 mpl.legend(lines, names, loc=self.leg_loc, prop={'size': self.legfs})
 
 
+class Dual(Output):
+    """
+    A standard plot showing two metrics from verif.metric
+    """
+    leg_loc = "best"
+
+    def __init__(self, metric1, metric2, label1, label2, ylabel):
+        Output.__init__(self)
+
+        self.metric1 = metric1
+        self.metric2 = metric2
+        self.label1 = label1
+        self.label2 = label2
+        self._ylabel = ylabel
+        if metric1.default_axis is not None:
+            self.axis = metric1.default_axis
+        if metric1.default_bin_type is not None:
+            self.bin_type = metric1.default_bin_type
+
+    def _get_x_y(self, data, axis):
+        thresholds = self.thresholds
+
+        intervals = verif.util.get_intervals(self.bin_type, thresholds)
+        x = [i.center for i in intervals]
+        if axis not in [verif.axis.Threshold(), verif.axis.Obs(), verif.axis.Fcst()]:
+            x = data.get_axis_values(axis)
+        if axis.is_time_like:
+            x = [verif.util.unixtime_to_datenum(xx) for xx in x]
+
+        xname = axis.name()
+        ynames = data.get_legend()
+        F = data.num_inputs
+        yall = list()
+        for metric in [self.metric1, self.metric2]:
+            y = None
+            for f in range(F):
+                yy = np.zeros(len(x), 'float')
+                if axis in [verif.axis.Threshold(), verif.axis.Obs(), verif.axis.Fcst()]:
+                    for i in range(len(intervals)):
+                        yy[i] = metric.compute(data, f, axis, intervals[i])[0]
+                else:
+                    # Average all thresholds
+                    for i in range(len(intervals)):
+                        yy = yy + metric.compute(data, f, axis, intervals[i])
+                    yy = yy / len(intervals)
+
+                if sum(np.isnan(yy)) == len(yy):
+                    verif.util.warning("No valid scores for " + ynames[f])
+                if y is None:
+                    y = np.zeros([len(yy), F], 'float')
+                y[:, f] = yy
+            yall += [y]
+        return x, yall[0], yall[1], xname, ynames, None
+
+    def _legend(self, data, names=None):
+        if self.legfs > 0 and self.axis != verif.axis.No():
+            mpl.legend(loc=self.leg_loc, prop={'size': self.legfs})
+
+    def _plot_core(self, data):
+        if self.axis == verif.axis.No():
+            raise NotImplementedError()
+
+        # We have to derive the legend list here, because we might want to
+        # specify the order
+        labels = np.array(data.get_legend())
+
+        F = data.num_inputs
+        x, y1, y2, _, labels, _ = self._get_x_y(data, self.axis)
+
+        ids = range(F)
+
+        # Show a bargraph with unconditional averages when no axis is specified
+
+        for f in range(F):
+            id = ids[f]
+            opts = self._get_plot_options(id, include_line=self.axis.is_continuous)
+            opts["ls"] = "-"
+            alpha = (1 if self.axis.is_continuous else 0.55)
+            label = f"{labels[f]} ({self.label1})"
+            mpl.plot(x, y1[:, id], label=label, alpha=alpha, **opts)
+
+            alpha = 0.5
+            opts["ls"] = "--"
+            label = f"{labels[f]} ({self.label2})"
+            mpl.plot(x, y2[:, id], label=label, alpha=alpha, **opts)
+
+            # Gather annotation information
+            alabels = dict()
+            alabels["score"] = y1[:, id]
+            alabels["key"] = x
+            if self.axis.is_location_like:
+                lats = np.array([loc.lat for loc in data.locations])
+                lons = np.array([loc.lon for loc in data.locations])
+                elevs = np.array([loc.elev for loc in data.locations])
+                loc_ids = np.array([loc.id for loc in data.locations])
+                alabels["lat"] = lats
+                alabels["lon"] = lats
+                alabels["elev"] = elevs
+                alabels["location"] = loc_ids
+            self._add_annotation(x, y1[:, id], alabels, color=opts['color'], alpha=alpha)
+
+        mpl.xlabel(self.axis.label(data.variable))
+        if self.axis == verif.axis.Threshold():
+            # Verif doesn't distinguish between quantile and threshold when using the threshold
+            # dimension. Only the metric knows what type of threshold dimension we have.
+            if self.metric.require_threshold_type == "quantile":
+                mpl.xlabel("Quantile level")
+
+        if self.axis.is_time_like:
+            # Note that if the above plotted lines all have nan y'values, then
+            # xaxis_date() will cause an error, since the x-axis limits are set
+            # such that the plot is around 0. Override the x-limits so that the
+            # user at least does not get a cryptic error message.
+            if np.sum(np.isnan(y1) == 0) == 0:
+                mpl.xlim([min(x), max(x)])
+            mpl.gca().xaxis_date()
+        else:
+            # NOTE: Don't call the locator on a date axis
+            mpl.gca().xaxis.set_major_locator(data.get_axis_locator(self.axis))
+
+        # mpl.ylabel(self.metric1.label(data.variable))
+        units = data.variable.units
+        mpl.ylabel(f"{self._ylabel} ({units})")
+        perfect_score = self.metric1.perfect_score
+        self._plot_perfect_score(mpl.xlim(), perfect_score)
+
+
+class SpreadAndSkill(Dual):
+    description = "Plots spread and skill curves separately"
+    name = "Spread and skill"
+
+    def __init__(self):
+        Dual.__init__(self, verif.metric.AdjustedEnsembleMeanRmse(), verif.metric.Spread(), "skill",
+                "spread", "Spread and skill")
+
 class Hist(Output):
     require_threshold_type = "deterministic"
     supports_threshold = True

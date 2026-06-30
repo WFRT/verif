@@ -462,6 +462,8 @@ def run(argv):
         pl = verif.output.Murphy()
     elif metric == "bsdecomp":
         pl = verif.output.BsDecomp()
+    elif metric == "spreadandskill":
+        pl = verif.output.SpreadAndSkill()
     elif metric == "igncontrib":
         pl = verif.output.IgnContrib()
     elif metric == "economicvalue":
