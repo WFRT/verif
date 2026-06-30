@@ -25,6 +25,7 @@ def main():
 
     with netCDF4.Dataset(args.file, 'a') as file:
         # Rename variables
+        print("Renaming variables...")
         if "crps" in file.variables:
             file.renameVariable("crps", "ensemble_crps")
         if "ens-mean" in file.variables:
@@ -44,6 +45,7 @@ def main():
                 file.renameVariable("ensemble_variance", "ensemble_sample_variance")
 
             # Compute CRPS
+            print("Recomputing ensemble_crps...")
             if "ensemble_crps" not in file.variables:
                 file.createvariable("ensemble_crps", "f4", ("time", "leadtime", "location"))
 
@@ -53,6 +55,7 @@ def main():
             file.variables["ensemble_crps"][:] = crps
 
             # Compute ensemble moments
+            print("Recomputing ensemble moments...")
             fields = ["ensemble_mean" , "ensemble_sample_variance"]
             for field in fields:
                 if field not in file.variables:
@@ -62,6 +65,7 @@ def main():
             file.variables["ensemble_mean"][:] = ens_mean
             file.variables["ensemble_sample_variance"][:] = np.nanvar(ensemble, axis=3, ddof=1)
 
+        print("Adding analysis field...")
         if "analysis" not in file.variables:
             var = file.createVariable("analysis", "f4", ("time", "leadtime", "location"))
         else:
@@ -76,9 +80,7 @@ def main():
         valid_times = a + b
         valid_times = valid_times.transpose()
         for _t, valid_time in enumerate(frts):
-            print(_t)
             Itimes, Ileadtimes = np.where(valid_times == valid_time)
-            print(len(Itimes))
             for i in range(len(Itimes)):
                 analysis[Itimes[i], Ileadtimes[i], :] = fcst[_t, 0, :]
 
