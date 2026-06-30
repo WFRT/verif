@@ -2273,19 +2273,21 @@ class SpreadSkill(Output):
         for f in range(F):
             opts = self._get_plot_options(f)
             [obs, mean, variance] = data.get_scores([verif.field.Obs(), verif.field.EnsembleMean(),
-                verif.field.EnsembleVariance()], f, verif.axis.No())
-            spread = variance ** 0.5
-            skill = (obs - mean)**2
+                verif.field.EnsembleSampleVariance()], f, verif.axis.No())
+            num_members = data.get_num_members(f)
+            square_error = (obs - mean)**2
             x = np.nan*np.zeros(len(self.thresholds), 'float')
             y = np.nan*np.zeros(len(x), 'float')
             for i in range(1, len(self.thresholds)):
-                I = np.where((np.isnan(spread) == 0) &
-                             (np.isnan(skill) == 0) &
-                             (spread > self.thresholds[i - 1]) &
-                             (spread <= self.thresholds[i]))[0]
+                I = np.where((np.isnan(variance) == 0) &
+                             (np.isnan(square_error) == 0) &
+                             (variance > self.thresholds[i - 1]) &
+                             (variance <= self.thresholds[i]))[0]
                 if len(I) > 0:
-                    x[i] = np.mean(spread[I])
-                    y[i] = np.sqrt(np.mean(skill[I]))
+                    x[i] = np.sqrt(np.mean(variance[I]))
+                    rmse = np.sqrt(np.mean(square_error[I]))
+                    adjusted_rmse = np.sqrt((num_members) / (num_members + 1)) * rmse
+                    y[i] = adjusted_rmse
 
             mpl.plot(x, y, label=labels[f], **opts)
 
@@ -2298,8 +2300,8 @@ class SpreadSkill(Output):
 
         self._plot_perfect_score(lims, lims)
 
-        mpl.xlabel("Standard deviation of ensemble (" + data.variable.units + ")")
-        mpl.ylabel("RMSE of ensemble mean (" + data.variable.units + ")")
+        mpl.xlabel("Spread (" + data.variable.units + ")")
+        mpl.ylabel("Skill (" + data.variable.units + ")")
 
 
 class TimeSeries(Output):
