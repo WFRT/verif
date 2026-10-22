@@ -1490,6 +1490,8 @@ class SpreadSkillRatio(Metric):
         fields = [verif.field.EnsembleMean(), verif.field.EnsembleSampleVariance(), verif.field.Obs()]
         mean, variance, obs = data.get_scores(fields, input_index, axis, axis_index)
 
+        # This is the right way to compute spread
+        # https://journals.ametsoc.org/view/journals/hydr/15/4/jhm-d-14-0008_1.xml
         spread = np.sqrt(np.mean(variance))
         skill = np.sqrt(np.mean(np.abs(obs - mean)**2))
 
@@ -1524,6 +1526,27 @@ class Ign0(Metric):
         ign = -np.log2(p)
         ign[I0] = -np.log2(1 - p[I0])
         return np.mean(ign)
+
+    def label(self, variable):
+        return self.name
+
+
+class Sharpness(Metric):
+    type = verif.metric_type.Probabilistic()
+    name = "Sharpness"
+    description = "Spread between two quantiles. Use -q to set which quantiles to use."
+    min = 0
+    default_bin_type = "within"
+    require_threshold_type = "quantile"
+    supports_threshold = True
+    perfect_score = 0
+    orientation = -1
+
+    def compute_single(self, data, input_index, axis, axis_index, interval):
+        var0 = verif.field.Quantile(interval.lower)
+        var1 = verif.field.Quantile(interval.upper)
+        [q0, q1] = data.get_scores([var0, var1], input_index, axis, axis_index)
+        return np.mean(q1 - q0)
 
     def label(self, variable):
         return self.name

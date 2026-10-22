@@ -579,6 +579,7 @@ class Data(object):
                     elif field == verif.field.EnsembleSampleVariance():
                         if self.dim_agg_length is not None:
                             temp = self.preaggregate(input.ensemble, input)
+                            # Use ddof=1 to compute sample variance
                             temp = np.nanvar(temp, axis=-1, ddof=1)
                         else:
                             temp = input.ensemble_sample_variance
