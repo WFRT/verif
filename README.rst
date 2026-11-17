@@ -59,23 +59,18 @@ The easiest way to get started is to install verif with pip:
 
 .. code-block:: bash
 
-    pip3 install verif
+    pip install verif
 
-The `verif` command-line program should then be available.
-
-Note that the python package "cartopy" is optional and not installed by default when verif is
-installed, Verif uses "cartopy" for creating a background map when verification scores are plotted
-on a map. To install Cartopy run
-
-.. code-block:: bash
-
-    pip3 install cartopy
+The `verif` command-line program should then be available. This is enough for creating figures that
+are saved to files (e.g. `-f figure.png`) and for text output. If you want verif to open interactive
+plot windows, you need a GUI toolkit. This may already be available on your system, however if not,
+you can install one with `pip install "verif[all]"`.
 
 To upgrade to a newer version of Verif, run the following:
 
 .. code-block:: bash
 
-   pip3 install verif --upgrade
+   pip install verif --upgrade
 
 Examples
 --------
