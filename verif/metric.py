@@ -1458,7 +1458,7 @@ class EnsembleSampleVariance(FromField):
         super(EnsembleSampleVariance, self).__init__(verif.field.EnsembleSampleVariance())
 
     def label(self, variable):
-        return "Ensemble sample variance (" + variable.units + ")"
+        return "Ensemble sample variance ([" + variable.units + "]^2)"
 
 
 class Spread(FromField):
